@@ -28,15 +28,17 @@ package com.vodafone360.people.engine.content;
 import java.util.Hashtable;
 import java.util.List;
 
-import com.vodafone360.people.database.DatabaseHelper;
-import com.vodafone360.people.datatypes.ExternalResponseObject;
-import com.vodafone360.people.datatypes.ServerError;
-import com.vodafone360.people.engine.BaseEngine;
-import com.vodafone360.people.engine.EngineManager.EngineId;
-import com.vodafone360.people.service.ServiceUiRequest;
-import com.vodafone360.people.service.io.QueueManager;
-import com.vodafone360.people.service.io.Request;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import src.com.vodafone360.people.database.DatabaseHelper;
+import src.com.vodafone360.people.datatypes.BaseDataType;
+import src.com.vodafone360.people.datatypes.ExternalResponseObject;
+import src.com.vodafone360.people.datatypes.ServerError;
+import src.com.vodafone360.people.engine.BaseEngine;
+import src.com.vodafone360.people.engine.BaseEngine.IEngineEventCallback;
+import src.com.vodafone360.people.engine.EngineManager.EngineId;
+import src.com.vodafone360.people.service.ServiceUiRequest;
+import src.com.vodafone360.people.service.io.QueueManager;
+import src.com.vodafone360.people.service.io.Request;
+import src.com.vodafone360.people.service.io.ResponseQueue.Response;
 
 /**
  * Content engine for downloading and uploading all kind of content (pictures,
@@ -184,7 +186,16 @@ public class ContentEngine extends BaseEngine {
     @Override
     protected final void processCommsResponse(final Response resp) {
         ContentObject co = requestContentObjectMatchTable.remove(resp.mReqId);
-        Object data = resp.mDataTypes.get(0);
+        List<BaseDataType> mDataTypes = resp.mDataTypes;
+        // Sometimes it is empty
+        if (mDataTypes == null) {
+            co.setTransferStatus(ContentObject.TransferStatus.ERROR);
+            RuntimeException exc = new RuntimeException("Empty response returned");
+            co.getTransferListener().transferError(co, exc);
+            return;
+        }
+
+        Object data = mDataTypes.get(0);
         if (data instanceof ServerError) {
             co.setTransferStatus(ContentObject.TransferStatus.ERROR);
             RuntimeException exc = new RuntimeException(data.toString());
