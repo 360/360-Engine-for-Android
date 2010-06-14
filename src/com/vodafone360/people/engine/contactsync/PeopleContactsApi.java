@@ -442,10 +442,21 @@ public class PeopleContactsApi {
                         for (int i = 0; i < length; i++) {
                             
                             final long localDetailId = contact[i].getInternalDetailId();
+                            
                             // some details have no native ids as unique
                             // in that case, we set them with the native contact id
                             // the +1 is because we have to skip the first ContactChange that is here only for getting the nativeContactId
-                            final long nativeDetailId = nativeIds[i+1] == null ? nativeContactId : nativeIds[i+1].getNabDetailId();
+                            final long nativeDetailId;
+                            
+                            if (nativeIds[i+1] == null
+                             || nativeIds[i+1].getNabDetailId() == ContactChange.INVALID_ID) {
+                                
+                                nativeDetailId = nativeContactId;
+                            } else {
+                                
+                                nativeDetailId = nativeIds[i+1].getNabDetailId();
+                            }
+                            
                             if (!ContactDetailsTable.setDetailSyncedWithNative(localDetailId, nativeContactId, nativeDetailId, true, writableDb)) {
                                 
                                 return false;
@@ -531,7 +542,6 @@ public class PeopleContactsApi {
             writableDb = mDbh.getWritableDatabase();
             writableDb.beginTransaction();
             
-            final long nativeContactId = contact[0].getNabContactId();
             final int length = nativeIds.length;
             
             for (int i = 0; i < length; i++) {
@@ -542,18 +552,35 @@ public class PeopleContactsApi {
 
                 switch(type) {
                     case ContactChange.TYPE_ADD_DETAIL:
-                    case ContactChange.TYPE_UPDATE_DETAIL:
-                        // some details have no native ids as unique
+                        // some details have no native detail ids because unique or not supported
                         // in that case, we set them with the native contact id
-                        final long nativeDetailId = nativeIds[i] == null ? nativeContactId : nativeIds[i].getNabDetailId();
-                        if (!ContactDetailsTable.setDetailSyncedWithNative(localDetailId, nativeContactId, nativeDetailId, type == ContactChange.TYPE_ADD_DETAIL, writableDb)) {
-                            LogUtils.logE("PeopleContactApi.syncBackUpdatedNativeContact() - error while adding or updating a detail");
+                        final long nativeContactId = contact[0].getNabContactId();
+                        final long nativeDetailId;
+                        
+                        if (nativeIds[i] == null
+                         || nativeIds[i].getNabDetailId() == ContactChange.INVALID_ID) {
+                            
+                            nativeDetailId = nativeContactId;
+                        } else {
+                            
+                            nativeDetailId = nativeIds[i].getNabDetailId();
+                        }
+                        
+                        if (!ContactDetailsTable.setDetailSyncedWithNative(localDetailId, nativeContactId, nativeDetailId, true, writableDb)) {
+                            LogUtils.logE("PeopleContactApi.syncBackUpdatedNativeContact() - error while adding a detail");
+                            return false;
+                        }
+                        break;
+                    case ContactChange.TYPE_UPDATE_DETAIL:
+                        // we set the native ids as -1 because we don't need them in that case (update, not an add that generates new ids)
+                        if (!ContactDetailsTable.setDetailSyncedWithNative(localDetailId, -1, -1, false, writableDb)) {
+                            LogUtils.logE("PeopleContactApi.syncBackUpdatedNativeContact() - error while updating a detail");
                             return false;
                         }
                         break;
                     case ContactChange.TYPE_DELETE_DETAIL:
                         // detail removed on native side, finally remove it's deleted log from people database
-                        if (!NativeChangeLogTable.removeContactDetailChanges(contact[i].getInternalDetailId(), writableDb)) {
+                        if (!NativeChangeLogTable.removeContactDetailChanges(localDetailId, writableDb)) {
                             LogUtils.logE("PeopleContactApi.syncBackUpdatedNativeContact() - error while deleting a detail");
                             return false;
                         }

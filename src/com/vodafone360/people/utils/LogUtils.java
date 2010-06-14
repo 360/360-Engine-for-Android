@@ -36,10 +36,10 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-import com.vodafone360.people.Settings;
-
 import android.os.Environment;
 import android.util.Log;
+
+import com.vodafone360.people.ApplicationCache;
 
 /**
  * Logging utility functions: Allows logging to be enabled, Logs application
@@ -218,7 +218,7 @@ public final class LogUtils {
      * 
      */
     public static void logToFile(final byte[] data, final String fileName) {
-        if (Settings.ENABLE_SUPER_EXPENSIVE_RESPONSE_FILE_LOGGING) {
+        if (ApplicationCache.isEnableSuperExpensiveResponseFileLogging()) {
             FileOutputStream fos = null;
             
             try {

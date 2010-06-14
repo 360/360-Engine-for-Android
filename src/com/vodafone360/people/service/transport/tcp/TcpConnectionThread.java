@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.vodafone360.people.ApplicationCache;
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.SettingsManager;
 import com.vodafone360.people.service.RemoteService;
@@ -153,7 +154,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
 
                     List<Integer> reqIdList = null;
                     if (Settings.ENABLED_TRANSPORT_TRACE ||
-                            Settings.ENABLE_SUPER_EXPENSIVE_RESPONSE_FILE_LOGGING) {
+                            ApplicationCache.isEnableSuperExpensiveResponseFileLogging()) {
                         reqIdList = new ArrayList<Integer>();
                     }
 
@@ -195,7 +196,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
 
                         if (null != payload) {
                             // log file containing response to SD card
-                            if (Settings.ENABLE_SUPER_EXPENSIVE_RESPONSE_FILE_LOGGING) {
+                            if (ApplicationCache.isEnableSuperExpensiveResponseFileLogging()) {
                                 StringBuffer sb = new StringBuffer();
                                 for (int i = 0; i < reqIdList.size(); i++) {
                                     sb.append(reqIdList.get(i));
@@ -204,9 +205,10 @@ public class TcpConnectionThread implements Runnable, IConnection {
                                 
                                 LogUtils.logE("XXXXXXYYYXXXXXX Do not Remove this!");
                                 LogUtils.logToFile(payload, "people_" 
-                                            + sb.toString() + 
+                                            + reqIdList.get(0) + "_"
                                             + System.currentTimeMillis()
-                                            + "_req.txt");
+                                            + "_req_" + ((int) payload[2])  // message type
+                                            + ".txt");
                             } // end log file containing response to SD card
                             
                             if (Settings.ENABLED_TRANSPORT_TRACE) {

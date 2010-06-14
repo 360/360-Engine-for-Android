@@ -139,7 +139,6 @@
 	<string name="error">Chyba</string>
 	<string name="error_text">Chyba</string>
 	<string name="errorDialogTitle">Žádné obrázky</string>
-	<string name="facebook_terms">Připojením této aplikace k Facebooku dojde k přenesení veřejných obrázků profilů a kontaktních údajů vašich přátel do People, kde budou uloženy do vašeho adresáře.\n\n Přihlášením se k Facebooku souhlasíte s tím, že je vám udělena nevýhradní, nepřenosná osobní licence na použití veřejných profilových fotografií vašich přátel ve People.\n\nTato licence končí, když si buď Facebook nebo vlastník takové fotografie vyžádá její smazání. Tato licence vám neumožňuje používat tyto fotografie pro žádné komerční účely ani pro žádnou jinou službu nebo aplikaci.</string>
 	<string name="facebook_terms_title">Všeobecné podmínky služby Facebook</string>
 	<string name="forgot_credentials">Zapomněl(a) jsem přihlašovací údaje</string>
 	<string name="forgot_credentials_info">Přejděte prosím na 360 na webu, kde můžete své přihlašovací údaje znovu získat\n</string>
@@ -454,4 +453,10 @@
 	<string name="WidgetProvider_timestamp_today">Dnes</string>
 	<string name="WidgetProvider_timestamp_yesterday">Včera</string>
 	<string name="you_must_accept_terms_and_conditions">Musí být potvrzen souhlas se Všeobecnými podmínkami</string>
+	<string name="facebook_terms">Připojením této aplikace k Facebooku dojde k přenesení veřejných obrázků profilů a kontaktních údajů vašich přátel do People, kde budou uloženy do vašeho adresáře.Přihlášením se k Facebooku souhlasíte s tím, že je vám udělena nevýhradní, nepřenosná osobní licence na použití veřejných profilových fotografií vašich přátel ve People.Tato licence končí, když si buď Facebook nebo vlastník takové fotografie vyžádá její smazání. Tato licence vám neumožňuje používat tyto fotografie pro žádné komerční účely ani pro žádnou jinou službu nebo aplikaci.</string>
+	<string name="android_account_settings_summary">Změnit nastavení ve službě 360 People</string>
+	<string name="android_account_settings_title">Nastavení</string>
+	<string name="android_contact_profile_detail">Zobrazit profil</string>
+	<string name="android_contact_profile_summary">Profil ve službě 360 People</string>
+	<string name="only_one_account_notice">Podporován je pouze jeden účet ve službě 360 People</string>
 </resources>

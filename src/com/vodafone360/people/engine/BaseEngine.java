@@ -388,6 +388,8 @@ public abstract class BaseEngine {
                 LogUtils.logD("BaseEngine.genericHandleResponse: Unexpected type [" + requiredResp
                         + "] but received [" + data.get(0).name() + "]");
             }
+        } else {
+            errorStatus = ServiceStatus.ERROR_COMMS_BAD_RESPONSE;
         }
         return errorStatus;
     }

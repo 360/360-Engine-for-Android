@@ -49,129 +49,163 @@ import com.vodafone360.people.utils.WidgetUtils;
  * notifications, error messages, etc to an on screen Activity.
  */
 public class UiAgent {
-    public final static int UI_AGENT_NOTIFICATION_ID = 1;
+    /** UI Notification identifier. **/
+    public static final int UI_AGENT_NOTIFICATION_ID = 1;
 
+    /** Pointer to MainApplication. **/
     private MainApplication mMainApplication;
 
-    /*
+    /**
      * Store for pending UiEvents while no People Activities are currently on
      * screen.
      */
     private ServiceUiRequest mUiEventQueue = null;
 
+    /**
+     * Store for pending UiEvent Bundles while no People Activities are
+     * currently on screen.
+     */
     private Bundle mUiBundleQueue = null;
 
-    /*
-     * Handler object from a subscribed UI Activity.
+    /**
+     * Handler object from a subscribed UI Activity.  Note: This object is
+     * nullified by a separate thread and is thereby declared volatile.
      */
-    private Handler mHandler;
+    private volatile Handler mHandler;
 
-    /*
+    /**
      * Local ID of the contact the Handler is tracking (-1 when tracking all).
      */
     private long mLocalContactId;
 
-    /*
-     * TRUE if the subscribed UI Activity expects chat messages.
-     */
-    private boolean mChat;
+    /** TRUE if the subscribed UI Activity expects chat messages. **/
+    private boolean mShouldHandleChat;
 
-    /*
-     * TRUE if message is new and a noisy Notification message should play.
-     */
-    private boolean mNewMessage = false;
-    
+    /** Reference to Android Context. **/
     private Context mContext = null;
 
     /**
      * Constructor.
+     *
+     * @param mainApplication Pointer to MainApplication.
+     * @param context Reference to Android Context.
      */
-    public UiAgent(MainApplication mainApplication, Context context) {
+    public UiAgent(final MainApplication mainApplication,
+            final Context context) {
         mMainApplication = mainApplication;
         mContext = context;
         mHandler = null;
         mLocalContactId = -1;
-        mChat = false;
+        mShouldHandleChat = false;
     }
 
     /***
      * Send an unsolicited UI Event to the UI. If there are no on screen
      * Activities, then queue the message for later. The queue is of size one,
      * so higher priority messages will simply overwrite older ones.
-     * 
+     *
      * @param uiEvent Event to send.
-     * @param bundle Optional Bundle to send to UI, usally set to NULL.
-     * @throws InvalidParameterException UiEvent is NULL.
+     * @param bundle Optional Bundle to send to UI, usually set to NULL.
      */
-    public void sendUnsolicitedUiEvent(ServiceUiRequest uiEvent, Bundle bundle) {
+    public final void sendUnsolicitedUiEvent(final ServiceUiRequest uiEvent,
+            final Bundle bundle) {
         if (uiEvent == null) {
-            throw new InvalidParameterException("UiAgent.sendUnsolicitedUiEvent() "
-                    + "UiEvent cannot be NULL");
+            throw new InvalidParameterException("UiAgent."
+                    + "sendUnsolicitedUiEvent() UiEvent cannot be NULL");
         }
 
-        LogUtils.logW("UiAgent.sendUnsolicitedUiEvent() uiEvent[" + uiEvent.name() + "]");
+        LogUtils.logW("UiAgent.sendUnsolicitedUiEvent() uiEvent["
+                + uiEvent.name() + "]");
 
         if (mHandler != null) {
             /*
              * Send now.
              */
-            LogUtils.logV("UiAgent.sendUnsolicitedUiEvent() Sending uiEvent[" + uiEvent + "]");
-            mHandler.sendMessage(mHandler.obtainMessage(uiEvent.ordinal(), bundle));
+            try {
+                mHandler.sendMessage(mHandler.obtainMessage(uiEvent.ordinal(),
+                        bundle));
+                LogUtils.logV("UiAgent.sendUnsolicitedUiEvent() "
+                        + "Sending uiEvent[" + uiEvent + "]");
+
+            } catch (NullPointerException e) {
+                LogUtils.logW("UiAgent.sendUnsolicitedUiEvent() Caught a race "
+                        + "condition where mHandler was set to NULL after "
+                        + "being explicitly checked");
+                /** Send later anyway. **/
+                addUiEventToQueue(uiEvent, bundle);
+            }
 
         } else {
             /*
              * Send later.
              */
-            if (mUiEventQueue == null || uiEvent.ordinal() < mUiEventQueue.ordinal()) {
-                LogUtils.logV("UiAgent.sendUnsolicitedUiEvent() Sending uiEvent[" + uiEvent.name()
-                        + "] later");
-                mUiEventQueue = uiEvent;
-                mUiBundleQueue = bundle;
-            } else {
-                LogUtils.logV("UiAgent.sendUnsolicitedUiEvent() Ignoring uiEvent[" + uiEvent.name()
-                        + "], as highter priority UiEvent[" + mUiEventQueue.name()
-                        + "] is already pending");
-            }
+            addUiEventToQueue(uiEvent, bundle);
+        }
+    }
+
+    /***
+     * Add the given UiEvent and Bundle pair to the send later queue.
+     *
+     * @param uiEvent ServiceUiRequest to queue.
+     * @param bundle Bundle to queue.
+     */
+    private void addUiEventToQueue(final ServiceUiRequest uiEvent,
+            final Bundle bundle) {
+        if (mUiEventQueue == null
+                || uiEvent.ordinal() < mUiEventQueue.ordinal()) {
+            LogUtils.logV("UiAgent.sendUnsolicitedUiEvent() Sending uiEvent["
+                    + uiEvent.name() + "] later");
+            mUiEventQueue = uiEvent;
+            mUiBundleQueue = bundle;
+        } else {
+            LogUtils.logV("UiAgent.sendUnsolicitedUiEvent() Ignoring uiEvent["
+                    + uiEvent.name() + "], as highter priority UiEvent["
+                    + mUiEventQueue.name() + "] is already pending");
         }
     }
 
     /**
      * Subscribes a UI Handler to receive unsolicited events.
-     * 
-     * @param handler - UI handler to receive unsolicited events.
+     *
+     * @param handler UI handler to receive unsolicited events.
      * @param localContactId Provide a local contact ID to receive updates for
-     *            the given contact only.
-     * @param localContactId Set this to -1 to receive updates for every
-     *            contact.
-     * @param localContactId Set this to NULL not to receive contact updates.
-     * @param chat - TRUE if the Handler expects chat messages
-     * @throws NullPointerException Handler must not be NULL
+     *            the given contact only, or set this to -1 to receive updates
+     *            for every contact, or set this to NULL not to receive contact
+     *            updates.
+     * @param shouldHandleChat TRUE if the Handler expects chat messages.
      */
-    public void subscribe(Handler handler, Long localContactId, boolean chat) {
-        LogUtils.logV("UiAgent.subscribe() handler[" + handler + "] localContactId["
-                + localContactId + "] chat[" + chat + "]");
+    public final void subscribe(final Handler handler,
+            final Long localContactId, final boolean shouldHandleChat) {
+        LogUtils.logV("UiAgent.subscribe() handler[" + handler
+                + "] localContactId[" + localContactId + "] chat[" + shouldHandleChat
+                + "]");
         if (handler == null) {
-            throw new NullPointerException("UiAgent.subscribe() Handler cannot be NULL");
+            throw new NullPointerException("UiAgent.subscribe()"
+                    + "Handler cannot be NULL");
         }
 
         mHandler = handler;
         mLocalContactId = localContactId;
-        mChat = chat;
-        if (mChat) {
-            updateChatNotification();
+        mShouldHandleChat = shouldHandleChat;
+        if (mShouldHandleChat) {
+            updateChatNotification(false);
         }
 
         if (mUiEventQueue != null) {
-            LogUtils.logV("UiAgent.subscribe() Send pending uiEvent[" + mUiEventQueue + "]");
-            mHandler.sendMessage(mHandler.obtainMessage(mUiEventQueue.ordinal(), mUiBundleQueue));
+            LogUtils.logV("UiAgent.subscribe() Send pending uiEvent["
+                    + mUiEventQueue + "]");
+            mHandler.sendMessage(mHandler.obtainMessage(
+                    mUiEventQueue.ordinal(), mUiBundleQueue));
             mUiEventQueue = null;
             mUiBundleQueue = null;
         }
 
-        UpgradeStatus upgradeStatus = new VersionCheck(mMainApplication.getApplicationContext(),
+        UpgradeStatus upgradeStatus = new VersionCheck(
+                mMainApplication.getApplicationContext(),
                 false).getCachedUpdateStatus();
         if (upgradeStatus != null) {
-            sendUnsolicitedUiEvent(ServiceUiRequest.UNSOLICITED_DIALOG_UPGRADE, null);
+            sendUnsolicitedUiEvent(ServiceUiRequest.UNSOLICITED_DIALOG_UPGRADE,
+                    null);
         }
 
         ConnectionManager.getInstance().notifyOfUiActivity();
@@ -180,88 +214,95 @@ public class UiAgent {
     /**
      * This method ends the UI Handler's subscription. This will have no effect
      * if a different handler is currently subscribed.
-     * 
+     *
      * @param handler - UI handler to no longer receive unsolicited events.
-     * @throws NullPointerException Handler must not be NULL
      */
-    public void unsubscribe(Handler handler) {
+    public final void unsubscribe(final Handler handler) {
         if (handler == null) {
-            throw new NullPointerException("UiAgent.unsubscribe() Handler cannot be NULL.");
+            throw new NullPointerException("UiAgent.unsubscribe() Handler"
+                    + "cannot be NULL.");
         }
         if (handler != mHandler) {
-            LogUtils.logW("UiAgent.unsubscribe() Activity is trying to unsubscribe with a "
-                    + "different handler");
+            LogUtils.logW("UiAgent.unsubscribe() Activity is trying to "
+                    + "unsubscribe with a different handler");
         } else {
             mHandler = null;
             mLocalContactId = -1;
-            mChat = false;
+            mShouldHandleChat = false;
         }
     }
 
     /**
      * This method returns the local ID of the contact the HandlerAgent is
      * tracking.
-     * 
+     *
      * @return LocalContactId of the contact the HandlerAgent is tracking
      */
-    public long getLocalContactId() {
+    public final long getLocalContactId() {
         return mLocalContactId;
     }
 
     /**
      * Returns TRUE if an Activity is currently listening out for unsolicited
      * events (i.e. a "Live" activity is currently on screen).
-     * 
+     *
      * @return TRUE if any subscriber is listening the presence state/chat
      *         events
      */
-    public boolean isSubscribed() {
+    public final boolean isSubscribed() {
         return mHandler != null;
     }
 
     /**
      * Returns TRUE if an Activity is currently listening out for unsolicited
      * events (i.e. a "Live" activity is currently on screen).
-     * 
+     *
      * @return TRUE if any subscriber is listening the presence chat events
      */
-    public boolean isSubscribedWithChat() {
-        return mHandler != null && mChat;
+    public final boolean isSubscribedWithChat() {
+        return mHandler != null && mShouldHandleChat;
     }
 
     /**
      * This method is called by the Presence engine to notify a subscribed
      * Activity of updates.
-     * 
-     * @param contactId Update an Activity that shows this contact ID only.
-     * @param contactId Set this to -1 to send updates relevant to all contacts.
+     *
+     * @param contactId Update an Activity that shows this contact ID only, or
+     *        set this to -1 to send updates relevant to all contacts.
      */
-    public void updatePresence(long contactId) {
+    public final void updatePresence(final long contactId) {
         WidgetUtils.kickWidgetUpdateNow(mMainApplication);
 
         if (mHandler != null) {
             if (mLocalContactId == -1 || mLocalContactId == contactId) {
-                mHandler.sendMessage(mHandler.obtainMessage(ServiceUiRequest.UNSOLICITED_PRESENCE
-                        .ordinal(), null));
+                mHandler.sendMessage(mHandler.obtainMessage(
+                        ServiceUiRequest.UNSOLICITED_PRESENCE.ordinal(),
+                        null));
             } else {
-                LogUtils.logV("UiAgent.updatePresence() No Activities are interested in "
-                        + "contactId[" + contactId + "]");
+                LogUtils.logV("UiAgent.updatePresence() No Activities are "
+                        + "interested in contactId[" + contactId + "]");
             }
         } else {
             LogUtils.logW("UiAgent.updatePresence() No subscribed Activities");
         }
     }
 
-    /***
-     * Notifies an on screen Chat capable Activity of a relevant update. If the
-     * wrong Activity is on screen, this update will be shown as a Notification.
+    /**
+     * <p>Notifies an on screen Chat capable Activity of a relevant update. If the
+     * wrong Activity is on screen, this update will be shown as a Notification.</p>
      * 
+     * <p><b>Please note that this method takes care of notification for adding AND 
+     * removing chat message notifications</b></p>!
+     *
      * @param contactId Update an Activity that shows Chat information for this
      *            localContact ID only.
+     * @param isNewChatMessage True if this is a new chat message that we are notifying
+     * for. False if we are for instance just deleting a notification.
      */
-    public void updateChat(long contactId) {
-        if (mHandler != null && mChat && mLocalContactId == contactId) {
-            LogUtils.logV("UiAgent.updateChat() Send message to UI (i.e. update the screen)");
+    public final void updateChat(final long contactId, final boolean isNewChatMessage) {
+        if (mHandler != null && mShouldHandleChat && mLocalContactId == contactId) {
+            LogUtils.logV("UiAgent.updateChat() Send message to UI (i.e. "
+                    + "update the screen)");
             mHandler.sendMessage(mHandler.obtainMessage(
                     ServiceUiRequest.UNSOLICITED_CHAT.ordinal(), null));
             /*
@@ -270,37 +311,34 @@ public class UiAgent {
              * calling subscribe() to trigger a refresh.
              */
 
-        } else if (mHandler != null && mChat && mLocalContactId == -1) {
-            LogUtils.logV("UiAgent.updateChat() Send message to UI (i.e. update the screen) and "
-                    + "do a noisy notification");
+        } else if (mHandler != null && mShouldHandleChat && mLocalContactId == -1) {
+            LogUtils.logV("UiAgent.updateChat() Send message to UI (i.e. "
+                    + "update the screen) and do a noisy notification");
             /*
              * Note: this was added because TimelineListActivity listens to all
              * localIds (i.e. localContactId = -1)
              */
             mHandler.sendMessage(mHandler.obtainMessage(
                     ServiceUiRequest.UNSOLICITED_CHAT.ordinal(), null));
-            mNewMessage = true;
-            updateChatNotification();
+            updateChatNotification(isNewChatMessage);
 
         } else {
             LogUtils.logV("UiAgent.updateChat() Do a noisy notification only");
-            mNewMessage = true;
-            updateChatNotification();
+            updateChatNotification(isNewChatMessage);
         }
     }
 
     /***
      * Update the Notification bar with Chat information directly from the
      * database.
+     * 
+     * @param isNewChatMessage True if we have a new chat message and want to
+     * display a noise and notification, false if we for instance just delete a
+     * chat message or update a multiple-user notification silently.
+     * 
      */
-    private void updateChatNotification() {
-        
-        Intent i = new Intent();
-        
-        i.setAction(Intents.NEW_CHAT_RECEIVED);
-        i.putExtra(ApplicationCache.sIsNewMessage, mNewMessage);
-
-        mContext.sendBroadcast(i);
+    private void updateChatNotification(final boolean isNewChatMessage) {
+        mContext.sendBroadcast(new Intent(Intents.NEW_CHAT_RECEIVED).putExtra(
+                ApplicationCache.sIsNewMessage, isNewChatMessage));
     }
-
 }

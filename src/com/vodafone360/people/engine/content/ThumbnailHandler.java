@@ -32,11 +32,10 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.vodafone360.people.database.DatabaseHelper.DatabaseChangeType;
 import com.vodafone360.people.database.DatabaseHelper.ThumbnailInfo;
-import com.vodafone360.people.database.tables.ContactSummaryTable;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.engine.EngineManager;
+import com.vodafone360.people.engine.content.ContentObject.TransferStatus;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.ThumbnailUtils;
 
@@ -59,7 +58,7 @@ public class ThumbnailHandler implements TransferListener {
     /**
      * Number of thumbnails to fetch in a single RPG request batch.
      */
-    private static final int MAX_THUMBS_FETCHED_PER_PAGE = 25;
+    private static final int MAX_THUMBS_FETCHED_PER_PAGE = 5;
 
     /**
      * Used only for jpeg but mandatory for some calls.
@@ -122,10 +121,8 @@ public class ThumbnailHandler implements TransferListener {
             ThumbnailUtils.saveExternalResponseObjectToFile(contact.localContactID, content
                     .getExternalResponseObject(), MAX_QUALITY);
             ContentEngine contentEngine = EngineManager.getInstance().getContentEngine();
-            ContactSummaryTable.modifyPictureLoadedFlag(contact.localContactID, true, contentEngine
-                    .getDatabaseHelper().getWritableDatabase());
-            contentEngine.getDatabaseHelper().fireDatabaseChangedEvent(DatabaseChangeType.CONTACTS,
-                    true);
+            contentEngine.getDatabaseHelper().modifyPictureLoadedFlag(contact.localContactID, true);
+
         } catch (IOException e) {
             LogUtils.logE("ThumbnailHandler.TransferComplete", e);
         }
@@ -224,6 +221,7 @@ public class ThumbnailHandler implements TransferListener {
                 // ... set the right URL and params...
                 contentObject.setUrl(new URL(thumbnailInfo.photoServerUrl));
                 contentObject.setUrlParams(ThumbnailUtils.REQUEST_THUMBNAIL_URI);
+                contentObject.setTransferStatus(TransferStatus.INIT);
                 // ... and put it to the list
                 mContentObjects.add(contentObject);
 

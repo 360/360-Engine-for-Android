@@ -444,7 +444,6 @@
 	<string name="WidgetProvider_timestamp_today">Vandaag</string>
 	<string name="WidgetProvider_timestamp_yesterday">Gisteren</string>
 	<string name="you_must_accept_terms_and_conditions">Je moet de algemene voorwaarden accepteren.</string>
-	<string name="SyncingYourAddressBookActivity_Action_Default">Bereidt synchronisatie voor...</string>
 	<string name="SyncingYourAddressBookActivity_Action_Step_DownloadServerContacts">Vraagt contacten op...</string>
 	<string name="SyncingYourAddressBookActivity_Action_Step_FetchNativeContacts">Haalt contacten op uit adresboek van mobiel...</string>
 	<string name="SyncingYourAddressBookActivity_Action_Step_SyncMeProfile">Synchroniseert je contactprofiel...</string>
@@ -453,5 +452,11 @@
 	<string name="SyncingYourAddressBookActivity_ActionStatus_Received">%s van %s contacten ontvangen</string>
 	<string name="SyncingYourAddressBookActivity_ActionStatus_Changes">%s van %s wijzigingen verzonden</string>
 	<string name="SyncingYourAddressBookActivity_ActionProgress_Default">Stap %s van %s</string>
-	<string name="facebook_terms">Wanneer je deze toepassing koppelt aan Facebook, kun je openbare profielfoto\'s en contactgegevens van je vrienden overbrengen naar People om daarmee je adresboek vullen. \n\nWanneer je inlogt bij Facebook, ga je ermee akkoord dat je een niet-exclusieve, niet-overdraagbare persoonlijke licentie krijgt voor het gebruik van de openbare profielfoto\'s van je vrienden op People.\n\nDeze licentie loopt af wanneer Facebook of de eigenaar van de foto vraagt om de foto te verwijderen. Deze licentie geeft je niet het recht om de foto\'s te gebruiken voor commerciële doeleinden of voor andere diensten of toepassingen.</string>
+	<string name="facebook_terms">Wanneer je deze toepassing koppelt aan Facebook, kun je openbare profielfoto\'s en contactgegevens van je vrienden overbrengen naar People om daarmee je adresboek vullen. Wanneer je inlogt bij Facebook, ga je ermee akkoord dat je een niet-exclusieve, niet-overdraagbare persoonlijke licentie krijgt voor het gebruik van de openbare profielfoto\'s van je vrienden op People.Deze licentie loopt af wanneer Facebook of de eigenaar van de foto vraagt om de foto te verwijderen. Deze licentie geeft je niet het recht om de foto\'s te gebruiken voor commerciële doeleinden of voor andere diensten of toepassingen.</string>
+	<string name="SyncingYourAddressBookActivity_Action_Default">Bereidt synchronisatie voor…</string>
+	<string name="android_account_settings_summary">Instellingen veranderen in 360 People</string>
+	<string name="android_account_settings_title">Instellingen</string>
+	<string name="android_contact_profile_detail">Bekijk profiel</string>
+	<string name="android_contact_profile_summary">Profiel voor 360 People</string>
+	<string name="only_one_account_notice">Je mag maar één account bij 360 People hebben.</string>
 </resources>

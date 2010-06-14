@@ -2035,45 +2035,33 @@ public abstract class ContactDetailsTable {
                     
                     // fill the ContactChange class with contact detail data if not empty
                     // StringVal=7
-                    final String value = cursor.getString(7);
+                    String value = cursor.getString(7);
+                    if (value == null) value = ""; // prevent null pointer (however should the detail be even stored in People DB if null?)
+                    // Key=6
+                    final int key = cursor.isNull(6) ? ContactChange.KEY_UNKNOWN : mapInternalKeyToContactChangeKey(cursor.getInt(6));
+                    // Type=4, OrderNo=5
+                    final int flags = mapInternalTypeAndOrderToContactChangeFlag(cursor.isNull(4) ? 0 : cursor.getInt(4), cursor.getInt(5));
+                    // create the change
+                    final ContactChange change = new ContactChange(key, value, flags);
+                    changes[index++] = change;
+                    // LocalContactId=0
+                    change.setInternalContactId(cursor.isNull(0) ? ContactChange.INVALID_ID : cursor.getLong(0));
+                    // DetailLocalId=1
+                    change.setInternalDetailId(cursor.isNull(1) ? ContactChange.INVALID_ID : cursor.getInt(1));
+                    // NativeDetailId=2
+                    change.setNabDetailId(cursor.isNull(2) ? ContactChange.INVALID_ID : cursor.getLong(2));
+                    // NativeContactIdDup=3
+                    change.setNabContactId(cursor.isNull(3) ? ContactChange.INVALID_ID : cursor.getLong(3));
+                    // DetailServerId=8
+                    change.setBackendDetailId(cursor.isNull(8) ? ContactChange.INVALID_ID : cursor.getLong(8));
                     
-                    if (!TextUtils.isEmpty(value)) {
+                    if (nativeSyncableOnly) {
                         
-                        // Key=6
-                        final int key = cursor.isNull(6) ? ContactChange.KEY_UNKNOWN : mapInternalKeyToContactChangeKey(cursor.getInt(6));
-                        
-                        // skip nicknames and photo
-                        /*if (key == ContactChange.KEY_VCARD_NICKNAME
-                         || key == ContactChange.KEY_PHOTO) {
-                            //FIXME: should be set to synced by default when adding it to cab instead of skipping afterwards
-                            // also nickname are not supported on 1.x??
-                            continue;
-                        }*/
-                        
-                        // Type=4, OrderNo=5
-                        final int flags = mapInternalTypeAndOrderToContactChangeFlag(cursor.isNull(4) ? 0 : cursor.getInt(4), cursor.getInt(5));
-                        // create the change
-                        final ContactChange change = new ContactChange(key, value, flags);
-                        changes[index++] = change;
-                        // LocalContactId=0
-                        change.setInternalContactId(cursor.isNull(0) ? ContactChange.INVALID_ID : cursor.getLong(0));
-                        // DetailLocalId=1
-                        change.setInternalDetailId(cursor.isNull(1) ? ContactChange.INVALID_ID : cursor.getInt(1));
-                        // NativeDetailId=2
-                        change.setNabDetailId(cursor.isNull(2) ? ContactChange.INVALID_ID : cursor.getLong(2));
-                        // NativeContactIdDup=3
-                        change.setNabContactId(cursor.isNull(3) ? ContactChange.INVALID_ID : cursor.getLong(3));
-                        // DetailServerId=8
-                        change.setBackendDetailId(cursor.isNull(8) ? ContactChange.INVALID_ID : cursor.getLong(8));
-                        
-                        if (nativeSyncableOnly) {
-                            
-                            // in this mode, we have to tell if the detail is new or updated
-                            if (change.getNabDetailId() == ContactChange.INVALID_ID) {
-                                change.setType(ContactChange.TYPE_ADD_DETAIL);
-                            } else {
-                                change.setType(ContactChange.TYPE_UPDATE_DETAIL);
-                            }
+                        // in this mode, we have to tell if the detail is new or updated
+                        if (change.getNabDetailId() == ContactChange.INVALID_ID) {
+                            change.setType(ContactChange.TYPE_ADD_DETAIL);
+                        } else {
+                            change.setType(ContactChange.TYPE_UPDATE_DETAIL);
                         }
                     }
                 }
@@ -2113,8 +2101,8 @@ public abstract class ContactDetailsTable {
      * Sets the detail as synchronized with native side.
      * 
      * @param localContactId the local id of the detail
-     * @param nativeContactId the native contact id
-     * @param nativeDetailId the native detail id
+     * @param nativeContactId the native contact (only needed for added details i.e. isNewlySynced = true)
+     * @param nativeDetailId the native detail id (only needed for added details i.e. isNewlySynced = true)
      * @param writableDb the db where to write
      * @param isNewlySynced true if the detail as not been synchronized before, false if this is an update
      * @return true if sucessful, false otherwise

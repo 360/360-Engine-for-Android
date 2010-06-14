@@ -555,7 +555,7 @@ public class NativeContactsApi1 extends NativeContactsApi {
             // Only loops while there is not Organization read (CAB limitation!)
             while (!mHaveReadOrganization 
                     && cursor.moveToNext()) {
-                readContactOrganization(cursor, ccList);
+                readContactOrganization(cursor, ccList, nabContactId);
             }
         } finally {
             CursorUtils.closeCursor(cursor);
@@ -571,9 +571,10 @@ public class NativeContactsApi1 extends NativeContactsApi {
      * However, Organization and Title may only be read if a boolean flag is not set 
      * @param cursor Cursor to read from
      * @param ccList {@link ContactChange} list to add details to
+     * @param nabContactId ID of the NAB Contact
      * @return Read Contact Method Detail or null
      */
-    private void readContactOrganization(Cursor cursor, List<ContactChange> ccList) {
+    private void readContactOrganization(Cursor cursor, List<ContactChange> ccList, long nabContactId) {
 		final long nabDetailId = CursorUtils.getLong(cursor, Organizations._ID);
 		final boolean isPrimary = CursorUtils.getInt(cursor, Organizations.ISPRIMARY) != 0;
 		final int type = CursorUtils.getInt(cursor, Organizations.TYPE);
@@ -591,7 +592,8 @@ public class NativeContactsApi1 extends NativeContactsApi {
     		    
     			final ContactChange cc = new ContactChange(
     			        ContactChange.KEY_VCARD_ORG, 
-    			        escapedCompany, flags); 
+    			        escapedCompany, flags);
+    			cc.setNabContactId(nabContactId);
     			cc.setNabDetailId(nabDetailId);
     			ccList.add(cc);
     			mHaveReadOrganization = true;
@@ -603,6 +605,7 @@ public class NativeContactsApi1 extends NativeContactsApi {
     			final ContactChange cc = new ContactChange(
     			        ContactChange.KEY_VCARD_TITLE, 
     			        title, flags); 
+    			cc.setNabContactId(nabContactId);
     			cc.setNabDetailId(nabDetailId);
     			ccList.add(cc);
     			mHaveReadOrganization = true;
@@ -956,7 +959,10 @@ public class NativeContactsApi1 extends NativeContactsApi {
             if(cc.getType() != ContactChange.TYPE_DELETE_DETAIL) {
                 final String value = cc.getValue();  
                 if(value != null) {
-                    company = VCardHelper.getOrg(value).name;
+                    final VCardHelper.Organisation organization = VCardHelper.getOrg(value);
+                    if(!TextUtils.isEmpty(organization.name)) {
+                        company = organization.name;
+                    } 
                 }
                 flags = cc.getFlags(); 
             } else { // Delete case
@@ -1003,6 +1009,8 @@ public class NativeContactsApi1 extends NativeContactsApi {
             final Uri existingUri = 
                 ContentUris.withAppendedId(Contacts.Organizations.CONTENT_URI, detailId);
             mCr.delete(existingUri, null, null);
+        } else {
+            mMarkedOrganizationIndex = mMarkedTitleIndex = -1;
         }
             
         // Updated detail id or ContactChange.INVALID_ID if deleted 

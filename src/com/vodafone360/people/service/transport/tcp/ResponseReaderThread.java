@@ -36,6 +36,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
+import com.vodafone360.people.ApplicationCache;
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.service.io.rpg.RpgHeader;
 import com.vodafone360.people.service.transport.DecoderThread;
@@ -304,12 +305,13 @@ public class ResponseReaderThread implements Runnable {
             }
             
             // log file containing response to SD card
-            if (Settings.ENABLE_SUPER_EXPENSIVE_RESPONSE_FILE_LOGGING) {
+            if (ApplicationCache.isEnableSuperExpensiveResponseFileLogging()) {
                 LogUtils.logE("XXXXXXYYYXXXXXX Do not Remove this!");
                 LogUtils.logToFile(response, "people_" 
                             + reqId + "_" 
-                            + System.currentTimeMillis()
-                            + ((compression == 1) ? "_resp.gzip_w_rpg_header" : "_resp.txt"));
+                            + System.currentTimeMillis() + "_resp_" + 
+                            ((int) msgType) +
+                            ((compression == 1) ? ".gzip_w_rpg_header" : ".txt"));
             } // end log file containing response to SD card
         }
 

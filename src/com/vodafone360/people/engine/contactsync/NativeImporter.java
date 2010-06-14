@@ -27,6 +27,7 @@ package com.vodafone360.people.engine.contactsync;
 
 import android.text.TextUtils;
 
+import com.vodafone360.people.datatypes.VCardHelper;
 import com.vodafone360.people.engine.contactsync.NativeContactsApi.Account;
 import com.vodafone360.people.utils.DynamicArrayLong;
 import com.vodafone360.people.utils.LogUtils;
@@ -341,6 +342,9 @@ public class NativeImporter {
             }
             
             mNativeContactsIds = allIds.toArray();
+            // sort the ids
+            // TODO: as the arrays to merge are sorted, consider merging while keeping the sorting
+            //       which is faster than sorting them afterwards
             Arrays.sort(mNativeContactsIds);
         }
         
@@ -476,8 +480,6 @@ public class NativeImporter {
                 removeNativeIds(contactChanges);
             }
             
-            //setNativeContactIdForInexistantNativeDetailId(contactChanges);
-            
             // add the contact to the People database
             if (!mPeopleContactsApi.addNativeContact(contactChanges)) {
                 
@@ -501,13 +503,13 @@ public class NativeImporter {
         // get the people version of that contact
         final ContactChange[] peopleContact = mPeopleContactsApi.getContact((int)nativeId);
         
-        if (nativeContact == null || peopleContact == null) {
+        if (peopleContact == null) {
 
             // we shouldn't be in that situation but nothing to do about it
             // this means that there were some changes in the meantime between
             // getting the ids list and now
             return;
-        } else if (nativeContact.length == 0) {
+        } else if (nativeContact == null) {
             
             LogUtils.logD("NativeImporter.checkExistingContact(): found a contact marked as deleted");
             // this is a 2.X specific case meaning that the contact is marked as deleted on native side
@@ -631,12 +633,12 @@ public class NativeImporter {
                 
                 if ((masterChange.getType() & ContactChange.TYPE_DELETE_DETAIL) != ContactChange.TYPE_DELETE_DETAIL
                  && (masterChange.getNabDetailId() != ContactChange.INVALID_ID)
-                 && (mNativeContactsApi.isKeySupported(masterChange.getKey()))) {
+                 && (isContactChangeKeySupported(masterChange))) {
                     
-                    LogUtils.logD("NativeImporter.computeDelta() - found a detail to delete");
-                    // this detail does not exist anymore, is not being deleted and was synced to native so we need to delete it
-                    masterChange.setType(ContactChange.TYPE_DELETE_DETAIL);
-                    deltaChanges[deltaIndex++] = masterChange;
+                    // this detail does not exist anymore, is not being deleted and was synced to native
+                    // check if it can be deleted (or has to be updated)
+                    setDetailForDeleteOrUpdate(masterChanges, masterIndex);
+                    deltaChanges[deltaIndex++] = masterChanges[masterIndex];
                 }
                 masterIndex++;
             }
@@ -652,7 +654,7 @@ public class NativeImporter {
                 if (masterDetail.getFlags() != newDetail.getFlags()) {
                     different = true;
                 }
-                if (!TextUtils.equals(masterDetail.getValue(), newDetail.getValue())) {
+                if (!areContactChangeValuesEqualsPlusFix(masterChanges, masterIndex, newChanges, newIndex)) {
                     different = true;
                 }
                 
@@ -684,12 +686,12 @@ public class NativeImporter {
             
             if ((masterChange.getType() & ContactChange.TYPE_DELETE_DETAIL) != ContactChange.TYPE_DELETE_DETAIL
             && (masterChange.getNabDetailId() != ContactChange.INVALID_ID)
-            && (mNativeContactsApi.isKeySupported(masterChange.getKey()))) {
+            && (isContactChangeKeySupported(masterChange))) {
                
-               LogUtils.logD("NativeImporter.computeDelta() - found a detail to delete");
-               // this detail does not exist anymore, is not being deleted and was synced to native so we need to delete it
-               masterChanges[masterIndex].setType(ContactChange.TYPE_DELETE_DETAIL);
-               deltaChanges[deltaIndex++] = masterChange;
+               // this detail does not exist anymore, is not being deleted and was synced to native
+               // check if it can be deleted (or has to be updated)
+               setDetailForDeleteOrUpdate(masterChanges, masterIndex);
+               deltaChanges[deltaIndex++] = masterChanges[masterIndex];
             }
             masterIndex++;
         }
@@ -713,6 +715,8 @@ public class NativeImporter {
     
     /**
      * Removes the native ids in case of a first time import on the Android 2.X platform.
+     * 
+     * @param contact the contact to clear from native ids
      */
     private void removeNativeIds(ContactChange[] contact) {
         
@@ -730,12 +734,14 @@ public class NativeImporter {
     }
     
     /**
-     * 
-     * @param contact
+     * Forces a native detail id onto a detail that does not have one by setting it to
+     * be the native contact id.
+     *  
+     * @param contact the contact to fix
      */
     private void forceNabDetailId(ContactChange[] contact) {
         
-        if (contact != null) {
+        if (contact != null && contact.length > 0) {
             
             final long nativeContactId = contact[0].getNabContactId();
             final int count = contact.length; 
@@ -748,5 +754,133 @@ public class NativeImporter {
                 }
             }
         }
+    }
+    
+    /*
+     * Below this point, all the defined methods where added to support the specific
+     * case of KEY_VCARD_ORG on Android 1.X platform.
+     * 
+     * KEY_VCARD_ORG is defined as followed:
+     * "company;department1;department2;...;departmentX"
+     * 
+     * It is a special case because this VCard key on its own is not fully supported on
+     * the Android 1.X platform: only "company" information is.
+     * 
+     */
+    
+    /**
+     * Tells whether or not a master change is equal to a new change and performs some modifications
+     * on the provided new change in the specific case of KEY_VCARD_ORG on Android 1.X.
+     * 
+     * @param masterChanges the array of master changes
+     * @param masterIndex the index of the change within the array of master changes
+     * @param newChanges the array of new changes
+     * @param newIndex the index of the change within the array of new changes
+     * @return true if the changes are equals, false otherwise
+     */
+    private boolean areContactChangeValuesEqualsPlusFix(ContactChange[] masterChanges, int masterIndex, ContactChange[] newChanges, int newIndex) {
+        
+        final ContactChange masterChange = masterChanges[masterIndex];
+        final ContactChange newChange = newChanges[newIndex];
+        
+        if (VersionUtils.is2XPlatform()
+         || masterChange.getKey() != ContactChange.KEY_VCARD_ORG) {
+            
+            // general case
+            return TextUtils.equals(masterChange.getValue(), newChange.getValue());
+        } else {
+            
+            // this is a special case of Android 1.X where we have to parse the value
+            // in case of Organization key
+            final String peopleCompValue = VCardHelper.parseCompanyFromOrganization(masterChange.getValue());
+            final String nativeCompValue = VCardHelper.parseCompanyFromOrganization(newChange.getValue());
+            
+            // on 1.X, we only need to compare the company name as
+            // department is not supported by the platform
+            final boolean areEquals =  TextUtils.equals(peopleCompValue, nativeCompValue);
+            
+            if (!areEquals) {
+                
+                // there is a difference so master change will be updated
+                // we need to preserve the master department values if any
+                final String masterDepartments = VCardHelper.splitDepartmentsFromOrganization(masterChange.getValue());
+                
+                final ContactChange fixedNewChange = newChange.copyWithNewValue(nativeCompValue + masterDepartments);
+                newChanges[newIndex] = fixedNewChange;
+            }
+            
+            return areEquals;
+        }
+    }
+    
+    /**
+     * Sets a detail as to be deleted or updated.
+     * 
+     * Note: in the general case, the detail has to be deleted but in the specific
+     *       situation of KEY_VCARD_ORG and Android 1.X, it may have to be updated instead
+     *       
+     * @param contactChanges the array of ContactChange
+     * @param index the index of the ContactChange to set in the array of ContactChange
+     */
+    private void setDetailForDeleteOrUpdate(ContactChange[] contactChanges, int index) {
+        
+        final ContactChange contactChange = contactChanges[index];
+        
+        if (VersionUtils.is2XPlatform()
+         || contactChange.getKey() != ContactChange.KEY_VCARD_ORG) {
+            
+            // general case, just set the details as deleted
+            contactChange.setType(ContactChange.TYPE_DELETE_DETAIL);
+            LogUtils.logD("NativeImporter.checkDetailForDeleteOrUpdate() - found a detail to delete");
+        } else {
+            
+            // this is a special case of Android 1.X
+            // we have to set this change to an update if the change
+            // contains departments
+            final String masterDepartments = VCardHelper.splitDepartmentsFromOrganization(contactChange.getValue());
+            
+            if (!VCardHelper.isEmptyVCardValue(masterDepartments)) {
+                
+                // delete the company name and keep the departments
+                contactChange.setType(ContactChange.TYPE_UPDATE_DETAIL);
+                contactChanges[index] = contactChange.copyWithNewValue(masterDepartments);
+                
+                LogUtils.logD("NativeImporter.checkDetailForDeleteOrUpdate() - found a detail to update");
+            } else {
+                contactChange.setType(ContactChange.TYPE_DELETE_DETAIL);
+                LogUtils.logD("NativeImporter.checkDetailForDeleteOrUpdate() - found a detail to delete");
+            }
+        }
+    }
+    
+    /**
+     * Determines whether or not a ContactChange key is supported on native side.
+     * 
+     * Note: it also handle the non generic case of KEY_VCARD_ORG on Android 1.X
+     * 
+     * @param change the ContactChange to check
+     * @return true if supported, false if not
+     */
+    private boolean isContactChangeKeySupported(ContactChange change) {
+        
+        final boolean isSupported = mNativeContactsApi.isKeySupported(change.getKey()); 
+        
+        if (VersionUtils.is2XPlatform() || change.getKey() != ContactChange.KEY_VCARD_ORG) {
+            
+            return isSupported;
+        } else if (isSupported) {
+            
+            // KEY_VCARD_ORG has the following value: "company;department1;department2..."
+            // in case of KEY_VCARD_ORG on Android 1.X, we have to check the support of the key
+            // at the company level of the VCard value because the departments are not supported
+            // so if there is only the department, we have to return false instead of true.
+            final String changeCompValue = VCardHelper.parseCompanyFromOrganization(change.getValue());
+            
+            if (!VCardHelper.isEmptyVCardValue(changeCompValue)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 }

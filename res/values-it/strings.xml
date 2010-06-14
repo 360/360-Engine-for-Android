@@ -139,7 +139,6 @@
 	<string name="error">Errore</string>
 	<string name="error_text">Errore</string>
 	<string name="errorDialogTitle">Nessuna immagine</string>
-	<string name="facebook_terms">Se colleghi questa applicazione a Facebook, potrai importare nella rubrica di People le immagini dei profili pubblici e i dati di contatto dei tuoi amici.\n\nSe esegui l\'accesso a  Facebook, accetti che ti venga concessa una licenza personale non esclusiva e non trasferibile per l\'utilizzo delle foto dei profili pubblici dei tuoi amici su People.\n\nQuesta licenza termina quando Facebook o il proprietario della foto ti chiede di eliminarle. Questa licenza non ti consente di utilizzare tali foto per scopi commerciali di nessun tipo o con altri servizi o applicazioni.</string>
 	<string name="facebook_terms_title">Termini e condizioni per Facebook</string>
 	<string name="forgot_credentials">Ho dimenticato le credenziali</string>
 	<string name="forgot_credentials_info">Accedi a 360 sul Web per recuperare le tue credenziali\n</string>
@@ -454,4 +453,10 @@
 	<string name="WidgetProvider_timestamp_today">Oggi</string>
 	<string name="WidgetProvider_timestamp_yesterday">Ieri</string>
 	<string name="you_must_accept_terms_and_conditions">Devi accettare i Termini e condizioni</string>
+	<string name="facebook_terms">Se colleghi questa applicazione a Facebook, potrai importare nella rubrica di People le immagini dei profili pubblici e i dati di contatto dei tuoi amici.Se esegui l\'accesso a  Facebook, accetti che ti venga concessa una licenza personale non esclusiva e non trasferibile per l\'utilizzo delle foto dei profili pubblici dei tuoi amici su People.Questa licenza termina quando Facebook o il proprietario della foto ti chiede di eliminarle. Questa licenza non ti consente di utilizzare tali foto per scopi commerciali di nessun tipo o con altri servizi o applicazioni.</string>
+	<string name="android_account_settings_summary">Modifica impostazioni in 360 People</string>
+	<string name="android_account_settings_title">Impostazioni</string>
+	<string name="android_contact_profile_detail">Visualizza profilo</string>
+	<string name="android_contact_profile_summary">Profilo di 360 People</string>
+	<string name="only_one_account_notice">È supportato un solo account 360 People</string>
 </resources>

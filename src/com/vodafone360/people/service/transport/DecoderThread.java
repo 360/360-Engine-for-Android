@@ -75,15 +75,15 @@ public class DecoderThread implements Runnable {
 
         public byte[] mData;
 
-        public boolean mCompressed = false;
+        public boolean mIsCompressed = false;
 
-        public boolean mUnsolicited = false;
+        public boolean mIsPushMessage = false;
 
-        public RawResponse(int reqId, byte[] data, boolean compressed, boolean unsolicited) {
+        public RawResponse(int reqId, byte[] data, boolean isCompressed, boolean isPushMessage) {
             mReqId = reqId;
             mData = data;
-            mCompressed = compressed;
-            mUnsolicited = unsolicited;
+            mIsCompressed = isCompressed;
+            mIsPushMessage = isPushMessage;
         }
     }
 
@@ -146,7 +146,7 @@ public class DecoderThread implements Runnable {
                     RawResponse decode = mResponses.get(0);
                     reqId = decode.mReqId;
 
-                    if (!decode.mUnsolicited) {
+                    if (!decode.mIsPushMessage) {
                         // Attempt to get type from request
                         Request request = QueueManager.getInstance().getRequest(reqId);
                         if (request != null) {
@@ -160,7 +160,7 @@ public class DecoderThread implements Runnable {
                     // Set an engine id via Hessian decoder
                     HessianDecoder hessianDecoder = new HessianDecoder();
                     List<BaseDataType> data = hessianDecoder.decodeHessianByteArray(decode.mData,
-                            type, decode.mCompressed);
+                            type, decode.mIsCompressed);
 
                     if (type == Type.PUSH_MSG && data.size() != 0
                             && data.get(0) instanceof PushEvent) {

@@ -548,6 +548,87 @@ public class VCardHelper {
         org.unitNames.addAll(nextFullItemArray(it));
         return org;
     }
+    
+    /**
+     * Parses the Company name from a VCard Organization String.
+     * 
+     * @param value the VCard Organization String to parse
+     * @return the company name or null if not found
+     */
+    public static String parseCompanyFromOrganization(String value) {
+        
+        if (value == null) return null;
+        
+        int index = -1;
+        char prevChar = '.'; // set it to whatever is different from '\\'
+        for (int i = 0; i < value.length(); i++) {
+            
+            if (value.charAt(i) == ';' && prevChar != '\\') {
+                index = i;
+                break;
+            }
+            prevChar = value.charAt(i);
+        }
+        
+        return value.substring(0, index != -1 ? index : value.length());
+    }
+    
+    /**
+     * Splits the VCard Organization value to return only the departments
+     * 
+     * Note: it will return the ';' separated departments
+     * 
+     * @param value the value to split
+     * @return the VCard departments or empty String if none
+     */
+    public static String splitDepartmentsFromOrganization(String value) {
+        
+        if (value == null) return "";
+        
+        int index = -1;
+        char prevChar = '.'; // set it to whatever is different from '\\'
+        for (int i = 0; i < value.length(); i++) {
+            
+            if (value.charAt(i) == ';' && prevChar != '\\') {
+                index = i;
+                break;
+            }
+            prevChar = value.charAt(i);
+        }
+        
+        if (index != -1) {
+            return value.substring(index, value.length());
+        } else {
+            return "";
+        }
+    }
+    
+    /**
+     * Tells whether or not the provided VCard value is empty.
+     * 
+     * Note: a VCard value is empty if
+     *       - null
+     *       - "" empty String
+     *       - ";;;" contains only ';'
+     * 
+     * @return true if empty, false if not
+     */
+    public static boolean isEmptyVCardValue(String value) {
+        
+        if (value != null) {
+
+            char prevChar = '.';
+            for (int i = 0; i < value.length(); i++) {
+                
+                if (value.charAt(i) != ';' && prevChar != '\\') {
+                    return false;
+                }
+                prevChar = value.charAt(i);
+            }
+        }
+        
+        return true;
+    }
 
     /**
      * Generate List array of items (as Strings) from single String using

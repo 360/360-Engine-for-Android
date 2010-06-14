@@ -335,6 +335,17 @@ public abstract class NativeChangeLogTable {
         info.mType = ContactChangeType.DELETE_DETAIL;
         info.mDetailKey = detail.key;
         info.mNativeDetailId = detail.nativeDetailId;
+
+        if (info.mNativeContactId == null || info.mNativeContactId == -1) {
+
+            // FIXME: this shall not happen (has been potentially fixed) but currently guarding against it...
+            // This line will be removed later when the root cause is completely identified
+            LogUtils.logE("==========================================================================================================================");
+            LogUtils.logE("NativeChangeLogTable.addDeletedContactDetailChange(): a detail without a native contact id can't be added to the table!!!!");
+            LogUtils.logE("==========================================================================================================================");
+            return true;
+        }
+
         if (!addContactChange(info, writableDb)) {
             return false;
         }

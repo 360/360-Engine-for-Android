@@ -53,6 +53,7 @@ import com.vodafone360.people.engine.contactsync.NativeContactsApi;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.NetworkAgent;
+import com.vodafone360.people.service.agent.UiAgent;
 import com.vodafone360.people.service.agent.NetworkAgent.AgentState;
 import com.vodafone360.people.service.io.ResponseQueue;
 import com.vodafone360.people.service.io.api.Auth;
@@ -86,6 +87,11 @@ public class LoginEngine extends BaseEngine {
         CREATING_SESSION_AUTO,
         RETRIEVING_PUBLIC_KEY
     }
+
+    /**
+     * used for sending unsolicited ui events
+     */
+    private final UiAgent mUiAgent = mEventCallback.getUiAgent();
 
     /**
      * mutex for thread synchronization
@@ -244,7 +250,7 @@ public class LoginEngine extends BaseEngine {
         Intent intent = new Intent();
         intent.setAction(Intents.HIDE_LOGIN_NOTIFICATION);
         mContext.sendBroadcast(intent);
- 
+
         removeAllListeners();
         mContext.unregisterReceiver(mEventReceiver);
     }
@@ -351,7 +357,7 @@ public class LoginEngine extends BaseEngine {
                 break;
             case RETRIEVING_PUBLIC_KEY:
                 return 0;
-            default: 
+            default:
                 // Do nothing.
                 break;
         }
@@ -901,6 +907,19 @@ public class LoginEngine extends BaseEngine {
     }
 
     /**
+     * Clears the session and registration complete information so that the user
+     * will need to manually login again to use the now+ services. Does not
+     * currently send a request to the server to log out.
+     */
+    public final void logoutAndRemoveUser() {
+
+        LogUtils.logD("LoginEngine.startLogout()");
+        addUiRemoveUserDataRequest();
+        LoginPreferences.clearPreferencesFile(mContext);
+        mUiAgent.sendUnsolicitedUiEvent(ServiceUiRequest.UNSOLICITED_GO_TO_LANDING_PAGE, null);
+    }
+
+    /**
      * Retries to log the user in based on credential information stored in the
      * database.
      * 
@@ -970,10 +989,11 @@ public class LoginEngine extends BaseEngine {
         if (value != mIsRegistrationComplete) {
             StateTable.setRegistrationComplete(value, mDb.getWritableDatabase());
             mIsRegistrationComplete = value;
-            if(mIsRegistrationComplete) {
-                // Create NAB Account at this point (does nothing on 1.X devices)
+            if (mIsRegistrationComplete) {
+                // Create NAB Account at this point (does nothing on 1.X
+                // devices)
                 final NativeContactsApi nabApi = NativeContactsApi.getInstance();
-                if(!nabApi.isPeopleAccountCreated()) {
+                if (!nabApi.isPeopleAccountCreated()) {
                     // TODO: React upon failure to create account
                     nabApi.addPeopleAccount(LoginPreferences.getUsername());
                 }
@@ -1003,10 +1023,10 @@ public class LoginEngine extends BaseEngine {
                 intent = new Intent();
                 intent.setAction(Intents.START_LOGIN_ACTIVITY);
                 mContext.sendBroadcast(intent);
-                
+
                 setRegistrationComplete(false);
                 break;
-                // here should be no break
+            // here should be no break
             case NOT_REGISTERED:
             case LOGIN_FAILED:
                 intent = new Intent();

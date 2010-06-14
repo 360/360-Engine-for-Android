@@ -121,7 +121,9 @@ public class ResponseQueue {
             if (status == ServiceStatus.ERROR_INVALID_SESSION) {
                 EngineManager em = EngineManager.getInstance();
                 if (em != null) {
-                    em.getLoginEngine().retryAutoLogin();
+                    LogUtils.logE("Logging out the current user because of invalide session");
+                    em.getLoginEngine().logoutAndRemoveUser();
+                    return;
                 }
             }
             mResponses.add(new Response(reqId, data, source));

@@ -139,7 +139,6 @@
 	<string name="error">Fehler</string>
 	<string name="error_text">Fehler</string>
 	<string name="errorDialogTitle">Keine Bilder</string>
-	<string name="facebook_terms">Wenn Du diese Anwendung mit Facebook verbindest, kannst Du die Bilder und Kontaktdaten im öffentlichen Profil Deiner Freunde in das Adressbuch von People importieren.\n\nWenn Du Dich bei Facebook anmeldest, akzeptierst Du gleichzeitig, dass Dir eine nicht exklusive, nicht übertragbare, persönliche Lizenz zur Nutzung der Fotos im öffentlichen Profil Deiner Freunde in People gewährt wird.\n\nDiese Lizenz endet, wenn entweder von Facebook oder vom Eigentümer des entsprechenden Fotos verlangt wird, dass Du das Foto löschst. Mit dieser Lizenz darfst Du diese Fotos nicht für gewerbliche Zwecke oder mit einem anderen Dienst bzw. einer anderen Anwendung nutzen.</string>
 	<string name="facebook_terms_title">Nutzungsbedingungen für Facebook</string>
 	<string name="forgot_credentials">Anmeldedaten vergessen</string>
 	<string name="forgot_credentials_info">Gehe zur Website von 360, um Deine Anmeldedaten abzurufen\n</string>
@@ -275,8 +274,6 @@
 	<string name="SyncingYourAddressBookActivity_Action_Step_UpdateServerContacts">Online-Kontakte werden aktualisiert...</string>
 	<string name="SyncingYourAddressBookActivity_ActionProgress_Default">Schritt %s von %s</string>
 	<string name="SyncingYourAddressBookActivity_ActionStatus_Changes">%s von %s Änderungen gesendet</string>
-	<string name="SyncingYourAddressBookActivity_ActionStatus_Received">%s von %s Kontakten empfangen</string>
-	<string name="SyncingYourAddressBookActivity_ActionStatus_Sent">%s von %s Kontakten gesendet</string>
 	<string name="terms_and_conditions_title">Nutzungsbedingungen</string>
 	<string name="text_login">Anmeldung</string>
 	<string name="third_party_account_error_message_text">Beim Abrufen der Informationen ist ein Fehler aufgetreten. Versuche es später noch einmal.</string>
@@ -454,4 +451,12 @@
 	<string name="WidgetProvider_timestamp_today">Heute</string>
 	<string name="WidgetProvider_timestamp_yesterday">Gestern</string>
 	<string name="you_must_accept_terms_and_conditions">Die Nutzungsbedingungen müssen akzeptiert werden</string>
+	<string name="facebook_terms">Wenn Du diese Anwendung mit Facebook verbindest, kannst Du die Bilder und Kontaktdaten im öffentlichen Profil Deiner Freunde in das Adressbuch von People importieren.Wenn Du Dich bei Facebook anmeldest, akzeptierst Du gleichzeitig, dass Dir eine nicht exklusive, nicht übertragbare, persönliche Lizenz zur Nutzung der Fotos im öffentlichen Profil Deiner Freunde in People gewährt wird.Diese Lizenz endet, wenn entweder von Facebook oder vom Eigentümer des entsprechenden Fotos verlangt wird, dass Du das Foto löschst. Mit dieser Lizenz darfst Du diese Fotos nicht für gewerbliche Zwecke oder mit einem anderen Dienst bzw. einer anderen Anwendung nutzen.</string>
+	<string name="android_account_settings_summary">Einstellungen in 360 People ändern</string>
+	<string name="android_account_settings_title">Einstellungen</string>
+	<string name="android_contact_profile_detail">Profil anzeigen</string>
+	<string name="android_contact_profile_summary">360 People-Profil</string>
+	<string name="only_one_account_notice">Es wird nur ein 360 People-Konto unterstützt</string>
+	<string name="SyncingYourAddressBookActivity_ActionStatus_Received">%s von %s Kont. empf.</string>
+	<string name="SyncingYourAddressBookActivity_ActionStatus_Sent">%s von %s Kont. ges.</string>
 </resources>

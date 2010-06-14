@@ -112,7 +112,7 @@ public class HessianDecoder {
             is = new ByteArrayInputStream(data);
         }
 
-        List<BaseDataType> mBaseDataTypeList = new ArrayList<BaseDataType>();
+        List<BaseDataType> mBaseDataTypeList = null;
         MicroHessianInput mhi = new MicroHessianInput(is);
 
         if (mhi != null) {

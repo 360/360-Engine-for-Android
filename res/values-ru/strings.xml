@@ -24,7 +24,6 @@
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 	<string name="about_nowplus">360 People для Android</string>
-	<string name="about_nowplus_info">О службе People		\nPeople - это служба для Вашего телефона, ПК и Mac(tm), которая связывает		Вас с Вашими друзьями. В ней есть все, что нужно для общения с близкими		и интересными людьми.		\n		\nСлужба People доступна всем: не обязательно быть клиентом Vodafone, чтобы присоединиться.\n		\nАвторское право (c) 2010 Vodafone Limited.		\nhttp://www.vodafone.com/about\n		\nАдрес службы поддержки:\nSupport@360.com\n		\nСвязи с прессой:\nВ пресс-службу компании обращайтесь по телефону:\n+44 (0) 1635 664 444</string>
 	<string name="about_nowplus2">Версия</string>
 	<string name="account">Аккаунт...</string>
 	<string name="add_accounts_title">Импорт контактов</string>
@@ -68,7 +67,6 @@
 	<string name="ContactListActivity_MenuItem_smsContact">Отправить SMS</string>
 	<string name="ContactListActivity_MenuItem_viewContact">Просм. контакт</string>
 	<string name="ContactListActivity_no_me_profile_name">Я</string>
-	<string name="ContactListActivity_noContactsHelpText">"У Вас нет контактов.\n\nЧтобы добавить контакт, в <b>Меню</b> выберите:\n	\n<li><b>Доб. контакт</b> для создания нового контакта с нуля\n</li></string>
 	<string name="ContactListActivity_removedata_progress">Удаление данных пользователя...</string>
 	<string name="ContactListActivity_select_group">%s (%s)</string>
 	<string name="ContactListActivity_TextView_noContacts">Контактов нет.</string>
@@ -103,10 +101,7 @@
 	<string name="ContactStatusListActivity_what_are_you_doing">Что Вы делаете?</string>
 	<string name="customLabelPickerTitle">Пользовательское имя метки</string>
 	<string name="dataSettings_button_change_romaming_settings">Изменить параметры роуминга</string>
-	<string name="dataSettings_content">\nЗаполнитель для статистики\n</string>
-	<string name="dataSettings_data_connection">Информ. соединение</string>
 	<string name="dataSettings_data_connection_content">360 People использует информационное соединение Вашего телефона даже при работе в фоновом режиме.</string>
-	<string name="dataSettings_global_roaming">Глобальный роуминг</string>
 	<string name="dataSettings_nowplus_data_sync">Синхронизация данных People...</string>
 	<string name="dataSettings_option_off">Откл.</string>
 	<string name="dataSettings_option_roaming">Всегда вкл.</string>
@@ -119,7 +114,6 @@
 	<string name="deleteConfirmation_title">Удалить</string>
 	<string name="dialer_addAnotherCall">Доб. вызов</string>
 	<string name="dialer_returnToInCallScreen">Возврат к вызову</string>
-	<string name="dialer_useDtmfDialpad">Сенс. кноп. набор</string>
 	<string name="dialerDialpadHintText">Наберите номер для доб. вызова</string>
 	<string name="edit_text_context_menu_title">Ред. текст</string>
 	<string name="editContact_title_edit">Ред. контакт</string>
@@ -141,7 +135,6 @@
 	<string name="errorDialogTitle">Изображений нет</string>
 	<string name="facebook_terms_title">Условия и положения Facebook</string>
 	<string name="forgot_credentials">Забыл(а) учетные данные</string>
-	<string name="forgot_credentials_info">Чтобы получить Ваши учетные данные, зайдите на сайт 360\n</string>
 	<string name="forgot_credentials_info_web_link">http://www.360.com</string>
 	<string name="forgot_credentials_info_web_link_text"><u>People</u></string>
 	<string name="getting_third_party_accounts">Получение аккаунтов...</string>
@@ -151,15 +144,12 @@
 	<string name="ghostData_email">Адрес эл. почты</string>
 	<string name="ghostData_notes">Моя заметка</string>
 	<string name="ghostData_phone">Тел. номер</string>
-	<string name="ghostData_postal_address_line1">Адресная строка 1</string>
-	<string name="ghostData_postal_address_line2">Адресная строка 2</string>
 	<string name="ghostData_postal_city">Город</string>
 	<string name="ghostData_postal_country">Страна</string>
 	<string name="ghostData_postal_county">Область</string>
 	<string name="ghostData_postal_postcode">Индекс</string>
 	<string name="ghostData_title">Должность</string>
 	<string name="ghostData_url">Веб-сайт</string>
-	<string name="group_member">Этот контакт уже в </string>
 	<string name="i_agree">Я принимаю</string>
 	<string name="i_dont_agree">Я не принимаю</string>
 	<string name="information">Информация</string>
@@ -221,9 +211,7 @@
 	<string name="RecentCallsListActivity_addToContact">Доб. в контакты</string>
 	<string name="RecentCallsListActivity_callNumber">Вызов %s</string>
 	<string name="RecentCallsListActivity_deleteAll">Очист. врем. шкалу</string>
-	<string name="RecentCallsListActivity_editNumberBeforeCall">Ред. номер перед вызовом</string>
 	<string name="RecentCallsListActivity_empty">Врем. шкала пуста.</string>
-	<string name="RecentCallsListActivity_payphone">Телефон-автомат</string>
 	<string name="RecentCallsListActivity_private_num">Личный номер</string>
 	<string name="RecentCallsListActivity_removeFromRecentList">Удалить из врем. шкалы</string>
 	<string name="RecentCallsListActivity_unknown">Неизвестно</string>
@@ -232,8 +220,6 @@
 	<string name="roaming_dialog_button_change_settings">Изм. параметры</string>
 	<string name="roaming_dialog_button_do_not_change_settings">Не менять параметры</string>
 	<string name="roaming_dialog_dont_ask_me_box">Не спрашивать снова в течение 24 часов</string>
-	<string name="roaming_dialog_text_for_global_off">Вы находитесь в режиме роуминга, при этом глобальный роуминг выключен. \n\n Если Вы желаете далее пользоваться информационным соединением, смените параметры роуминга. При этом с Вас может взиматься дополнительная плата за передачу данных.</string>
-	<string name="roaming_dialog_text_for_global_on">Вы находитесь в режиме роуминга, при этом глобальный роуминг включен. \n\n Если Вы желаете далее пользоваться информационным соединением, учтите, что с Вас может взиматься дополнительная плата за передачу данных. Смените параметры роуминга, если не хотите использовать соединение.</string>
 	<string name="roaming_dialog_title">Роуминг</string>
 	<string name="selectLabel">Доб. контакт в группу</string>
 	<string name="selectTypeLabel">Выбр. метку</string>
@@ -249,7 +235,6 @@
 	<string name="SignupCreateAccountDetailsActivity_privacy_statement"><u>Заявление о конфиденциальности</u></string>
 	<string name="SignupEnterMobileNumberActivity_device_problem_explanation">Введите Ваш моб. номер.</string>
 	<string name="SignupEnterMobileNumberActivity_problem_getting_deviceinfo">Моб. номер</string>
-	<string name="SignupEnterMobileNumberActivity_use_international_format">В междунар. формате, напр. +447700900999</string>
 	<string name="SignupMobileNumberActivity_creating_your_account">Создание аккаунта...</string>
 	<string name="SignupPasswordCreationActivity_account_information">Настройка 360 People</string>
 	<string name="SignupPasswordCreationActivity_create_account">Создать аккаунт</string>
@@ -260,8 +245,6 @@
 	<string name="SignupPasswordCreationActivity_password_strength">Надежность пароля</string>
 	<string name="SignupPasswordCreationActivity_terms_and_conditions"><u>Условия и положения</u></string>
 	<string name="SignupPasswordCreationActivity_too_short">В пароле должно быть не менее 6 символов</string>
-	<string name="sim_has_changed">SIM-карта поменялась</string>
-	<string name="sim_not_present">SIM-карта не вставлена</string>
 	<string name="StatusSummaryAdapter_no_contact_name">Имя не указано</string>
 	<string name="StatusSummaryAdapter_no_status_text">Состояние не указано</string>
 	<string name="StatusSummaryAdapter_today">Сегодня</string>
@@ -293,7 +276,6 @@
 	<string name="third_party_hint_password">пароль</string>
 	<string name="third_party_hint_username">Имя пользователя/эл. почта</string>
 	<string name="third_party_setup">Настройка %s</string>
-	<string name="third_party_validation_waiting_text">Проверка аккаунта %s</string>
 	<string name="third_party_web_accounts_title">Аккаунты</string>
 	<string name="TimelineHistory_composer_edit_hint">Создать сообщение...</string>
 	<string name="TimelineHistory_noHistory">История отсутствует</string>
@@ -380,21 +362,17 @@
 	<string name="UiUtils_service_err_invalid_code">Недопустимый код активации</string>
 	<string name="UiUtils_service_err_invalid_dob">Попробуйте снова ввести дату Вашего рождения.</string>
 	<string name="UiUtils_service_err_invalid_password">Неверное имя пользователя или пароль. Повторите попытку входа.</string>
-	<string name="UiUtils_service_err_invalid_session">Вы вышли из People. Зайдите снова.</string>
 	<string name="UiUtils_service_err_language_invalid">Язык недействителен</string>
 	<string name="UiUtils_service_err_mobile_model_invalid">Выберите модель Вашего телефона</string>
 	<string name="UiUtils_service_err_mobile_operator_invalid">Выберите оператора моб. связи</string>
 	<string name="UiUtils_service_err_msisdn_invalid">Введите Ваш моб. номер в международном формате.</string>
 	<string name="UiUtils_service_err_msisdn_missing">Введите Ваш мобильный номер.</string>
-	<string name="UiUtils_service_err_no_internet">Возможно произошла ошибка инф. соединения. Повторите попытку позже.</string>
 	<string name="UiUtils_service_err_no_service_response">Ошибка при попытке подключиться. Повторите попытку позже.</string>
 	<string name="UiUtils_service_err_not_found">Элемент найти не удалось</string>
 	<string name="UiUtils_service_err_not_implemented">Требуемая функция недоступна</string>
-	<string name="UiUtils_service_err_not_logged_in">Вы не вошли. Повторите попытку входа.</string>
 	<string name="UiUtils_service_err_not_ready">Произошла внутренняя ошибка (не готов)</string>
 	<string name="UiUtils_service_err_out_of_memory">Ошибка при попытке подключиться. Повторите попытку позже.</string>
 	<string name="UiUtils_service_err_password_missing">Введите Ваш пароль.</string>
-	<string name="UiUtils_service_err_sms_code_not_received">Убедитесь, что указан правильный мобильный номер.</string>
 	<string name="UiUtils_service_err_success">Операция выполнена успешно</string>
 	<string name="UiUtils_service_err_sync_failed">Общая ошибка при синхронизации контактов</string>
 	<string name="UiUtils_service_err_tc_missing">Чтобы использовать службу People, следует принять Условия и положения.</string>
@@ -406,7 +384,6 @@
 	<string name="UiUtils_service_err_username_blacklisted">Выбранное имя пользователя не может быть использовано в People. Попробуйте выбрать другое.</string>
 	<string name="UiUtils_service_err_username_forbidden">Выбранное имя пользователя не может быть использовано в People. Попробуйте выбрать другое.</string>
 	<string name="UiUtils_service_err_username_in_use">Это имя пользователя уже используется</string>
-	<string name="UiUtils_service_err_username_invalid">Введенное имя пользователя недопустимо.</string>
 	<string name="UiUtils_service_err_username_missing">Введите имя пользователя.</string>
 	<string name="UiUtils_service_message_no_more_items">Больше элементов нет</string>
 	<string name="UiUtils_Toast_AllDataRemoved">Все данные удалены из этого приложения.</string>
@@ -448,10 +425,38 @@
 	<string name="ValidatingYourThirdPartyAccountActivity_validating_your">Вход в </string>
 	<string name="ValidatingYourThirdPartyAccountActivity_your_phone_is_validating_your_account">Идет сохранение и синхронизация контактов с 360 People. Это может занять некоторое время.</string>
 	<string name="warning">Предупреждение</string>
-	<string name="widget_error_not_logged_in">Вы должны войти, прежде чем использовать эту функцию.</string>
 	<string name="widget_other_error">Ошибка получения информации</string>
 	<string name="WidgetProvider_timestamp_today">Сегодня</string>
 	<string name="WidgetProvider_timestamp_yesterday">Вчера</string>
 	<string name="you_must_accept_terms_and_conditions">Необходимо принять Условия и положения</string>
-	<string name="facebook_terms">Подключив данное приложение к Facebook , Вы сможете занести в адресную книгу People открытые для общего доступа изображения и контактные сведения Ваших друзей.\\n\\n        Нажав Добавить Facebook, Вы соглашаетесь, что Вам предоставлена неисключительная и не подлежащая передаче личная лицензия на использование открытых для общего доступа фотографий Ваших друзей в People.\\n\\n        Срок действия лицензии заканчивается, если Facebook или владелец фотографий требуют их удалить. Эта лицензия не позволяет Вам использовать фотографии в коммерческих целях или в других службах и приложениях.</string>
+	<string name="third_party_validation_waiting_text">Вход в аккаунт %s</string>
+	<string name="android_account_settings_summary">Изменить параметры в 360 People</string>
+	<string name="android_account_settings_title">Параметры</string>
+	<string name="android_contact_profile_detail">Просм. профиль</string>
+	<string name="android_contact_profile_summary">Профиль 360 People</string>
+	<string name="only_one_account_notice">Поддерживается только один аккаунт 360 People</string>
+	<string name="about_nowplus_info">О службе People		\nPeople - это служба для Вашего телефона, ПК и Mac(tm), которая соединяет		Вас с Вашими друзьями. В ней есть все, что нужно для общения с близкими		и интересными людьми.		\n		\nСлужба People доступна всем: не обязательно быть клиентом Vodafone, чтобы присоединиться.\n		\nАвторское право (c) 2010 Vodafone Limited.		\nhttp://www.vodafone.com/about\n		\nАдрес службы поддержки:\nSupport@360.com\n		\nПресс-служба:\nВ пресс-службу компании обращайтесь по телефону:\n+44 (0) 1635 664 444</string>
+	<string name="ContactListActivity_noContactsHelpText">"У Вас нет контактов.\n\nЧтобы добавить контакт, в <b>Меню</b> выберите:\n	\n<li><b>Доб. контакт</b> для создания нового контакта\n</li></string>
+	<string name="dataSettings_content">\nCбор статистики\n</string>
+	<string name="dataSettings_data_connection">Передача данных</string>
+	<string name="dataSettings_global_roaming">Международный роуминг</string>
+	<string name="dialer_useDtmfDialpad">Сенсорный набор</string>
+	<string name="facebook_terms">Подключив данное приложение к Facebook, Вы сможете добавить в адресную книгу People находящиеся в открытом доступе изображения и контакты Ваших друзей. Добавляя аккаунт Facebook, Вы соглашаетесь, что Вам предоставлено персональное, но не подлежащее передаче право на использование открытых для общего доступа фотографий Ваших друзей в People. Срок действия лицензии заканчивается, если Facebook или владелец фотографий требуют их удалить. Эта лицензия не позволяет Вам использовать фотографии в коммерческих целях или в других службах и приложениях.</string>
+	<string name="forgot_credentials_info">Чтобы получить учетные данные, перейдите на сайт 360\n</string>
+	<string name="ghostData_postal_address_line1">Адрес 1</string>
+	<string name="ghostData_postal_address_line2">Адрес 2</string>
+	<string name="group_member">Контакт добавлен ранее </string>
+	<string name="RecentCallsListActivity_editNumberBeforeCall">Изменить номер перед вызовом</string>
+	<string name="RecentCallsListActivity_payphone">Платный телефон</string>
+	<string name="roaming_dialog_text_for_global_off">Вы находитесь в роуминге, режим международного роуминга выключен. \n\nЕсли Вы желаете далее использовать передачу данных, измените роуминговые настройки. При этом с Вас может взиматься дополнительная плата.</string>
+	<string name="roaming_dialog_text_for_global_on">Вы находитесь в роуминге, режим международного роуминга включен. \n\nПри дальнейшем использовании передачи данных с Вас может взиматься дополнительная плата. Измените настройки роуминга, если не хотите использовать передачу данных.</string>
+	<string name="SignupEnterMobileNumberActivity_use_international_format">В междунар. формате, напр. +79161234567</string>
+	<string name="sim_has_changed">SIM-карта изменена</string>
+	<string name="sim_not_present">SIM-карта не установлена</string>
+	<string name="UiUtils_service_err_invalid_session">Вы вышли из People. Выполните вход снова.</string>
+	<string name="UiUtils_service_err_no_internet">Возможно произошла ошибка передачи данных. Повторите попытку позже.</string>
+	<string name="UiUtils_service_err_not_logged_in">Вход не выполнен. Повторите попытку.</string>
+	<string name="UiUtils_service_err_sms_code_not_received">Убедитесь, что мобильный номер указан правильно.</string>
+	<string name="UiUtils_service_err_username_invalid">Введено неверное имя пользователя.</string>
+	<string name="widget_error_not_logged_in">Для использования данной функции необходимо авторизоваться.</string>
 </resources>

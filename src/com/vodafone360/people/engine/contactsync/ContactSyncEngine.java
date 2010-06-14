@@ -58,7 +58,8 @@ import com.vodafone360.people.utils.LogUtils;
  * contacts, fetching of groups and thumbnails. Each phase is handled by a
  * separate processor created and managed by the Contact sync engine.
  */
-public class ContactSyncEngine extends BaseEngine implements IContactSyncCallback, NativeContactsApi.ContactsObserver {
+public class ContactSyncEngine extends BaseEngine implements IContactSyncCallback,
+        NativeContactsApi.ContactsObserver {
 
     /**
      * Definition of states for Contact sync.
@@ -69,8 +70,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         UPDATING_NATIVE_CONTACTS,
         FETCHING_SERVER_CONTACTS,
         UPDATING_SERVER_CONTACTS,
-        FETCHING_SERVER_THUMBNAILS,
-        UPDATING_SERVER_THUMBNAILS
+
     }
 
     /**
@@ -210,6 +210,13 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      */
     private ProcessorFactory mProcessorFactory;
 
+    /**
+     * If a contacts sync is triggered by the Contact tab, we should wait a
+     * little bit of time before beginning any heavy background work.  This
+     * will give the main thread a chance to render its UI.
+     */
+    private static final long UI_PING_SYNC_DELAY = 3 * 1000L;
+    
     /**
      * Time to wait after the user modifies a contact before a contact sync with
      * the server will be initiated (in milliseconds). The timer will be reset
@@ -452,7 +459,6 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         addUiRequestToQueue(ServiceUiRequest.NOWPLUSSYNC, params);
     }
 
-    
     /**
      * Triggers a server contact sync from the UI (via service interface). Only
      * the contacts will be updated, not the me profile.
@@ -502,7 +508,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
                 delay = USER_ACTIVITY_SERVER_SYNC_TIMEOUT_MS;
             } else if (currentDelay >= USER_ACTIVITY_SERVER_SYNC_TIMEOUT_MS) {
                 // Last sync timeout has passed, schedule a new one now
-                delay = 0;
+                delay = UI_PING_SYNC_DELAY;
             } else if ((currentDelay < USER_ACTIVITY_SERVER_SYNC_TIMEOUT_MS)
                     && (mServerSyncTimeout == null)) {
                 // Last sync timeout has not passed but no new one is scheduled,
@@ -535,16 +541,15 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     public synchronized boolean isFirstTimeSyncComplete() {
         return mFirstTimeSyncComplete;
     }
-    
-    
- // TODO: RE-ENABLE SYNC VIA SYSTEM
-//    /**
-//     * Check if syncing is ongoing
-//     * @return true if syncing is ongoing, false if it is not
-//     */
-//    public synchronized boolean isSyncing() {
-//        return mMode != Mode.NONE;
-//    }
+
+    // TODO: RE-ENABLE SYNC VIA SYSTEM
+    // /**
+    // * Check if syncing is ongoing
+    // * @return true if syncing is ongoing, false if it is not
+    // */
+    // public synchronized boolean isSyncing() {
+    // return mMode != Mode.NONE;
+    // }
 
     /**
      * Add observer of Contact-sync.
@@ -556,7 +561,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
             mEventCallbackList.add(observer);
         }
     }
-    
+
     /**
      * Starts a timer to trigger a server contact sync in a short while
      * (normally around 30 seconds).
@@ -833,15 +838,15 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
                 LogUtils
                         .logI("ContactSyncEngine.processCommsResponse - Contacts changed push message received");
                 mServerSyncRequired = true;
-                EngineManager.getInstance().getGroupsEngine().addUiGetGroupsRequest(); // fetch the newest groups
+                EngineManager.getInstance().getGroupsEngine().addUiGetGroupsRequest(); // fetch
+                // the
+                // newest
+                // groups
                 mEventCallback.kickWorkerThread();
                 break;
             case SYSTEM_NOTIFICATION:
                 LogUtils
                         .logI("ContactSyncEngine.processCommsResponse - System notification push message received");
-                if (mState == State.FETCHING_SERVER_THUMBNAILS) {
-                    mActiveProcessor.processCommsResponse(resp);
-                }
                 break;
             default:
                 // do nothing.
@@ -1124,23 +1129,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      */
     private boolean startDownloadServerThumbnails() {
         if (Settings.ENABLE_THUMBNAIL_SYNC) {
-            newState(State.FETCHING_SERVER_THUMBNAILS);
             ThumbnailHandler.getInstance().downloadContactThumbnails(mDb.fetchContactList());
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Helper function to start the upload thumbnails processor
-     * 
-     * @return if this type of sync is enabled in the settings, false otherwise.
-     */
-    private boolean startUploadServerThumbnails() {
-        if (Settings.ENABLE_THUMBNAIL_SYNC) {
-            newState(State.UPDATING_SERVER_THUMBNAILS);
-            startProcessor(mProcessorFactory.create(ProcessorFactory.UPLOAD_SERVER_THUMBNAILS,
-                    this, mDb, mContext, null));
             return true;
         }
         return false;
@@ -1232,7 +1221,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
                 }
                 // Fall through
             case FETCHING_NATIVE_CONTACTS:
-                 setFirstTimeNativeSyncComplete(true);
+                setFirstTimeNativeSyncComplete(true);
                 if (startUploadServerContacts()) {
                     return;
                 }
@@ -1379,15 +1368,6 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
                 if (startDownloadServerThumbnails()) {
                     return;
                 }
-                // Fall through
-            case FETCHING_SERVER_THUMBNAILS:
-                if (startUploadServerThumbnails()) {
-                    return;
-                }
-                // Fall through
-            case UPDATING_SERVER_THUMBNAILS:
-                completeSync(ServiceStatus.SUCCESS);
-                return;
             default:
                 LogUtils.logE("ContactSyncEngine.nextTaskThumbnailSync - Unexpected state: "
                         + mState);
@@ -1639,7 +1619,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
                     // startMeProfileSyncTimer();
                     startServerContactSyncTimer(SERVER_CONTACT_SYNC_TIMEOUT_MS);
                     startUpdateNativeContactSyncTimer();
-                } 
+                }
                 break;
             default:
                 // Do nothing.
@@ -1718,7 +1698,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      */
     @Override
     public void onChange() {
-        
+
         LogUtils.logD("ContactSyncEngine.onChange(): changes detected on native side.");
         // changes detected on native side, start the timer for the
         // FetchNativeContacts processor.

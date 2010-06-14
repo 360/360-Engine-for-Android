@@ -268,6 +268,7 @@ public class NetworkAgent {
 
         mContext.unregisterReceiver(mInternetConnectivityReceiver);
         mContext.unregisterReceiver(mBackgroundDataBroadcastReceiver);
+        mContext.unregisterReceiver(mServiceStateRoamingReceiver);
         mDataRoamingSettingObserver.close();
         mDataRoamingSettingObserver = null;
     }

@@ -253,7 +253,7 @@
 	
 	<!-- .ui.tabs.StartTabsActivity -->
 	<string name="contactmain_contacts">Contacts</string>
-	<string name="contactmain_dialerIconLabel">Dialler</string>
+	<string name="contactmain_dialerIconLabel">Dialer</string>
 	<string name="contactmain_recentCallsIconLabel">Timeline</string>
 	<string name="contactmain_statusIconLabel">Status</string>
 

@@ -63,6 +63,7 @@
         android:textAppearance="@style/PeopleTextAppearance.ContactListItemName"
 		android:layout_alignParentTop="true"
 		android:layout_alignParentRight="true"
+		android:paddingRight="0dip"
     	android:paddingTop="2dip" android:ellipsize="end"/>
 
    	<ImageView android:id="@+id/ContactList_ContactSNSIcon"

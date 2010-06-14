@@ -1436,8 +1436,8 @@ public abstract class ActivitiesTable {
         Cursor cursor = null;
         try {
             String query = "SELECT MAX( " + ActivitiesTable.Field.TIMESTAMP
-                + ") FROM " + TABLE_NAME + " WHERE " + Field.LOCAL_CONTACT_ID
-                + " = " + localContactId + " AND " + Field.TYPE + "='" + ActivityItem.Type.CONTACT_SENT_STATUS_UPDATE.toString() + "'";
+            + ") FROM " + TABLE_NAME + " WHERE " + Field.LOCAL_CONTACT_ID
+            + " = " + localContactId + " AND " + Field.TYPE + "='" + ActivityItem.Type.CONTACT_SENT_STATUS_UPDATE.toString().toLowerCase() + "'";
             cursor = readableDb.rawQuery(query, null);
             if (cursor.moveToFirst() && !cursor.isNull(0)) {
                 return cursor.getLong(0);
@@ -1574,20 +1574,16 @@ public abstract class ActivitiesTable {
             return;
         }
         try {
+            //Remove all the Chat Entries
+            removeChatTimelineForContact(localContactId, writeableDb);
+
             String[] args = {
                 localContactId.toString()
             };
             String query = "UPDATE "
                     + TABLE_NAME
                     + " SET "
-                    /**
-                     * TODO: AA the line below was commented out because we
-                     * currently don't delete the chat messages from/to a
-                     * deleted contact.
-                     * - This is important in order to display the history for
-                     * a contact.
-                     */
-                    // + Field.CONTACT_LOCAL_ID + "=NULL, "
+                    + Field.LOCAL_CONTACT_ID + "=NULL, "
                     + Field.CONTACT_ID + "=NULL, " + Field.CONTACT_NAME + "="
                     + Field.CONTACT_ADDRESS + " WHERE "
                     + Field.LOCAL_CONTACT_ID + "=? AND ("
@@ -1596,6 +1592,32 @@ public abstract class ActivitiesTable {
         } catch (SQLException e) {
             LogUtils.logE("ActivitiesTable.removeTimelineContactData() Unable "
                     + "to update table: \n", e);
+        }
+    }
+
+    /**
+     * Removes all the items from the chat timeline for the given contact.
+     *
+     * @param localContactId Given contact ID.
+     * @param writeableDb Writable SQLite database.
+     */
+    public static void removeChatTimelineForContact(
+            final Long localContactId, final SQLiteDatabase writeableDb) {
+        DatabaseHelper.trace(false, "DatabaseHelper."
+                + "removeChatTimelineForContact()");
+        if (localContactId == null || (localContactId == -1)) {
+            LogUtils.logE("removeChatTimelineForContact() localContactId == "
+                    + "null " + "localContactId(" + localContactId + ")");
+            return;
+        }
+        final String query = Field.LOCAL_CONTACT_ID + "=" + localContactId
+        + " AND (" + Field.NATIVE_ITEM_TYPE + "="
+        + TimelineNativeTypes.ChatLog.ordinal() + ")";
+        try {
+            writeableDb.delete(TABLE_NAME, query, null);
+        } catch (SQLException e) {
+            LogUtils.logE("ActivitiesTable.removeChatTimelineForContact() "
+                    + "Unable to update table", e);
         }
     }
 

@@ -408,7 +408,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
 
     @Override
     public void updateChatNotification(long localContactId) {
-        mHandlerAgent.updateChat(localContactId);
+        mHandlerAgent.updateChat(localContactId, false);
         
     }
 

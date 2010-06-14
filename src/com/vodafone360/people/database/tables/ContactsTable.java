@@ -659,7 +659,7 @@ public abstract class ContactsTable {
         if (serverIdList.size() == 0) {
             return ServiceStatus.SUCCESS;
         }
-        
+
         try {
             writableDb.beginTransaction();
             SQLiteStatement statement1 = null;
@@ -670,9 +670,9 @@ public abstract class ContactsTable {
                     if (info.serverId != null) {
                         if (info.userId == null) {
                             if (statement2 == null) {
-                                statement2 = writableDb
-                                        .compileStatement("UPDATE " + TABLE_NAME + " SET "
-                                                + Field.SERVERID + "=? WHERE " + Field.LOCALID + "=?");
+                                statement2 = writableDb.compileStatement("UPDATE " + TABLE_NAME
+                                        + " SET " + Field.SERVERID + "=? WHERE " + Field.LOCALID
+                                        + "=?");
                             }
                             statement2.bindLong(1, info.serverId);
                             statement2.bindLong(2, info.localId);
@@ -680,8 +680,8 @@ public abstract class ContactsTable {
                         } else {
                             if (statement1 == null) {
                                 statement1 = writableDb.compileStatement("UPDATE " + TABLE_NAME
-                                        + " SET " + Field.SERVERID + "=?," + Field.USERID + "=? WHERE "
-                                        + Field.LOCALID + "=?");
+                                        + " SET " + Field.SERVERID + "=?," + Field.USERID
+                                        + "=? WHERE " + Field.LOCALID + "=?");
                             }
                             statement1.bindLong(1, info.serverId);
                             statement1.bindLong(2, info.userId);
@@ -694,12 +694,12 @@ public abstract class ContactsTable {
                     ContactIdInfo contactInfo = new ContactIdInfo();
                     contactInfo.localId = info.localId;
                     contactInfo.serverId = info.serverId;
-    
+
                     final SQLiteStatement contactFetchNativeIdStatement = ContactsTable
                             .fetchNativeFromLocalIdStatement(writableDb);
                     contactInfo.nativeId = ContactsTable.fetchNativeFromLocalId(info.localId,
                             contactFetchNativeIdStatement);
-    
+
                     dupList.add(contactInfo);
                 } catch (SQLException e) {
                     LogUtils.logE("ContactsTable.syncSetServerIds() SQLException - "
@@ -730,7 +730,7 @@ public abstract class ContactsTable {
         if (contactIdList.size() == 0) {
             return ServiceStatus.SUCCESS;
         }
-        
+
         try {
             writableDb.beginTransaction();
             final SQLiteStatement statement1 = writableDb.compileStatement("UPDATE " + TABLE_NAME
@@ -973,97 +973,102 @@ public abstract class ContactsTable {
     public static List<Contact> fetchContactList(SQLiteDatabase readableDB) {
         ArrayList<Contact> contactList = new ArrayList<Contact>();
         Cursor cursor = openContactsCursor(readableDB);
+        if (null == cursor) {
+            throw new RuntimeException("no cursor returned");
+        }
+        try {
+            while (cursor.moveToNext()) {
+                Contact contact = new Contact();
 
-        while (cursor.moveToNext()) {
-            Contact contact = new Contact();
-
-            try {
                 PersistenceHelper.mapCursorToObject(contact, cursor);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+                contactList.add(contact);
             }
-            contactList.add(contact);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
 
+        } finally {
+            cursor.close();
         }
         return contactList;
     }
 
-    
+    /**
+     * SELECT NativeContactId FROM ContactsTable WHERE NativeContactId IS NOT
+     * NULL ORDER BY NativeContactId
+     */
+    private final static String QUERY_NATIVE_CONTACTS_IDS = "SELECT " + Field.NATIVECONTACTID
+            + " FROM " + TABLE_NAME + " WHERE " + Field.NATIVECONTACTID + " IS NOT NULL ORDER BY "
+            + Field.NATIVECONTACTID;
 
     /**
-     * SELECT NativeContactId FROM ContactsTable WHERE NativeContactId IS NOT NULL
-     * ORDER BY NativeContactId
-     */
-    private final static String QUERY_NATIVE_CONTACTS_IDS = "SELECT " + Field.NATIVECONTACTID + " FROM " + TABLE_NAME + " WHERE " + Field.NATIVECONTACTID
-                                                          + " IS NOT NULL ORDER BY " + Field.NATIVECONTACTID;
-    
-    /**
      * Gets a list of native ids for the contacts.
-     *
+     * 
      * @param readableDb the people database to query from
-     * @return an ordered array containing all the found native ids, null if none
+     * @return an ordered array containing all the found native ids, null if
+     *         none
      */
     public static long[] getNativeContactsIds(SQLiteDatabase readableDb) {
-        
+
         if (Settings.ENABLED_DATABASE_TRACE) {
             DatabaseHelper.trace(false, "ContactsTable.getNativeContactsIds()");
         }
-        
+
         long[] ids;
         Cursor cursor = null;
-        
+
         try {
-            
+
             final int NATIVE_ID_INDEX = 0;
 
             cursor = readableDb.rawQuery(QUERY_NATIVE_CONTACTS_IDS, null);
-            
+
             if (cursor.getCount() > 0) {
-                
+
                 int i = 0;
                 ids = new long[cursor.getCount()];
-                
+
                 while (cursor.moveToNext()) {
                     ids[i++] = cursor.getInt(NATIVE_ID_INDEX);
                 }
             } else {
-                
+
                 return null;
             }
         } catch (SQLException e) {
-            
+
             return null;
         } finally {
-            
+
             CloseUtils.close(cursor);
             cursor = null;
         }
-        
+
         return ids;
     }
-    
+
     /**
      * Gets the native related ContentValues for the provided ContactChange.
      * 
-     * @param contactChange the ContactChange from which to extract the native values
+     * @param contactChange the ContactChange from which to extract the native
+     *            values
      * @return the native ContentValues
      */
     public static ContentValues getNativeContentValues(ContactChange contactChange) {
-        
+
         final ContentValues values = new ContentValues();
         final long nativeId = contactChange.getNabContactId();
-        
+
         // add the native contact id
         if (nativeId != ContactChange.INVALID_ID) {
             values.put(Field.NATIVECONTACTID.toString(), nativeId);
         }
-        
+
         // add the synctophone flag to true
         values.put(Field.SYNCTOPHONE.toString(), true);
-        
+
         return values;
     }
-    
+
     /**
      * Adds the provided contact.
      * 
@@ -1071,26 +1076,26 @@ public abstract class ContactsTable {
      * @return the contact id if successful, -1 if the insertion failed
      */
     public static long addContact(ContentValues contact, SQLiteDatabase writeableDb) {
-        
+
         long contactId = -1;
-        
+
         try {
-            
+
             contactId = writeableDb.insertOrThrow(TABLE_NAME, null, contact);
-        }
-        catch(Exception e) {
-            
+        } catch (Exception e) {
+
             return -1;
         }
-        
+
         return contactId;
     }
-    
+
     /**
      * SQL query string to get the contact native id from its local id.
      */
-    private final static String QUERY_CONTACT_NATIVE_ID_FROM_LOCAL_ID = "SELECT " + Field.NATIVECONTACTID + " FROM " + TABLE_NAME + " WHERE " + Field.LOCALID + " = ?"; 
-    
+    private final static String QUERY_CONTACT_NATIVE_ID_FROM_LOCAL_ID = "SELECT "
+            + Field.NATIVECONTACTID + " FROM " + TABLE_NAME + " WHERE " + Field.LOCALID + " = ?";
+
     /**
      * Gets the native contact id.
      * 
@@ -1099,43 +1104,44 @@ public abstract class ContactsTable {
      * @return the native contact id, -1 otherwise
      */
     public static long getNativeContactId(long localContactId, SQLiteDatabase readableDb) {
-        
-        final String[] args = { Long.toString(localContactId) };
+
+        final String[] args = {
+            Long.toString(localContactId)
+        };
         Cursor cursor = null;
-        
+
         try {
-            
+
             cursor = readableDb.rawQuery(QUERY_CONTACT_NATIVE_ID_FROM_LOCAL_ID, args);
-            
+
             if (cursor.getCount() > 0) {
-                
+
                 cursor.moveToNext();
                 if (!cursor.isNull(0)) {
-                    
+
                     return cursor.getLong(0);
                 }
             }
-        }
-        catch(Exception e) {
-            
+        } catch (Exception e) {
+
             return -1;
         } finally {
-            
+
             if (cursor != null) {
-                
+
                 cursor.close();
                 cursor = null;
             }
         }
-        
+
         return -1;
     }
-    
+
     /**
      * String equal to "LocalId = ?" for SQL queries.
      */
     private final static String SQL_STRING_LOCAL_ID_EQUAL_QUESTION_MARK = Field.LOCALID + " = ?";
-    
+
     /**
      * Sets the native contact id for a contact.
      * 
@@ -1144,24 +1150,28 @@ public abstract class ContactsTable {
      * @param writableDb the database where to write
      * @return true if successful, false otherwise
      */
-    public static boolean setNativeContactId(long localContactId, long nativeContactId, SQLiteDatabase writableDb) {
-        
+    public static boolean setNativeContactId(long localContactId, long nativeContactId,
+            SQLiteDatabase writableDb) {
+
         final ContentValues values = new ContentValues();
-        
+
         values.put(Field.NATIVECONTACTID.toString(), nativeContactId);
-        
+
         try {
-            
-            if (writableDb.update(TABLE_NAME, values, SQL_STRING_LOCAL_ID_EQUAL_QUESTION_MARK, new String[] { Long.toString(localContactId) }) == 1) {
-                
+
+            if (writableDb.update(TABLE_NAME, values, SQL_STRING_LOCAL_ID_EQUAL_QUESTION_MARK,
+                    new String[] {
+                        Long.toString(localContactId)
+                    }) == 1) {
+
                 return true;
             }
-            
+
         } catch (Exception e) {
-            
+
             LogUtils.logE("ContactsTable.setNativeContactId() Exception - " + e);
         }
-        
+
         return false;
     }
 }

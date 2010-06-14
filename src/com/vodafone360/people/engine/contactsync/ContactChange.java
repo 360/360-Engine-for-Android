@@ -501,6 +501,27 @@ public class ContactChange {
     }
     
     /**
+     * Creates a copy of the ContactChange with a modified value.
+     * 
+     * @param newValue the new value to set
+     * @return a copy of the ContactChange with a new value
+     */
+    public ContactChange copyWithNewValue(String newValue) {
+        
+        ContactChange cc = new ContactChange(mKey, newValue, mFlags);
+        cc.mInternalContactId = mInternalContactId;
+        cc.mInternalDetailId = mInternalDetailId;
+        cc.mBackendContactId = mBackendContactId;
+        cc.mBackendDetailId = mBackendDetailId;
+        cc.mNabContactId = mNabContactId;
+        cc.mNabDetailId = mNabDetailId;
+        cc.mType = mType;
+        cc.mDestinations = mDestinations;
+        
+        return cc;
+    }
+    
+    /**
      * Get the change destination flags.
      * @return The Destination flags
      */

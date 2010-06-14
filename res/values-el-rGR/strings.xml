@@ -453,5 +453,10 @@
 	<string name="SyncingYourAddressBookActivity_ActionStatus_Received">Λήφθηκαν %s από %s επαφές</string>
 	<string name="SyncingYourAddressBookActivity_ActionStatus_Changes">Στάλθηκαν %s από %s αλλαγές</string>
 	<string name="SyncingYourAddressBookActivity_ActionProgress_Default">Βήμα %s από %s</string>
-	<string name="facebook_terms">Συνδέοντας αυτή την εφαρμογή με το Facebook είναι δυνατή η μεταφορά εικόνων δημόσιου προφίλ και στοιχείων επαφής των φίλων σας στο People για να συμπληρώσετε το βιβλίο διευθύνσεών σας.\n\nΚάνοντας κλικ στο ‘Προσθήκη Facebook’ συμφωνείτε ότι σας παραχωρείται μια μη αποκλειστική, μη μεταβιβάσιμη, προσωπική άδεια για χρήση των φωτογραφιών δημόσιου προφίλ των φίλων σας στο People.\n\nΑυτή η άδεια λήγει όταν το Facebook ή ο κάτοχος της συγκεκριμένης φωτογραφίας ζητήσει τη διαγραφή της. Η άδεια αυτή δεν σας επιτρέπει τη χρήση των εν λόγω φωτογραφιών για τυχόν εμπορικούς σκοπούς ή με τυχόν άλλη υπηρεσία ή εφαρμογή.</string>
+	<string name="facebook_terms">Συνδέοντας αυτή την εφαρμογή με το Facebook είναι δυνατή η μεταφορά εικόνων δημόσιου προφίλ και στοιχείων επαφής των φίλων σας στο People για να συμπληρώσετε το βιβλίο διευθύνσεών σας.Κάνοντας κλικ στο \'Προσθήκη Facebook\' συμφωνείτε ότι σας παραχωρείται μια μη αποκλειστική, μη μεταβιβάσιμη, προσωπική άδεια για χρήση των φωτογραφιών δημόσιου προφίλ των φίλων σας στο People.Αυτή η άδεια λήγει όταν το Facebook ή ο κάτοχος της συγκεκριμένης φωτογραφίας ζητήσει τη διαγραφή της. Η άδεια αυτή δεν σας επιτρέπει τη χρήση των εν λόγω φωτογραφιών για τυχόν εμπορικούς σκοπούς ή με τυχόν άλλη υπηρεσία ή εφαρμογή.</string>
+	<string name="android_account_settings_summary">Αλλαγή ρυθμίσεων στο 360 People</string>
+	<string name="android_account_settings_title">Ρυθμίσεις</string>
+	<string name="android_contact_profile_detail">Προβολή προφίλ</string>
+	<string name="android_contact_profile_summary">Προφίλ 360 People</string>
+	<string name="only_one_account_notice">Υποστηρίζεται μόνο ένας λογαριασμός 360 People</string>
 </resources>

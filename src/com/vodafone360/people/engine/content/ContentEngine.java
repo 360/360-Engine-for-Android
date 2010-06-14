@@ -144,7 +144,7 @@ public class ContentEngine extends BaseEngine {
         if (isCommsResponseOutstanding()) {
             return 0;
         }
-        return (mDownloadQueue.size() + mUploadQueue.size() > 0) ? 100 : -1;
+        return (mDownloadQueue.size() + mUploadQueue.size() > 0) ? 0 : -1;
 
     }
 
@@ -186,6 +186,11 @@ public class ContentEngine extends BaseEngine {
     @Override
     protected final void processCommsResponse(final Response resp) {
         ContentObject co = requestContentObjectMatchTable.remove(resp.mReqId);
+
+        if (co == null) { // check if we have an invalid response
+            return;
+        }
+
         List<BaseDataType> mDataTypes = resp.mDataTypes;
         // Sometimes it is empty
         if (mDataTypes == null) {
@@ -226,7 +231,9 @@ public class ContentEngine extends BaseEngine {
         }
 
         ContentObject co;
+        boolean queueChanged = false;
         while ((co = mDownloadQueue.poll()) != null) {
+            queueChanged = true;
             // set the status of this contentobject to transferring
             co.setTransferStatus(ContentObject.TransferStatus.TRANSFERRING);
             Request request = new Request(co.getUrl().toString(), co.getUrlParams(), engineId());
@@ -235,7 +242,9 @@ public class ContentEngine extends BaseEngine {
             // contentobject using this map
             requestContentObjectMatchTable.put(request.getRequestId(), co);
         }
-        QueueManager.getInstance().fireQueueStateChanged();
+        if (queueChanged) {
+            QueueManager.getInstance().fireQueueStateChanged();
+        }
     }
 
 }

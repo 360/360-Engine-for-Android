@@ -414,7 +414,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
 
         UiAgent uiAgent = mEventCallback.getUiAgent();
         if (uiAgent != null && (message.getLocalContactId() != -1)) {
-            uiAgent.updateChat(message.getLocalContactId());
+            uiAgent.updateChat(message.getLocalContactId(), true);
         }
     }
 

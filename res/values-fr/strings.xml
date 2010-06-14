@@ -136,7 +136,6 @@
 	<string name="error">Erreur</string>
 	<string name="error_text">Erreur</string>
 	<string name="errorDialogTitle">Aucune image</string>
-	<string name="facebook_terms">En connectant cette application avec Facebook, vous pourrez importer les photos de profil public et les infos contact de vos amis dans People pour les ajouter à votre carnet d\'adresses.\n\nEn connectant cette application avec Facebook, vous reconnaissez bénéficier d\'un droit personnel, non transférable et non exclusif d\'utiliser les photos de profil public de vos amis sur People.\n\nCe droit prend fin dès lors que Facebook ou le propriétaire de la photo vous demande de la supprimer. Ce droit ne vous permet pas d\'utiliser ces photos à des fins commerciales ni sur aucun autre service ou aucune autre application.</string>
 	<string name="facebook_terms_title">Conditions d\'utilisation pour Facebook</string>
 	<string name="forgot_credentials">Identifiants oubliés</string>
 	<string name="forgot_credentials_info">Connectez-vous au site Web 360 pour récupérer vos identifiants.\n</string>
@@ -449,9 +448,15 @@
 	<string name="WidgetProvider_timestamp_today">Aujourd\'hui</string>
 	<string name="WidgetProvider_timestamp_yesterday">Hier</string>
 	<string name="you_must_accept_terms_and_conditions">Vous devez accepter les conditions d\'utilisation</string>
-	<string name="account"></string>
-	<string name="ContactStatusListActivity_button_more_text">Plus...</string>
-	<string name="TimelineListActivity_button_more">Plus...</string>
-	<string name="ValidatingYourThirdPartyAccountActivity_validating_your">Connexion au compte</string>
-	<string name="about_nowplus_info">À propos de People		\nPeople est un service disponible depuis le mobile et le web (PC et Mac), 		qui vous permet de rester en contact avec vos amis. People rassemble en une seule 		interface tout ce dont vous avez besoin pour communiquer avec ceux qui 		comptent pour vous.\n		\nPeople est ouvert à tous. Il n\'est pas nécessaire d\'être un client Vodafone pour rejoindre la communauté.\n		\nCopyright (c) 2010 Vodafone Limited.		\nhttp://www.vodafone.com/about\n		\nAdresse e-mail de l\'assistance : Support@360.com\n		\nEspace Presse :\nContactez le service des relations presse du groupe au :\n+44 (0) 1635 664 444</string>
+	<string name="about_nowplus_info">À propos de People		\nPeople est un service destiné à votre téléphone, votre PC et votre Mac(tm),		qui vous permet de rester en contact avec vos amis. People rassemble en une seule 		interface tout ce dont vous avez besoin pour communiquer avec ceux qui 		comptent pour vous.\n		\nPeople est ouvert à tous. Il n\'est pas nécessaire d\'être un client Vodafone pour rejoindre la communauté.\n		\nCopyright (c) 2010 Vodafone Limited.		\nhttp://www.vodafone.com/about\n		\nAdresse e-mail de l\'assistance : Support@360.com\n		\nEspace Presse :\nContactez le service des relations presse du groupe au :\n+44 (0) 1635 664 444</string>
+	<string name="account">Compte...</string>
+	<string name="ContactStatusListActivity_button_more_text">Événements les plus anciens</string>
+	<string name="facebook_terms">En connectant cette application avec Facebook, vous pourrez importer les photos de profil public et les infos contact de vos amis dans People pour les ajouter à votre carnet d\'adresses.En connectant cette application avec Facebook, vous reconnaissez bénéficier d\'un droit personnel, non transférable et non exclusif d\'utiliser les photos de profil public de vos amis sur People.Ce droit prend fin dès lors que Facebook ou le propriétaire de la photo vous demande de la supprimer. Ce droit ne vous permet pas d\'utiliser ces photos à des fins commerciales ni sur aucun autre service ou aucune autre application.</string>
+	<string name="TimelineListActivity_button_more">Événements les plus anciens</string>
+	<string name="ValidatingYourThirdPartyAccountActivity_validating_your">Connexion à </string>
+	<string name="android_account_settings_summary">Modifier les paramètres dans 360 People</string>
+	<string name="android_account_settings_title">Paramètres</string>
+	<string name="android_contact_profile_detail">Voir le profil</string>
+	<string name="android_contact_profile_summary">Profil 360 People</string>
+	<string name="only_one_account_notice">Un seul compte 360 People est pris en charge</string>
 </resources>

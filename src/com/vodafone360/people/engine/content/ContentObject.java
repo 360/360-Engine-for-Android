@@ -246,11 +246,7 @@ public class ContentObject {
      *            should be stored or the to be uploaded file can be found
      */
     public final void setPath(final File path) {
-        if (mTransferDirection == TransferDirection.DOWNLOAD) {
-            this.mPath = path;
-        } else {
-            throw new RuntimeException("Setting path on a DOWNLOAD ContentObject not allowed");
-        }
+        this.mPath = path;
     }
 
     /**
@@ -268,11 +264,7 @@ public class ContentObject {
      * @param status The TransferStatus to set for this object
      */
     public final void setTransferStatus(final TransferStatus status) {
-        if (status.ordinal() >= this.mStatus.ordinal()) {
-            this.mStatus = status;
-        } else {
-            throw new RuntimeException("Cannot set DownloadStatus back");
-        }
+        this.mStatus = status;
     }
 
     /**

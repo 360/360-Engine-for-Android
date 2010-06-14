@@ -23,8 +23,8 @@
 -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" 
-	android:versionCode="58"
-	android:versionName="58"
+	android:versionCode="50"
+	android:versionName="50"
 	package="com.vodafone360.people"
 	>
       
@@ -56,13 +56,250 @@
     <uses-permission android:name="android.permission.WRITE_SMS"/>
     <!-- Android 2.X specific -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
+
+	<!-- FLURRY only -->
+	<!-- <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> -->
  	
     <application android:theme="@style/PeopleWhiteTheme" 
 		android:name=".MainApplication"
 		android:label="@string/app_name" 
 		android:debuggable="true"
 		android:icon="@drawable/pt_launcher_icon">
-                          
+          
+       <!-- Debug activities %%%%%%%% -->
+       <!--  For a live release:
+       			- Comment out .debug. Activities below
+       			- Set application.android:debuggable to false
+       	-->	
+        <activity android:name=".ui.debug.UpdateServiceAgentActivity"
+        	android:label="@string/UpdateServiceAgentActivity_TextView_title">
+        	<intent-filter>
+				<action	android:name="com.vodafone360.people.ui.debug.UPDATE_SERVICEAGENT"/>
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+		</activity>
+		<activity android:name=".ui.debug.PresenceListActivity"
+        	android:label="@string/PresenceViewActivity_TextView_title">
+        	<intent-filter>
+				<action	android:name="com.vodafone360.people.ui.debug.VIEW_PRESENCE_NEW"/>
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+		</activity>
+		<activity android:name=".ui.debug.PresenceViewActivity"
+        	android:label="@string/PresenceViewActivity_TextView_title">
+        	<intent-filter>
+				<action	android:name="com.vodafone360.people.ui.debug.VIEW_PRESENCE"/>
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+		</activity>
+		<activity android:name=".ui.debug.DatabaseDebugActivity"
+        	android:label="Database Debug">
+        	<intent-filter>
+				<action	android:name="com.vodafone360.people.ui.debug.VIEW_DATABASE_DEBUG"/>
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+		</activity>
+        <!-- Debug activities %%%%%%%% -->
+        
+    	 <!-- Activity whose purpose is to start either login or contacts list -->
+    	<activity android:name=".ui.StartActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        
+         <!-- Login/register activity -->
+        <activity android:name=".ui.startup.LandingPageActivity"/>
+                
+        <!-- 360 Account Creation Create Account Details activity -->
+        <activity android:name=".ui.startup.signup.SignupCreateAccountDetailsActivity"
+        	android:windowSoftInputMode="adjustPan" />
+        
+        <!-- 360 Account Creation Password Creation activity -->		
+        <activity android:name=".ui.startup.signup.SignupPasswordCreationActivity"
+        	android:windowSoftInputMode="adjustPan" />
+   
+        <!-- 360 Account Third Party Accounts activity -->		
+        <activity android:name=".ui.thirdparty.ThirdPartyAccountsActivity"
+        	android:windowSoftInputMode="adjustPan" />
+        
+        <!-- 360 Account Third Party EnterAccount Details activity -->		
+        <activity android:name=".ui.thirdparty.ThirdPartyEnterAccountActivity"
+        	android:windowSoftInputMode="adjustPan" />
+        
+        <!-- 360 Account Third Party EnterAccount Details activity -->		
+        <activity android:name=".ui.thirdparty.ValidatingYourThirdPartyAccountActivity" />
+        
+        <!-- 360 Contact Status List activity -->		
+        <activity android:name=".ui.status.StatusListActivity" />
+        
+        <!-- 360 Account Syncing Your Address Book activity -->		
+        <activity android:name=".ui.thirdparty.SyncingYourAddressBookActivity" />
+        
+        <!-- 360 Account Third Party Accounts activity -->		
+        <activity android:name=".ui.thirdparty.ThirdPartyNewAccountSelectionActivity" />
+        
+        <!-- 360 Account Creation Login Server activity -->		
+        <activity android:name=".ui.startup.signup.SignupLoginServerActivity"
+        	android:windowSoftInputMode="adjustPan" />
+        
+        <!-- Tab container for TwelveKeyDialer, RecentCallsList -->
+        <activity android:name=".ui.tabs.StartTabsActivity"
+        	android:launchMode="singleTask"
+        	android:screenOrientation="nosensor">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.android-dir/mms-sms"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.DIAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:mimeType="vnd.android.cursor.item/phone" />
+                <data android:mimeType="vnd.android.cursor.item/person" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.DIAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="voicemail" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.DIAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:mimeType="vnd.android.cursor.dir/calls" />
+            </intent-filter>            
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.android-dir/mms-sms" android:scheme="content"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.CALL_BUTTON" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+            </intent-filter>			
+			<intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.DIAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="tel" />
+            </intent-filter>
+        </activity>
+        
+		<!-- A virtual 12 key dialer -->
+        <activity android:name=".ui.tabs.TwelveKeyDialer"
+            android:launchMode="singleTop"
+            android:screenOrientation="nosensor">
+            <intent-filter>
+                <action android:name="com.android.phone.action.TOUCH_DIALER" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.TAB" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".ui.timeline.TimelineListActivity"/>
+        <activity android:name=".ui.timeline.TimelineHistoryActivity"/>
+        <activity android:name=".ui.startup.login.ForgotUsernameActivity"
+			android:theme="@style/PeopleWhiteTheme.Dialog"/>
+        
+        <!-- The list of contacts -->
+    	<activity android:name=".ui.contacts.ContactListActivity"> 
+    		<intent-filter>
+                <action android:name="android.intent.action.INSERT_OR_EDIT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.android.cursor.item/person" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.android.contacts.action.FILTER_CONTACTS" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data android:name="android.app.searchable" android:resource="@xml/searchable" />
+    	</activity>
+
+		<!-- About activity -->		
+        <activity android:name=".ui.settings.AboutActivity" 
+        	android:theme="@style/PeopleWhiteTheme.Dialog" />
+        
+        <!-- Settings activity -->		
+        <activity android:name=".ui.settings.NetworkSettingsActivity"/>
+        
+        <!-- AppSettings activity -->
+        <activity android:name=".ui.settings.SettingsActivity" 
+        	android:windowNoTitle="false"/>
+        	
+        <!-- Used by Widget -->	
+		<activity android:name=".ui.widget.ChangeWidgetPhotoActivity" 
+        	android:windowNoTitle="false"/> 	
+        	
+       	<activity android:name=".ui.widget.PeopleWidgetSetPresenceActivity"
+       		android:theme="@style/PeopleWhiteTheme.Dialog"/>
+        <!-- END used by Widget -->
+         
+        <!-- The contact details -->
+        <activity android:name=".ui.contacts.ContactProfileActivity">
+	        <intent-filter>
+	  			<action android:name="android.intent.action.VIEW" /> 
+	  			<category android:name="android.intent.category.DEFAULT" /> 
+	  			<data android:mimeType="vnd.android.cursor.item/com.vodafone360.people.profile" /> 
+	  		</intent-filter>
+		</activity>
+		<!-- Edits the details of a single contact -->
+        <activity android:name=".ui.contacts.EditContactActivity" 
+			android:windowSoftInputMode="stateVisible|adjustResize">
+            <intent-filter android:label="@string/editContactDescription">
+                <action android:name="android.intent.action.EDIT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter android:label="@string/insertContactDescription">
+                <action android:name="android.intent.action.INSERT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        
+        <!-- Display Terms and Conditions Activity -->
+       
+    	<activity android:name=".ui.utils.DisplayTermsActivity"
+			android:theme="@style/PeopleWhiteTheme.Dialog">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+            </intent-filter>
+        </activity>
+        
+        <!-- Login Account Details activity -->		
+        <activity android:name=".ui.startup.login.LoginAccountDetailsActivity"
+             android:windowSoftInputMode="adjustPan" />
+        
+        <!-- Login Account Server activity -->		
+        <activity android:name=".ui.startup.login.LoginAccountServerActivity"
+        	android:windowSoftInputMode="adjustPan" />
+      
+        <!-- Enter phone number manually activity -->		
+        <activity android:name=".ui.startup.EnterMobileNumberActivity"
+			android:windowSoftInputMode="adjustPan" />
+        
+        <!-- Roaming notification dialog -->
+        <activity android:name=".ui.utils.RoamingNotificationActivity"
+			android:theme="@style/PeopleWhiteTheme.Dialog" />
+        
+        <!-- Makes .ContactListActivity the search target for any activity in Contacts -->
+        <meta-data android:name="android.app.default_searchable" 
+			android:value=".ui.ContactListActivity" />
+                
+       	<!-- Edits the details of a single contact -->		
+        
 		<service android:name=".service.RemoteService" 
 		android:exported = "true">
 			<intent-filter>
@@ -102,6 +339,54 @@
 <!--				<data android:port="16999" />-->
 			</intent-filter>
 		</receiver>
+
+		<!-- Widget code START -->
+		<activity android:name=".ui.widget.PeopleWidgetConfigurator">
+			<intent-filter>
+				<action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+			</intent-filter>
+		</activity>
+		<receiver android:name=".ui.widget.WidgetProvider">
+			<!-- This intent filter is used to display the widget in the home screen list -->
+			<intent-filter>
+				<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+			</intent-filter>
+			<!-- This intent filter is used to manually update the widget -->
+			<intent-filter>
+				<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+				<data android:scheme="people_widget" />
+			</intent-filter>
+			<meta-data android:name="android.appwidget.provider"
+				android:resource="@xml/widget_provider_info" />
+		</receiver>
+		<!-- Widget code END-->		
+			
+        <receiver android:name=".ui.utils.SmsSentStatusReceiver">
+            <intent-filter>               
+                <action android:name="com.vodafone360.people.utils.SmsSentStatusReceiver.MESSAGE_SENT" />
+            </intent-filter>
+        </receiver>
+		
+		<receiver android:name=".ui.utils.UINotificationReceiver">
+            <intent-filter>               
+                <action android:name="com.vodafone360.people.Intents.NEW_CHAT_RECEIVED" />
+            </intent-filter>
+            <intent-filter>               
+                <action android:name="com.vodafone360.people.Intents.ROAMING_ON" />
+            </intent-filter>
+            <intent-filter>               
+                <action android:name="com.vodafone360.people.Intents.ROAMING_OFF" />
+            </intent-filter>
+            <intent-filter>               
+                <action android:name="com.vodafone360.people.Intents.START_LOGIN_ACTIVITY" />
+            </intent-filter>
+            <intent-filter>               
+                <action android:name="com.vodafone360.people.Intents.LOGIN_FAILED" />
+            </intent-filter>
+            <intent-filter>               
+                <action android:name="com.vodafone360.people.Intents.HIDE_LOGIN_NOTIFICATION" />
+            </intent-filter>
+        </receiver>
  
     </application>
     <uses-sdk android:minSdkVersion="3" />

@@ -1284,4 +1284,45 @@ public abstract class ContactSummaryTable {
         return inClause;
 
     }
+
+    /**
+     * Fetches the formattedName for the corresponding localContactId.
+     *
+     * @param localContactId The primary key ID of the contact to find
+     * @param readableDb Readable SQLite database
+     * @return String formattedName or NULL on error
+     */
+    public static String fetchFormattedNamefromLocalContactId(
+            final long localContactId, final SQLiteDatabase readableDb) {
+        if (Settings.ENABLED_DATABASE_TRACE) {
+            DatabaseHelper.trace(false,
+                    "ContactSummaryTable.fetchFormattedNamefromLocalContactId"
+                    + " localContactId[" + localContactId + "]");
+        }
+        Cursor c1 = null;
+        String formattedName = null;
+        try {
+            String query = "SELECT " + Field.DISPLAYNAME + " FROM " + TABLE_NAME
+                + " WHERE " + Field.LOCALCONTACTID + "=" + localContactId;
+
+            c1 = readableDb.rawQuery(query, null);
+            if (c1 != null && c1.getCount() > 0) {
+                c1.moveToFirst();
+                formattedName = c1.getString(0);
+            }
+
+            return formattedName;
+        } catch (SQLiteException e) {
+            LogUtils
+                    .logE(
+                            "fetchFormattedNamefromLocalContactId() "
+                            + "Exception - Unable to fetch contact summary",
+                            e);
+            return formattedName;
+        } finally {
+            CloseUtils.close(c1);
+            c1 = null;
+        }
+    }
+
 }

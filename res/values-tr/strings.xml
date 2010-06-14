@@ -139,7 +139,6 @@
 	<string name="error">Hata</string>
 	<string name="error_text">Hata</string>
 	<string name="errorDialogTitle">Resim yok</string>
-	<string name="facebook_terms">Bu uygulamanın Facebook\'a bağlanması, arkadaşlarınızın açık profil resimlerini ve iletişim bilgilerini, adres defterinizi doldurmak üzere 360\'a getirmenizi sağlayacaktır.\n\nFacebook Ekle\'yi tıklatarak, arkadaşlarınızın açık profil fotoğraflarını People\'da kullanmak için özel olmayan, aktarılamayan, kişisel bir lisansa sahip olduğunuzu kabul etmektesiniz.\n\nBu lisans, Facebook ya da fotoğrafın sahibi sizden fotoğrafı silmenizi istediğinde sona erer. Bu lisans, fotoğrafları herhangi bir ticari amaç ya da başka bir servis ya da uygulamada kullanmanıza izin vermez.</string>
 	<string name="facebook_terms_title">Facebook için Kurallar ve Koşullar</string>
 	<string name="forgot_credentials">Oturum açma bilgilerini unuttum</string>
 	<string name="forgot_credentials_info">Lütfen oturum açma bilgilerinizi almak için web\'den 360\'a gidin\n</string>
@@ -268,7 +267,6 @@
 	<string name="StatusSummaryAdapter_today">Bugün</string>
 	<string name="strong">Güçlü</string>
 	<string name="syncing_your_address_book">Adres Defteriniz senkronize ediliyor...</string>
-	<string name="SyncingYourAddressBookActivity_Action_Default">Senkronizasyona hazırlanıyor...</string>
 	<string name="SyncingYourAddressBookActivity_Action_Step_DownloadServerContacts">Kişiler alınıyor...</string>
 	<string name="SyncingYourAddressBookActivity_Action_Step_FetchNativeContacts">Telefonun adres defteri kişileri alınıyor...</string>
 	<string name="SyncingYourAddressBookActivity_Action_Step_SyncMeProfile">Kişi profiliniz senkronize ediliyor...</string>
@@ -454,4 +452,11 @@
 	<string name="WidgetProvider_timestamp_today">Bu gün</string>
 	<string name="WidgetProvider_timestamp_yesterday">Dün</string>
 	<string name="you_must_accept_terms_and_conditions">Kurallar ve koşullar kabul edilmelidir</string>
+	<string name="facebook_terms">Bu uygulamanın Facebook\'a bağlanması, arkadaşlarınızın açık profil resimlerini ve iletişim bilgilerini, adres defterinizi doldurmak üzere 360\'a getirmenizi sağlayacaktır.Facebook Ekle\'yi tıklatarak, arkadaşlarınızın açık profil fotoğraflarını People\'da kullanmak için özel olmayan, aktarılamayan, kişisel bir lisansa sahip olduğunuzu kabul etmektesiniz.Bu lisans, Facebook ya da fotoğrafın sahibi sizden fotoğrafı silmenizi istediğinde sona erer. Bu lisans, fotoğrafları herhangi bir ticari amaç ya da başka bir servis ya da uygulamada kullanmanıza izin vermez.</string>
+	<string name="SyncingYourAddressBookActivity_Action_Default">Senkronizasyona hazırlanılıyor...</string>
+	<string name="android_account_settings_summary">360 People\'da ayarları değiştirin</string>
+	<string name="android_account_settings_title">Ayarlar</string>
+	<string name="android_contact_profile_detail">Profili göster</string>
+	<string name="android_contact_profile_summary">360 People profili</string>
+	<string name="only_one_account_notice">Yalnızca bir 360 People hesabı desteklenmektedir</string>
 </resources>

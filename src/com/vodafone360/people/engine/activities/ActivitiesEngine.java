@@ -402,8 +402,6 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
             } else {
                 newState(State.UPDATE_STATUSES);
             }
-        } else {
-            completeUiRequest(ServiceStatus.ERROR_INVALID_SESSION, null);
         }
     }
 

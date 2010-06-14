@@ -160,6 +160,34 @@ public class ApplicationCache {
     
     private TimelineSummaryItem mCurrentTimelineSummary;
 
+    /** Enable Facebook chat. **/
+    public static boolean sEnableFacebookChat = true;
+    
+    /**
+     * Danger! Only set to true if you know what you are doing! This logs each
+     * response no matter if gzipped or not to the SD card under the given
+     * request ID.
+     */
+    public static boolean sEnableSuperExpensiveResponseFileLogging
+        = false;
+    
+    public static boolean isEnableSuperExpensiveResponseFileLogging() {
+        return sEnableSuperExpensiveResponseFileLogging;
+    }
+
+    public static void setEnableSuperExpensiveResponseFileLogging(
+            boolean enableSuperExpensiveResponseFileLogging) {
+        sEnableSuperExpensiveResponseFileLogging = enableSuperExpensiveResponseFileLogging;
+    }
+    
+    public static boolean isEnableFacebookChat() {
+        return sEnableFacebookChat;
+    }
+
+    public static void setEnableFacebookChat(boolean enableFacebookChat) {
+        sEnableFacebookChat = enableFacebookChat;
+    }
+
     /**
      * Whether this is a first time login (on this device) for current account.
      * 

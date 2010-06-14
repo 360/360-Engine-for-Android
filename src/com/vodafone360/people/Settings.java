@@ -37,8 +37,6 @@ public final class Settings {
     public static final String LOG_TAG = "People_";
 
 
-    public static final boolean DIALER_CHEATCODES_ENABLED = true;
-    
     /*
      * Transport.
      */
@@ -106,14 +104,9 @@ public final class Settings {
     /** Trace output for contact synchronisation components. **/
     public static final boolean ENABLED_CONTACTS_SYNC_TRACE = false;
 
-    /**
-     * Danger! Only set to true if you know what you are doing! This logs each
-     * response no matter if gzipped or not to the SD card under the given
-     * request ID.
-     */
-    public static boolean ENABLE_SUPER_EXPENSIVE_RESPONSE_FILE_LOGGING
-        = false;
-
+    /** Log engine runtime information to file for profiling. **/
+    public static final boolean ENABLED_PROFILE_ENGINES = false;    
+    
     /**
      * This is a list of strings containing the names of engines to be
      * deactivated in the build. A de-activated engine is constructed but will
@@ -128,8 +121,17 @@ public final class Settings {
     /*
      * Hard coded settings
      */
+    /** Enable dialler cheat code. **/
+    public static final boolean DIALER_CHEATCODES_ENABLED = true;
+
     /** Enable SMS account activation. **/
     public static final boolean ENABLE_ACTIVATION = false;
+
+    /**
+     * Enable SIM inserted check. Always set to TRUE.  Makes the application
+     * unusable if there is no valid SIM card inserted into the device.
+     */
+    public static final boolean ENABLE_SIM_CHECK = true;
 
     /** Enable fetching native contacts. **/
     public static final boolean ENABLE_FETCH_NATIVE_CONTACTS = true;

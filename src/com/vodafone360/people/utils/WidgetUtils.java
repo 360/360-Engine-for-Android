@@ -53,7 +53,7 @@ public class WidgetUtils {
     public static void kickWidgetUpdateNow(Context context) {
         MainApplication mainApplication = (MainApplication)context.getApplicationContext();
         int[] list = mainApplication.getCache().getWidgetIdList(context.getApplicationContext());
-        if (list.length > 0) {
+        if (list != null && list.length > 0) {
             LogUtils.logD("WidgetUtils.kickWidgetUpdateNow() Updating widget list.length" + "["
                     + list.length + "]");
 

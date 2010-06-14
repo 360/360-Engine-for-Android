@@ -73,9 +73,9 @@
 	<string name="ContactListActivity_select_group">%s (%s)</string>
 	<string name="ContactListActivity_TextView_noContacts">Sem contactos.</string>
 	<string name="contactmain_contacts">Contactos</string>
-	<string name="contactmain_dialerIconLabel">Marcador</string>
+	<string name="contactmain_dialerIconLabel">Ligar</string>
 	<string name="contactmain_recentCallsIconLabel">Diário</string>
-	<string name="contactmain_statusIconLabel">Actualizações</string>
+	<string name="contactmain_statusIconLabel">Actualiz.</string>
 	<string name="ContactProfile_available">disponível</string>
 	<string name="ContactProfile_birthday">Aniversário: %s</string>
 	<string name="ContactProfile_Button_Status">Actualização</string>
@@ -444,7 +444,6 @@
 	<string name="WidgetProvider_timestamp_today">Hoje</string>
 	<string name="WidgetProvider_timestamp_yesterday">Ontem</string>
 	<string name="you_must_accept_terms_and_conditions">Tem de aceitar os Termos e condições</string>
-	<string name="SyncingYourAddressBookActivity_Action_Default">A preparar a sincronização...</string>
 	<string name="SyncingYourAddressBookActivity_Action_Step_DownloadServerContacts">A obter contactos...</string>
 	<string name="SyncingYourAddressBookActivity_Action_Step_FetchNativeContacts">A recolher contactos do livro de endereços do telefone...</string>
 	<string name="SyncingYourAddressBookActivity_Action_Step_SyncMeProfile">A sincronizar o seu perfil de contacto...</string>
@@ -453,5 +452,11 @@
 	<string name="SyncingYourAddressBookActivity_ActionStatus_Received">Recebido(s) %s de %s contactos</string>
 	<string name="SyncingYourAddressBookActivity_ActionStatus_Changes">Enviada(s) %s de %s alterações</string>
 	<string name="SyncingYourAddressBookActivity_ActionProgress_Default">Etapa %s de %s</string>
-	<string name="facebook_terms">Se ligar esta aplicação ao Facebook poderá trazer fotos dos perfis públicos e dados de contacto dos seus amigos para o People, de modo a preencher o seu livro de endereços.\n\nAo iniciar sessão no Facebook, está a aceitar uma licença, pessoal, intransmissível e não exclusiva para usar as fotos dos perfis públicos dos seus amigos no People.\n\nEsta licença termina quando o Facebook ou o proprietário da foto em questão lhe pedir que a elimine. Esta licença não lhe permite usar as fotos para fins comerciais ou com qualquer outro serviço ou aplicação.</string>
+	<string name="facebook_terms">Se ligar esta aplicação ao Facebook poderá trazer fotos dos perfis públicos e dados de contacto dos seus amigos para o People, de modo a preencher o seu livro de endereços.Ao iniciar sessão no Facebook, está a aceitar uma licença, pessoal, intransmissível e não exclusiva para usar as fotos dos perfis públicos dos seus amigos no People.Esta licença termina quando o Facebook ou o proprietário da foto em questão lhe pedir que a elimine. Esta licença não lhe permite usar as fotos para fins comerciais ou com qualquer outro serviço ou aplicação.</string>
+	<string name="SyncingYourAddressBookActivity_Action_Default">A preparar sincronização...</string>
+	<string name="android_account_settings_summary">Alterar definições no 360 People</string>
+	<string name="android_account_settings_title">Definições</string>
+	<string name="android_contact_profile_detail">Ver perfil</string>
+	<string name="android_contact_profile_summary">Perfil no 360 People</string>
+	<string name="only_one_account_notice">Só é suportada uma conta 360 People</string>
 </resources>

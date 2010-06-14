@@ -139,7 +139,6 @@
 	<string name="error">Error</string>
 	<string name="error_text">Error</string>
 	<string name="errorDialogTitle">No hay imágenes</string>
-	<string name="facebook_terms">Si conectas esta aplicación con Facebook, podrás traer las fotos de los perfiles públicos y la información de contacto de tus amigos a People para llenar tu libreta de direcciones.\n\nAl registrarte en Facebook, aceptas que se te concede una licencia personal, no exclusiva e intransferible para utilizar las fotos de los perfiles públicos de tus amigos en People.\n\nLa licencia finalizará si Facebook o el propietario de la foto te pide que la elimines. La licencia no te permite utilizar las fotos con ningún fin comercial ni con ningún otro servicio o aplicación.</string>
 	<string name="facebook_terms_title">Condiciones legales para Facebook</string>
 	<string name="forgot_credentials">Olvidé las credenciales</string>
 	<string name="forgot_credentials_info">Visita 360 en la web para recuperar tus credenciales\n</string>
@@ -454,4 +453,10 @@
 	<string name="WidgetProvider_timestamp_today">Hoy</string>
 	<string name="WidgetProvider_timestamp_yesterday">Ayer</string>
 	<string name="you_must_accept_terms_and_conditions">Se deben aceptar las condiciones legales</string>
+	<string name="facebook_terms">Si conectas esta aplicación con Facebook, podrás traer las fotos de los perfiles públicos y la información de contacto de tus amigos a People para llenar tu libreta de direcciones.Al registrarte en Facebook, aceptas que se te concede una licencia personal, no exclusiva e intransferible para utilizar las fotos de los perfiles públicos de tus amigos en People.La licencia finalizará si Facebook o el propietario de la foto te pide que la elimines. La licencia no te permite utilizar las fotos con ningún fin comercial ni con ningún otro servicio o aplicación.</string>
+	<string name="android_account_settings_summary">Cambiar configuraciones en 360 People</string>
+	<string name="android_account_settings_title">Configuración</string>
+	<string name="android_contact_profile_detail">Ver perfil</string>
+	<string name="android_contact_profile_summary">Perfil en 360 People</string>
+	<string name="only_one_account_notice">Sólo se admite una cuenta de 360 People</string>
 </resources>

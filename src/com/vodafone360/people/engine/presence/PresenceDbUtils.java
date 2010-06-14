@@ -195,9 +195,12 @@ public class PresenceDbUtils {
                 int status = PresenceTable.updateUser(user, writableDb);
 
                 if (status != PresenceTable.USER_NOTADDED) {
-                    ContactSummaryTable.updateOnlineStatus(user);
-                    if (user.getLocalContactId() == idListeningTo)
-                        contactsChanged = true;
+                    user = PresenceTable.getUserPresenceByLocaContactId(user.getLocalContactId(), writableDb);
+                    if (user != null) {
+                        ContactSummaryTable.updateOnlineStatus(user);
+                        if (user.getLocalContactId() == idListeningTo)
+                            contactsChanged = true;    
+                    }
                 } else {
                     LogUtils.logE("PresenceDbUtils.updateDatabase():... USER WAS NOT ADDED");
                 }

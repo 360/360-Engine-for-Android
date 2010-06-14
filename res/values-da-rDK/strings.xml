@@ -139,7 +139,6 @@
 	<string name="error">Fejl</string>
 	<string name="error_text">Fejl</string>
 	<string name="errorDialogTitle">Ingen billeder</string>
-	<string name="facebook_terms">Når du forbinder denne applikation med Facebook, kan du hente dine venners offentlige profilbilleder og kontaktdetaljer ind i People for at tilføje dem til din adressebog.\n\nVed at logge ind på Facebook accepterer du, at du tildeles en ikke-eksklusiv, ikke-overdragelig personlig licens til at bruge dine venners offentlige profilbilleder på People.\n\nDenne licens ophører, når Facebook eller ejeren af det pågældende foto beder dig om at slette det. Denne licens giver dig ikke lov til at bruge billederne i nogen form for kommercielt øjemed eller med nogen anden tjeneste eller applikation.</string>
 	<string name="facebook_terms_title">Vilkår for Facebook</string>
 	<string name="forgot_credentials">Glemt brugeroplysninger</string>
 	<string name="forgot_credentials_info">Gå til 360 på internettet for at hente dine brugeroplysninger\n</string>
@@ -268,7 +267,6 @@
 	<string name="StatusSummaryAdapter_today">I dag</string>
 	<string name="strong">Sikker</string>
 	<string name="syncing_your_address_book">Synkroniserer din adressebog ...</string>
-	<string name="SyncingYourAddressBookActivity_Action_Default">Forbereder synk...</string>
 	<string name="SyncingYourAddressBookActivity_Action_Step_DownloadServerContacts">Henter kontakter...</string>
 	<string name="SyncingYourAddressBookActivity_Action_Step_FetchNativeContacts">Henter kontakter i telefons adressebog...</string>
 	<string name="SyncingYourAddressBookActivity_Action_Step_SyncMeProfile">Synkroniserer din kontaktprofil...</string>
@@ -454,4 +452,11 @@
 	<string name="WidgetProvider_timestamp_today">I dag</string>
 	<string name="WidgetProvider_timestamp_yesterday">I går</string>
 	<string name="you_must_accept_terms_and_conditions">Du skal acceptere Vilkår</string>
+	<string name="facebook_terms">Når du forbinder denne applikation med Facebook, kan du hente dine venners offentlige profilbilleder og kontaktdetaljer ind i People for at tilføje dem til din adressebog.Ved at logge ind på Facebook accepterer du, at du tildeles en ikke-eksklusiv, ikke-overdragelig personlig licens til at bruge dine venners offentlige profilbilleder på People.Denne licens ophører, når Facebook eller ejeren af det pågældende foto beder dig om at slette det. Denne licens giver dig ikke lov til at bruge billederne i nogen form for kommercielt øjemed eller med nogen anden tjeneste eller applikation.</string>
+	<string name="SyncingYourAddressBookActivity_Action_Default">Forbereder synkronisering...</string>
+	<string name="android_account_settings_summary">Skift indstillinger i 360 People</string>
+	<string name="android_account_settings_title">Indstillinger</string>
+	<string name="android_contact_profile_detail">Vis profil</string>
+	<string name="android_contact_profile_summary">360 People-profil</string>
+	<string name="only_one_account_notice">Kun en 360 People-konto er understøttet</string>
 </resources>

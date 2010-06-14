@@ -494,67 +494,76 @@ public class EngineManager {
      *         CurrentTime + 60000 in 1 minute, etc.
      */
     public synchronized long runEngines() { 
-        long mNextRuntime = -1;
+        long nextRuntime = -1;
         Set<Integer> e = mEngineList.keySet();
         Iterator<Integer> i = e.iterator();
         while (i.hasNext()) {
             int engineId = i.next();
-            BaseEngine mEngine = mEngineList.get(engineId);
-            long mCurrentTime = System.currentTimeMillis();
-            long mTempRuntime = mEngine.getNextRunTime(); // TODO: Pass
+            BaseEngine engine = mEngineList.get(engineId);
+            long currentTime = System.currentTimeMillis();
+            long tempRuntime = engine.getNextRunTime(); // TODO: Pass
             // mCurrentTime to
             // getNextRunTime() to
             // help with Unit
             // tests
             if (Settings.ENABLED_ENGINE_TRACE) {
                 LogUtils.logV("EngineManager.runEngines() " + "engine["
-                        + mEngine.getClass().getSimpleName() + "] " + "nextRunTime["
-                        + getHumanReadableTime(mTempRuntime, mCurrentTime) + "] " + "current["
-                        + getHumanReadableTime(mNextRuntime, mCurrentTime) + "]");
+                        + engine.getClass().getSimpleName() + "] " + "nextRunTime["
+                        + getHumanReadableTime(tempRuntime, currentTime) + "] " + "current["
+                        + getHumanReadableTime(nextRuntime, currentTime) + "]");
             } else {
-                if (mTempRuntime > 0 && mTempRuntime < mCurrentTime) {
-                    LogUtils.logD("Engine[" + mEngine.getClass().getSimpleName() + "] run pending");
+                if (tempRuntime > 0 && tempRuntime < currentTime) {
+                    LogUtils.logD("Engine[" + engine.getClass().getSimpleName() + "] run pending");
                 }
             }
-            if (mTempRuntime < 0) {
+            if (tempRuntime < 0) {
                 if (Settings.ENABLED_ENGINE_TRACE) {
                     LogUtils.logV("EngineManager.runEngines() Engine is off, so ignore");
                 }
 
-            } else if (mTempRuntime <= mCurrentTime) {
+            } else if (tempRuntime <= currentTime) {
                 if (Settings.ENABLED_ENGINE_TRACE) {
                     LogUtils.logV("EngineManager.runEngines() Run Engine ["
-                            + mEngine.getClass().getSimpleName()
+                            + engine.getClass().getSimpleName()
                             + "] and make sure we check it once more before sleeping");
                 }
-                mEngine.run(); // TODO: Consider passing mCurrentTime to
-                // mEngine.run()
-                mNextRuntime = 0;
-                // TODO: Warning message while developing engines
-                final long timeForRun = System.currentTimeMillis() - mCurrentTime;
+
+                /** TODO: Consider passing mCurrentTime to mEngine.run(). **/ 
+                engine.run();
+                nextRuntime = 0;
+                final long timeForRun = System.currentTimeMillis() - currentTime;
                 if (timeForRun > ENGINE_RUN_TIME_THRESHOLD) {
                     LogUtils.logE("EngineManager.runEngines() Engine ["
-                            + mEngine.getClass().getSimpleName() + "] took " + timeForRun
+                            + engine.getClass().getSimpleName() + "] took " + timeForRun
                             + "ms to run");
                 }
+                if (Settings.ENABLED_PROFILE_ENGINES) {
+                    StringBuilder string = new StringBuilder();
+                    string.append(System.currentTimeMillis());
+                    string.append("|");
+                    string.append(engine.getClass().getSimpleName());
+                    string.append("|");
+                    string.append(timeForRun);
+                    LogUtils.logToFile(string.toString().getBytes(), "enginetrace.log");
+                }
             } else {
-                if (mNextRuntime != -1) {
-                    mNextRuntime = Math.min(mNextRuntime, mTempRuntime);
+                if (nextRuntime != -1) {
+                    nextRuntime = Math.min(nextRuntime, tempRuntime);
                 } else {
-                    mNextRuntime = mTempRuntime;
+                    nextRuntime = tempRuntime;
                 }
 
                 if (Settings.ENABLED_ENGINE_TRACE) {
                     LogUtils.logV("EngineManager.runEngines() Set mNextRuntime to ["
-                            + getHumanReadableTime(mNextRuntime, mCurrentTime) + "]");
+                            + getHumanReadableTime(nextRuntime, currentTime) + "]");
                 }
             }
         }
         if (Settings.ENABLED_ENGINE_TRACE) {
             LogUtils.logI("EngineManager.getNextRunTime() Return ["
-                    + getHumanReadableTime(mNextRuntime, System.currentTimeMillis()) + "]");
+                    + getHumanReadableTime(nextRuntime, System.currentTimeMillis()) + "]");
         }
-        return mNextRuntime;
+        return nextRuntime;
     }
 
     /***
