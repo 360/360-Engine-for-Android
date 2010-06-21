@@ -1,0 +1,600 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CDDL HEADER START
+	The contents of this file are subject to the terms of the Common Development
+	and Distribution License (the "License").
+	You may not use this file except in compliance with the License.
+
+	You can obtain a copy of the license at
+	src/com/vodafone360/people/VODAFONE.LICENSE.txt or
+	http://github.com/360/360-Engine-for-Android
+	See the License for the specific language governing permissions and
+	limitations under the License.
+
+	When distributing Covered Code, include this CDDL HEADER in each file and
+	include the License file at src/com/vodafone360/people/VODAFONE.LICENSE.txt.
+	If applicable, add the following below this CDDL HEADER, with the fields
+	enclosed by brackets "[]" replaced with your own identifying information:
+	Portions Copyright [yyyy] [name of copyright owner]
+
+	CDDL HEADER END
+
+	Copyright 2010 Vodafone Sales & Services Ltd.  All rights reserved.
+	Use is subject to license terms.
+-->
+
+<project name="VodafonePeople" default="all">
+	<fail unless="${env.360_USERNAME}">
+		Environment variable USERNAME_360 has to be set to a value and there must be 
+	</fail>
+
+	<!-- The local.properties file is created and updated by the 'android' tool.
+		 It contain the path to the SDK. It should *NOT* be checked in in Version
+		 Control Systems. -->
+	<property file="local.properties"/>
+
+	<!-- The build.properties file can be created by you and is never touched
+		 by the 'android' tool. This is the place to change some of the default property values
+		 used by the Ant rules.
+		 Here are some properties you may want to change/update:
+
+		 application-package
+			 the name of your application package as defined in the manifest. Used by the
+			 'uninstall' rule.
+		 source-folder
+			 the name of the source folder. Default is 'src'.
+		 out-folder
+			 the name of the output folder. Default is 'bin'.
+
+		 Properties related to the SDK location or the project target should be updated
+		  using the 'android' tool with the 'update' action.
+
+		 This file is an integral part of the build system for your application and
+		 should be checked in in Version Control Systems.
+		 -->
+	<property file="build.properties"/>
+
+	<!-- The default.properties file is created and updated by the 'android' tool, as well
+		 as ADT. 
+		 This file is an integral part of the build system for your application and
+		 should be checked in in Version Control Systems. -->
+	<property file="default.properties"/>
+	
+	<!-- Load the properties file based on the environment variable USERNAME_360. If you did not set it
+	already on your system, please do so. After setting it, create a new properties file in
+	build_properties_file with the name USERNAME_360.properties and add the sdk.dir and xml.task.dir properties
+	to it. -->
+	<property file="${env.360_USERNAME}.properties" />
+	
+	<!-- Custom Android task to deal with the project target, and import the proper rules.
+		 This requires ant 1.6.0 or above. -->
+	<path id="android.antlibs">
+		<pathelement path="${sdk.dir}/tools/lib/anttasks.jar" />
+		<pathelement path="${sdk.dir}/tools/lib/sdklib.jar" />
+		<pathelement path="${sdk.dir}/tools/lib/androidprefs.jar" />
+		<pathelement path="${sdk.dir}/tools/lib/apkbuilder.jar" />
+		<pathelement path="${sdk.dir}/tools/lib/jarutils.jar" />
+	</path>
+
+	<taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask" 
+		classpath="${xml.task.dir}"/>
+	
+	<taskdef name="setup"
+		classname="com.android.ant.SetupTask"
+		classpathref="android.antlibs"/>
+
+	<!-- Execute the Android Setup task that will setup some properties specific to the target,
+		 and import the rules files.
+		 To customize the rules, copy/paste them below the task, and disable import by setting
+		 the import attribute to false:
+			<setup import="false" />
+		 
+		 This will ensure that the properties are setup correctly but that your customized
+		 targets are used.
+	-->
+	<setup import="false" />
+
+	<!-- Custom tasks -->
+	<taskdef name="aaptexec"
+		classname="com.android.ant.AaptExecLoopTask"
+		classpathref="android.antlibs"/>
+
+	<taskdef name="apkbuilder"
+		classname="com.android.ant.ApkBuilderTask"
+		classpathref="android.antlibs"/>
+
+	<!-- Properties -->
+	<property environment="os"/> 
+	<property name="android-tools" value="${sdk.dir}/tools" />
+	
+	<!-- Set Version code -->
+	<xmltask source="AndroidManifest.xml">
+		<copy path="/manifest/@android:versionCode" property="versionCode"/>
+	</xmltask>
+	
+	<!-- Input directories -->
+	<property name="source-folder" value="src" />
+	<property name="gen-folder" value="gen" />
+	<property name="resource-folder" value="res" />
+	<property name="resource-config-folder" value="${resource-folder}/raw" />
+	<property name="asset-folder" value="assets" />
+	<property name="source-location" value="${basedir}/${source-folder}" />
+	
+	<property name="avd-name" value="testavd" />
+	<property name="avd-port" value="5554" />
+	
+    <!-- folder for the 3rd party java libraries -->
+    <property name="external-libs-folder" value="extlibs" />
+
+	<!-- folder for the native libraries -->
+	<property name="native-libs-folder" value="libs" />
+
+	<!-- Output directories -->
+	<property name="gen-folder" value="gen" />
+	<property name="out-folder" value="output" />
+	<property name="out-classes" value="${out-folder}/classes" />
+	<property name="out-classes-location" value="${basedir}/${out-classes}"/>
+
+	<property name="apk-beta-file-name" value="360people_v${versionCode}" />
+	<property name="apk-market-file-name" value="360people_v${versionCode}" />
+	
+	<property name="apk-folder" value="${out-folder}/apk" />
+	<property name="apk-beta-folder" value="${apk-folder}/beta/v${versionCode}" />
+	<property name="apk-market-folder" value="${apk-folder}/market/v${versionCode}" />
+	
+	<!-- out folders for a parent project if this project is an instrumentation project -->
+	<property name="main-out-folder" value="../${out-folder}" />
+	<property name="main-out-classes" value="${main-out-folder}/classes"/>
+	<property name="javadocs-folder" value="${out-folder}/javadocs" />
+
+	<!-- Intermediate files -->
+	<property name="dex-file" value="classes.dex" />
+	<property name="intermediate-dex" value="${out-folder}/${dex-file}" />
+	<!-- dx does not properly support incorrect / or \ based on the platform
+		 and Ant cannot convert them because the parameter is not a valid path.
+		 Because of this we have to compute different paths depending on the platform. -->
+	<condition property="intermediate-dex-location"
+			value="${basedir}\${intermediate-dex}"
+			else="${basedir}/${intermediate-dex}" >
+		<os family="windows"/>
+	</condition>
+	<property name="config.file" value="${resource-config-folder}/config.properties" />
+	
+	<!-- The final package file to generate -->
+	<property name="application-package" value="com.vodafone360.people"/>
+	
+	<!-- Signing information -->
+	<property name="sign-password" value="vodsigning64"/>
+	
+	<!-- Tools  -->
+	<condition property="exe" value=".exe" else=""><os family="windows"/></condition>
+	<property name="adb" value="${android-tools}/adb${exe}"/>
+
+	<!-- cleanup before we start -->
+	<target name="clean">
+		<delete dir="output"/>
+	</target>
+
+	<!-- Create the output directories if they don't exist yet. -->
+	<target name="dirs">
+		<echo>Creating output directories if needed...</echo>
+		<mkdir dir="${resource-folder}" />
+		<mkdir dir="${resource-config-folder}" />
+		<mkdir dir="${external-libs-folder}" />
+		<mkdir dir="${gen-folder}" />
+		<mkdir dir="${out-folder}" />
+		<mkdir dir="${out-classes}" />
+		<mkdir dir="${javadocs-folder}" />
+		<mkdir dir="${apk-folder}"/>
+		<mkdir dir="${apk-beta-folder}"/>
+		<mkdir dir="${apk-market-folder}"/>
+	</target>
+
+	<!-- Generate the R.java file for this project's resources. -->
+	<target name="resource-src" depends="dirs">
+		<echo>Generating R.java / Manifest.java from the resources...</echo>
+		<exec executable="${aapt}" failonerror="true">
+			<arg value="package" />
+			<arg value="-m" />
+			<arg value="-J" />
+			<arg path="${gen-folder}" />
+			<arg value="-M" />
+			<arg path="AndroidManifest.xml" />
+			<arg value="-S" />
+			<arg path="${resource-folder}" />
+			<arg value="-I" />
+			<arg path="${android.jar}" />
+		</exec>
+	</target>
+
+	<!-- Generate java classes from .aidl files. -->
+	<target name="aidl" depends="dirs">
+		<echo>Compiling aidl files into Java classes...</echo>
+		<apply executable="${aidl}" failonerror="true">
+			<arg value="-p${android-aidl}" />
+			<arg value="-I${source-folder}" />
+			<arg value="-o${gen-folder}" />
+			<fileset dir="${source-folder}">
+				<include name="**/*.aidl"/>
+			</fileset>
+		</apply>
+	</target>
+
+	<!-- Compile this project's .java files into .class files. -->
+	<target name="compile" depends="resource-src, aidl">
+		<javac encoding="utf8" target="1.5" debug="$(debug-build)" extdirs=""
+				destdir="${out-classes}"
+				bootclasspathref="android.target.classpath">
+			<src path="${source-folder}" />
+			<src path="${gen-folder}" />
+			<classpath>
+				<!-- <fileset dir="${external-libs-folder}" includes="FlurryAgent.jar"/> -->
+				<pathelement path="${main-out-classes}"/>
+			</classpath>
+		 </javac>
+	</target>
+
+	<!-- Convert this project's .class files into .dex files. -->
+	<target name="dex" depends="compile">
+		<echo>Converting compiled files and external libraries into ${out-folder}/${dex-file}...</echo>
+		<apply executable="${dx}" failonerror="true" parallel="true">
+			<arg value="--dex" />
+			<arg value="--no-locals" />
+			<arg value="--output=${intermediate-dex-location}" />
+			<arg path="${out-classes-location}" />
+			<!-- <fileset dir="${external-libs-folder}" includes="FlurryAgent.jar"/> -->
+			<fileset dir="${external-libs-folder}"/>
+		</apply>
+	</target>
+
+	<!-- Put the project's resources into the output package file
+		 This actually can create multiple resource package in case
+		 Some custom apk with specific configuration have been
+		 declared in default.properties.
+		 -->
+	<target name="package-resources">
+		<echo>Packaging resources</echo>
+		<aaptexec executable="${aapt}"
+				command="package"
+				manifest="AndroidManifest.xml"
+				resources="${resource-folder}"
+				assets="${asset-folder}"
+				androidjar="${android.jar}"
+				outfolder="${resources.output.folder}"
+				basename="${fileName}_${environment}" />
+	</target>
+
+	<!-- Package the application and sign it with a debug key.
+		 This is the default target when building. It is used for debug. -->
+	<target name="debug">
+		<apkbuilder
+				outfolder="${release.output.folder}"	
+				basename="${fileName}_${environment}"
+				signed="true"
+				verbose="false">
+			<file path="${intermediate-dex}" />
+			<sourcefolder path="${source-folder}" />
+			<nativefolder path="${native-libs-folder}" />
+		</apkbuilder>
+	</target>
+
+	<!-- Package the application without signing it.
+		 This allows for the application to be signed later with an official publishing key. -->
+	<target name="release">
+		<echo> source-folder ${source-folder}</echo>
+		<apkbuilder
+			outfolder="${release.output.folder}"	
+			basename="${fileName}_${environment}"
+			signed="false"
+			verbose="false">
+			<file path="${intermediate-dex}" />
+			<sourcefolder path="src" />
+			<nativefolder path="${native-libs-folder}" /> 
+		</apkbuilder>
+	</target>
+	
+	<target name="sign-release-apk">
+	<!-- jarsigner -keystore NPKEYSTORE -storepass vodsigning64 -keypass vodsigning64 bin\.NowPlus-unsigned.apk mykey -->
+		<echo>Signing release apk with our (temp) key. </echo>
+		<signjar jar="${out-unsigned-package}"
+					keystore="NPKEYSTORE" 
+					alias="NPKEYALIAS" 
+					storepass="vodsigning64"  
+					signedjar="${out-package}"
+					/>
+	</target>
+
+	<!-- Install the package on the default emulator -->
+	<target name="install-debug">
+		<echo>Installing ${out-debug-package} onto default emulator...</echo>
+		<exec executable="${adb}" failonerror="true">
+			<arg value="install" />
+			<arg path="${out-debug-package}" />
+		</exec>
+	</target>
+	
+	<!-- Install the package on the default emulator -->
+	<target name="install">
+	<!--target name="install" depends="release,doc,sign-release-apk,uninstall"-->
+		<echo>Installing ${out-package} onto default emulator...</echo>
+		<exec executable="${adb}" failonerror="true">
+			<arg value="install" />
+			<arg path="${out-package}" />
+		</exec>
+	</target>
+
+	<!-- Reinstall the package on the default emulator -->
+	<target name="reinstall-debug">
+	<!--target name="reinstall-debug" depends="debug,doc"-->
+ 		<echo>Installing ${out-debug-package} onto default emulator...</echo>
+		<exec executable="${adb}" failonerror="true">
+			<arg value="install" />
+			<arg value="-r" />
+			<arg path="${out-debug-package}" />
+		</exec>
+	</target>
+	
+	<!-- Reinstall the package on the default emulator -->
+	<!--target name="reinstall" depends="release,doc,sign-release-apk"-->
+	<target name="reinstall">
+ 		<echo>Installing ${out-package} onto default emulator...</echo>
+		<exec executable="${adb}" failonerror="true">
+			<arg value="install" />
+			<arg value="-r" />
+			<arg path="${out-package}" />
+		</exec>
+	</target>
+
+	<!-- Uninstall the package from the default emulator -->
+	<target name="uninstall">
+		<echo>Uninstalling ${application-package} from the default emulator...</echo>
+		<exec executable="${adb}" failonerror="true">
+			<arg value="uninstall" />
+			<arg value="com.vodafone360.people" />
+		</exec>
+	</target>
+	
+	<!-- Build debug test package -->
+	<target name="test-debug">
+		<echo>Build test debug...</echo>
+		<ant target="debug" dir="tests"/>
+	</target>
+	
+	<!-- Build release test package -->
+	<target name="test-release">
+		<echo>Build test release...</echo>
+		<ant target="release" dir="tests"/>
+	</target>
+	
+	<!-- Generate java doc -->
+	<target name="doc">
+		<mkdir dir="${javadocs-folder}" />
+		<copy file="build/doc/vf360.png" tofile="${javadocs-folder}/resources/logo.png"/>
+		<javadoc sourcepath="${source.absolute.dir}" destdir="${javadocs-folder}"
+			excludepackagenames="com.vodafone360.people.ui.*"
+			overview="src/overview.html" private="true" 
+			windowtitle="Vodafone 360 People - API Specification" 
+			additionalparam="-J-DTaglets.verbose=false" failonerror="false">
+			<!-- Use a nice documentation title -->
+			<doctitle>
+				Vodafone 360 People - API Specification
+			</doctitle>
+			<!-- Create a header that contains the taglets logo -->
+			<!-- Note the use of the {@docRoot} tag to link to the logo -->
+			<header>
+				&lt;img
+				src="{@docRoot}/resources/logo.png" 
+				width="88" height="40" border="0"
+				&gt;
+			</header>
+			<!-- Same for the footer -->
+			<footer>
+				&lt;img 
+				src="{@docRoot}/resources/logo.png" 
+				width="88" height="40"
+				&gt;
+			</footer>
+			<!-- Include a timestamp at the bottom of the docu generated -->
+			<!-- Note the use of ${timestamp} which was created by the -->
+			<!-- <tstamp> task at the start of this target -->
+			<bottom>
+				&lt;p align="right"&gt;
+				&lt;font class="NavBarFont1" size="-2"&gt;
+				JavaDoc&lt;br&gt;
+				&lt;/font&gt;
+				&lt;/p&gt;
+			</bottom>
+			<!-- Include the 'rsrc' directory on the taglets path to include -->
+			<!-- the 'taglets.properties' configuration as well as all binaries -->
+			<!-- used by the configuration in the shutdown tasks -->
+			<!-- <taglet name="net.sourceforge.taglets.Taglets" path="${sdk.dir}/taglets/taglets.jar"/> -->
+			<fileset dir="src" includes="**/*.java" excludes="**/com/vodafone360/people/ui/**/*.java"/>
+			<classpath>
+				<path path="${sdk.dir}/tools/lib/sdklib.jar"/>
+				<path path="${sdk.dir}/platforms/android-7/android.jar"/>
+			</classpath>
+			<sourcepath>
+				<!-- Need to include the generated file R.java... -->
+				<path path="${gen.absolute.dir}" />
+			</sourcepath>
+		</javadoc>
+		<echo>Java documentation created......</echo>
+		<!-- zip a copy -->
+		<zip destfile="${out-folder}/360People_Javadocs.zip" basedir="${javadocs-folder}"/>
+		<echo>Zipped up the documentation...</echo>
+	</target>
+
+	<!-- Pause to make sure that the emulator has really started. -->
+	<target name="pause">
+		<sleep seconds="30"/>
+	</target>
+	
+	<!-- Start the emulator using ANT, as part of a workaround to Hudson defect 3105. -->
+	<target name="startEmu">
+		<exec executable="emulator" spawn="true" dir=".">
+			<arg value="/c"/>
+			<arg value="-avd testavd"/>
+		</exec>
+	<sleep seconds="3"/>
+	</target>
+
+	<target name="init_app">
+		<property name="environment.file.name" value="build/environment.${environment}.properties"/>
+		<property name="lifecycle.file.name" value="build/lifecycle.${lifecycle}.properties"/>
+		<property name="resources.output.folder" value="${outputFolder}"/>
+		<property name="release.output.folder" value="${outputFolder}"/>
+		<property name="out-unsigned-package" value="${outputFolder}/${fileName}_${environment}-unsigned.apk"/>
+		<property name="out-package" value="${outputFolder}/${fileName}_${environment}.apk"/>
+		<property name="out-debug-package" value="${outputFolder}/${fileName}_${environment}-debug.apk"/>
+		
+		<!-- Make and label build folder -->
+		<mkdir dir="${outputFolder}"/>
+		<copy file="build/index_${lifecycle}.html" tofile="${outputFolder}/index.html">
+			<filterchain>
+		    	<replacetokens>
+		        	<token key="BUILD_NAME" value="${fileName}"/>
+					<token key="DEV_BUILD"  value="${fileName}_dev.apk"/>
+					<token key="QA_BUILD"   value="${fileName}_qat.apk"/>
+		    		<token key="ELLER_BUILD"   value="${fileName}_eller.apk"/>
+					<token key="PRE_BUILD"  value="${fileName}_preprod.apk"/>
+					<token key="PRO_BUILD"  value="${fileName}_prod.apk"/>
+		    		<token key="SIGNME_BUILD"  value="360people_f_prod_market_vanilla_3_v${versionCode}_r0-0.apk"/>
+				</replacetokens>
+			</filterchain>
+		</copy>
+		<copy file="release_notes.txt" tofile="${outputFolder}/release_notes.txt"/>
+	</target>
+
+	<target name="make_config_file" >
+		<echo file="${config.file}" append="false">#configuration properties: environment${line.separator}</echo>
+		<!-- update properties with Environment Mapping-->
+		<concat destfile="${config.file}" append="true">	
+			<fileset file="${environment.file.name}"/>
+		</concat>
+		<echo file="${config.file}" append="true">${line.separator}${line.separator}#configuration properties: lifecycle${line.separator}</echo>
+		<!-- update properties with Lifecycle Mapping-->
+		<concat destfile="${config.file}" append="true">	
+			<fileset file="${lifecycle.file.name}"/>
+		</concat>		
+	</target>	
+	
+	<!-- cleanup before we start -->
+	<target name="cleanConfigFolder">
+		<delete file="${config.file}"/>
+	</target>
+	
+	<target name="manifest-release">
+		<echo>Set AndroidManifest.xml to Release mode</echo>
+		<delete file="AndroidManifest.xml"/>
+		<copy file="AndroidManifest-edit.xml" tofile="AndroidManifest.xml"/>
+		<replaceregexp match="android:debuggable=&quot;true&quot;" replace="android:debuggable=&quot;false&quot;" flags="g" byline="true">
+		    <fileset file="AndroidManifest.xml"/>
+		</replaceregexp>
+		<replaceregexp match="%%%%%%%%[^%]*%%%%%%%%" replace="REMOVED" flags="g" byline="false">
+		    <fileset file="AndroidManifest.xml"/>
+		</replaceregexp>
+	</target>
+		
+	<target name="renameMarketBuild">
+		<copy file="${apk-market-folder}/${apk-market-file-name}_prod-unsigned.apk" 
+			tofile="${apk-market-folder}/360people_f_prod_market_vanilla_3_v${versionCode}_r0-0.apk"/>
+	</target>
+	
+	<target name="manifest-logcat">
+		<echo>Set AndroidManifest.xml to LogCat mode</echo>
+		<delete file="AndroidManifest.xml"/>
+		<copy file="AndroidManifest-edit.xml" tofile="AndroidManifest.xml"/>
+	</target>
+	
+	<target name="-dex-filter">
+		<echo>Remove unused classes from production build</echo>
+		<delete dir="${out-classes}\com\vodafone\people\ui\debug"/>
+	</target>
+			
+	<target name="allProcessStart" depends="clean,dirs,resource-src,aidl,compile" />
+	<target name="allProcess" depends="init_app,make_config_file,package-resources,debug,release,sign-release-apk" />
+
+	<target name="all" depends="all-market-lifecycle,all-beta-lifecycle,renameMarketBuild" />
+	<target name="all-market-lifecycle" depends="manifest-release,allProcessStart,-dex-filter,dex,MarketPro,manifest-logcat" />
+	<target name="all-beta-lifecycle" depends="allProcessStart,dex,BetaPro,BetaPre,BetaQAT,BetaEller" />
+
+	<!-- START Market Lifecycle  -->
+	<target name="MarketPro">
+		<echo>Production Lifecycle + Pro Environment</echo>
+		<antcall target="allProcess">
+			<param name="outputFolder" value="${apk-market-folder}"/>
+			<param name="fileName" value="${apk-market-file-name}"/>
+			<param name="environment" value="prod"/>
+			<param name="lifecycle" value="market"/>
+		</antcall>
+	</target>
+	<!-- END Market Lifecycle  -->
+
+	<!-- START Beta Lifecycle  -->
+	<target name="BetaPro">
+		<echo>Beta Lifecycle + Pro Environment</echo>
+		<antcall target="allProcess">
+			<param name="outputFolder" value="${apk-beta-folder}"/>
+			<param name="fileName" value="${apk-beta-file-name}"/>
+			<param name="environment" value="prod"/>
+			<param name="lifecycle" value="beta"/>
+		</antcall>
+	</target>
+	<target name="BetaPre">
+		<echo>Beta Lifecycle + Pre Environment</echo>
+		<antcall target="allProcess">
+			<param name="outputFolder" value="${apk-beta-folder}"/>
+			<param name="fileName" value="${apk-beta-file-name}"/>
+			<param name="environment" value="preprod"/>
+			<param name="lifecycle" value="beta"/>
+		</antcall>
+	</target>
+	<target name="BetaQAT">
+		<echo>Beta Lifecycle + QAT Environment</echo>
+		<antcall target="allProcess">
+			<param name="outputFolder" value="${apk-beta-folder}"/>
+			<param name="fileName" value="${apk-beta-file-name}"/>
+			<param name="environment" value="qat"/>
+			<param name="lifecycle" value="beta"/>
+		</antcall>
+	</target>
+	<target name="BetaEller">
+		<echo>Beta Lifecycle + Eller Environment</echo>
+		<antcall target="allProcess">
+			<param name="outputFolder" value="${apk-beta-folder}"/>
+			<param name="fileName" value="${apk-beta-file-name}"/>
+			<param name="environment" value="eller"/>
+			<param name="lifecycle" value="beta"/>
+		</antcall>
+	</target>
+	<!-- END Beta Lifecycle  -->
+	
+	<property name="out-folder" value="output/codedrop" />
+	<property name="apk-folder" value="output/apk" />
+		
+	<target name="zip-app-for-odm-release" depends="doc">
+		<echo>Zipping up ODM ready project.</echo>
+
+		<!-- APK -->
+<!--		<zip destfile="${out-folder}/360People_APK.zip" basedir="${apk-folder}" 
+			includes="**/*.apk"/>
+-->		
+		<!-- OVERWRITE PROPERTIES FILE -->
+		<copy file="build/config.properties" tofile="res/raw/config.properties" overwrite="true"/>
+		
+		<!-- SOURCE -->
+		<zip destfile="${out-folder}/360People_Source.zip">
+			<fileset dir="." includes="res/"/>
+			<fileset dir="." includes="src/" excludes="src/com/vodafone360/people/ui/"/>
+			<fileset dir="." includes="tests/"/>
+			<fileset dir="." includes="default.properties"/>
+			<fileset dir="." includes="AndroidManifest.xml"/>
+			<fileset dir="." includes="build.xml"/>
+		</zip>
+		
+		<!-- ALL -->
+<!--		<zip destfile="${out-folder}/360people_v${versionCode}.zip" basedir="${out-folder}" 
+			includes="*.zip"/>
+-->		
+		<echo>New output file called ${out-folder}/360people_v${versionCode}.zip created.</echo>
+	</target>
+</project>
