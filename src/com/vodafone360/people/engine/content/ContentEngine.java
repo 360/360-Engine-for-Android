@@ -28,17 +28,17 @@ package com.vodafone360.people.engine.content;
 import java.util.Hashtable;
 import java.util.List;
 
-import src.com.vodafone360.people.database.DatabaseHelper;
-import src.com.vodafone360.people.datatypes.BaseDataType;
-import src.com.vodafone360.people.datatypes.ExternalResponseObject;
-import src.com.vodafone360.people.datatypes.ServerError;
-import src.com.vodafone360.people.engine.BaseEngine;
-import src.com.vodafone360.people.engine.BaseEngine.IEngineEventCallback;
-import src.com.vodafone360.people.engine.EngineManager.EngineId;
-import src.com.vodafone360.people.service.ServiceUiRequest;
-import src.com.vodafone360.people.service.io.QueueManager;
-import src.com.vodafone360.people.service.io.Request;
-import src.com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.database.DatabaseHelper;
+import com.vodafone360.people.datatypes.BaseDataType;
+import com.vodafone360.people.datatypes.ExternalResponseObject;
+import com.vodafone360.people.datatypes.ServerError;
+import com.vodafone360.people.engine.BaseEngine;
+import com.vodafone360.people.engine.BaseEngine.IEngineEventCallback;
+import com.vodafone360.people.engine.EngineManager.EngineId;
+import com.vodafone360.people.service.ServiceUiRequest;
+import com.vodafone360.people.service.io.QueueManager;
+import com.vodafone360.people.service.io.Request;
+import com.vodafone360.people.service.io.ResponseQueue.Response;
 
 /**
  * Content engine for downloading and uploading all kind of content (pictures,
