@@ -357,7 +357,7 @@
                 bootclasspathref="android.target.classpath"
                 verbose="${verbose}" classpath="${extensible.classpath}">
             <src path="${source.absolute.dir}" />
-			<src path="../../${ui.project.name}/src" />
+			<src path="../../../Android_subtask_upstream_checkout_ui/workspace/src" />
             <src path="${gen.absolute.dir}" />
             <classpath>
                 <fileset dir="${external.libs.absolute.dir}" includes="*.jar" />
