@@ -1,0 +1,641 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- CDDL HEADER START
+	The contents of this file are subject to the terms of the Common Development
+	and Distribution License (the "License").
+	You may not use this file except in compliance with the License.
+
+	You can obtain a copy of the license at
+	src/com/vodafone360/people/VODAFONE.LICENSE.txt or
+	http://github.com/360/360-Engine-for-Android
+	See the License for the specific language governing permissions and
+	limitations under the License.
+
+	When distributing Covered Code, include this CDDL HEADER in each file and
+	include the License file at src/com/vodafone360/people/VODAFONE.LICENSE.txt.
+	If applicable, add the following below this CDDL HEADER, with the fields
+	enclosed by brackets "[]" replaced with your own identifying information:
+	Portions Copyright [yyyy] [name of copyright owner]
+
+	CDDL HEADER END
+
+	Copyright 2010 Vodafone Sales & Services Ltd.  All rights reserved.
+	Use is subject to license terms.
+-->
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">360 People</string>
+    <!--  2.X Accounts localized strings  -->
+    <string name="android_account_settings_category">General Settings</string>
+    <string name="android_account_settings_title">Settings</string>
+    <string name="android_account_settings_summary">Change settings in 360 People.</string>
+    <string name="android_contact_profile_summary">"360 People profile"</string>
+    <string name="android_contact_profile_detail">"View profile"</string>
+    <string name="only_one_account_notice">Only one 360 People account is supported</string>
+
+	<!-- .ui.status.StatusListAdapter -->
+	<string name="StatusSummaryAdapter_today">Today</string>
+	<string name="StatusSummaryAdapter_no_status_text">No status text</string>
+	<string name="StatusSummaryAdapter_no_contact_name">Blank name</string>
+	
+	<!-- .ui.thirdparty.SyncingYourAddressBookActivity -->
+	<string name="SyncingYourAddressBookActivity_Action_Default">Getting ready to sync...</string>
+	<string name="SyncingYourAddressBookActivity_Action_Step_DownloadServerContacts">Retrieving contacts...</string>
+	<string name="SyncingYourAddressBookActivity_Action_Step_FetchNativeContacts">Fetching phone\'s address book contacts...</string>
+	<string name="SyncingYourAddressBookActivity_Action_Step_SyncMeProfile">Synchronizing your contact profile...</string>
+	<string name="SyncingYourAddressBookActivity_Action_Step_UpdateServerContacts">Updating online contacts...</string>
+	<string name="SyncingYourAddressBookActivity_ActionStatus_Sent">Sent %s of %s contacts</string>
+	<string name="SyncingYourAddressBookActivity_ActionStatus_Received">Received %s of %s contacts</string>
+	<string name="SyncingYourAddressBookActivity_ActionStatus_Changes">Sent %s of %s changes</string>
+	<string name="SyncingYourAddressBookActivity_ActionProgress_Default">Step %s of %s</string>
+    <string name="syncing_your_address_book">Syncing your Address Book ...</string>
+    	
+    <!-- .engine.upgrade.UpgradeStatus -->
+	<string name="UpgradeStatus_Message_default">A new version of this application is available for download on the Android Market</string>
+	<string name="UpgradeStatus_Button_download">Download</string>
+	<string name="UpgradeStatus_Button_cancel">Cancel</string>
+
+	<!-- .ui.debug.UpdateServiceAgentActivity [update_serviceAgent.xml] -->
+	<string name="UpdateServiceAgentActivity_TextView_title">External Events Simulator</string>
+	<string name="UpdateServiceAgentActivity_CheckBox_NoInternetConnection">Is Connected To Internet</string>
+	<string name="UpdateServiceAgentActivity_CheckBox_NoWorkingNetwork">Network Is Working</string>
+	<string name="UpdateServiceAgentActivity_CheckBox_IsRoaming">In Roaming</string>
+	<string name="UpdateServiceAgentActivity_CheckBox_IsRoamingAllowed">Data Roaming Is Allowed</string>
+	<string name="UpdateServiceAgentActivity_CheckBox_IsBgConnection">In Background</string>
+	<string name="UpdateServiceAgentActivity_CheckBox_IsBgDataAllowed">Background Data Is Allowed</string>
+	<string name="UpdateServiceAgentActivity_CheckBox_NoWiFi">WiFi Is Active</string>
+	<string name="UpdateServiceAgentActivity_Button_save">Apply Changes</string>
+	<string name="UpdateServiceAgentActivity_Button_refresh">Refresh</string>
+	<string name="UpdateServiceAgentActivity_ToggleButton_enabled">Test Enabled</string>
+	<string name="UpdateServiceAgentActivity_ToggleButton_disabled">Test Disabled</string>
+	<string name="UpdateServiceAgentActivity_TextView_statusConnected">Connection Status:</string>
+	<string name="UpdateServiceAgentActivity_TextView_reasonDisconnected">Disconnection Reason:</string>
+	<string name="UpdateServiceAgentActivity_TextView_deviceSettings">Device Settings:</string>
+	<string name="UpdateServiceAgentActivity_TextView_options">Options:</string>
+	<string name="UpdateServiceAgentActivity_TextView_networkOptions">Network Options:</string>
+	<string name="UpdateServiceAgentActivity_TextView_networkType">Type Of Connection:</string>
+	<string name="UpdateServiceAgentActivity_Radio_wiFi">WiFi</string>
+	<string name="UpdateServiceAgentActivity_Radio_other">Other</string>
+
+	<!-- Commonly used text strings -->
+	<string name="Common_next">Next</string>
+	<string name="Common_back">Back</string>
+	<string name="Common_privacy_statement"><u>Privacy statement</u></string>
+	<string name="Common_hint_mobile_number">Mobile number</string>
+	<string name="Common_ok">ok</string>
+	<string name="Common_yes">Yes</string>
+	<string name="Common_no">No</string>
+	<string name="Common_no_name">(No Name)</string>
+	<string name="Common_unable_to_open_activity">Unable to open application</string>
+	
+	<string name="editContactDescription">Edit contact</string> 
+	<string name="insertContactDescription">Create contact</string> 
+	
+	<!--  Validating Third Party Account Activity - validating_your_third_party_acount.xml -->
+	<string name="ValidatingYourThirdPartyAccountActivity_validating_your">Logging in to </string>
+	<string name="ValidatingYourThirdPartyAccountActivity_your_phone_is_validating_your_account">360 People is backing up and syncing your contacts. This may take a few minutes.</string>
+	
+	<!-- .ui.startup.signup.SignupPasswordCreationActivity [signup_password_creation.xml] -->
+	<string name="SignupPasswordCreationActivity_hint_confirm_password">confirm password</string>
+	<string name="SignupPasswordCreationActivity_hint_username">username</string>
+	<string name="SignupPasswordCreationActivity_hint_password">password</string>
+	<string name="SignupPasswordCreationActivity_account_information">360 People Set-up</string>
+	<string name="SignupPasswordCreationActivity_i_agree_to_terms_and_conditions">I agree to the Terms &amp; Conditions</string>
+	<string name="SignupPasswordCreationActivity_create_account">Create account</string>
+	<string name="SignupPasswordCreationActivity_password_strength">Password strength</string>
+	<string name="SignupPasswordCreationActivity_too_short">Your password must be at least 6 characters</string>
+	<string name="SignupPasswordCreationActivity_terms_and_conditions"><u>Terms &amp; Conditions</u></string>
+	
+	<!-- .ui.startup.login.LoginAccountDetailsActivity [login_account_details.xml] -->
+	<string name="LoginAccountDetailsActivity_by_signing_in_you_agree_to_the">By logging in you agree to the </string> 
+	<string name="LoginAccountDetailsActivity_welcome_to_nowplus">360 People Login</string>
+	<string name="LoginAccountDetailsActivity_signin_hint_username">username</string>
+	<string name="LoginAccountDetailsActivity_signin_hint_password">password</string>
+	<string name="LoginAccountDetailsActivity_forgot_password"><u>I\'ve forgotten my username/password</u></string>
+	<string name="LoginAccountDetailsActivity_signin">Log in</string>
+	
+	<!-- .ui.startup.LandingPageActivity [landing_page1.xml]-->
+	<string name="LandingPage_landing_text1">Welcome to 360 People!</string>
+	<string name="LandingPage_landing_page_overlay_text0">A Vodafone 360 service</string>
+	<string name="LandingPage_landing_page_overlay_text">Bringing your world\ntogether</string>
+	<string name="LandingPage_landing_button_sign_up_text">Sign up for an account</string>
+	<string name="LandingPage_landing_button_sign_in_text">Log in to my account</string> 
+	<string name="LandingPage_landing_page_your_information">Your information will be sent to Vodafone.</string>
+	<string name="sim_not_present">SIM not inserted</string>
+	<string name="prompt_remove_user_data">Do you wish to remove all existing user data?</string>
+	<string name="sim_has_changed">SIM has changed</string>
+	<string name="user_data_has_been_removed">User data has been removed</string>
+	<string name="information">Information</string>
+					
+	<!-- Server Prompts [dialog_scroll_view.xml + progress_layout.xml] -->
+	<string name="ProgressLayout_waiting_for_server">Processing...</string>
+	
+	<!-- [edit_contact.xml] -> EditPhoneticName [edit_phonetic_name.xml] -->
+	<!-- The label describing the phonetic pronunciation/reading of a contact name -->
+	<string name="EditPhoneticName_label_phonetic_name">Phonetic</string>
+	<!-- Hint text for the phonetic reading of the contact name when editing -->
+	<string name="EditPhoneticName_ghostData_phonetic_name">Phonetic name</string> 
+	
+	<!-- .ui.contacts.EditContactActivity [edit_contact.xml] -->
+	<!-- Hint text for the contact name when editing -->
+	<string name="EditContactActivity_ghostData_name">First and Last</string> 
+	<!-- Menu item to indicate you are done editing a contact and want to save the changes you've made -->
+	<string name="EditContactActivity_menu_done">Done</string> 
+	<!-- Menu item to indicate you want to stop editing a contact and NOT save the changes you've made -->
+	<string name="EditContactActivity_menu_doNotSave">Cancel</string> 
+	
+	<!-- .ui.startup.EnterMobileNumberActivity [enter_phone_number_manually.xml] -->
+	<string name="SignupEnterMobileNumberActivity_problem_getting_deviceinfo">Mobile number</string>
+	<string name="SignupEnterMobileNumberActivity_device_problem_explanation">Please enter your mobile number.</string>
+	<string name="SignupEnterMobileNumberActivity_use_international_format">Use international format eg. +447700900999</string>
+
+	<!-- .ui.contacts.EditContactActivity -->
+	<!-- Toast message when a user tries to add a contact to a group which they are already a member -->
+	<string name="group_member">This contact is already in </string> <!-- dynamic 'group' -->
+	<!-- Section header in the Edit Contacts screen for dates -->
+	<string name="listSeparatorDates">Birthday</string>
+	<!-- Section header in the Edit Contacts screen for bookmarks -->
+	<string name="ghostData_company">Company</string>
+	<string name="ghostData_title">Job title</string>
+	<string name="ghostData_dept">Department</string>
+	<string name="ghostData_url">Website</string>
+	<string name="label_url">Website</string>
+	<string name="label_date">Birthday</string>
+	<string name="label_notes">Notes</string>
+	<string name="ghostData_notes">My note</string>
+	<string name="ghostData_phone">Phone number</string>
+	<string name="ghostData_postal_address_line1">Address line 1</string>
+	<string name="ghostData_postal_address_line2">Address line 2</string>
+	<string name="ghostData_postal_city">City</string>
+	<string name="ghostData_postal_postcode">Post code</string>
+	<string name="ghostData_postal_county">County</string>
+	<string name="ghostData_postal_country">Country</string>
+	<string name="ghostData_email">Email address</string>
+	<string name="ghostData_date">Birthday</string>
+	<string name="cancel">Cancel</string>
+	<string name="contactSavedToast">Contact saved</string>
+	<string name="selectTypeLabel">Choose label</string>
+	<string name="selectLabel">Add contact to a group</string>
+	<string name="removePicture">Remove icon</string>
+	<string name="addPicture">Add icon</string>
+	<string name="errorDialogTitle">No pictures</string>
+	<string name="photoPickerNotFoundText">No pictures are available on the phone.</string>
+	<string name="contactCreatedToast">Contact created.</string> 
+	<string name="editContact_title_edit">Edit contact</string>
+	<string name="editContact_title_insert">New contact</string>
+	<string name="customLabelPickerTitle">Custom label name</string>
+	  
+	<!-- Separator in the contact details list describing that the items below it will place a call when clicked -->
+	<string name="listSeparatorCallNumber">Call</string>
+	
+	<!-- Section header in the Edit Contacts screen for phone numbers -->
+	<string name="listSeparatorCallNumber_edit">Phone numbers</string>
+	
+	<!-- Separator in the contact details list describing that the items below it will send an SMS/MMS to a phone number-->
+	<string name="listSeparatorSendSmsMms">Send text message</string> 
+
+	<!-- Separator in the contact details list describing that the items below it will send an email -->
+	<string name="listSeparatorSendEmail">Send email</string>
+	
+	<!-- Section header in the Edit Contacts screen for E-mail addresses -->
+	<string name="listSeparatorSendEmail_edit">Email addresses</string>
+	
+	<!-- Separator in the contact details list describing that the items below it will send an IM -->
+	<string name="listSeparatorSendIm">Chat</string>
+	
+	<!-- Section header in the Edit Contacts screen for Instant messanger accounts, should not display in Edit contact details -->
+	<string name="listSeparatorSendIm_edit">Chat accounts</string>
+
+	<!-- Separator in the contact details list describing that the items below it will open maps with the given address -->
+	<string name="listSeparatorMapAddress">Map address</string>
+	
+	<!-- Section header in the Edit Contacts screen for map addresses -->
+	<string name="listSeparatorMapAddress_edit">Addresses</string>
+	
+	<!-- Separator in the contact details list describing that the items below are non-actionable organization information -->
+	<string name="listSeparatorOrganizations">Work Info</string>
+	
+	<!-- Section header in the Edit Contacts screen for other options, such as setting ringtone -->
+	<string name="listSeparatorOtherInformation_edit">Other options</string> 
+	
+	<!-- Section header in the Edit Contacts screen for the "Add more items" button -->
+	<string name="listSeparatorMore_edit">More</string>
+		
+	<!-- Section header in the Edit Contacts screen for URLs -->
+	<string name="listSeparatorUrls">Websites</string>
+		
+	<!-- Section header in the Edit Contacts screen for social network accounts -->
+	<string name="listSeparatorSocialNetworks">Accounts</string>
+		
+	<!-- Section header in the Edit Contacts screen for contact groups -->
+	<string name="listSeparatorGroups">Groups</string> 
+	
+	<!-- Detail type in Edit Contacts -->
+	<string name="EditContactActivity_detail_type_home">Home</string>
+	<!-- Detail type in Edit Contacts -->
+	<string name="EditContactActivity_detail_type_mobile">Mobile</string>
+	<!-- Detail type in Edit Contacts -->
+	<string name="EditContactActivity_detail_type_work">Work</string>
+	<!-- Detail type in Edit Contacts -->
+	<string name="EditContactActivity_detail_type_work_fax">Work Fax</string>
+	<!-- Detail type in Edit Contacts -->
+	<string name="EditContactActivity_detail_type_other">Other</string>
+	<string name="EditContactActivity_age_check">You must be at least 14 years old to use Vodafone 360 People.</string>
+
+	<!-- .engine.login.LoginEngine -->
+	<string name="login_required_notification">Please log in to 360 People</string>
+	<string name="login_notification_label">360 People</string>
+	
+	<!-- .ui.startup.signup.SignupCreateAccountDetailsActivity [wizard_signup.xml] -->
+	<string name="SignupCreateAccountDetailsActivity_create_new_nowplus_account">360 People Set-up</string>
+	<string name="SignupCreateAccountDetailsActivity_hint_firstname">First name</string>
+	<string name="SignupCreateAccountDetailsActivity_hint_lastname">Last name</string>
+	<string name="SignupCreateAccountDetailsActivity_hint_email_address">Email address</string>
+	<string name="SignupCreateAccountDetailsActivity_privacy_statement"><u>Privacy statement</u></string>
+	
+	<!-- .ui.tabs.StartTabsActivity -->
+	<string name="contactmain_contacts">Contacts</string>
+	<string name="contactmain_dialerIconLabel">Dialer</string>
+	<string name="contactmain_recentCallsIconLabel">Timeline</string>
+	<string name="contactmain_statusIconLabel">Status</string>
+
+	<!-- .ui.tabs.TwelveKeyDialer -->
+	<string name="dialer_addAnotherCall">Add call</string>
+	<string name="dialer_useDtmfDialpad">Use touch tone keypad</string>
+	<string name="dialer_returnToInCallScreen">Return to call in progress</string>
+	<string name="dialerDialpadHintText">Dial to add a call</string>
+	 
+	<!-- .ui.timeline.TimelinelistActivity, .ui.timeline.TimelineHistoryActivity -->    
+	<string name="RecentCallsListActivity_unknown">Unknown</string>
+	<string name="RecentCallsListActivity_callNumber">Call %s</string>
+	<string name="RecentCallsListActivity_addToContact">Add to contacts</string>
+	<string name="RecentCallsListActivity_deleteAll">Clear Timeline</string>
+	<string name="RecentCallsListActivity_editNumberBeforeCall">Edit number before call</string>
+	<string name="RecentCallsListActivity_payphone">Pay phone</string>
+	<string name="RecentCallsListActivity_removeFromRecentList">Remove from Timeline</string>
+	<string name="RecentCallsListActivity_private_num">Private number</string>
+	<string name="RecentCallsListActivity_voicemail">Voicemail</string>
+	<string name="RecentCallsListActivity_empty">Timeline is empty.</string>
+
+	<!-- .ui.timeline.TimelineListActivity --> 
+	<string name="TimelineListActivity_filter_all">All</string>
+	<string name="TimelineListActivity_button_more">Load more</string>
+	<string name="TimelineListActivity_filter_call_log">Calls</string>
+	<string name="TimelineListActivity_filter_sms_mms">Messages</string>
+	<string name="TimelineListActivity_filter_chat">Chat</string>
+	<string name="TimelineListActivity_empty_calls">No calls</string>
+	<string name="TimelineListActivity_empty_messages">No messages</string>
+	<string name="TimelineListActivity_no_contact_name">Unknown</string>
+	<string name="menu_sendTextMessage">Send text message</string>
+
+	<!-- .ui.timeline.TimelineHistoryActivity [timeline_history.xml] -->
+	<string name="TimelineHistory_noHistory">No history available</string>
+	<string name="TimelineHistory_composer_edit_hint">Compose message...</string>
+	<string name="TimelineHistoryActivity_forward">Forward</string>
+	<string name="TimelineHistoryActivity_copy">Copy</string>
+	<string name="TimelineHistoryActivity_button_send">Send</string>
+	<string name="TimelineHistoryActivity_sending_message">Sending message</string>
+	<string name="TimelineHistoryActivity_contact_offline">Contact appears offline</string>
+
+	<!-- .ui.timeline.TimelineHistoryActivity [timeline_history_menu.xml] -->
+	<string name="TimelineHistoryActivity_menu_call">Call</string>
+	<string name="TimelineHistoryActivity_menu_view_profile">View contact</string>
+	<string name="TimelineHistoryActivity_menu_add_contact">Add contact</string>
+	<string name="TimelineHistoryActivity_menu_goto_timeline">Timeline</string>
+	
+	<!-- .ui.timeline.TimelineListActivity, .ui.timeline.ContactStatusListActivity -->
+	<string name="menu_viewContact">View profile</string>
+    
+	<!-- .ui.contacts.ContactListActivity -->
+	<string name="ContactListActivity_fast_scroll_alphabet">\u0020ABCDEFGHIJKLMNOPQRSTUVWXYZ</string>
+	<string name="ContactListActivity_filter_progress">Filtering</string>
+	<string name="ContactListActivity_group_all">All</string>
+	<string name="ContactListActivity_group_phonebook">Phonebook</string>
+	<string name="ContactListActivity_group_online">Online</string>
+	<string name="ContactListActivity_MenuItem_checkForUpdates">Check for updates</string>
+	<string name="ContactListActivity_noContactsHelpText">"You don\'t have any contacts.\n\nTo add contacts, press <b>Menu</b> and select:\n
+	    \n<li><b>Add contact</b> to create a new contact from scratch\n</li></string>
+	<string name="pickerNewContactHeader">Create new contact</string>
+	<string name="ContactListActivity_removedata_progress">Removing user data...</string>
+    <string name="ContactListActivity_select_group">%s (%s)</string>
+    <string name="ContactListActivity_no_me_profile_name">Me</string>
+    
+	<!-- .ui.contacts.ContactListActivity [contact_list.xml] -->
+	<string name="ContactListActivity_TextView_noContacts">No contacts.</string>
+    
+	<!-- .ui.contacts.ContactListActivity [contact_list_menu.xml] -->
+    <string name="ContactListActivity_MenuItem_searchContacts">Search</string>
+    <string name="ContactListActivity_MenuItem_addContact">Add contact</string>
+    <string name="ContactListActivity_MenuItem_settings">Settings</string>
+    <string name="ContactListActivity_MenuItem_datasettings">Data settings</string>
+    <string name="ContactListActivity_MenuItem_sendemail">Send Email</string>
+	<string name="ContactListActivity_MenuItem_nowplusPrivacy">Privacy</string>
+	<string name="ContactListActivity_MenuItem_nowplusAbout">About</string>
+	<string name="ContactListActivity_MenuItem_nowplusHelp">Help</string>
+    <string name="ContactListActivity_MenuItem_nowplusTerms">Terms &amp; Conditions</string>
+	<string name="ContactListActivity_MenuItem_nowplusRemoveUserData">Change user</string>
+	<string name="ContactListActivity_MenuItem_nowplusToggleRoaming">Toggle Roaming</string>
+    <string name="ContactListActivity_MenuItem_nowplusWebAccounts">Accounts</string>
+
+	<!-- .ui.contacts.ContactListActivity [contact_list_context_menu.xml] --> 
+    <string name="ContactListActivity_MenuItem_viewContact">View contact</string>
+    <string name="ContactListActivity_MenuItem_phoneContact">Call %s</string> 
+    <string name="ContactListActivity_MenuItem_smsContact">Send text message</string>
+    <string name="ContactListActivity_MenuItem_editContact">Edit contact</string>
+    <string name="ContactListActivity_MenuItem_deleteContact">Delete contact</string>
+
+	<!-- .ui.contacts.ContactProfile [contact_profile.xml] -->
+	<string name="ContactProfile_TextView_noDetailsHelpText">"You haven\'t added any details for this contact.\n\nTo add details, press <b>Menu</b> and select:\n
+    \n<li><b>Edit profile</b> to add some new details\n</li></string>
+	<string name="ContactProfile_EditText_Status_Hint">What are you up to right now?</string>
+	<string name="ContactProfile_Button_Status">Update</string>
+    <string name="menu_editProfile">Edit contact</string>
+    <string name="menu_editContact">Edit contact</string>
+    <string name="menu_deleteContact">Delete contact</string>
+    <string name="contact_detail_location_map">maps</string>
+
+	<!-- .ui.contacts.ContactStatusListActivity -->
+	<string name="ContactStatusListActivity_button_update_state">update</string>
+	<string name="ContactStatusListActivity_what_are_you_doing">What are you doing?</string>
+	<string name="ContactStatusListActivity_update_status_on_hyves_and_facebook">Your status will be posted to both \n Hyves and Facebook.</string>
+	<string name="ContactStatusListActivity_update_status_on_facebook">Your status will be posted to Facebook.</string>
+	<string name="ContactStatusListActivity_update_status_on_hyves">Your status will be posted to Hyves.</string>
+	<string name="ContactStatusListActivity_ToastStatusUpdated">Status updated</string>
+	<string name="ContactStatusListActivity_filter_progress">Loading</string>
+	<string name="ContactStatusListActivity_fast_scroll_alphabet">\u0020ABCDEFGHIJKLMNOPQRSTUVWXYZ</string>
+	<string name="ContactStatusListActivity_TextView_noStatusUpdates">Status messages are loading, this may take a few minutes if you are using the application for the first time.</string>
+	<string name="ContactStatusListActivity_error_updating_status">Your status was not updated. Please try again later.</string>
+    <string name="ContactStatusListActivity_button_refresh_text">Refresh</string>
+    <string name="ContactStatusListActivity_button_more_text">Load more</string>
+
+	<!-- .ui.contacts.ContactProfileActivity -->
+ 	<string name="ContactProfile_setpreferred_phone">Set preferred number</string>
+	<string name="ContactProfile_setpreferred_email">Set preferred email</string>
+	<string name="ContactProfile_call_number">Call %s</string>
+	<string name="ContactProfile_send_sms">Send text message</string>
+    <string name="ContactProfile_send_email">Send Email</string>
+	<string name="ContactProfile_chat">Chat</string>
+	<string name="ContactProfile_birthday">Birthday: %s</string>
+	<string name="ContactProfile_available">available</string>
+	<string name="ContactProfile_invisible">invisible</string>
+    <string name="UiUtils_detail_aboutme">About Me</string>
+    <string name="ContactProfile_no_connection">No network connection available!</string>
+    	
+	<!-- .ui.settings.AboutActivity [about.xml] -->
+    <string name="about_nowplus">Vodafone 360 People for Android</string>
+	<string name="about_nowplus2">Version</string>
+	<string name="about_nowplus_info">About 360 People
+		\n360 People is a service for your phone, PC and Mac(tm) which keeps you in
+		sync with your friends. It brings together everything you need to
+		communicate with the people that matter to you in a single easily
+		accessible place.\n
+		\n360 People is open to everyone, you don\'t have to be a Vodafone customer to join the community.\n
+		\nCopyright (c) 2010 Vodafone Limited.
+		\nhttp://www.vodafone.com/about\n
+		\nSupport Email:\nSupport@360.com\n
+		\nMedia Enquiries:\nContact Group Media Relations on:\n+44 (0) 1635 664 444</string>
+	
+	<!-- .ui.settings.NetworkSettingsActivity [network_settings.xml] -->
+	<string name="dataSettings_button_change_romaming_settings">Change roaming settings</string> 
+	<string name="dataSettings_content">\nPlaceholder for statistics\n</string> 
+ 	<string name="dataSettings_nowplus_data_sync">People Data Synchronisation ...</string>
+	<string name="dataSettings_option_roaming">Always on</string>  
+	<string name="dataSettings_option_off">Off</string> 
+	<string name="dataSettings_title">Data Settings</string>
+	<string name="dataSettings_statistics">Statistics</string>
+	<string name="dataSettings_data_connection">Data connection</string>
+	<string name="dataSettings_global_roaming">Global roaming</string>
+    <string name="dataSettings_data_connection_content">360 People uses your phone\'s data connection, even when it is in the background.</string>
+	<string name="dataSettings_roaming_state_on">Roaming is currently turned on.</string>
+	<string name="dataSettings_roaming_state_off">Roaming is currently turned off.</string>
+	<string name="login_succesful_title">You are now logged in to 360 People</string>
+	<string name="signup_succesful_title">You are now signed up and logged in to 360 People</string>
+
+	<!-- .ui.startup.signup.SignupLoginServerActivity [creating_your_account1.xml] -->
+	<string name="SignupMobileNumberActivity_creating_your_account">Creating your account ...</string>
+	<string name="sign_up_creating_your_account">Creating Your account ...</string>
+	
+	<!-- .ui.utils.UiUtils -->
+	<string name="UiUtils_service_err_success">The operation has completed successfully</string>
+	<string name="UiUtils_service_err_cancelled">The operation has been cancelled</string>
+	<string name="UiUtils_service_err_comms">Sorry, there was a problem trying to connect.  Please try again later.</string>
+	<string name="UiUtils_service_err_bad_parameter">An internal error has occurred (bad parameter)</string>
+	<string name="UiUtils_service_err_comms_timeout">Sorry, there was a problem trying to connect.  Please try again later.</string>
+	<string name="UiUtils_service_err_in_use">An internal error has occurred (in use)</string>
+	<string name="UiUtils_service_err_disconnected">Sorry, there was a problem trying to connect.  Please try again later.</string>
+	<string name="UiUtils_service_err_account_activation_failed">Sorry, we could not activate your account. Please try again.</string>
+	<string name="UiUtils_service_err_invalid_dob">Please try entering your date of birth again.</string>
+	<string name="UiUtils_service_err_username_in_use">Username is already in use</string>
+	<string name="UiUtils_service_err_not_ready">An internal error has occurred (not ready)</string>
+	<string name="UiUtils_service_err_auth_failed">Sorry, there was a problem while logging in. Please try again.</string>
+	<string name="UiUtils_service_err_not_logged_in">Sorry, you are not logged in. Try logging in again.</string>
+	<string name="UiUtils_service_err_no_internet">There may be a problem with the data connection. Please try again later.</string>
+	<string name="UiUtils_service_err_internet_disallowed">Internet access is not permitted</string>
+	<string name="UiUtils_service_err_invalid_session">You were logged out of People. Please log in again.</string>
+	<string name="UiUtils_service_err_user_not_found">User could not be found</string>
+	<string name="UiUtils_service_err_username_missing">Please enter a username.</string>
+	<string name="UiUtils_service_err_username_blacklisted">The username you have chosen can not be used in 360 People. Please try a different username.</string>
+	<string name="UiUtils_service_err_username_forbidden">The username you have chosen can not be used in 360 People. Please try a different username.</string>
+	<string name="UiUtils_service_err_username_invalid">The username entered is invalid.</string>
+	<string name="UiUtils_service_err_fullname_missing">Please enter your first and last name.</string>
+	<string name="UiUtils_service_err_invalid_password">Your username or password is not correct. Please try logging in again.</string>
+	<string name="UiUtils_service_err_password_missing">Please enter your password.</string>
+	<string name="UiUtils_service_err_tc_missing">Sorry, you can not use People without agreeing to the Terms &amp; Conditions.</string>
+	<string name="UiUtils_service_err_email_missing">Please enter your email address.</string>
+	<string name="UiUtils_service_err_country_invalid">Country is invalid</string>
+	<string name="UiUtils_service_err_msisdn_missing">Please enter your mobile number.</string>
+	<string name="UiUtils_service_err_msisdn_invalid">Please enter your mobile number using international format.</string>
+	<string name="UiUtils_service_err_timezone_missing">Please select your Timezone</string>
+	<string name="UiUtils_service_err_timezone_invalid">Please select your Timezone</string>
+	<string name="UiUtils_service_err_mobile_operator_invalid">Please select your Mobile operator</string>
+	<string name="UiUtils_service_err_mobile_model_invalid">Please select your Mobile model</string>
+	<string name="UiUtils_service_err_language_invalid">Language is invalid</string>
+	<string name="UiUtils_service_err_invalid_code">Activation code is invalid</string>
+	<string name="UiUtils_service_err_no_service_response">Sorry, there was a problem trying to connect.  Please try again later.</string>
+	<string name="UiUtils_service_err_not_implemented">The required functionality is not available</string>
+	<string name="UiUtils_service_err_unexpected_response">Sorry, there was a problem trying to connect.  Please try again later.</string>
+	<string name="UiUtils_service_err_database_corrupt">A database error has occurred</string>
+	<string name="UiUtils_service_err_comms_bad_response">The server responded with invalid data</string>
+	<string name="UiUtils_service_err_sms_code_not_received">Please check if the mobile number is correct.</string>
+	<string name="UiUtils_service_err_not_found">The item could not be found</string>
+	<string name="UiUtils_service_err_internal_server">An internal error has occurred on the server</string>
+	<string name="UiUtils_service_err_unknown">An internal error has occurred</string>
+	<string name="UiUtils_service_err_internet_romaing_not_allowed">Internet connection while roaming is not allowed</string>
+    <string name="UiUtils_service_err_sync_failed">A general error occurred during the contact sync</string>
+    <string name="UiUtils_service_err_already_exists">The item already exists</string>
+    <string name="UiUtils_service_err_out_of_memory">Sorry, there was a problem trying to connect.  Please try again later.</string>
+    <string name="UiUtils_service_err_chat_notsent">Your chat message has not been sent. Please retry later.</string>
+    <string name="UiUtils_service_message_no_more_items">No more items.</string>
+	<string name="UiUtils_detail_bookmark">Bookmark</string>
+	<string name="UiUtils_detail_external">External</string>
+	<string name="UiUtils_detail_folder">Folder</string>
+	<string name="UiUtils_detail_gender">Gender</string>
+	<string name="UiUtils_detail_interest">Interest</string>
+	<string name="UiUtils_detail_link">Link</string>
+	<string name="UiUtils_detail_location">Location</string>
+	<string name="UiUtils_detail_presence_status">Presence status</string>
+	<string name="UiUtils_detail_presence_text">Presence text</string>
+	<string name="UiUtils_detail_relation">Relation</string>
+	<string name="UiUtils_detail_unknown">Unknown</string>
+	<string name="UiUtils_detail_name">Name</string>
+	<string name="UiUtils_detail_note">Note</string>
+	<string name="UiUtils_detail_group">Group</string>
+	<string name="UiUtils_detail_photo">Photo</string>
+	<string name="UiUtils_detail_address">Addresses</string>
+	<string name="UiUtils_detail_date">Birthday</string>
+	<string name="UiUtils_detail_email">Email</string>
+    <string name="UiUtils_detail_social_network">Accounts</string>
+	<string name="UiUtils_detail_im">Chat</string>
+	<string name="UiUtils_detail_nickname">Nickname</string>
+	<string name="UiUtils_detail_org">Company</string>
+	<string name="UiUtils_detail_phone">Phone</string>
+	<string name="UiUtils_detail_dept">Department</string>
+	<string name="UiUtils_detail_title">Title</string>
+	<string name="UiUtils_detail_role">Role</string>
+	<string name="UiUtils_detail_url">Website</string>
+	<string name="UiUtils_detail_none">None</string>
+	<string name="UiUtils_detail_home">Home</string>
+	<string name="UiUtils_detail_work">Work</string>
+	<string name="UiUtils_detail_other">Other</string>
+	<string name="UiUtils_detail_mobile">Mobile</string>
+	<string name="UiUtils_detail_cell">Mobile</string>
+	<string name="UiUtils_detail_fax">Fax</string>
+	<string name="UiUtils_detail_birthday">Birthday</string>
+	<string name="UiUtils_DialogDataDeleteWarningText">This will remove all data from this application? Do you want to continue?</string>
+	<string name="UiUtils_DialogDataDeleteWarningTitle">Change user?</string>
+	<string name="UiUtils_DialogDataWarningDelete">Continue</string>
+	<string name="UiUtils_DialogDataWarningCancel">Cancel</string>
+	<string name="UiUtils_DialogDataDeleteConfirmationText">Are you sure you want to delete all data from this application?
+		\nThis is can not be undone.</string>
+	<string name="UiUtils_DialogDataDeleteTitle">Confirm Delete</string>
+	<string name="UiUtils_DialogDataDeleteYes">Delete</string>
+	<string name="UiUtils_DialogDataDeleteNo">Cancel</string>
+	<string name="UiUtils_Toast_AllDataRemoved">All data has been removed from this application.</string>
+	<string name="deleteConfirmation_title">Delete</string>
+    <string name="deleteConfirmation">This contact will be deleted.</string>	
+
+	<!-- .service.agent.NetworkAgent -->
+	<string name="service_roaming_notification">You are roaming and data charges might be expensive.</string>
+    <string name="service_roaming_notification_label">Roaming</string>
+
+	<!-- .service.agent.UiAgent -->
+	<string name="UiAgent_Notification_new_messages">New messages</string>
+	<string name="UiAgent_Notification_unread_messages">%S unread messages.</string>
+
+	<!-- .ui.utils.RoamingNotificationActivity [dialog_roaming.xml] -->
+	<string name="roaming_dialog_title">Roaming</string>
+	<string name="roaming_dialog_text_for_global_off">You are roaming and your global roaming setting is turned off. \n\n If you want to continue using the data connection please change your roaming settings. You may incur additional data charges.</string>
+	<string name="roaming_dialog_text_for_global_on">You are roaming and your global roaming setting is turned on. \n\n If You want to continue using the data connection you may incur additional data charges. Please change your roaming settings if you do not want to connect.</string>
+	<string name="roaming_dialog_dont_ask_me_box">Don\'t ask me again for 24 hours</string>
+	<string name="roaming_dialog_button_change_settings">Change settings</string>
+	<string name="roaming_dialog_button_do_not_change_settings">Do not change settings</string>
+
+	<!-- .ui.thirdparty.ThirdPartyAccountsActivity [third_party_accounts.xml]-->
+	<string name="add_accounts_title">Import contacts</string>
+    <string name="android_contacts">Your phone\'s address book will be backed up and synced</string>
+    <string name="more_web_accounts">Accounts</string>
+	<string name="third_party_add_new_account_seletion_title">Available accounts</string>
+	<string name="third_party_all">All</string>
+	<string name="third_party_add_account">Add new account</string>
+	<string name="third_party_adding_success"> added</string> <!-- dynamic "[web account] added" -->
+	<string name="third_party_applying_changes">Getting ready to sync...</string>
+	<string name="third_party_favourites">Favourites</string>
+	<string name="third_party_setup">%s setup</string>
+    <string name="third_party_web_accounts_title">Accounts</string>
+    <string name="third_party_hint_username">username/email</string>
+	<string name="third_party_hint_password">password</string>
+	<string name="third_party_validation_waiting_text">Checking %s account</string>
+ 	<string name="third_party_account_placeholder">Unnamed Account</string>
+    <string name="getting_third_party_accounts">Getting accounts...</string>
+	<string name="third_party_account_error_title">Problem</string>
+	<string name="validating_third_party_account">Logging into %S</string> <!-- "Signing into [web account]" -->
+	<string name="third_party_account_validation_error">There was a problem logging into %S. Please check if your username and password are correct.</string>
+	<string name="third_party_account_info_title">Information</string>
+    <string name="third_party_account_info_cannot_break_message_text">We are in the middle of processing important data. This process cannot be interrupted. Please be patient, it may take a while.</string>
+	<string name="third_party_account_error_message_text">There was a problem getting information. Please try again later.</string> <!-- [account] -->
+	<string name="account">Account ...</string>
+
+	<!-- .ui.startup.login.LoginAccountDetailsActivity -->
+	<string name="text_login">Login</string>
+	<string name="forgot_credentials">Forgot credentials</string> 
+	<string name="forgot_credentials_info">Please go to Vodafone 360 on the web to retrieve your credentials\n</string>
+	<string name="forgot_credentials_info_web_link">http://www.vodafone360.com</string>
+	<string name="forgot_credentials_info_web_link_text"><u>Vodafone 360 People</u></string>
+
+	<!-- .ui.debug.PresenceViewActivity -->
+	<string name="PresenceViewActivity_TextView_title">Presence info</string>
+
+	<!-- .ui.startup.login.LoginAccountServerActivity -->
+	<string name="signing_in">Logging in ...</string>
+	<string name="comms_text1">Your phone is communicating with 360 People and setting up your account. This may take a moment.</string>
+		
+	<!-- .ui.startup.signup.SignupCreateAccountDetailsActivity -->
+	<string name="dateofbirth">Date of Birth</string>
+	<string name="user_is_too_young">You need to be at least 14 to sign up</string>
+		
+	<!-- .ui.startup.signup.SignupPasswordCreationActivity -->
+	<string name="strong">Strong</string>
+	<string name="passwords_do_not_match">Passwords do not match</string>
+	<string name="password_too_short">Password is too short</string>
+	<string name="warning">Warning</string>
+	<string name="error">Error</string>
+	<string name="username_is_too_short">Username is too short. Please use a minimum of 6 characters.</string>
+	<string name="username_is_too_long">Username is too long</string>
+	<string name="username_contains_invalid_characters">Username contains invalid characters</string>
+	<string name="password_contains_invalid_characters">Password contains invalid characters</string>
+	<string name="you_must_accept_terms_and_conditions">Terms &amp; Conditions must be accepted</string>
+	
+	<!-- .ui.utils.DisplayTermsActivity -->
+	<string name="terms_and_conditions_title">Terms &amp; Conditions</string>
+	<string name="privacy_title">Privacy</string>
+	<string name="loading_title">Loading...</string>
+	<string name="i_agree">I agree</string>
+	<string name="i_dont_agree">I don\'t agree</string>
+	
+	<!-- .ui.startup.login.ForgotUsernameActivity -->
+	<string name="error_text">Error</string>
+
+	<!-- .engine.contactsync.FetchNativeContacts  -->
+	<string name="native_sync_title_mr">mr</string>
+	<string name="native_sync_title_miss">miss</string>
+	<string name="native_sync_title_mrs">mrs</string>
+	<string name="native_sync_title_ms">ms</string>
+	<string name="native_sync_title_dr">dr</string>
+	
+	<!-- .ui.widget.WidgetProvider -->
+	<string name="widget_error_not_logged_in">You must be logged in to use this feature.</string>
+	<string name="widget_other_error">There was a problem getting information</string>
+	<string name="WidgetProvider_timestamp_today">Today</string>
+	<string name="WidgetProvider_timestamp_yesterday">Yesterday</string>
+	
+	<!-- .ui.utils.PeopleEditText -->
+	<string name="edit_text_context_menu_title">Edit Text</string>
+	
+	<!-- .ui.thirdparty.ThirdPartyEnterAccountsActivity [third_party_account_details.xml]-->
+	<string name="facebook_terms_title">Terms &amp; Conditions for Facebook</string>
+	<!-- Terms and Conditions for Facebook  -->
+	<string name="facebook_terms">Connecting this application with Face-\n
+	book will enable you to bring public\n 
+	profile pics and contact details of your\n
+	friends in Vodafone People in order to\n
+	populate your address book.\n\n
+	By clicking add Facebook you agree\n
+	that you are granted a non-exclusive,\n
+	non-transferable, personal license to\n
+	use the public profile photos of your\n
+	friends on Vodafone People.\n\n
+	This license ends when either Facebook\n
+	or the owner of that photo requests\n
+	that you delete it. This license does not\n
+	allow you to use those photos for any\n
+	commercial purpose or with any other\n
+	service or application.</string>
+
+	<!-- .ui.utils.SNSIconUtils -->
+	<string name="Utils_sns_name_facebook">Facebook</string>
+	<string name="Utils_sns_name_twitter">Twitter</string>
+	<string name="Utils_sns_name_google">Google</string>
+	<string name="Utils_sns_name_msn">Windows Live Messenger</string>
+	<string name="Utils_sns_name_hyves">Hyves</string>
+	<string name="Utils_sns_name_vodafone">Vodafone</string>
+	
+</resources>
