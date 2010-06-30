@@ -1226,27 +1226,25 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * (if one is pending).
      */
     private void nextTaskFullSyncFirstTime() {
+        
         switch (mState) {
             case IDLE:
-                if (startDownloadServerContacts()) {
-                    return;
-                }
-                // Fall through
-            case FETCHING_SERVER_CONTACTS:
-                if (startFetchNativeContacts()) {
+                if (startFetchNativeContacts()) { 
                     return;
                 }
                 // Fall through
             case FETCHING_NATIVE_CONTACTS:
                 setFirstTimeNativeSyncComplete(true);
                 if (startUploadServerContacts()) {
-                    return;
+                    return; 
                 }
                 // Fall through
             case UPDATING_SERVER_CONTACTS:
-                // force a thumbnail sync in case nothing in the database
-                // changed but we still have failing
-                // thumbnails that we should retry to download
+                if (startDownloadServerContacts()) {
+                    return;
+                }
+                // Fall through
+            case FETCHING_SERVER_CONTACTS:
                 mThumbnailSyncRequired = true;
                 mLastServerSyncTime = System.currentTimeMillis();
                 setFirstTimeSyncComplete(true);
@@ -1254,7 +1252,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
                 return;
             default:
                 LogUtils.logE("ContactSyncEngine.nextTaskFullSyncFirstTime - Unexpected state: "
-                        + mState);
+                            + mState);
                 completeSync(ServiceStatus.ERROR_SYNC_FAILED);
         }
     }
