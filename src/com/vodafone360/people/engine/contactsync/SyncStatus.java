@@ -34,12 +34,12 @@ public class SyncStatus {
 
     /** Sync tasks, each of which corresponds to a specific processor. **/
     public enum Task {
-        /** DownloadServerContacts is processing. */
-        DOWNLOAD_SERVER_CONTACTS,
         /** FetchNativeContacts is processing. */
         FETCH_NATIVE_CONTACTS,
         /** UploadServerContacts is processing. */
         UPDATE_SERVER_CONTACTS,
+        /** DownloadServerContacts is processing. */
+        DOWNLOAD_SERVER_CONTACTS,
         /** Last element is used to determine the size of the ENUM. **/
         UNKNOWN
     }
