@@ -532,7 +532,7 @@ public class NowPlusContactsTest extends ApplicationTestCase<MainApplication> {
 		assertEquals(ServiceStatus.SUCCESS, mDatabaseHelper.addContactDetail(detail));
 
 		Long serverDetailId = detail.localContactID + TestModule.generateRandomLong();
-		assertTrue(mDatabaseHelper.modifyContactDetailServerId(detail.localDetailID, serverDetailId));
+		assertTrue(mDatabaseHelper.syncContactDetail(detail.localDetailID, serverDetailId));
 
 		ContactDetail fetchedDetail = new ContactDetail();
 		assertEquals(ServiceStatus.SUCCESS, mDatabaseHelper.fetchContactDetail(detail.localDetailID, fetchedDetail));
