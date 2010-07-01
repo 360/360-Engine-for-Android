@@ -38,7 +38,6 @@ import com.vodafone360.people.MainApplication;
 import com.vodafone360.people.engine.contactsync.NativeContactsApi;
 import com.vodafone360.people.service.Authenticator;
 import com.vodafone360.people.tests.testutils.TestStatus;
-import com.vodafone360.people.ui.StartActivity;
 
 /***
  * Test the Authenticator class.
@@ -119,7 +118,8 @@ public class AuthenticatorTest extends AndroidTestCase  {
         Bundle bundle = authenticator.addAccount(null, null, null, null, null);
         Intent intent = (Intent) bundle.getParcelable(AccountManager.KEY_INTENT);
         assertEquals("Expected a StartActivity Intent",
-                StartActivity.class.getName(), intent.getComponent().getClassName());
+                intent.getComponent().getClassName(),
+                "com.vodafone360.people.ui.StartActivity");
         assertNull("Expected a ACTION_ONE_ACCOUNT_ONLY_INTENT action to be NULL",
                 intent.getAction());
     }

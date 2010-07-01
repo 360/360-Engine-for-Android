@@ -212,7 +212,7 @@ public class NowPlusContactDetailsTableTest extends NowPlusTableTestCase {
 		ServiceStatus status = ContactDetailsTable.modifyDetail(detail, true, true, writeableDb);
 		assertEquals(ServiceStatus.ERROR_DATABASE_CORRUPT, status);
 		
-		assertFalse(ContactDetailsTable.modifyDetailServerId(TestModule
+		assertFalse(ContactDetailsTable.syncSetServerId(TestModule
 				.generateRandomLong(), serverId, writeableDb));
 		
 		startSubTest(fnName, "Creating table");
@@ -235,7 +235,7 @@ public class NowPlusContactDetailsTableTest extends NowPlusTableTestCase {
 				detail.localDetailID, readableDb);
 		assertTrue(DatabaseHelper.doDetailsMatch(detail, fetchedDetail));
 		
-		assertTrue(ContactDetailsTable.modifyDetailServerId(
+		assertTrue(ContactDetailsTable.syncSetServerId(
 				detail.localDetailID, serverId, writeableDb));
 		ContactDetail modServIdDetail = ContactDetailsTable.fetchDetail(
 				detail.localDetailID, readableDb); 
