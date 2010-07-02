@@ -23,13 +23,7 @@
 -->
 
 <project name="tests">
-
-    <!-- The local.properties file is created and updated by the 'android' tool.
-         It contains the path to the SDK. It should *NOT* be checked in in Version
-         Control Systems. -->
-	 <!-- <property file="local.properties" /> Point to the SDK location manually -->
-	<property name="sdk.dir" value="C:\\tools\\android-sdk-windows" />
-	<property name="sdk-location" value="C:\\tools\\android-sdk-windows" />
+	<property environment="env"/> 
 	
     <!-- The build.properties file can be created by you and is never touched
          by the 'android' tool. This is the place to change some of the default property values
@@ -58,6 +52,14 @@
          This file is an integral part of the build system for your application and
          should be checked in in Version Control Systems. -->
     <property file="default.properties" />
+
+	<!-- Load the properties file based on the environment variable USERNAME_360. If you did not set it
+	already on your system, please do so. After setting it, create a new properties file in
+	build_properties_file with the name USERNAME_360.properties and add the sdk.dir and xml.task.dir properties
+	to it. -->
+	<property file="../build_property_files/${env.USERNAME_360}.properties" />
+	<echo>Testing for username ${env.USERNAME_360}. SDK-Directory is ${sdk.dir} and the
+		XMLTask is found in ${xml.task.dir}...</echo>
 
     <!-- Custom Android task to deal with the project target, and import the proper rules.
          This requires ant 1.6.0 or above. -->
@@ -96,7 +98,7 @@
 	</target>
 
 	<!-- JUunit interface for build script -->
-	<target name="run-tests-interface">
+	<target name="run-tests-interface" depends="-dirs">
 		<echo>JUunit interface for build script.</echo>
 		<ant target="run-tests" />
 	</target>
@@ -304,6 +306,7 @@
         <mkdir dir="${gen.absolute.dir}" />
         <mkdir dir="${out.absolute.dir}" />
         <mkdir dir="${out.classes.absolute.dir}" />
+		<mkdir dir="${tested.project.absolute.dir}/output/" />
     </target>
 
     <!-- Generates the R.java file for this project's resources. -->
@@ -556,7 +559,7 @@
 	
 	<!-- ############## END IMPORT <target_platform>/templates/android_test_rules.xml ########## -->
 	    <property name="tested.project.absolute.dir" location="${tested.project.dir}" />
-		<property name="junit.out.file" value="${tested.project.absolute.dir}\output\junit-result.txt" />
+		<property name="junit.out.file" value="${tested.project.absolute.dir}/output/junit-result.txt" />
 	    <property name="instrumentation.dir" value="instrumented" />
 	    <property name="instrumentation.absolute.dir" location="${instrumentation.dir}" />
 
@@ -575,6 +578,7 @@
 	        <element name="extra-instrument-args" optional="yes" />
 	        <sequential>
 	            <echo>Running tests with output sent to ${junit.out.file}...</echo>
+
 	            <exec executable="${adb}" failonerror="true" output="${junit.out.file}">
 	                <arg value="shell" />
 	                <arg value="am" />

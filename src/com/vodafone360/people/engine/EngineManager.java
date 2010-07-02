@@ -77,7 +77,7 @@ public class EngineManager {
     }
 
     /**
-     * {@link EngineManager} is a singleton, so this is the static reference
+     * {@link EngineManager} is a singleton, so this is the static reference.
      */
     private static EngineManager sEngineManager;
 
