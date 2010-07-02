@@ -503,7 +503,7 @@ public class NativeContactsApi2 extends NativeContactsApi {
 		final Uri dataUri = Uri.withAppendedPath(rawContactUri, RawContacts.Data.CONTENT_DIRECTORY);
         final Cursor cursor = mCr.query(dataUri, null, null, null, null);
 		try {
-			if(cursor.getCount() > 0) {
+			if(cursor != null && cursor.getCount() > 0) {
 			    final List<ContactChange> ccList = new ArrayList<ContactChange>();
 				while(cursor.moveToNext()) {
 					readDetail(cursor, ccList, nabContactId);
@@ -687,6 +687,11 @@ public class NativeContactsApi2 extends NativeContactsApi {
                 CONTACTID_PROJECTION, 
                 selection, 
                 null, null);
+        
+        if(cursor == null) {
+        	return null;
+        }
+        
         try {
             final int cursorCount = cursor.getCount();
             if(cursorCount > 0) {
@@ -726,6 +731,11 @@ public class NativeContactsApi2 extends NativeContactsApi {
     private void fetchMyContactsGroupRowIds() {
         final Cursor cursor = mCr.query(Groups.CONTENT_URI, GROUPID_PROJECTION, 
                 MY_CONTACTS_GROUP_WHERE_CLAUSE, null, null);
+        
+        if(cursor == null) {
+        	return;
+        }
+        
         try {
             final int count = cursor.getCount();
             if(count > 0) {
@@ -767,9 +777,8 @@ public class NativeContactsApi2 extends NativeContactsApi {
             sb.append(')');
             final Cursor cursor = mCr.query(dataUri, null, sb.toString(), 
                     null, null);
-    
             try {
-                belongs = cursor.getCount() > 0;
+                belongs = cursor != null && cursor.getCount() > 0;
             } finally {
                 CursorUtils.closeCursor(cursor);
             }
@@ -1579,7 +1588,7 @@ public class NativeContactsApi2 extends NativeContactsApi {
         String title = null;
         int flags = ContactChange.FLAG_NONE;
         try {
-            if(cursor.moveToNext()) {
+            if(cursor != null && cursor.moveToNext()) {
                 // Found an organization detail
                 company = CursorUtils.getString(cursor, Organization.COMPANY);
                 department = CursorUtils.getString(cursor, Organization.DEPARTMENT);
