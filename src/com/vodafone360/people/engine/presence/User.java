@@ -28,6 +28,7 @@ package com.vodafone360.people.engine.presence;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
 
 import com.vodafone360.people.datatypes.ContactSummary;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
@@ -112,8 +113,6 @@ public class User {
                 os = OnlineStatus.getValue(aggregated);
             } else {
                 for (NetworkPresence np : mPayload) {
-                    // need to return aggregated status for "pc" and "mobile"
-                    // for Vodafone
                     if (np.getNetworkId() == network.ordinal()) {
                         os = OnlineStatus.getValue(np.getOnlineStatusId());
                         break;
@@ -168,7 +167,7 @@ public class User {
      * @param payload
      * @return
      */
-    private static ArrayList<NetworkPresence> createPayload(String userId,
+    private ArrayList<NetworkPresence> createPayload(String userId,
             Hashtable<String, String> payload) {
         ArrayList<NetworkPresence> presenceList = new ArrayList<NetworkPresence>(payload.size());
         String parsedUserId = parseUserName(userId);
@@ -244,8 +243,28 @@ public class User {
                 + ", mPayload=" + mPayload + "]";
     }
 
+    /**
+     * This method sets the overall user presence status,
+     * @parameter the online status id - the ordinal, see @OnlineStatus  
+     */
     public void setOverallOnline(int overallOnline) {
         this.mOverallOnline = overallOnline;
+    }
+
+    /**
+     * This method removes the network presence information with the given presence id from the User.
+     * @param ordinal - the network id, ordinal in @see SocialNetworks
+     */
+    public void removeNetwork(int ordinal) {
+        Iterator<NetworkPresence> itr = mPayload.iterator();
+        NetworkPresence presence = null;
+        while (itr.hasNext()) {
+            presence = itr.next();
+            if (presence.getNetworkId() == ordinal) {
+                itr.remove();
+                break;
+            }
+        }
     }
 
 }

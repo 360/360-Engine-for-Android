@@ -41,11 +41,9 @@ import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.telephony.TelephonyManager;
 import android.text.format.DateUtils;
-import android.widget.Toast;
 
 import com.vodafone360.people.Intents;
 import com.vodafone360.people.MainApplication;
-import com.vodafone360.people.R;
 import com.vodafone360.people.service.PersistSettings;
 import com.vodafone360.people.service.RemoteService;
 import com.vodafone360.people.service.PersistSettings.InternetAvail;
