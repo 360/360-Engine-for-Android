@@ -25,6 +25,7 @@
 
 package com.vodafone360.people.database.tables;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -997,6 +998,22 @@ public abstract class ContactSummaryTable {
     public synchronized static ServiceStatus updateOnlineStatus(User user) {
         sPresenceMap.put(user.getLocalContactId(), user.isOnline());
         return ServiceStatus.SUCCESS;
+    }
+    
+    /**
+     * This method sets users offline except for provided local contact ids.
+     * @param userIds - ArrayList of integer user ids, if null - all user will be removed from the presence hash.
+     * @param writableDb - database.
+     */
+    public synchronized static void setUsersOffline(ArrayList<Long> userIds) {
+        Iterator<Long> itr = sPresenceMap.keySet().iterator();
+        Long localId = null;
+        while(itr.hasNext()) {
+            localId = itr.next();
+            if (userIds == null || !userIds.contains(localId)) {
+                itr.remove();
+            }
+        }
     }
 
     /**

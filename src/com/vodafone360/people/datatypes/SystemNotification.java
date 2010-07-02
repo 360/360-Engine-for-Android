@@ -135,7 +135,12 @@ public class SystemNotification extends PushEvent {
         /**
          * The message conversation id (for messages 201, 1006) 
          */
-        CONVERSATION("conversation");
+        CONVERSATION("conversation"),
+        /**
+         * service name (for messages 111) 
+         */
+        SERVICE("service");
+        
         private final String tag;
 
         /**
@@ -238,6 +243,9 @@ public class SystemNotification extends PushEvent {
             case CONVERSATION:
                 info.put(Tags.CONVERSATION.toString(), (String)value);
                 break;
+            case SERVICE:
+                info.put(Tags.SERVICE.toString(), (String)value);
+                break;
             default:
                 // Do nothing.
                 break;
@@ -258,6 +266,7 @@ public class SystemNotification extends PushEvent {
                 case CHAT_HISTORY_NULL:
                 case CHAT_SUMMARY_NULL:
                 case COMMUNITY_AUTH_VALID:
+                case COMMUNITY_LOGOUT_SUCCESSFUL:
                     mEngineId = EngineId.PRESENCE_ENGINE;
                     LogUtils.logE("SYSTEM_NOTIFICATION:" + mSysCode + ", message:" + message);
                     break;
