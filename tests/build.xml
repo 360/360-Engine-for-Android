@@ -23,13 +23,7 @@
 -->
 
 <project name="tests">
-
-    <property environment="env"/>
-
-    <!-- The local.properties file is created and updated by the 'android' tool.
-         It contains the path to the SDK. It should *NOT* be checked in in Version
-         Control Systems. -->
-	 <!-- <property file="local.properties" /> Point to the SDK location manually -->
+	<property environment="env"/> 
 	
     <!-- The build.properties file can be created by you and is never touched
          by the 'android' tool. This is the place to change some of the default property values
@@ -59,13 +53,13 @@
          should be checked in in Version Control Systems. -->
     <property file="default.properties" />
 
-    <!-- Load the properties file based on the environment variable USERNAME_360. If you did not set it
-    already on your system, please do so. After setting it, create a new properties file in
-    build_properties_file with the name USERNAME_360.properties and add the sdk.dir and xml.task.dir properties
-    to it. -->
-    <property file="../build_property_files/${env.USERNAME_360}.properties" />
-    <echo>Testing for username ${env.USERNAME_360}. SDK-Directory is ${sdk.dir} and the
-	XMLTask is found in ${xml.task.dir}...</echo>
+	<!-- Load the properties file based on the environment variable USERNAME_360. If you did not set it
+	already on your system, please do so. After setting it, create a new properties file in
+	build_properties_file with the name USERNAME_360.properties and add the sdk.dir and xml.task.dir properties
+	to it. -->
+	<property file="../build_property_files/${env.USERNAME_360}.properties" />
+	<echo>Testing for username ${env.USERNAME_360}. SDK-Directory is ${sdk.dir} and the
+		XMLTask is found in ${xml.task.dir}...</echo>
 
     <!-- Custom Android task to deal with the project target, and import the proper rules.
          This requires ant 1.6.0 or above. -->
