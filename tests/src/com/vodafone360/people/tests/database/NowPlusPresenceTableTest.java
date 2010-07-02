@@ -53,7 +53,7 @@ public class NowPlusPresenceTableTest extends NowPlusTableTestCase {
 		PresenceTable.create(mTestDatabase.getWritableDatabase());
 		Log.i(LOG_TAG, "***** testUpdateUser: table created*****");
 		
-		assertTrue("The method adds a null user and returns true", PresenceTable.updateUser(null, mTestDatabase.getWritableDatabase())==PresenceTable.USER_NOTADDED);
+		assertTrue("The method adds a null user and returns true", PresenceTable.updateUser(null, null, mTestDatabase.getWritableDatabase())==PresenceTable.USER_NOTADDED);
 		Log.i(LOG_TAG, "***** testUpdateUser: NULL test SUCCEEDED *****");
 		
 		Hashtable<String, String> status = new Hashtable<String, String>();
@@ -63,7 +63,7 @@ public class NowPlusPresenceTableTest extends NowPlusTableTestCase {
 		status.put("pc", "online");
 		User user = new User("google::meongoogletalk@gmail.com", status);
 		user.setLocalContactId(12L);// fake localId
-		assertTrue("the user was not added to DB", PresenceTable.updateUser(user, mTestDatabase.getWritableDatabase()) != PresenceTable.USER_NOTADDED);
+		assertTrue("the user was not added to DB", PresenceTable.updateUser(user, null, mTestDatabase.getWritableDatabase()) != PresenceTable.USER_NOTADDED);
 		Log.i(LOG_TAG, "***** testUpdateUser Good User test SUCCEEDED*****");
 		user = null;
 		
@@ -74,7 +74,7 @@ public class NowPlusPresenceTableTest extends NowPlusTableTestCase {
 		status.put("pc", "offline");
 		user = new User("google::meongoogletalk@gmail.com", status);
 		user.setLocalContactId(12L);// fake localId
-		assertTrue("the  Existing NowplusUser might be duplicated to DB", PresenceTable.updateUser(user, mTestDatabase.getWritableDatabase()) == PresenceTable.USER_UPDATED);
+		assertTrue("the  Existing NowplusUser might be duplicated to DB", PresenceTable.updateUser(user, null, mTestDatabase.getWritableDatabase()) == PresenceTable.USER_UPDATED);
 		
 		User user1 = PresenceTable.getUserPresenceByLocalContactId(12L, mTestDatabase.getReadableDatabase());
 		assertTrue("the initial and fetched users are not the same!", user.equals(user1));
@@ -96,7 +96,7 @@ public class NowPlusPresenceTableTest extends NowPlusTableTestCase {
 		User user = new User("12345678", status); //imaginary Me Profile
 		user.setLocalContactId(12L);// fake localId
 		
-		assertTrue("the user was not added to DB", PresenceTable.updateUser(user, mTestDatabase.getWritableDatabase()) == PresenceTable.USER_ADDED);
+		assertTrue("the user was not added to DB", PresenceTable.updateUser(user, null, mTestDatabase.getWritableDatabase()) == PresenceTable.USER_ADDED);
 		Log.i(LOG_TAG, "***** testUpdateUser Good User test SUCCEEDED*****");
 		
 		User user1 = PresenceTable.getUserPresenceByLocalContactId(12L, mTestDatabase.getReadableDatabase());
@@ -140,7 +140,7 @@ public class NowPlusPresenceTableTest extends NowPlusTableTestCase {
 		PresenceTable.create(mTestDatabase.getWritableDatabase());
 		Log.i(LOG_TAG, "***** testSetAllUsersOffline(): table created*****");
 		
-		assertTrue("The method adds a null user and returns true", PresenceTable.updateUser(null, mTestDatabase.getWritableDatabase())==PresenceTable.USER_NOTADDED);
+		assertTrue("The method adds a null user and returns true", PresenceTable.updateUser(null, null, mTestDatabase.getWritableDatabase())==PresenceTable.USER_NOTADDED);
 		Log.i(LOG_TAG, "***** testUpdateUser: NULL test SUCCEEDED *****");
 //		1
 		Hashtable<String, String> status = new Hashtable<String, String>();
@@ -150,7 +150,7 @@ public class NowPlusPresenceTableTest extends NowPlusTableTestCase {
 //		status.put("pc", "online");
 		User user = new User("google::meongoogletalk@gmail.com", status);
 		user.setLocalContactId(12L);
-		assertTrue("the user was not added to DB", PresenceTable.updateUser(user, mTestDatabase.getWritableDatabase()) == PresenceTable.USER_ADDED);
+		assertTrue("the user was not added to DB", PresenceTable.updateUser(user, null, mTestDatabase.getWritableDatabase()) == PresenceTable.USER_ADDED);
 		
 		LogUtils.logE("User1:"+user.toString());
 		user = null;
@@ -161,7 +161,7 @@ public class NowPlusPresenceTableTest extends NowPlusTableTestCase {
 //4
 		user = new User("12345678", status);
 		user.setLocalContactId(13L);
-		assertTrue("the NowplusUser user was not added to DB", PresenceTable.updateUser(user, mTestDatabase.getWritableDatabase())== PresenceTable.USER_ADDED);
+		assertTrue("the NowplusUser user was not added to DB", PresenceTable.updateUser(user, null, mTestDatabase.getWritableDatabase())== PresenceTable.USER_ADDED);
 //		user = null;
 //8		
 //		status.put("pc", "offline");
@@ -169,7 +169,7 @@ public class NowPlusPresenceTableTest extends NowPlusTableTestCase {
 		user.setLocalContactId(13L);
 		LogUtils.logE("User2:"+user.toString());
 		LogUtils.logE(user.toString());
-		assertTrue("the  Existing NowplusUser might be duplicated to DB", PresenceTable.updateUser(user, mTestDatabase.getWritableDatabase()) == PresenceTable.USER_UPDATED);
+		assertTrue("the  Existing NowplusUser might be duplicated to DB", PresenceTable.updateUser(user, null, mTestDatabase.getWritableDatabase()) == PresenceTable.USER_UPDATED);
 //8		
 		int count = PresenceTable.setAllUsersOffline(mTestDatabase.getWritableDatabase());
 		assertTrue("The count of deleted rows is not the expected one:"+count, count == 6);
@@ -181,7 +181,7 @@ public class NowPlusPresenceTableTest extends NowPlusTableTestCase {
 		PresenceTable.create(mTestDatabase.getWritableDatabase());
 		Log.i(LOG_TAG, "***** testSetAllUsersOfflineExceptForMe(): table created*****");
 		
-		assertTrue("The method adds a null user and returns true", PresenceTable.updateUser(null, mTestDatabase.getWritableDatabase())==PresenceTable.USER_NOTADDED);
+		assertTrue("The method adds a null user and returns true", PresenceTable.updateUser(null, null, mTestDatabase.getWritableDatabase())==PresenceTable.USER_NOTADDED);
 		Log.i(LOG_TAG, "***** testUpdateUser: NULL test SUCCEEDED *****");
 //		1
 		Hashtable<String, String> status = new Hashtable<String, String>();
@@ -191,14 +191,14 @@ public class NowPlusPresenceTableTest extends NowPlusTableTestCase {
 //		status.put("pc", "online");
 		User user = new User("google::meongoogletalk@gmail.com", status);
 		user.setLocalContactId(12L);
-		assertTrue("the user was not added to DB", PresenceTable.updateUser(user, mTestDatabase.getWritableDatabase()) == PresenceTable.USER_ADDED);
+		assertTrue("the user was not added to DB", PresenceTable.updateUser(user, null, mTestDatabase.getWritableDatabase()) == PresenceTable.USER_ADDED);
 		
 		LogUtils.logE("User1:"+user.toString());
 		user = null;
 //4		
 		user = new User("12345678", status);
 		user.setLocalContactId(13L);
-		assertTrue("the NowplusUser user was not added to DB", PresenceTable.updateUser(user, mTestDatabase.getWritableDatabase())== PresenceTable.USER_ADDED);
+		assertTrue("the NowplusUser user was not added to DB", PresenceTable.updateUser(user, null, mTestDatabase.getWritableDatabase())== PresenceTable.USER_ADDED);
 //		user = null;
 //8		
 //		status.put("pc", "offline");
@@ -206,7 +206,7 @@ public class NowPlusPresenceTableTest extends NowPlusTableTestCase {
 		user.setLocalContactId(13L);
 		LogUtils.logE("User2:"+user.toString());
 		LogUtils.logE(user.toString());
-		assertTrue("the  Existing NowplusUser might be duplicated to DB", PresenceTable.updateUser(user, mTestDatabase.getWritableDatabase()) == PresenceTable.USER_UPDATED);
+		assertTrue("the  Existing NowplusUser might be duplicated to DB", PresenceTable.updateUser(user, null, mTestDatabase.getWritableDatabase()) == PresenceTable.USER_UPDATED);
 //8		
 		int count = PresenceTable.setAllUsersOfflineExceptForMe(12L, mTestDatabase.getWritableDatabase());
 		assertTrue("The count of deleted rows is not the expected one:"+count, count == 3);
