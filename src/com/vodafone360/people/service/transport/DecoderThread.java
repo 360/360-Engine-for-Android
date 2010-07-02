@@ -56,7 +56,7 @@ import com.vodafone360.people.utils.LogUtils;
 public class DecoderThread implements Runnable {
 
     private static final String THREAD_NAME = "DecoderThread";
-    
+
     private static final long THREAD_SLEEP_TIME = 300; // ms
 
     private volatile boolean mRunning = false;
@@ -64,6 +64,8 @@ public class DecoderThread implements Runnable {
     private final List<RawResponse> mResponses = new ArrayList<RawResponse>();
 
     private ResponseQueue mRespQueue = null;
+
+    private HessianDecoder hessianDecoder = new HessianDecoder();
 
     /**
      * Container class for raw undecoded response data. Holds a request id
@@ -135,7 +137,7 @@ public class DecoderThread implements Runnable {
         LogUtils.logI("DecoderThread.run() [Start thread]");
         while (mRunning) {
             EngineId engine = EngineId.UNDEFINED;
-            Type type = Type.PUSH_MSG; 
+            Type type = Type.PUSH_MSG;
             int reqId = -1;
             try {
                 if (mResponses.size() > 0) {
@@ -156,18 +158,17 @@ public class DecoderThread implements Runnable {
                             type = Type.COMMON;
                         }
                     }
-                    
+
                     // Set an engine id via Hessian decoder
-                    HessianDecoder hessianDecoder = new HessianDecoder();
+
                     List<BaseDataType> data = hessianDecoder.decodeHessianByteArray(decode.mData,
                             type, decode.mIsCompressed);
 
-                    
                     if (type == Type.PUSH_MSG && data.size() != 0
                             && data.get(0) instanceof PushEvent) {
                         engine = ((PushEvent)data.get(0)).mEngineId;
                     }
-                    
+
                     // This is usually the case for SYSTEM_NOTIFICATION messages
                     // or where the server is returning an error for requests
                     // sent by the engines. IN this case, if there is no special
@@ -195,7 +196,7 @@ public class DecoderThread implements Runnable {
 
                     // Remove item from our list of responses.
                     mResponses.remove(0);
-                    
+
                     // be nice to the other threads
                     Thread.sleep(THREAD_SLEEP_TIME);
                 } else {
@@ -272,7 +273,8 @@ public class DecoderThread implements Runnable {
                         switch (mMessageType) {
                             case RpgMessageTypes.RPG_EXT_RESP:
                                 // External message response
-                                HttpConnectionThread.logD(
+                                HttpConnectionThread
+                                        .logD(
                                                 "DecoderThread.handleResponse()",
                                                 "RpgMessageTypes.RPG_EXT_RESP - "
                                                         + "Add External Message RawResponse to Decode queue:"

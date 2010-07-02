@@ -25,10 +25,10 @@
 
 package com.vodafone360.people.service.transport.tcp;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -72,7 +72,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
      * Settings.TCP_RETRY_BROKEN_CONNECTION_INTERVAL calls another retry.
      */
     private static final int MAX_NUMBER_RETRIES = 3;
-    
+
     private static final int BYTE_ARRAY_OUTPUT_STREAM_SIZE = 2048; // bytes
 
     private Thread mThread;
@@ -85,7 +85,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
 
     private boolean mDidCriticalErrorOccur;
 
-    private InputStream mIs;
+    private BufferedInputStream mIs;
 
     private OutputStream mOs;
 
@@ -100,9 +100,9 @@ public class TcpConnectionThread implements Runnable, IConnection {
     private ResponseReaderThread mResponseReader;
 
     private long mLastErrorRetryTime, mLastErrorTimestamp;
-    
+
     private ByteArrayOutputStream mBaos;
-    
+
     public TcpConnectionThread(DecoderThread decoder, RemoteService service) {
         mSocket = new Socket();
         mBaos = new ByteArrayOutputStream(BYTE_ARRAY_OUTPUT_STREAM_SIZE);
@@ -143,8 +143,9 @@ public class TcpConnectionThread implements Runnable, IConnection {
 
             startHelperThreads();
 
-            ConnectionManager.getInstance().onConnectionStateChanged(ITcpConnectionListener.STATE_CONNECTED);
-            
+            ConnectionManager.getInstance().onConnectionStateChanged(
+                    ITcpConnectionListener.STATE_CONNECTED);
+
         } catch (IOException e) {
             haltAndRetryConnection(1);
         } catch (Exception e) {
@@ -158,8 +159,8 @@ public class TcpConnectionThread implements Runnable, IConnection {
                     int reqNum = reqs.size();
 
                     List<Integer> reqIdList = null;
-                    if (Settings.ENABLED_TRANSPORT_TRACE ||
-                            Settings.sEnableSuperExpensiveResponseFileLogging) {
+                    if (Settings.ENABLED_TRANSPORT_TRACE
+                            || Settings.sEnableSuperExpensiveResponseFileLogging) {
                         reqIdList = new ArrayList<Integer>();
                     }
 
@@ -183,7 +184,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
                             req.writeToOutputStream(mBaos, true);
 
                             if (req.isFireAndForget()) { // f-a-f, no response,
-                                                         // remove from queue
+                                // remove from queue
                                 HttpConnectionThread.logD("TcpConnectionThread.run()",
                                         "Removed F&F-Request: " + req.getRequestId());
                                 requestQueue.removeRequest(req.getRequestId());
@@ -207,31 +208,30 @@ public class TcpConnectionThread implements Runnable, IConnection {
                                     sb.append(reqIdList.get(i));
                                     sb.append("_");
                                 }
-                                
+
                                 LogUtils.logE("XXXXXXYYYXXXXXX Do not Remove this!");
-                                LogUtils.logToFile(payload, "people_" 
-                                            + reqIdList.get(0) + "_"
-                                            + System.currentTimeMillis()
-                                            + "_req_" + ((int) payload[2])  // message type
-                                            + ".txt");
+                                LogUtils.logToFile(payload, "people_" + reqIdList.get(0) + "_"
+                                        + System.currentTimeMillis() + "_req_" + ((int)payload[2]) // message
+                                        // type
+                                        + ".txt");
                             } // end log file containing response to SD card
-                            
+
                             if (Settings.ENABLED_TRANSPORT_TRACE) {
                                 Long userID = null;
                                 AuthSessionHolder auth = LoginEngine.getSession();
                                 if (auth != null) {
                                     userID = auth.userID;
                                 }
-                                
+
                                 HttpConnectionThread.logI("TcpConnectionThread.run()",
                                         "\n  > Sending request(s) "
                                                 + reqIdList.toString()
                                                 + ", for user ID "
                                                 + userID
                                                 + " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-                                                + HessianUtils
-                                                        .getInHessian(new ByteArrayInputStream(
-                                                                payload), true) + "\n  ");
+                                                + HessianUtils.getInHessian(
+                                                        new ByteArrayInputStream(payload), true)
+                                                + "\n  ");
                             }
 
                             try {
@@ -254,7 +254,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
                         wait();
                     } else {
                         while (mDidCriticalErrorOccur) { // loop until a retry
-                                                         // succeeds
+                            // succeeds
                             HttpConnectionThread.logI("TcpConnectionThread.run()",
                                     "Wait() for next connection retry has started.");
                             wait(Settings.TCP_RETRY_BROKEN_CONNECTION_INTERVAL);
@@ -322,7 +322,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
         mSocket = new Socket();
         mSocket.connect(new InetSocketAddress(mRpgTcpUrl, mRpgTcpPort), TCP_DEFAULT_TIMEOUT);
 
-        mIs = mSocket.getInputStream();
+        mIs = new BufferedInputStream(mSocket.getInputStream());
         mOs = mSocket.getOutputStream();
         HttpConnectionThread.logI("TcpConnectionThread.reconnectSocket()", "Socket started: "
                 + mRpgTcpUrl + ":" + mRpgTcpPort);
@@ -345,11 +345,12 @@ public class TcpConnectionThread implements Runnable, IConnection {
     synchronized private void haltAndRetryConnection(int numberOfRetries) {
         HttpConnectionThread.logI("TcpConnectionThread.haltAndRetryConnection()",
                 "\n \n \nRETRYING CONNECTION: " + numberOfRetries + " tries.");
-        
-        ConnectionManager.getInstance().onConnectionStateChanged(ITcpConnectionListener.STATE_CONNECTING);
+
+        ConnectionManager.getInstance().onConnectionStateChanged(
+                ITcpConnectionListener.STATE_CONNECTING);
 
         if (!mConnectionShouldBeRunning) { // connection was killed by service
-                                           // agent
+            // agent
             HttpConnectionThread.logI("TcpConnectionThread.haltAndRetryConnection()", "Connection "
                     + "was disconnected by Service Agent. Stopping retries!");
             return;
@@ -370,10 +371,11 @@ public class TcpConnectionThread implements Runnable, IConnection {
              */
             synchronized (this) {
                 notify(); // notify as we might be currently blocked on a
-                          // request's wait()
+                // request's wait()
             }
 
-            ConnectionManager.getInstance().onConnectionStateChanged(ITcpConnectionListener.STATE_DISCONNECTED);
+            ConnectionManager.getInstance().onConnectionStateChanged(
+                    ITcpConnectionListener.STATE_DISCONNECTED);
 
             return;
         }
@@ -426,7 +428,8 @@ public class TcpConnectionThread implements Runnable, IConnection {
             map.put("Number of Retries", "" + numberOfRetries);
             // FlurryAgent.onEvent("RecoveredFromTCPError", map);
 
-            ConnectionManager.getInstance().onConnectionStateChanged(ITcpConnectionListener.STATE_CONNECTED);
+            ConnectionManager.getInstance().onConnectionStateChanged(
+                    ITcpConnectionListener.STATE_CONNECTED);
 
         } catch (IOException ioe) {
             HttpConnectionThread.logI("TcpConnectionThread.haltAndRetryConnection()",
@@ -467,7 +470,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
         mThread = new Thread(this);
         mThread.start();
     }
-    
+
     @Override
     public void stopThread() {
         HttpConnectionThread.logI("TcpConnectionThread.stopThread()", "Stop Thread was called!");

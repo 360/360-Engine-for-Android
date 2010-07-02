@@ -88,6 +88,8 @@ public class HessianDecoder {
 
     private static final String KEY_USER_PROFILE_LIST = "userprofilelist";
 
+    private MicroHessianInput mhi = new MicroHessianInput();
+
     /**
      * Parse Hessian encoded byte array placing parsed contents into List.
      * 
@@ -112,7 +114,7 @@ public class HessianDecoder {
         }
 
         List<BaseDataType> mBaseDataTypeList = null;
-        MicroHessianInput mhi = new MicroHessianInput(is);
+        mhi.init(is);
 
         if (mhi != null) {
             LogUtils.logV("HessianDecoder.decodeHessianByteArray() Begin Hessian decode");
@@ -136,7 +138,7 @@ public class HessianDecoder {
     public Hashtable<String, Object> decodeHessianByteArrayToHashtable(byte[] data)
             throws IOException {
         InputStream is = new ByteArrayInputStream(data);
-        MicroHessianInput mhi = new MicroHessianInput(is);
+        mhi.init(is);
 
         Object obj = null;
         if (mhi != null) {
@@ -163,7 +165,7 @@ public class HessianDecoder {
     private List<BaseDataType> decodeResponse(InputStream is, Request.Type type) throws IOException {
         boolean usesReplyTag = false;
         List<BaseDataType> mResultList = new ArrayList<BaseDataType>();
-        MicroHessianInput mhi = new MicroHessianInput(is);
+        mhi.init(is);
 
         // skip start
         int tag = is.read(); // initial map tag or fail
@@ -274,7 +276,7 @@ public class HessianDecoder {
 
     private void parseExternalResponse(List<BaseDataType> clist, InputStream is, int tag)
             throws IOException {
-        MicroHessianInput mhi = new MicroHessianInput(is);
+        mhi.init(is);
         ExternalResponseObject resp = new ExternalResponseObject();
         // we already read the 'I' in the decodeResponse()-method
         // now we read and check the response code
