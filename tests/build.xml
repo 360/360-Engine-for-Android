@@ -98,7 +98,7 @@
 	</target>
 
 	<!-- JUunit interface for build script -->
-	<target name="run-tests-interface">
+	<target name="run-tests-interface" depends="-dirs">
 		<echo>JUunit interface for build script.</echo>
 		<ant target="run-tests" />
 	</target>
@@ -306,6 +306,7 @@
         <mkdir dir="${gen.absolute.dir}" />
         <mkdir dir="${out.absolute.dir}" />
         <mkdir dir="${out.classes.absolute.dir}" />
+		<mkdir dir="${tested.project.absolute.dir}/output/" />
     </target>
 
     <!-- Generates the R.java file for this project's resources. -->
@@ -356,7 +357,6 @@
                 bootclasspathref="android.target.classpath"
                 verbose="${verbose}" classpath="${extensible.classpath}">
             <src path="${source.absolute.dir}" />
-			<src path="../../${ui.project.name}/${source.dir}" />
             <src path="${gen.absolute.dir}" />
             <classpath>
                 <fileset dir="${external.libs.absolute.dir}" includes="*.jar" />
@@ -559,7 +559,7 @@
 	
 	<!-- ############## END IMPORT <target_platform>/templates/android_test_rules.xml ########## -->
 	    <property name="tested.project.absolute.dir" location="${tested.project.dir}" />
-		<property name="junit.out.file" value="${tested.project.absolute.dir}\output\junit-result.txt" />
+		<property name="junit.out.file" value="${tested.project.absolute.dir}/output/junit-result.txt" />
 	    <property name="instrumentation.dir" value="instrumented" />
 	    <property name="instrumentation.absolute.dir" location="${instrumentation.dir}" />
 
@@ -578,6 +578,7 @@
 	        <element name="extra-instrument-args" optional="yes" />
 	        <sequential>
 	            <echo>Running tests with output sent to ${junit.out.file}...</echo>
+
 	            <exec executable="${adb}" failonerror="true" output="${junit.out.file}">
 	                <arg value="shell" />
 	                <arg value="am" />
