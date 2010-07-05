@@ -24,7 +24,6 @@
  */
 package com.vodafone360.people.utils;
 
-import java.util.ArrayList;
 import java.util.Hashtable;
 
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
@@ -60,12 +59,7 @@ public class HardcodedUtils {
     /**
      * The static list of supported TPC accounts.
      */    
-    public static final ArrayList<Integer> THIRD_PARTY_CHAT_ACCOUNTS = new ArrayList<Integer>();
-
-    static {
-        THIRD_PARTY_CHAT_ACCOUNTS.add(SocialNetwork.FACEBOOK_COM.ordinal());
-        THIRD_PARTY_CHAT_ACCOUNTS.add(SocialNetwork.GOOGLE.ordinal());
-        THIRD_PARTY_CHAT_ACCOUNTS.add(SocialNetwork.HYVES_NL.ordinal());
-        THIRD_PARTY_CHAT_ACCOUNTS.add(SocialNetwork.MICROSOFT.ordinal());
-    }
+    public static final int[] THIRD_PARTY_CHAT_ACCOUNTS = new int[]{SocialNetwork.FACEBOOK_COM.ordinal(), 
+                             SocialNetwork.GOOGLE.ordinal(), SocialNetwork.HYVES_NL.ordinal(), 
+                             SocialNetwork.MICROSOFT.ordinal()};
 }

@@ -150,6 +150,11 @@ public abstract class PresenceTable {
      * instance of database passed into PresenceTable methods.
      */
     private static final String DEFAULT_ERROR_MESSAGE = "PresenceTable: the passed in database is null!";
+    
+    /**
+     * Constant for ","
+     */
+    private final static String COMMA = ",";
 
     /**
      * This method creates the PresenceTable.
@@ -198,18 +203,21 @@ public abstract class PresenceTable {
                 StringBuffer where = null;
                 Iterator<NetworkPresence> itr = statusesOnNetworks.iterator();
                 NetworkPresence status = null;
+                long localContactId = user2Update.getLocalContactId();
+                int networkId = 0;
                 while (itr.hasNext()) {
                     status = itr.next();
-                    if (ignoredNetworkIds == null || !ignoredNetworkIds.contains(status.getNetworkId())) {
-                        values.put(Field.LOCAL_CONTACT_ID.toString(), user2Update.getLocalContactId());
+                    networkId = status.getNetworkId();
+                    if (ignoredNetworkIds == null || !ignoredNetworkIds.contains(networkId)) {
+                        values.put(Field.LOCAL_CONTACT_ID.toString(), localContactId);
                         values.put(Field.USER_ID.toString(), status.getUserId());
-                        values.put(Field.NETWORK_ID.toString(), status.getNetworkId());
+                        values.put(Field.NETWORK_ID.toString(), networkId);
                         values.put(Field.NETWORK_STATUS.toString(), status.getOnlineStatusId());
 
                         where = StringBufferPool.getStringBuffer(Field.LOCAL_CONTACT_ID.toString());
                             
-                        where.append(SQLKeys.EQUALS).append(user2Update.getLocalContactId()).
-                        append(SQLKeys.AND).append(Field.NETWORK_ID).append(SQLKeys.EQUALS).append(status.getNetworkId());
+                        where.append(SQLKeys.EQUALS).append(localContactId).
+                        append(SQLKeys.AND).append(Field.NETWORK_ID).append(SQLKeys.EQUALS).append(networkId);
                             
                         int numberOfAffectedRows = writableDatabase.update(TABLE_NAME, values, StringBufferPool.toStringThenRelease(where),
                                     null);
@@ -258,21 +266,21 @@ public abstract class PresenceTable {
         try {
             c = readableDatabase.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE "
                     + Field.LOCAL_CONTACT_ID + "=" + user.getLocalContactId(), null);
-
-            int onlineStatus = OnlineStatus.OFFLINE.ordinal(); // i.e. 0
-            
-            user.getPayload().clear();
-            
-            while (c.moveToNext()) {
-                String userId = c.getString(USER_ID);
-                int networkId = c.getInt(NETWORK_ID);
-                int statusId = c.getInt(NETWORK_STATUS);
-                if (statusId > onlineStatus) {
-                    onlineStatus = statusId;
+            if (c != null) {
+                int onlineStatus = OnlineStatus.OFFLINE.ordinal(); // i.e. 0
+                ArrayList<NetworkPresence> payload = user.getPayload();
+                payload.clear();
+                while (c.moveToNext()) {
+                    String userId = c.getString(USER_ID);
+                    int networkId = c.getInt(NETWORK_ID);
+                    int statusId = c.getInt(NETWORK_STATUS);
+                    if (statusId > onlineStatus) {
+                        onlineStatus = statusId;
+                    }
+                    payload.add(new NetworkPresence(userId, networkId, statusId));
                 }
-                user.getPayload().add(new NetworkPresence(userId, networkId, statusId));
+                user.setOverallOnline(onlineStatus);    
             }
-            user.setOverallOnline(onlineStatus);
         } finally {
             CloseUtils.close(c);
             c = null;
@@ -376,17 +384,21 @@ public abstract class PresenceTable {
     public static ArrayList<Long> getLocalContactIds(SQLiteDatabase readableDatabase) {
         Cursor c = null;
         ArrayList<Long> ids = new ArrayList<Long>(); 
-        c = readableDatabase.rawQuery("SELECT DISTINCT " +Field.LOCAL_CONTACT_ID+ " FROM " + TABLE_NAME, null);
+        
         try {
-            while (c.moveToNext()) {
-               ids.add(c.getLong(0));
+            c = readableDatabase.rawQuery("SELECT DISTINCT " +Field.LOCAL_CONTACT_ID+ " FROM " + TABLE_NAME, null);
+            if (c != null) {
+                while (c.moveToNext()) {
+                    ids.add(c.getLong(0));
+                }
             }
         } finally {
-            c.close();
+            CloseUtils.close(c);
             c = null;
         }
         return ids;
     }
+    
     /**
      * This method deletes information about the user presence states on the provided networks.  
      * @param networksToDelete - ArrayList of integer network ids.
@@ -399,14 +411,13 @@ public abstract class PresenceTable {
             throw new NullPointerException(DEFAULT_ERROR_MESSAGE);
         }
         StringBuffer networks = StringBufferPool.getStringBuffer();
-        final String COMMA = ",";
         for (Integer network : networksToDelete) {
             networks.append(network).append(COMMA);
         }
         if (networks.length() > 0) {
             networks.deleteCharAt(networks.lastIndexOf(COMMA));
         }
-        StringBuilder where = new StringBuilder(Field.NETWORK_ID.toString());
+        final StringBuilder where = new StringBuilder(Field.NETWORK_ID.toString());
         where.append(" IN  (").append(StringBufferPool.toStringThenRelease(networks)).append(")");
         
         writableDatabase.delete(TABLE_NAME, where.toString(), null);
