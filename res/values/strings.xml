@@ -257,6 +257,7 @@
 	<string name="contactmain_dialerIconLabel">Dialer</string>
 	<string name="contactmain_recentCallsIconLabel">Timeline</string>
 	<string name="contactmain_statusIconLabel">Status</string>
+	<string name="contactmain_pleaseWait">Please wait while Timeline finishes loading</string>
 
 	<!-- .ui.tabs.TwelveKeyDialer -->
 	<string name="dialer_addAnotherCall">Add call</string>

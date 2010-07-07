@@ -435,6 +435,11 @@ public class NativeContactsApi1 extends NativeContactsApi {
         final Uri phoneUri = Uri.withAppendedPath(contactUri, People.Phones.CONTENT_DIRECTORY);
         
         final Cursor cursor = mCr.query(phoneUri, null, null, null, null);
+        
+        if(cursor == null) {
+        	return;
+        }
+        
         try {
 	        while (cursor.moveToNext()) {
 	            final ContactChange cc = readContactPhoneNumber(cursor);
@@ -486,6 +491,11 @@ public class NativeContactsApi1 extends NativeContactsApi {
         Uri contactMethodUri = Uri.withAppendedPath(contactUri,
                 People.ContactMethods.CONTENT_DIRECTORY);
         final Cursor cursor = mCr.query(contactMethodUri, null, null, null, null);
+        
+        if(cursor == null) {
+        	return;
+        }
+        
         try {
             while (cursor.moveToNext()) {
                 final ContactChange cc = readContactMethod(cursor);
@@ -551,6 +561,11 @@ public class NativeContactsApi1 extends NativeContactsApi {
         final Uri contactOrganizationsUri = Uri.withAppendedPath(contactUri, 
         		Contacts.Organizations.CONTENT_DIRECTORY);
         final Cursor cursor = mCr.query(contactOrganizationsUri, null, null, null, Organizations._ID);
+        
+        if(cursor == null) {
+        	return;
+        }
+        
         try {
             // Only loops while there is not Organization read (CAB limitation!)
             while (!mHaveReadOrganization 
@@ -940,7 +955,7 @@ public class NativeContactsApi1 extends NativeContactsApi {
         // First retrieve the values that are already present, 
         // assuming that the lowest id is the one in CAB
         try {
-            if(cursor.moveToNext()) {
+            if(cursor != null && cursor.moveToNext()) {
                 company = CursorUtils.getString(cursor, Organizations.COMPANY);
                 title = CursorUtils.getString(cursor, Organizations.TITLE);
                 detailId = CursorUtils.getLong(cursor, Organizations._ID);

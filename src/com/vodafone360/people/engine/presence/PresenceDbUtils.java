@@ -30,6 +30,7 @@ import java.util.Hashtable;
 import java.util.List;
 
 import android.database.sqlite.SQLiteDatabase;
+import android.text.TextUtils;
 
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.database.tables.ContactDetailsTable;
@@ -148,9 +149,9 @@ public class PresenceDbUtils {
             DatabaseHelper dbHelper) {
         boolean presenceChanged = false;
         boolean deleteNetworks = false;
-        
-        // the list of networks presence information for me we ignore - the networks where user is offline.
+         // the list of networks presence information for me we ignore - the networks where user is offline.
         ArrayList<Integer> ignoredNetworks = new ArrayList<Integer>();
+        SQLiteDatabase writableDb = dbHelper.getWritableDatabase();
 
         for (User user : users) {
             if (!user.getPayload().isEmpty()) {
@@ -159,10 +160,11 @@ public class PresenceDbUtils {
                 // if it is the me profile User
                 boolean meProfile = false;
                 String userId = null;
+                int networkId = 0;
                 for (NetworkPresence presence : payload) {
                     userId = presence.getUserId();
-                    if (notNullOrBlank(userId)) {
-                        int networkId = presence.getNetworkId();
+                    if (!TextUtils.isEmpty(userId)) {
+                        networkId = presence.getNetworkId();
                         // if this is me profile contact 
                         if (isMeProfile(userId, dbHelper)) { 
                             localContactId = sMeProfileLocalContactId;
@@ -171,19 +173,17 @@ public class PresenceDbUtils {
                             if (networkId == SocialNetwork.PC.ordinal()) {
                                 presenceChanged = true;
                             } 
-                            
-                        } // 360 contact, PC or MOBILE network
+                         } // 360 contact, PC or MOBILE network
                          else if (networkId == SocialNetwork.PC.ordinal() || networkId == SocialNetwork.MOBILE.ordinal()) {
                             localContactId = ContactsTable.fetchLocalIdFromUserId(Long
-                                    .valueOf(userId), dbHelper.getReadableDatabase());
+                                    .valueOf(userId), writableDb);
                             if (localContactId != -1) {
                                 break;
                             }
                         } else { // 3rd party accounts
                              localContactId = ContactDetailsTable.findLocalContactIdByKey(
                                     SocialNetwork.getPresenceValue(networkId).toString(), userId,
-                                    ContactDetail.DetailKeys.VCARD_IMADDRESS, dbHelper
-                                    .getReadableDatabase());
+                                    ContactDetail.DetailKeys.VCARD_IMADDRESS, writableDb);
                              if (localContactId != -1) {
                                  break;
                              }
@@ -192,23 +192,14 @@ public class PresenceDbUtils {
                 }
                 // set the local contact id
                 user.setLocalContactId(localContactId);
-                
                 if (meProfile) {
                     if (deleteNetworks = processMeProfile(presenceChanged, user, ignoredNetworks)) {
-//                        delete the information about offline networks from PresenceTable 
-                        PresenceTable.setTPCNetworksOffline(ignoredNetworks, dbHelper.getWritableDatabase());
+                        // delete the information about offline networks from PresenceTable 
+                        PresenceTable.setTPCNetworksOffline(ignoredNetworks, writableDb);
                     }
                 } 
                 if (user.getLocalContactId() > -1) {
-                    SQLiteDatabase writableDb = dbHelper.getWritableDatabase();
-
-//                  write the user presence update into the database and read the complete wrapper
-                    PresenceTable.updateUser(user, ignoredNetworks, writableDb);
-                    PresenceTable.getUserPresence(user, writableDb);
-                    
-//                  update the user aggregated presence state in the ContactSummaryTable
-                    ContactSummaryTable.updateOnlineStatus(user);
-                    
+                    updateUserRecord(user, ignoredNetworks, writableDb);
                     if (user.getLocalContactId() == idListeningTo) {
                         presenceChanged = true;    
                     }
@@ -221,16 +212,31 @@ public class PresenceDbUtils {
             ContactSummaryTable.setUsersOffline(userIds);
             presenceChanged = true;
         }
-            
         if (idListeningTo == UiAgent.ALL_USERS) {
             presenceChanged = true;
         }
-
         return presenceChanged;
+    }
+    
+    /**
+     * This method writes the user presence status change from the passed User object
+     *  to the database and then fills the same User object with updated information.  
+     * @param user - the User presence change.
+     * @param ignoredNetworks - the networks information from which must be ignored.
+     * @param writableDb - database.
+     */
+    private static void updateUserRecord(User user , ArrayList<Integer> ignoredNetworks, SQLiteDatabase writableDb) {
+//      write the user presence update into the database and read the complete wrapper
+        PresenceTable.updateUser(user, ignoredNetworks, writableDb);
+        PresenceTable.getUserPresence(user, writableDb);
+        
+//      update the user aggregated presence state in the ContactSummaryTable
+        ContactSummaryTable.updateOnlineStatus(user);
     }
 
     /**
-     * This method alter the User wrapper fro me profile, and returns true if me profile information contains the ignored TPC networks information.
+     * This method alters the User wrapper of me profile,
+     *  and returns true if me profile information contains the ignored TPC networks information.
      * Based on the result this information may be deleted.
      * @param removePCPresence - if TRUE the PC network will be removed from the network list.
      * @param user - the me profile wrapper.
@@ -269,10 +275,7 @@ public class PresenceDbUtils {
             }
         }
          
-        if (!ignoredNetworks.isEmpty()) {
-            return true;
-        }
-        return false;
+        return !ignoredNetworks.isEmpty();
     }
     
     
@@ -310,14 +313,6 @@ public class PresenceDbUtils {
                     + PresenceTable.setAllUsersOfflineExceptForMe(localContactIdOfMe, writableDb));
             ContactSummaryTable.setOfflineStatusExceptForMe(localContactIdOfMe);
         }
-    }
-
-    /**
-     * @param input
-     * @return
-     */
-    public static boolean notNullOrBlank(String input) {
-        return (input != null) && input.length() > 0;
     }
 
 }

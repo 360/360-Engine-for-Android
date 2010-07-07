@@ -70,19 +70,12 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     /** Check every 10 minutes. **/
     private final static long CHECK_FREQUENCY = 24 * 60 * 60 * 1000;
 
-    /** Max attempts to try. **/
-//    private final static int MAX_RETRY_COUNT = 3;
-
     /** Reconnecting before firing offline state to the handlers. **/
     private boolean mLoggedIn = false;
 
     private long mNextRuntime = -1;
 
-//    private AgentState mNetworkAgentState = AgentState.CONNECTED;
-
     private DatabaseHelper mDbHelper;
-
-    private int mRetryNumber;
 
     private final Hashtable<String, ChatMessage> mSendMessagesHash; // (to, message)
 
@@ -271,7 +264,6 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         } else {
             setPresenceOffline();
             mContObsAdded = false;
-            mRetryNumber = 0;
             mFailedMessagesList.clear();
             mSendMessagesHash.clear();
         }
@@ -473,7 +465,6 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     }
 
     private void handlePresenceList(PresenceList presenceList) {
-        mRetryNumber = 0; // reset time out
         updatePresenceDatabase(presenceList.getUsers());
     }
 
@@ -483,23 +474,13 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         LogUtils.logE("PresenceEngine.handleServerResponse() - Server error: " + srvError);
         ServiceStatus errorStatus = srvError.toServiceStatus();
         if (errorStatus == ServiceStatus.ERROR_COMMS_TIMEOUT) {
-            LogUtils.logW("PresenceEngine handleServerResponce():"
-                    + " TIME OUT IS RETURNED TO PRESENCE ENGINE:" + mRetryNumber);
-// I believe retrying getPresenceList makes no sense, as it may "confuse" the RPG 
-//            if (mRetryNumber < MAX_RETRY_COUNT) {
-//                getPresenceList();
-//                mRetryNumber++;
-//            } else {
-//                mRetryNumber = 0;
-//                setPresenceOffline();
-//            }
+            LogUtils.logW("PresenceEngine handleServerResponce(): TIME OUT IS RETURNED TO PRESENCE ENGINE.");
         }
     }
 
 
     private void handleNewConversationId(Conversation conversation) {
         if (conversation.getTos() != null) {
-            mRetryNumber = 0; // reset time out
             String to = conversation.getTos().get(0);
             if (mSendMessagesHash.containsKey(to)) {
                 ChatMessage message = mSendMessagesHash.get(to);
@@ -518,7 +499,6 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     private void handlePushEvent(PushEvent event) {
         switch (event.mMessageType) {
             case AVAILABILITY_STATE_CHANGE:
-                mRetryNumber = 0; // reset time out
                 PushAvailabilityEvent pa = (PushAvailabilityEvent)event;
                 updatePresenceDatabase(pa.mChanges);
                 break;
@@ -813,7 +793,6 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
             case STATE_CONNECTING:
             case STATE_DISCONNECTED:
                 setPresenceOffline();
-                mRetryNumber = 0;
                 mFailedMessagesList.clear();
                 mSendMessagesHash.clear();
                 break;
