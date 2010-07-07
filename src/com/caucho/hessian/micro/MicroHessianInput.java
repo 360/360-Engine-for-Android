@@ -83,7 +83,7 @@ public class MicroHessianInput {
     protected BufferedInputStream is;
 
     /** Using fast but not thread safe StringBuilder for constructing strings */
-    private StringBuilder sb = new StringBuilder(100);
+    private StringBuilder mStringBuilder = new StringBuilder(255);
 
     /**
      * Creates a new Hessian input stream, initialized with an underlying input
@@ -494,36 +494,36 @@ public class MicroHessianInput {
 
         // reset the stringbuilder. Recycling is better then making allways a
         // new one.
-        sb.setLength(0);
+        mStringBuilder.setLength(0);
 
         for (int i = 0; i < length; i++) {
             int ch = is.read();
 
             if (ch < 0x80)
-                sb.append((char)ch);
+                mStringBuilder.append((char)ch);
 
             else if ((ch & 0xe0) == 0xc0) {
                 int ch1 = is.read();
                 int v = ((ch & 0x1f) << 6) + (ch1 & 0x3f);
-                sb.append((char)v);
+                mStringBuilder.append((char)v);
             } else if ((ch & 0xf0) == 0xe0) {
                 int ch1 = is.read();
                 int ch2 = is.read();
                 int v = ((ch & 0x0f) << 12) + ((ch1 & 0x3f) << 6) + (ch2 & 0x3f);
-                sb.append((char)v);
+                mStringBuilder.append((char)v);
             } else if ((ch & 0xff) >= 0xf0 && (ch & 0xff) <= 0xf4) { // UTF-4
                 final byte[] b = new byte[4];
                 b[0] = (byte)ch;
                 b[1] = (byte)is.read();
                 b[2] = (byte)is.read();
                 b[3] = (byte)is.read();
-                sb.append(new String(b, "utf-8"));
+                mStringBuilder.append(new String(b, "utf-8"));
                 i++;
             } else
                 throw new IOException("bad utf-8 encoding");
         }
 
-        return sb.toString();
+        return mStringBuilder.toString();
     }
 
     public Hashtable<String, Object> readHashMap() throws IOException {

@@ -88,7 +88,11 @@ public class HessianDecoder {
 
     private static final String KEY_USER_PROFILE_LIST = "userprofilelist";
 
-    private MicroHessianInput mhi = new MicroHessianInput();
+    /**
+     * The MicroHessianInput is here declared as member and will be reused
+     * instead of making new instances on every need
+     */
+    private MicroHessianInput mMicroHessianInput = new MicroHessianInput();
 
     /**
      * Parse Hessian encoded byte array placing parsed contents into List.
@@ -114,19 +118,14 @@ public class HessianDecoder {
         }
 
         List<BaseDataType> mBaseDataTypeList = null;
-        mhi.init(is);
+        mMicroHessianInput.init(is);
 
-        if (mhi != null) {
-            LogUtils.logV("HessianDecoder.decodeHessianByteArray() Begin Hessian decode");
-            try {
-                mBaseDataTypeList = decodeResponse(is, type);
-            } catch (IOException e) {
-                LogUtils.logE("HessianDecoder.decodeHessianByteArray() "
-                        + "IOException during decodeResponse", e);
-            }
-
-        } else {
-            LogUtils.logV("HessianDecoder.decodeHessianByteArray() MicroHessianInput IS NULL!!");
+        LogUtils.logV("HessianDecoder.decodeHessianByteArray() Begin Hessian decode");
+        try {
+            mBaseDataTypeList = decodeResponse(is, type);
+        } catch (IOException e) {
+            LogUtils.logE("HessianDecoder.decodeHessianByteArray() "
+                    + "IOException during decodeResponse", e);
         }
 
         CloseUtils.close(bis);
@@ -138,12 +137,10 @@ public class HessianDecoder {
     public Hashtable<String, Object> decodeHessianByteArrayToHashtable(byte[] data)
             throws IOException {
         InputStream is = new ByteArrayInputStream(data);
-        mhi.init(is);
+        mMicroHessianInput.init(is);
 
         Object obj = null;
-        if (mhi != null) {
-            obj = mhi.decodeTag();
-        }
+        obj = mMicroHessianInput.decodeTag();
 
         if (obj instanceof Hashtable) {
             return (Hashtable<String, Object>)obj;
@@ -165,7 +162,7 @@ public class HessianDecoder {
     private List<BaseDataType> decodeResponse(InputStream is, Request.Type type) throws IOException {
         boolean usesReplyTag = false;
         List<BaseDataType> mResultList = new ArrayList<BaseDataType>();
-        mhi.init(is);
+        mMicroHessianInput.init(is);
 
         // skip start
         int tag = is.read(); // initial map tag or fail
@@ -186,7 +183,7 @@ public class HessianDecoder {
         // read reason string and throw exception
         if (tag == 'f') {
             ServerError zybErr = new ServerError();
-            zybErr.errorType = mhi.readFault().errString();
+            zybErr.errorType = mMicroHessianInput.readFault().errString();
             mResultList.add(zybErr);
             return mResultList;
         }
@@ -214,10 +211,12 @@ public class HessianDecoder {
             // get initial hash table
             // TODO: we cast every response to a Map, losing e.g. push event
             // "c0" which only contains a string - to fix
-            Hashtable<String, Object> hash = (Hashtable<String, Object>)mhi.decodeType(tag);
+            Hashtable<String, Object> hash = (Hashtable<String, Object>)mMicroHessianInput
+                    .decodeType(tag);
             decodeResponseByRequestType(mResultList, hash, type);
         } else { // if we have a common request
-            Hashtable<String, Object> map = (Hashtable<String, Object>)mhi.readHashMap(tag);
+            Hashtable<String, Object> map = (Hashtable<String, Object>)mMicroHessianInput
+                    .readHashMap(tag);
 
             if (null == map) {
                 return null;
@@ -276,16 +275,16 @@ public class HessianDecoder {
 
     private void parseExternalResponse(List<BaseDataType> clist, InputStream is, int tag)
             throws IOException {
-        mhi.init(is);
+        mMicroHessianInput.init(is);
         ExternalResponseObject resp = new ExternalResponseObject();
         // we already read the 'I' in the decodeResponse()-method
         // now we read and check the response code
-        if (mhi.readInt(tag) != 200) {
+        if (mMicroHessianInput.readInt(tag) != 200) {
             return;
         }
 
         try {
-            resp.mMimeType = mhi.readString();
+            resp.mMimeType = mMicroHessianInput.readString();
         } catch (IOException ioe) {
             LogUtils.logE("Failed to parse hessian string.");
             return;
@@ -293,7 +292,7 @@ public class HessianDecoder {
 
         // read data - could be gzipped
         try {
-            resp.mBody = mhi.readBytes();
+            resp.mBody = mMicroHessianInput.readBytes();
         } catch (IOException ioe) {
             LogUtils.logE("Failed to read bytes.");
             return;

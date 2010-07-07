@@ -85,7 +85,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
 
     private boolean mDidCriticalErrorOccur;
 
-    private BufferedInputStream mIs;
+    private BufferedInputStream mBufferedInputStream;
 
     private OutputStream mOs;
 
@@ -322,7 +322,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
         mSocket = new Socket();
         mSocket.connect(new InetSocketAddress(mRpgTcpUrl, mRpgTcpPort), TCP_DEFAULT_TIMEOUT);
 
-        mIs = new BufferedInputStream(mSocket.getInputStream());
+        mBufferedInputStream = new BufferedInputStream(mSocket.getInputStream());
         mOs = mSocket.getOutputStream();
         HttpConnectionThread.logI("TcpConnectionThread.reconnectSocket()", "Socket started: "
                 + mRpgTcpUrl + ":" + mRpgTcpPort);
@@ -508,7 +508,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
         }
 
         mHeartbeatSender.setOutputStream(mOs);
-        mResponseReader.setInputStream(mIs);
+        mResponseReader.setInputStream(mBufferedInputStream);
 
         if (!mHeartbeatSender.getIsActive()) {
             mHeartbeatSender.startConnection();
@@ -534,7 +534,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
         }
 
         mOs = null;
-        mIs = null;
+        mBufferedInputStream = null;
         mHeartbeatSender = null;
         mResponseReader = null;
     }

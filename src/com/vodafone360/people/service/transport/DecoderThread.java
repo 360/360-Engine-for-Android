@@ -65,7 +65,11 @@ public class DecoderThread implements Runnable {
 
     private ResponseQueue mRespQueue = null;
 
-    private HessianDecoder hessianDecoder = new HessianDecoder();
+    /**
+     * The hessian decoder is here declared as member and will be reused instead
+     * of making new instances on every need
+     */
+    private HessianDecoder mHessianDecoder = new HessianDecoder();
 
     /**
      * Container class for raw undecoded response data. Holds a request id
@@ -161,7 +165,7 @@ public class DecoderThread implements Runnable {
 
                     // Set an engine id via Hessian decoder
 
-                    List<BaseDataType> data = hessianDecoder.decodeHessianByteArray(decode.mData,
+                    List<BaseDataType> data = mHessianDecoder.decodeHessianByteArray(decode.mData,
                             type, decode.mIsCompressed);
 
                     if (type == Type.PUSH_MSG && data.size() != 0
