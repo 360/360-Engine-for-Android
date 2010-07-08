@@ -372,7 +372,7 @@ public class NativeContactsApi2 extends NativeContactsApi {
      */
     @Override
     protected void initialize() {
-        fetchMyContactsGroupRowIds();
+        // perform here any one time initialization 
     }
 
     /**
@@ -439,6 +439,12 @@ public class NativeContactsApi2 extends NativeContactsApi {
         } catch(Exception ex) {
             LogUtils.logE("People Account creation failed because of exception:\n", ex);
         }
+        
+        // update the myContacts Ids
+        // this is currently done here as it should be performed one time only
+        // and just before the first time sync
+        fetchMyContactsGroupRowIds();
+        
         return isAdded;
     }
     
