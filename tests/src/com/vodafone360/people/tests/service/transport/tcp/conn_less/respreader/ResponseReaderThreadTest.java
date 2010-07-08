@@ -25,6 +25,7 @@
 
 package com.vodafone360.people.tests.service.transport.tcp.conn_less.respreader;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -52,7 +53,7 @@ public class ResponseReaderThreadTest extends InstrumentationTestCase {
 				);
 		MockOTAInputStream mIs = new MockOTAInputStream(
 				new ByteArrayInputStream(new byte[] {1, 2, 3, 4, 5}));
-		respReader.setInputStream(mIs);
+		respReader.setInputStream(new BufferedInputStream(mIs));
 		
 		assertNull(respReader.getConnectionThread());
 		
@@ -78,7 +79,7 @@ public class ResponseReaderThreadTest extends InstrumentationTestCase {
 				);
 		MockOTAInputStream mIs = new MockOTAInputStream(
 				new ByteArrayInputStream(new byte[] {1, 2, 3, 4, 5}));
-		respReader.setInputStream(mIs);
+		respReader.setInputStream(new BufferedInputStream(mIs));
 
 		respReader.startConnection();
 		try {
@@ -112,7 +113,7 @@ public class ResponseReaderThreadTest extends InstrumentationTestCase {
 				);
 		ByteArrayInputStream bais = new ByteArrayInputStream(new byte[] {1, 2, 3, 4, 5});
 		
-		respReader.setInputStream(bais);
+		respReader.setInputStream(new BufferedInputStream(bais));
 		DataInputStream dis = (DataInputStream) respReader.getInputStream();
 		assertNotNull(dis);
 		
@@ -150,7 +151,7 @@ public class ResponseReaderThreadTest extends InstrumentationTestCase {
 				);
 		MockOTAInputStream mIs = new MockOTAInputStream(
 				new ByteArrayInputStream(new byte[] {1, 2, 3, 4, 5}));
-		respReader.setInputStream(mIs);
+		respReader.setInputStream(new BufferedInputStream(mIs));
 		
 		// IO Exception test
 		try {
@@ -188,7 +189,7 @@ public class ResponseReaderThreadTest extends InstrumentationTestCase {
 				null // QUICKFIX: Not sure about this value
 				);
 		ByteArrayInputStream bais = new ByteArrayInputStream(new byte[] {1});
-		respReader.setInputStream(bais);
+		respReader.setInputStream(new BufferedInputStream(bais));
 		
 		respReader.startConnection();
 		try {
@@ -220,7 +221,7 @@ public class ResponseReaderThreadTest extends InstrumentationTestCase {
 				1, 2, 3, 4, 5 }; 												 
 		
 		ByteArrayInputStream bais = new ByteArrayInputStream(payload);
-		respReader.setInputStream(bais);
+		respReader.setInputStream(new BufferedInputStream(bais));
 		
 		respReader.startConnection();
 		try {
