@@ -149,7 +149,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      */
     @Override
     public void fetchAvailableIdentities(Bundle data) {
-        EngineManager.getInstance().getIdentityEngine().addUiFetchIdentities(data);
+        EngineManager.getInstance().getIdentityEngine().addUiFetchIdentities();
     }
 
     /***
@@ -157,7 +157,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      */
     @Override
     public void fetchMyIdentities(Bundle data) {
-        EngineManager.getInstance().getIdentityEngine().addUiGetMyIdentities(data);
+        EngineManager.getInstance().getIdentityEngine().addUiGetMyIdentities();
     }
 
     /***

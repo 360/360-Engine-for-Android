@@ -35,15 +35,18 @@ import android.os.Bundle;
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.IdentityCapability;
+import com.vodafone360.people.datatypes.PushEvent;
 import com.vodafone360.people.datatypes.StatusMsg;
 import com.vodafone360.people.datatypes.IdentityCapability.CapabilityID;
 import com.vodafone360.people.engine.BaseEngine;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
-import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.io.ResponseQueue.Response;
 import com.vodafone360.people.service.io.api.Identities;
+import com.vodafone360.people.service.io.rpg.PushMessageTypes;
+import com.vodafone360.people.service.transport.ConnectionManager;
+import com.vodafone360.people.service.transport.tcp.ITcpConnectionListener;
 import com.vodafone360.people.utils.LogUtils;
 
 /**
@@ -252,28 +255,52 @@ public class IdentityEngine extends BaseEngine {
     @Override
     protected void processCommsResponse(Response resp) {
         LogUtils.logD("IdentityEngine.processCommsResponse() - resp = " + resp);
-        switch (mState) {
-            case IDLE:
-                LogUtils.logW("IDLE should never happend");
-                break;
-            case FETCHING_IDENTITIES:
-            case GETTING_MY_IDENTITIES:
-            case GETTING_MY_CHATABLE_IDENTITIES:
-                handleServerGetAvailableIdentitiesResponse(resp.mDataTypes);
-                break;
-            case SETTING_IDENTITY_CAPABILITY_STATUS:
-                handleSetIdentityCapabilityStatus(resp.mDataTypes);
-                break;
-            case VALIDATING_IDENTITY_CREDENTIALS:
-                handleValidateIdentityCredentials(resp.mDataTypes);
-                break;
-            default:
-                LogUtils.logW("default should never happend");
-                break;
+        
+        if (resp.mReqId == 0 && resp.mDataTypes.size() > 0) {
+            PushEvent evt = (PushEvent)resp.mDataTypes.get(0);
+            handlePushRequest(evt.mMessageType);
+        } else {
+	        switch (mState) {
+	            case IDLE:
+	                LogUtils.logW("IDLE should never happend");
+	                break;
+	            case FETCHING_IDENTITIES:
+	            case GETTING_MY_IDENTITIES:
+	            case GETTING_MY_CHATABLE_IDENTITIES:
+	                handleServerGetAvailableIdentitiesResponse(resp.mDataTypes);
+	                break;
+	            case SETTING_IDENTITY_CAPABILITY_STATUS:
+	                handleSetIdentityCapabilityStatus(resp.mDataTypes);
+	                break;
+	            case VALIDATING_IDENTITY_CREDENTIALS:
+	                handleValidateIdentityCredentials(resp.mDataTypes);
+	                break;
+	            default:
+	                LogUtils.logW("default should never happend");
+	                break;
+	        }
         }
-
     }
 
+    /**
+     * Handle Status or Timeline Activity change Push message
+     * 
+     * @param evt Push message type (Status change or Timeline change).
+     */
+    private void handlePushRequest(PushMessageTypes evt) {
+        LogUtils.logD("IdentityEngine handlePushRequest");
+        switch (evt) {
+            case IDENTITY_NETWORK_CHANGE:
+                addUiFetchIdentities();
+                break;
+            case IDENTITY_CHANGE:
+            	// TODO padma
+            	break;
+            default:
+                // do nothing
+        }
+    }
+    
     /**
      * Issue any outstanding UI request.
      * 
@@ -285,7 +312,7 @@ public class IdentityEngine extends BaseEngine {
         LogUtils.logD("IdentityEngine.processUiRequest() - reqID = " + requestType);
         switch (requestType) {
             case FETCH_IDENTITIES:
-                startFetchIdentities(data);
+                startGetAvailableIdentities(data);
                 break;
             case GET_MY_IDENTITIES:
                 startGetMyIdentities(data);
@@ -331,14 +358,11 @@ public class IdentityEngine extends BaseEngine {
      * Add request to fetch available identities. The request is added to the UI
      * request and processed when the engine is ready.
      * 
-     * @param filter Bundle containing parameters for fetch identities request.
-     *            This contains the set of filters applied to GetIdentities API
-     *            call.
      */
-    public void addUiFetchIdentities(Bundle filter) {
+    public void addUiFetchIdentities() {
         LogUtils.logD("IdentityEngine.addUiFetchIdentities()");
         emptyUiRequestQueue();
-        addUiRequestToQueue(ServiceUiRequest.FETCH_IDENTITIES, filter);
+        addUiRequestToQueue(ServiceUiRequest.FETCH_IDENTITIES, getIdentitiesFilter());
     }
 
     /**
@@ -387,15 +411,12 @@ public class IdentityEngine extends BaseEngine {
 
     /**
      * Add request to fetch the current user's identities.
-     * 
-     * @param filter Bundle containing parameters for fetch identities request.
-     *            This contains the set of filters applied to GetMyIdentities
-     *            API call.
+	 * 
      */
-    public void addUiGetMyIdentities(Bundle filter) {
+    public void addUiGetMyIdentities() {
         LogUtils.logD("IdentityEngine.addUiGetMyIdentities()");
         emptyUiRequestQueue();
-        addUiRequestToQueue(ServiceUiRequest.GET_MY_IDENTITIES, filter);
+        addUiRequestToQueue(ServiceUiRequest.GET_MY_IDENTITIES, getIdentitiesFilter());
     }
 
     /**
@@ -421,7 +442,7 @@ public class IdentityEngine extends BaseEngine {
      * @param data Bundled request data.
      */
     private void startGetMyIdentities(Object data) {
-        if (!checkConnectivity()) {
+        if (!isConnected()) {
             return;
         }
         newState(State.GETTING_MY_IDENTITIES);
@@ -436,7 +457,7 @@ public class IdentityEngine extends BaseEngine {
      * (Request is not issued if there is currently no connectivity).
      */
     private void startGetMyChatableIdentities() {
-        if (!checkConnectivity()) {
+        if (!isConnected()) {
             return;
         }
         Bundle filter = new Bundle();
@@ -458,7 +479,7 @@ public class IdentityEngine extends BaseEngine {
      * @param data Bundled request data.
      */
     private void startSetIdentityStatus(Object data) {
-        if (!checkConnectivity()) {
+        if (!isConnected()) {
             return;
         }
         newState(State.SETTING_IDENTITY_CAPABILITY_STATUS);
@@ -481,7 +502,7 @@ public class IdentityEngine extends BaseEngine {
      * @param data Bundled request data.
      */
     private void startValidateIdentityCredentials(Object data) {
-        if (!checkConnectivity()) {
+        if (!isConnected()) {
             return;
         }
         newState(State.VALIDATING_IDENTITY_CREDENTIALS);
@@ -499,8 +520,8 @@ public class IdentityEngine extends BaseEngine {
      * 
      * @param data Bundled request data.
      */
-    private void startFetchIdentities(Object data) {
-        if (!checkConnectivity()) {
+    private void startGetAvailableIdentities(Object data) {
+        if (!isConnected()) {
             return;
         }
         newState(State.FETCHING_IDENTITIES);
@@ -615,17 +636,14 @@ public class IdentityEngine extends BaseEngine {
     }
 
     /**
-     * Get Connectivity status from NetworkAgent.
+     * Get Connectivity status from the connection manager.
      * 
-     * @return true if NetworkAgent reports we have connectivity, false
-     *         otherwise (complete outstanding request with ERROR_COMMS).
+     * @return true True if the connection is active, false otherwise. 
+     * 
      */
-    private boolean checkConnectivity() {
-        if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            completeUiRequest(ServiceStatus.ERROR_COMMS, null);
-            return false;
-        }
-        return true;
+    private boolean isConnected() {
+    	int connState = ConnectionManager.getInstance().getConnectionState();
+        return (connState == ITcpConnectionListener.STATE_CONNECTED);
     }
 
     /**
@@ -668,5 +686,14 @@ public class IdentityEngine extends BaseEngine {
         }
 
         addUiRequestToQueue(ServiceUiRequest.GET_MY_CHATABLE_IDENTITIES, null);
+    }
+    
+    private Bundle getIdentitiesFilter() {
+    	Bundle b = new Bundle();
+        ArrayList<String> l = new ArrayList<String>();
+        l.add(IdentityCapability.CapabilityID.chat.name());
+        l.add(IdentityCapability.CapabilityID.get_own_status.name());
+        b.putStringArrayList("capability", l);
+        return b;
     }
 }

@@ -477,12 +477,13 @@ public class HessianDecoder {
                 case IDENTITY_CHANGE:
                     engineId = EngineId.PRESENCE_ENGINE;
                     break;
+                case IDENTITY_NETWORK_CHANGE:
+                	engineId = EngineId.IDENTITIES_ENGINE;
+                    break;
                 case SYSTEM_NOTIFICATION:
                     LogUtils.logE("SYSTEM_NOTIFICATION push msg:" + msg.mHash);
                     list.add(SystemNotification.createFromHashtable(msg.mHash, engineId));
                     return;
-                case IDENTITY_NETWORK_CHANGE:
-                    break;
                 default:
 
             }
