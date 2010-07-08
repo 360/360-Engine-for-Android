@@ -26,6 +26,7 @@
 package com.vodafone360.people.database.tables;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -34,7 +35,6 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.database.SQLKeys;
-
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.presence.NetworkPresence;
 import com.vodafone360.people.engine.presence.User;
@@ -150,6 +150,11 @@ public abstract class PresenceTable {
      * instance of database passed into PresenceTable methods.
      */
     private static final String DEFAULT_ERROR_MESSAGE = "PresenceTable: the passed in database is null!";
+    
+    /**
+     * Constant for ","
+     */
+    private final static String COMMA = ",";
 
     /**
      * This method creates the PresenceTable.
@@ -175,6 +180,7 @@ public abstract class PresenceTable {
      * This method updates the user with the information from the User wrapper.
      * 
      * @param user2Update - User info to update
+     * @param ignoredNetworkIds - ArrayList of integer network ids presence state for which must be ignored.
      * @param writableDatabase - writable database
      * @return USER_ADDED if no user with user id like the one in user2Update
      *         payload "status.getUserId()" ever existed in this table,
@@ -183,42 +189,53 @@ public abstract class PresenceTable {
      * @throws SQLException if the database layer throws this exception.
      * @throws NullPointerException if the passed in database instance is null.
      */
-    public static int updateUser(User user2Update, SQLiteDatabase writableDatabase)
+    public static int updateUser(User user2Update, ArrayList<Integer> ignoredNetworkIds, SQLiteDatabase writableDatabase)
             throws SQLException, NullPointerException {
         int ret = USER_NOTADDED;
         if (writableDatabase == null) {
             throw new NullPointerException(DEFAULT_ERROR_MESSAGE);
         }
         if (user2Update != null) {
+
             ArrayList<NetworkPresence> statusesOnNetworks = user2Update.getPayload();
             if (!statusesOnNetworks.isEmpty()) {
                 ContentValues values = new ContentValues();
                 StringBuffer where = null;
-                for (NetworkPresence status : statusesOnNetworks) {
-                    values.put(Field.LOCAL_CONTACT_ID.toString(), user2Update.getLocalContactId());
-                    values.put(Field.USER_ID.toString(), status.getUserId());
-                    values.put(Field.NETWORK_ID.toString(), status.getNetworkId());
-                    values.put(Field.NETWORK_STATUS.toString(), status.getOnlineStatusId());
+                Iterator<NetworkPresence> itr = statusesOnNetworks.iterator();
+                NetworkPresence status = null;
+                long localContactId = user2Update.getLocalContactId();
+                int networkId = 0;
+                while (itr.hasNext()) {
+                    status = itr.next();
+                    networkId = status.getNetworkId();
+                    if (ignoredNetworkIds == null || !ignoredNetworkIds.contains(networkId)) {
+                        values.put(Field.LOCAL_CONTACT_ID.toString(), localContactId);
+                        values.put(Field.USER_ID.toString(), status.getUserId());
+                        values.put(Field.NETWORK_ID.toString(), networkId);
+                        values.put(Field.NETWORK_STATUS.toString(), status.getOnlineStatusId());
 
-                    where = StringBufferPool.getStringBuffer(Field.LOCAL_CONTACT_ID.toString());
-                    
-                    where.append(SQLKeys.EQUALS).append(user2Update.getLocalContactId()).
-                    append(SQLKeys.AND).append(Field.NETWORK_ID).append(SQLKeys.EQUALS).append(status.getNetworkId());
-                    
-                    int numberOfAffectedRows = writableDatabase.update(TABLE_NAME, values, StringBufferPool.toStringThenRelease(where),
-                            null);
-                    if (numberOfAffectedRows == 0) {
-                        if (writableDatabase.insert(TABLE_NAME, null, values) != -1) {
-                            ret = USER_ADDED;
+                        where = StringBufferPool.getStringBuffer(Field.LOCAL_CONTACT_ID.toString());
+                            
+                        where.append(SQLKeys.EQUALS).append(localContactId).
+                        append(SQLKeys.AND).append(Field.NETWORK_ID).append(SQLKeys.EQUALS).append(networkId);
+                            
+                        int numberOfAffectedRows = writableDatabase.update(TABLE_NAME, values, StringBufferPool.toStringThenRelease(where),
+                                    null);
+                        if (numberOfAffectedRows == 0) {
+                            if (writableDatabase.insert(TABLE_NAME, null, values) != -1) {
+                                ret = USER_ADDED;
+                            } else {
+                                LogUtils.logE("PresenceTable updateUser(): could not add new user!");
+                            }
                         } else {
-                            LogUtils.logE("PresenceTable updateUser(): could not add new user!");
+                            if (ret == USER_NOTADDED) {
+                                ret = USER_UPDATED;
+                            }
                         }
-                    } else {
-                        if (ret == USER_NOTADDED) {
-                            ret = USER_UPDATED;
-                        }
+                        values.clear();    
+                    } else if (ignoredNetworkIds != null) { // presence information from this network needs to be ignored
+                        itr.remove();
                     }
-                    values.clear();
                 }
             }
         }
@@ -226,6 +243,51 @@ public abstract class PresenceTable {
     }
 
     /**
+     * This method fills the provided user object with presence information.
+     * 
+     * @param user User - the user with a localContactId != -1
+     * @param readableDatabase - the database to read from
+     * @return user/me profile presence state wrapped in "User" wrapper class,
+     *         or NULL if the specified localContactId doesn't exist
+     * @throws SQLException if the database layer throws this exception.
+     * @throws NullPointerException if the passed in database instance is null.
+     */
+    public static void getUserPresence(User user,
+            SQLiteDatabase readableDatabase) throws SQLException, NullPointerException {
+        if (readableDatabase == null) {
+            throw new NullPointerException(DEFAULT_ERROR_MESSAGE);
+        }
+        if (user.getLocalContactId() < 0) {
+            LogUtils.logE("PresenceTable.getUserPresenceByLocalContactId(): "
+                    + "#localContactId# parameter is -1 ");
+            return;
+        }
+        Cursor c = null;
+        try {
+            c = readableDatabase.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE "
+                    + Field.LOCAL_CONTACT_ID + "=" + user.getLocalContactId(), null);
+            if (c != null) {
+                int onlineStatus = OnlineStatus.OFFLINE.ordinal(); // i.e. 0
+                ArrayList<NetworkPresence> payload = user.getPayload();
+                payload.clear();
+                while (c.moveToNext()) {
+                    String userId = c.getString(USER_ID);
+                    int networkId = c.getInt(NETWORK_ID);
+                    int statusId = c.getInt(NETWORK_STATUS);
+                    if (statusId > onlineStatus) {
+                        onlineStatus = statusId;
+                    }
+                    payload.add(new NetworkPresence(userId, networkId, statusId));
+                }
+                user.setOverallOnline(onlineStatus);    
+            }
+        } finally {
+            CloseUtils.close(c);
+            c = null;
+        }
+    }
+    
+       /**
      * This method returns user/me profile presence state.
      * 
      * @param localContactId - me profile localContactId
@@ -234,6 +296,7 @@ public abstract class PresenceTable {
      *         or NULL if the specified localContactId doesn't exist
      * @throws SQLException if the database layer throws this exception.
      * @throws NullPointerException if the passed in database instance is null.
+     * @return user - User object filled with presence information. 
      */
     public static User getUserPresenceByLocalContactId(long localContactId,
             SQLiteDatabase readableDatabase) throws SQLException, NullPointerException {
@@ -268,8 +331,6 @@ public abstract class PresenceTable {
                 user.setOverallOnline(onlineStatus);
                 user.setPayload(networkPresence);
             }
-            // this finally part should always run, while the exception is still
-            // thrown
         } finally {
             CloseUtils.close(c);
             c = null;
@@ -293,7 +354,8 @@ public abstract class PresenceTable {
         // To remove all rows and get a count pass "1" as the whereClause
         return writableDatabase.delete(TABLE_NAME, "1", null);
     }
-
+    
+   
     /**
      * The method cleans the presence table: deletes all the rows, except for
      * the given user localContactId ("Me Profile" localContactId)
@@ -312,5 +374,52 @@ public abstract class PresenceTable {
         }
         return writableDatabase.delete(TABLE_NAME, Field.LOCAL_CONTACT_ID + " != "
                 + localContactIdOfMe, null);
+    }
+    
+    /**
+     * This method returns the array of distinct user local contact ids in this table. 
+     * @param readableDatabase - database.
+     * @return ArrayList of Long distinct local contact ids from this table. 
+     */
+    public static ArrayList<Long> getLocalContactIds(SQLiteDatabase readableDatabase) {
+        Cursor c = null;
+        ArrayList<Long> ids = new ArrayList<Long>(); 
+        
+        try {
+            c = readableDatabase.rawQuery("SELECT DISTINCT " +Field.LOCAL_CONTACT_ID+ " FROM " + TABLE_NAME, null);
+            if (c != null) {
+                while (c.moveToNext()) {
+                    ids.add(c.getLong(0));
+                }
+            }
+        } finally {
+            CloseUtils.close(c);
+            c = null;
+        }
+        return ids;
+    }
+    
+    /**
+     * This method deletes information about the user presence states on the provided networks.  
+     * @param networksToDelete - ArrayList of integer network ids.
+     * @param writableDatabase - writable database.
+     * @throws NullPointerException is thrown when the provided database is null.
+     */
+    public static void setTPCNetworksOffline(ArrayList<Integer> networksToDelete,
+            SQLiteDatabase writableDatabase) throws NullPointerException {
+        if (writableDatabase == null) {
+            throw new NullPointerException(DEFAULT_ERROR_MESSAGE);
+        }
+        StringBuffer networks = StringBufferPool.getStringBuffer();
+        for (Integer network : networksToDelete) {
+            networks.append(network).append(COMMA);
+        }
+        if (networks.length() > 0) {
+            networks.deleteCharAt(networks.lastIndexOf(COMMA));
+        }
+        final StringBuilder where = new StringBuilder(Field.NETWORK_ID.toString());
+        where.append(" IN  (").append(StringBufferPool.toStringThenRelease(networks)).append(")");
+        
+        writableDatabase.delete(TABLE_NAME, where.toString(), null);
     }
 }

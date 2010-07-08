@@ -49,9 +49,13 @@
 
 package com.caucho.hessian.micro;
 
-import java.io.*;
-import java.util.*;
-
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.Hashtable;
+import java.util.Vector;
 
 import com.vodafone360.people.utils.LogUtils;
 
@@ -76,7 +80,10 @@ import com.vodafone360.people.utils.LogUtils;
  * </pre>
  */
 public class MicroHessianInput {
-    protected InputStream is;
+    protected BufferedInputStream is;
+
+    /** Using fast but not thread safe StringBuilder for constructing strings */
+    private StringBuilder mStringBuilder = new StringBuilder(255);
 
     /**
      * Creates a new Hessian input stream, initialized with an underlying input
@@ -98,7 +105,8 @@ public class MicroHessianInput {
      * Initialize the hessian stream with the underlying input stream.
      */
     public void init(InputStream is) {
-        this.is = is;
+        this.is = new BufferedInputStream(is);
+
     }
 
     /**
@@ -117,9 +125,7 @@ public class MicroHessianInput {
             throw protocolException("expected hessian reply");
 
         // remove some bits from the input stream
-        is.read();
-        is.read();
-
+        is.skip(2);
     }
 
     /**
@@ -170,7 +176,7 @@ public class MicroHessianInput {
         int tag = is.read();
         return readInt(tag);
     }
-    
+
     public int readInt(int tag) throws IOException {
         if (tag != 'I')
             throw expect("integer", tag);
@@ -182,7 +188,6 @@ public class MicroHessianInput {
 
         return (b32 << 24) + (b24 << 16) + (b16 << 8) + b8;
     }
-    
 
     /**
      * Reads a long
@@ -195,7 +200,7 @@ public class MicroHessianInput {
         int tag = is.read();
         return readLong(tag);
     }
-    
+
     private long readLong(int tag) throws IOException {
         if (tag != 'L')
             throw protocolException("expected long");
@@ -242,14 +247,15 @@ public class MicroHessianInput {
     /**
      * Reads a byte array
      * 
-     * @return byte[] array extracted from Hessian stream, NULL if 'N' specified in data.
+     * @return byte[] array extracted from Hessian stream, NULL if 'N' specified
+     *         in data.
      * @throws IOException.
      */
     public byte[] readBytes() throws IOException {
         int tag = is.read();
         return readBytes(tag);
     }
-    
+
     private byte[] readBytes(int tag) throws IOException {
         if (tag == 'N')
             return null;
@@ -355,14 +361,14 @@ public class MicroHessianInput {
         int tag = is.read();
         return readVector(tag);
     }
-    
+
     private Vector<Object> readVector(int tag) throws IOException {
         if (tag == 'N')
             return null;
 
         if (tag != 'V')
             throw expect("vector", tag);
-        
+
         Vector<Object> v = new Vector<Object>();
         Object o = decodeTag();
 
@@ -387,7 +393,7 @@ public class MicroHessianInput {
         }
         return v;
     }
-    
+
     public Fault readFault() throws IOException {
         decodeTag();
         int tag = is.read();
@@ -396,19 +402,18 @@ public class MicroHessianInput {
         }
         return null;
     }
-    
+
     public Object decodeTag() throws IOException {
         int tag = is.read();
         // HessianUtils.printTagValue(tag);
         return decodeType(tag);
     }
-    
-    public Object decodeType(int tag) throws IOException {        
+
+    public Object decodeType(int tag) throws IOException {
         // LogUtils.logD("HessianDecoder.decodeType() tag["+tag+"]");
         switch (tag) {
             case 't': // tag
-                is.read();
-                is.read();
+                is.skip(2);
                 Type type = new Type();
                 return type;
             case 'l': // length
@@ -454,7 +459,7 @@ public class MicroHessianInput {
                 return null;
         }
     }
-    
+
     /**
      * Reads a string
      * 
@@ -466,7 +471,7 @@ public class MicroHessianInput {
         int tag = is.read();
         return readString(tag);
     }
-    
+
     private String readString(int tag) throws IOException {
         if (tag == 'N')
             return null;
@@ -481,59 +486,61 @@ public class MicroHessianInput {
 
         return readStringImpl(len);
     }
-    
+
     /**
      * Reads a string from the underlying stream.
      */
     private String readStringImpl(int length) throws IOException {
-        StringBuffer sb = new StringBuffer();
+
+        // reset the stringbuilder. Recycling is better then making allways a
+        // new one.
+        mStringBuilder.setLength(0);
 
         for (int i = 0; i < length; i++) {
             int ch = is.read();
 
             if (ch < 0x80)
-                sb.append((char)ch);
+                mStringBuilder.append((char)ch);
+
             else if ((ch & 0xe0) == 0xc0) {
                 int ch1 = is.read();
                 int v = ((ch & 0x1f) << 6) + (ch1 & 0x3f);
-
-                sb.append((char)v);
+                mStringBuilder.append((char)v);
             } else if ((ch & 0xf0) == 0xe0) {
                 int ch1 = is.read();
                 int ch2 = is.read();
                 int v = ((ch & 0x0f) << 12) + ((ch1 & 0x3f) << 6) + (ch2 & 0x3f);
-
-                sb.append((char)v);
+                mStringBuilder.append((char)v);
             } else if ((ch & 0xff) >= 0xf0 && (ch & 0xff) <= 0xf4) { // UTF-4
                 final byte[] b = new byte[4];
                 b[0] = (byte)ch;
                 b[1] = (byte)is.read();
                 b[2] = (byte)is.read();
                 b[3] = (byte)is.read();
-                sb.append(new String(b, "utf-8"));
+                mStringBuilder.append(new String(b, "utf-8"));
                 i++;
             } else
                 throw new IOException("bad utf-8 encoding");
         }
 
-        return sb.toString();
+        return mStringBuilder.toString();
     }
-    
+
     public Hashtable<String, Object> readHashMap() throws IOException {
         // read map type
         int tag = is.read();
         return readHashMap(tag);
     }
-    
+
     public Hashtable<String, Object> readHashMap(int tag) throws IOException {
         // read map type
-        
+
         if (tag == 'N')
             return null;
 
         if (tag != 'M')
             throw expect("map", tag);
-        
+
         Hashtable<String, Object> ht = new Hashtable<String, Object>();
         Object obj = decodeTag();
         if (obj instanceof Type) {
@@ -562,7 +569,7 @@ public class MicroHessianInput {
     protected IOException protocolException(String message) {
         return new IOException(message);
     }
-    
+
     /**
      * Place-holder class for End tag 'z'
      */

@@ -28,6 +28,7 @@ import java.util.Hashtable;
 
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.presence.NetworkPresence;
+import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 
 /**
  * @author timschwerdtner
@@ -54,4 +55,11 @@ public class HardcodedUtils {
 
         return availability;
     }
+    
+    /**
+     * The static list of supported TPC accounts.
+     */    
+    public static final int[] THIRD_PARTY_CHAT_ACCOUNTS = new int[]{SocialNetwork.FACEBOOK_COM.ordinal(), 
+                             SocialNetwork.GOOGLE.ordinal(), SocialNetwork.HYVES_NL.ordinal(), 
+                             SocialNetwork.MICROSOFT.ordinal()};
 }

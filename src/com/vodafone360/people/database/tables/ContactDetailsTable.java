@@ -48,7 +48,6 @@ import com.vodafone360.people.datatypes.VCardHelper;
 import com.vodafone360.people.datatypes.ContactDetail.DetailKeyTypes;
 import com.vodafone360.people.datatypes.ContactDetail.DetailKeys;
 import com.vodafone360.people.engine.contactsync.ContactChange;
-import com.vodafone360.people.engine.presence.PresenceDbUtils;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.utils.CloseUtils;
 import com.vodafone360.people.utils.CursorUtils;
@@ -1385,7 +1384,7 @@ public abstract class ContactDetailsTable {
                     .append(SQLKeys.AND).append(Field.STRINGVAL).append(SQLKeys.EQUALS).append(
                             value);
 
-            if (PresenceDbUtils.notNullOrBlank(networkName)) {
+            if (!TextUtils.isEmpty(networkName)) {
                 query.append(SQLKeys.AND).append(Field.ALT).append(SQLKeys.EQUALS).append(
                         networkName);
             }
@@ -1437,7 +1436,7 @@ public abstract class ContactDetailsTable {
                     + " AND "
                     + Field.LOCALCONTACTID
                     + "="
-                    + (PresenceDbUtils.notNullOrBlank(networkName) ? localContactId + " AND "
+                    + (!TextUtils.isEmpty(networkName) ? localContactId + " AND "
                             + Field.ALT + "=" + networkName : String.valueOf(localContactId));
             c = readableDb.rawQuery(query, null);
             while (c.moveToNext()) {

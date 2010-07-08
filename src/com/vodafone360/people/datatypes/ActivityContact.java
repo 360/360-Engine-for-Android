@@ -214,7 +214,7 @@ public class ActivityContact extends BaseDataType {
                 case USER_ID:
                     mUserId = (Long)val;
                     break;
-                    
+
                 default:
                     // Do nothing.
                     break;

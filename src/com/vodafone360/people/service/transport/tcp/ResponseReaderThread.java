@@ -25,13 +25,13 @@
 
 package com.vodafone360.people.service.transport.tcp;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -50,12 +50,12 @@ import com.vodafone360.people.utils.LogUtils;
  * @author Rudy Norff (rudy.norff@vodafone.com)
  */
 public class ResponseReaderThread implements Runnable {
-    
+
     /**
      * Sleep time (in milliseconds) of the thread in between reads.
      */
     private static final long THREAD_SLEEP_TIME = 300; // ms
-    
+
     /**
      * The ResponseReaderThread that was created by the TcpConnectionThread. It
      * will be compared to this thread. If they differ this thread must be a
@@ -173,7 +173,7 @@ public class ResponseReaderThread implements Runnable {
      *            this would trigger a reconnect of the whole socket and cause
      *            all transport-threads to be restarted.
      */
-    public void setInputStream(InputStream inputStream) {
+    public void setInputStream(BufferedInputStream inputStream) {
         HttpConnectionThread.logI("RpgTcpResponseReader.setInputStream()", "Setting new IS: "
                 + ((null != inputStream) ? "not null" : "null"));
         if (null != inputStream) {
@@ -273,12 +273,12 @@ public class ResponseReaderThread implements Runnable {
         dos.writeInt(other);
         dos.writeInt(payloadSize);
         dos.writeByte(compression);
-        
+
         byte[] payload = new byte[payloadSize];
-        
+
         // read the payload
         while (offset < payloadSize) {
-            offset += mIs.read(payload, offset, payloadSize-offset);
+            offset += mIs.read(payload, offset, payloadSize - offset);
         }
 
         dos.write(payload);
@@ -287,30 +287,26 @@ public class ResponseReaderThread implements Runnable {
         final byte[] response = baos.toByteArray();
 
         if (Settings.ENABLED_TRANSPORT_TRACE) {
-            if (reqId != 0) {   // regular response
-                HttpConnectionThread
-                    .logI("ResponseReader.readResponses()", "\n" + "  < Response for ID " + reqId
-                            + " with payload-length " + payloadSize
-                            + " received <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-                            + HessianUtils.getInHessian(new ByteArrayInputStream(response), false)
-                            + "\n  ");
-            } else {    // push response
-                HttpConnectionThread
-                .logI("ResponseReader.readResponses()", "\n" + "  < Push response "
-                        + " with payload-length " + payloadSize
+            if (reqId != 0) { // regular response
+                HttpConnectionThread.logI("ResponseReader.readResponses()", "\n"
+                        + "  < Response for ID " + reqId + " with payload-length " + payloadSize
+                        + " received <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+                        + HessianUtils.getInHessian(new ByteArrayInputStream(response), false)
+                        + "\n  ");
+            } else { // push response
+                HttpConnectionThread.logI("ResponseReader.readResponses()", "\n"
+                        + "  < Push response " + " with payload-length " + payloadSize
                         + " received <x<x<x<x<x<x<x<x<x<x<x<x<x<x<x<x<x<x<x<x<x<x"
                         + HessianUtils.getInHessian(new ByteArrayInputStream(response), false)
                         + "\n  ");
             }
-            
+
             // log file containing response to SD card
             if (Settings.sEnableSuperExpensiveResponseFileLogging) {
                 LogUtils.logE("XXXXXXYYYXXXXXX Do not Remove this!");
-                LogUtils.logToFile(response, "people_" 
-                            + reqId + "_" 
-                            + System.currentTimeMillis() + "_resp_" + 
-                            ((int) msgType) +
-                            ((compression == 1) ? ".gzip_w_rpg_header" : ".txt"));
+                LogUtils.logToFile(response, "people_" + reqId + "_" + System.currentTimeMillis()
+                        + "_resp_" + ((int)msgType)
+                        + ((compression == 1) ? ".gzip_w_rpg_header" : ".txt"));
             } // end log file containing response to SD card
         }
 

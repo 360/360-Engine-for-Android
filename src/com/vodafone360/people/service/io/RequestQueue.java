@@ -95,33 +95,43 @@ public class RequestQueue {
      * 
      * @param listener listener to add
      */
-    protected void addQueueListener(IQueueListener listener) {
-        LogUtils.logW("RequestQueue.addQueueListener() listener[" + listener + "]");
-        if (mListeners != null) {
-            mListeners.add(listener);
-        }
-    }
+	protected void addQueueListener(IQueueListener listener) {
+		LogUtils.logW("RequestQueue.addQueueListener() listener[" + listener
+				+ "]");
+		synchronized (mListeners) {
+			if (mListeners != null) {
+				mListeners.add(listener);
+			}
+		}
+	}
 
     /**
      * Remove RequestQueue listener
      * 
      * @param listener listener to remove
      */
-    protected void removeQueueListener(IQueueListener listener) {
-        LogUtils.logW("RequestQueue.removeQueueListener() listener[" + listener + "]");
-        if (mListeners != null) {
-            mListeners.remove(listener);
-        }
-    }
+	protected void removeQueueListener(IQueueListener listener) {
+		LogUtils.logW("RequestQueue.removeQueueListener() listener[" + listener
+				+ "]");
+		synchronized (mListeners) {
+			if (mListeners != null) {
+				mListeners.remove(listener);
+			}
+		}
+	}
 
     /**
      * Fire RequestQueue state changed message
      */
-    protected void fireQueueStateChanged() {
-        LogUtils.logW("RequestQueue.notifyOfItemInRequestQueue() listener[" + mListeners + "]");
-        for (IQueueListener listener : mListeners)
-            listener.notifyOfItemInRequestQueue();
-    }
+	protected void fireQueueStateChanged() {
+		synchronized (mListeners) {
+			LogUtils.logW("RequestQueue.notifyOfItemInRequestQueue() listener["
+					+ mListeners + "]");
+			for (IQueueListener listener : mListeners) {
+				listener.notifyOfItemInRequestQueue();
+			}
+		}
+	}
 
     /**
      * Add request to queue
