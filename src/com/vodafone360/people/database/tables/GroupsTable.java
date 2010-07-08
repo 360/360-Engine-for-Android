@@ -410,6 +410,35 @@ public abstract class GroupsTable {
     }
 
     /**
+     * Fetches a cursor that can be used for browsing the groups exluding the
+     * Connected friends item. The {@link #getQueryData(Cursor)} method can be
+     * used to fetch the data of a particular record in the cursor.
+     * 
+     * @param readableDb Readable SQLite database
+     * @return The cursor, or null if an error occurs
+     */
+    public static Cursor getGroupCursorExcludeConnectedFriends(
+            final SQLiteDatabase readableDb) {
+        DatabaseHelper.trace(false,
+                "GroupsTable.getGroupCursorExcludeConnectedFriends()");
+        try {
+            return readableDb.rawQuery(
+                    getQueryStringSql("NAME != 'Private' AND "
+                            + Field.SERVERGROUPID + " != "
+                            + GROUP_CONNECTED_FRIENDS),
+                    null);
+
+        } catch (SQLiteException e) {
+            LogUtils
+                    .logE(
+                            "GroupsTable.getGroupCursorExcludeConnectedFriends()"
+                                    + " Exception - Unable to fetch group"
+                                    + " cursor", e);
+            return null;
+        }
+    }
+
+    /**
      * Populates the table if system groups that are specified in the resources.
      * 
      * @param context The context for reading the app resources

@@ -315,4 +315,11 @@ public class PresenceDbUtils {
         }
     }
 
+    /**
+     * @param input
+     * @return
+     */
+    public static boolean notNullOrBlank(String input) {
+        return (input != null) && input.length() > 0;
+    }
 }
