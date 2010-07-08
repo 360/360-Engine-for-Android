@@ -459,5 +459,5 @@
 	<string name="android_contact_profile_summary">Profil ve službě 360 People</string>
 	<string name="only_one_account_notice">Podporován je pouze jeden účet ve službě 360 People</string>
 	<string name="TimelineHistoryActivity_contact_offline">Kontakty jsou pravděpodobně offline</string>
-	<string name="contactprofile_no_connection">Připojení k síti není k dispozici!</string>
+	<string name="ContactProfile_no_connection">Připojení k síti není k dispozici!</string>
 </resources>

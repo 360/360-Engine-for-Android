@@ -459,5 +459,5 @@
 	<string name="TimelineHistoryActivity_contact_offline">El contacto figura como no conectado</string>
 	<string name="ValidatingYourThirdPartyAccountActivity_validating_your">Iniciando sesión en la cuenta </string>
 	<string name="account">...</string>
-	<string name="contactprofile_no_connection">No hay conexión de red disponible.</string>
+	<string name="ContactProfile_no_connection">No hay conexión de red disponible.</string>
 </resources>

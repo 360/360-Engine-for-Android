@@ -459,5 +459,5 @@
 	<string name="UiUtils_service_err_username_invalid">Введено неверное имя пользователя.</string>
 	<string name="widget_error_not_logged_in">Для использования данной функции необходимо авторизоваться.</string>
 	<string name="TimelineHistoryActivity_contact_offline">Контакт, по-видимому, не в сети</string>
-	<string name="contactprofile_no_connection">Сетевое соединение отсутствует.</string>
+	<string name="ContactProfile_no_connection">Сетевое соединение отсутствует.</string>
 </resources>

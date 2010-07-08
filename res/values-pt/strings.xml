@@ -459,5 +459,5 @@
 	<string name="contactmain_statusIconLabel">Actualiz.</string>
 	<string name="contactmain_dialerIconLabel">Ligar</string>
 	<string name="TimelineHistoryActivity_contact_offline">O contacto parece estar offline</string>
-	<string name="contactprofile_no_connection">Ligação de rede não disponível!</string>
+	<string name="ContactProfile_no_connection">Ligação de rede não disponível!</string>
 </resources>

@@ -362,7 +362,6 @@
 	<string name="UiUtils_service_err_country_invalid">Μη έγκυρη χώρα</string>
 	<string name="UiUtils_service_err_database_corrupt">Παρουσιάστηκε σφάλμα βάσης δεδομένων</string>
 	<string name="UiUtils_service_err_disconnected">Λυπούμαστε, παρουσιάστηκε πρόβλημα κατά την προσπάθεια σύνδεσης. Παρακαλούμε δοκιμάστε ξανά.</string>
-	<string name="UiUtils_service_err_email_missing">Παρακαλούμε πληκτρολογήστε τη διεύθυνση ηλεκτρονικής αλληλογραφίας σας.</string>
 	<string name="UiUtils_service_err_fullname_missing">Παρακαλούμε πληκτρολογήστε το όνομα και το επώνυμό σας.</string>
 	<string name="UiUtils_service_err_in_use">Παρουσιάστηκε κάποιο εσωτερικό σφάλμα (στη χρήση)</string>
 	<string name="UiUtils_service_err_internal_server">Παρουσιάστηκε εσωτερικό σφάλμα στον διακομιστή</string>
@@ -459,5 +458,6 @@
 	<string name="android_contact_profile_summary">Προφίλ 360 People</string>
 	<string name="only_one_account_notice">Υποστηρίζεται μόνο ένας λογαριασμός 360 People</string>
 	<string name="TimelineHistoryActivity_contact_offline">Η επαφή φαίνεται εκτός σύνδεσης</string>
-	<string name="contactprofile_no_connection">Δεν υπάρχει διαθέσιμη σύνδεση δικτύου!</string>
+	<string name="ContactProfile_no_connection">Δεν υπάρχει διαθέσιμη σύνδεση δικτύου!</string>
+	<string name="UiUtils_service_err_email_missing">Παρακαλούμε πληκτρολογήστε τη διεύθυνση ηλ. αλληλογραφίας σας.</string>
 </resources>
