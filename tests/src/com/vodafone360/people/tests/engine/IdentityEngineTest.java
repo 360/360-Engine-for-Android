@@ -88,10 +88,9 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
     public void testFetchIdentities() {
 
         mState = IdentityTestState.FETCH_IDENTITIES;
-        Bundle fbund = new Bundle();
 
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
-        mEng.addUiFetchIdentities(fbund);
+        mEng.addUiFetchIdentities();
         // mEng.run();
         ServiceStatus status = mEngineTester.waitForEvent();
         assertEquals(ServiceStatus.SUCCESS, status);
@@ -111,10 +110,9 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
     @Suppress // Takes too long.
     public void testAddUiGetMyIdentities() {
         mState = IdentityTestState.GET_MY_IDENTITIES;
-        Bundle getBund = new Bundle();
 
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
-        mEng.addUiGetMyIdentities(getBund);
+        mEng.addUiGetMyIdentities();
         // mEng.run();
         ServiceStatus status = mEngineTester.waitForEvent();
         assertEquals(ServiceStatus.SUCCESS, status);
@@ -133,10 +131,9 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
     @Suppress // Takes to long
     public void testFetchIdentitiesFail() {
         mState = IdentityTestState.FETCH_IDENTITIES_FAIL;
-        Bundle fbund = new Bundle();
 
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
-        mEng.addUiFetchIdentities(fbund);
+        mEng.addUiFetchIdentities();
         // mEng.run();
         ServiceStatus status = mEngineTester.waitForEvent();
         assertFalse(ServiceStatus.SUCCESS == status);
@@ -149,10 +146,9 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
     @Suppress // Breaks tests.
     public void testFetchIdentitiesPopulated() {
         mState = IdentityTestState.FETCH_IDENTITIES_POPULATED;
-        Bundle fbund = new Bundle();
 
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
-        mEng.addUiFetchIdentities(fbund);
+        mEng.addUiFetchIdentities();
         // mEng.run();
         ServiceStatus status = mEngineTester.waitForEvent();
         assertEquals(ServiceStatus.SUCCESS, status);
