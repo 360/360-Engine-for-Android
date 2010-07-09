@@ -39,6 +39,7 @@ import com.vodafone360.people.datatypes.PushEvent;
 import com.vodafone360.people.datatypes.StatusMsg;
 import com.vodafone360.people.datatypes.IdentityCapability.CapabilityID;
 import com.vodafone360.people.engine.BaseEngine;
+import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
@@ -294,8 +295,10 @@ public class IdentityEngine extends BaseEngine {
                 addUiFetchIdentities();
                 break;
             case IDENTITY_CHANGE:
-            	// TODO padma
-            	break;
+                EngineManager.getInstance().getPresenceEngine().setMyAvailability();
+                addUiGetMyIdentities();
+                mEventCallback.kickWorkerThread();
+                break;
             default:
                 // do nothing
         }

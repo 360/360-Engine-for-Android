@@ -514,10 +514,6 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
                     ChatDbUtils.deleteConversationById(pcc.getConversation(), mDbHelper);
                 }
                 break;
-            case IDENTITY_CHANGE:
-                // identity has been added or removed, reset availability
-                initSetMyAvailabilityRequest(getMyAvailabilityStatusFromDatabase());
-                break;
             default:
                 LogUtils.logE("PresenceEngine.handleServerResponse():"
                         + " push message type was not recognized:" + event.name());
@@ -797,6 +793,10 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
                 mSendMessagesHash.clear();
                 break;
         } 
+    }
+    
+    public void setMyAvailability() {
+        initSetMyAvailabilityRequest(getMyAvailabilityStatusFromDatabase());
     }
     
 }
