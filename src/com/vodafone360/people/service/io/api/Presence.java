@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.vodafone360.people.Settings;
+import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.engine.login.LoginEngine;
 import com.vodafone360.people.service.io.QueueManager;
@@ -72,7 +73,7 @@ public class Presence {
      * API to set my availability
      * 
      * @param engineId ID of presence engine.
-     * @param availability Availability to set
+     * @param onlinestatus Availability to set
      */
     public static void setMyAvailability(String availability) {
         if (LoginEngine.getSession() == null) {
@@ -82,8 +83,9 @@ public class Presence {
         Request request = new Request(EMPTY, Request.Type.AVAILABILITY, EngineId.UNDEFINED, true,
                 Settings.API_REQUESTS_TIMEOUT_PRESENCE_SET_AVAILABILITY);
         
-        // Construct identities hash map with the apropriate availability
+        // Construct identities hash map with the appropriate availability
         Hashtable<String, String> availabilityMap = new Hashtable<String, String>();
+        //availabilityMap.put("mobile", availability);
         // TODO: Get identities and add to map with availability set
         request.addData("availability", availabilityMap);
 
