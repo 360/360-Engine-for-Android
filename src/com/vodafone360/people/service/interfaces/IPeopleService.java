@@ -32,6 +32,7 @@ import android.os.Handler;
 
 import com.vodafone360.people.datatypes.LoginDetails;
 import com.vodafone360.people.datatypes.RegistrationDetails;
+import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.service.PersistSettings.InternetAvail;
 import com.vodafone360.people.service.agent.NetworkAgentState;
 
@@ -254,9 +255,9 @@ public interface IPeopleService {
     
     /**
      * Change current global (all identities) availability state.
-     * @param availability Availability to set for all identities we have. 
+     * @param onlinestatus Availability to set for all identities we have. 
      */
-    void setAvailability(String availability);
+    void setAvailability(OnlineStatus onlinestatus);
     
     /**
      * Change current availability state for a single network.
