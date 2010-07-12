@@ -37,6 +37,7 @@ import com.vodafone360.people.ApplicationCache;
 import com.vodafone360.people.MainApplication;
 import com.vodafone360.people.datatypes.LoginDetails;
 import com.vodafone360.people.datatypes.RegistrationDetails;
+import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.BaseEngine.IEngineEventCallback;
 import com.vodafone360.people.service.RemoteService;
@@ -323,8 +324,8 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#setAvailability(String)
      */    
     @Override
-    public void setAvailability(String availability) {
-        EngineManager.getInstance().getPresenceEngine().setMyAvailability(availability);
+    public void setAvailability(OnlineStatus onlinestatus) {
+        EngineManager.getInstance().getPresenceEngine().setMyAvailability(onlinestatus);
     }
 
     /***
