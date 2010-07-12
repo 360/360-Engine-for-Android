@@ -171,7 +171,7 @@ public class NativeContactsApi1 extends NativeContactsApi {
      * @see NativeContactsApi#getAccountsByType(String)
      */
     @Override
-    public Account[] getAccountsByType(String type) {
+    public Account[] getAccountsByType(int type) {
         // No accounts on 1.X NAB
         return null;
     }
