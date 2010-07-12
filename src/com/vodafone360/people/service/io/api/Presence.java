@@ -25,6 +25,7 @@
 
 package com.vodafone360.people.service.io.api;
 
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -71,18 +72,29 @@ public class Presence {
      * API to set my availability
      * 
      * @param engineId ID of presence engine.
-     * @param status Hash table containing status information.
+     * @param availability Availability to set
      */
-    public static void setMyAvailability(Hashtable<String, String> status) {
+    public static void setMyAvailability(String availability) {
         if (LoginEngine.getSession() == null) {
-            LogUtils.logE("Presence.setAvailability() No session, so return");
+            LogUtils.logE("Presence.setMyAvailability() No session, so return");
             return;
         }
         Request request = new Request(EMPTY, Request.Type.AVAILABILITY, EngineId.UNDEFINED, true,
                 Settings.API_REQUESTS_TIMEOUT_PRESENCE_SET_AVAILABILITY);
-        request.addData("availability", status);
+        
+        // Construct identities hash map with the apropriate availability
+        Hashtable<String, String> availabilityMap = new Hashtable<String, String>();
+        // TODO: Get identities and add to map with availability set
+        request.addData("availability", availabilityMap);
 
         QueueManager.getInstance().addRequest(request);
         QueueManager.getInstance().fireQueueStateChanged();
+    }
+    
+    public static void setMyAvailabilityForCommunity() {
+        if (LoginEngine.getSession() == null) {
+            LogUtils.logE("Presence.setMyAvailabilityForCommunity() No session, so return");
+            return;
+        }    	
     }
 }
