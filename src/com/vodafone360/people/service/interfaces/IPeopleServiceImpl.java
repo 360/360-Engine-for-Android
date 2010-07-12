@@ -320,12 +320,21 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
     }
 
     /***
-     * @see com.vodafone360.people.service.interfaces.IPeopleService#setAvailability(Hashtable)
+     * @see com.vodafone360.people.service.interfaces.IPeopleService#setAvailability(String)
+     */    
+    @Override
+    public void setAvailability(String availability) {
+        EngineManager.getInstance().getPresenceEngine().setMyAvailability(availability);
+    }
+
+    /***
+     * @see com.vodafone360.people.service.interfaces.IPeopleService#setAvailability(String, String)
      */
     @Override
-    public void setAvailability(Hashtable<String, String> myself) {
-        EngineManager.getInstance().getPresenceEngine().setMyAvailability(myself);
+    public void setAvailability(String network, String availability) {
+        EngineManager.getInstance().getPresenceEngine().setMyAvailability(network, availability);
     }
+    
 
     /***
      * @see com.vodafone360.people.service.interfaces.IPeopleService#subscribe(Handler,

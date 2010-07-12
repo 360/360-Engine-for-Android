@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
+import android.text.TextUtils;
+
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.database.tables.ActivitiesTable.TimelineSummaryItem;
 import com.vodafone360.people.datatypes.BaseDataType;
@@ -524,11 +526,17 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         switch (requestId) {
             case SET_MY_AVAILABILITY:
                 if (data != null) {
-                    Presence.setMyAvailability((Hashtable<String, String>)data);
+                    Presence.setMyAvailability((String)data);
                     completeUiRequest(ServiceStatus.SUCCESS, null);
                     setTimeout(CHECK_FREQUENCY);
                 }
                 break;
+            case SET_MY_AVAILABILITY_FOR_COMMUNITY:
+            	if (data != null) {
+            		Presence.setMyAvailabilityForCommunity();
+                    completeUiRequest(ServiceStatus.SUCCESS, null);
+                    setNextRuntime();
+            	}
             case GET_PRESENCE_LIST:
                 Presence.getPresenceList(EngineId.PRESENCE_ENGINE, null);
                 completeUiRequest(ServiceStatus.SUCCESS, null);
@@ -608,40 +616,60 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, availability);
     }
 
+//    /**
+//     * Changes the state of the engine. Also displays the login notification if
+//     * necessary.
+//     * 
+//     * @param accounts
+//     */
+//    public void setMyAvailability(Hashtable<String, String> myselfPresence) {
+//        if (myselfPresence == null) {
+//            LogUtils.logE("PresenceEngine setMyAvailability:"
+//                    + " Can't send the setAvailability request due to DB reading errors");
+//            return;
+//        }
+//        
+//        LogUtils.logV("PresenceEngine setMyAvailability() called with:" + myselfPresence);
+//        if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED) {
+//            LogUtils.logD("PresenceEnfgine.setMyAvailability(): skip - NO NETWORK CONNECTION");
+//            return;
+//        }
+//        
+//        User myself = new User(String.valueOf(PresenceDbUtils.getMeProfileUserId(mDbHelper)),
+//                myselfPresence);
+//        
+//        Hashtable<String, String> availability = new Hashtable<String, String>();
+//        for (NetworkPresence presence : myself.getPayload()) {
+//            availability.put(SocialNetwork.getPresenceValue(presence.getNetworkId()).toString(),
+//                    OnlineStatus.getValue(presence.getOnlineStatusId()).toString());
+//        }
+//        // set the DB values for myself
+//        myself.setLocalContactId(SyncMeDbUtils.getMeProfileLocalContactId(mDbHelper));
+//        updateMyPresenceInDatabase(myself);
+//
+//        // set the engine to run now
+//        
+//        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, availability);
+//    }
+    
     /**
-     * Changes the state of the engine. Also displays the login notification if
-     * necessary.
      * 
-     * @param accounts
+     * @param availability
      */
-    public void setMyAvailability(Hashtable<String, String> myselfPresence) {
-        if (myselfPresence == null) {
+    public void setMyAvailability(String availability) {
+        if (TextUtils.isEmpty(availability)) {
             LogUtils.logE("PresenceEngine setMyAvailability:"
-                    + " Can't send the setAvailability request due to DB reading errors");
+                    + " Can't my availability using empty availability");
             return;
         }
         
-        LogUtils.logV("PresenceEngine setMyAvailability() called with:" + myselfPresence);
-        if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED) {
-            LogUtils.logD("PresenceEnfgine.setMyAvailability(): skip - NO NETWORK CONNECTION");
-            return;
-        }
+        LogUtils.logV("PresenceEngine setMyAvailability() called with:" + availability);
         
-        User myself = new User(String.valueOf(PresenceDbUtils.getMeProfileUserId(mDbHelper)),
-                myselfPresence);
-        
-        Hashtable<String, String> availability = new Hashtable<String, String>();
-        for (NetworkPresence presence : myself.getPayload()) {
-            availability.put(SocialNetwork.getPresenceValue(presence.getNetworkId()).toString(),
-                    OnlineStatus.getValue(presence.getOnlineStatusId()).toString());
-        }
-        // set the DB values for myself
-        myself.setLocalContactId(SyncMeDbUtils.getMeProfileLocalContactId(mDbHelper));
-        updateMyPresenceInDatabase(myself);
-
-        // set the engine to run now
-        
-        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, availability);
+    	addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, availability);
+    }
+    
+    public void setMyAvailability(String network, String availability) {
+    	
     }
 
 

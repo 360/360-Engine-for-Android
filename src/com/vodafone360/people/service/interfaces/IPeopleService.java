@@ -242,15 +242,28 @@ public interface IPeopleService {
      */
     void getPresenceList(long contactId);
 
-    /***
-     * Alter the current Social Network availability state and send it to the
-     * server.
-     * 
-     * @param myself is the wrapper for the own presence state, can be retrieved
-     *            from PresenceTable.getUserByLocalContactId(long
-     *            meProfileLocalContactId).
+//    /***
+//     * Alter the current Social Network availability state and send it to the
+//     * server.
+//     * 
+//     * @param myself is the wrapper for the own presence state, can be retrieved
+//     *            from PresenceTable.getUserByLocalContactId(long
+//     *            meProfileLocalContactId).
+//     */
+//    void setAvailability(Hashtable<String, String> myself);
+    
+    /**
+     * Change current global (all identities) availability state.
+     * @param availability Availability to set for all identities we have. 
      */
-    void setAvailability(Hashtable<String, String> myself);
+    void setAvailability(String availability);
+    
+    /**
+     * Change current availability state for a single network.
+     * @param network
+     * @param availability
+     */
+    void setAvailability(String network, String availability);
 
     /***
      * Allows an Activity to indicate to the Service that it is ready and able

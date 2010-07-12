@@ -254,6 +254,7 @@ public abstract class PresenceTable {
      */
     public static void getUserPresence(User user,
             SQLiteDatabase readableDatabase) throws SQLException, NullPointerException {
+
         if (readableDatabase == null) {
             throw new NullPointerException(DEFAULT_ERROR_MESSAGE);
         }
