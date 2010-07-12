@@ -332,7 +332,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
 
     /***
      * @see com.vodafone360.people.service.interfaces.IPeopleService#setAvailability(NetworkPresence)
-     */
+     */    
     @Override
     public void setAvailability(NetworkPresence presence) {
         EngineManager.getInstance().getPresenceEngine().setMyAvailability(presence);
