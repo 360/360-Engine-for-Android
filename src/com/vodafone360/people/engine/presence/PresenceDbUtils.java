@@ -141,15 +141,15 @@ public class PresenceDbUtils {
      * the HandlerAgent receives the notification of presence states changes.
      *  
      * @param users List<User> - the list of user presence states
-     * @param users idListeningTo long - local contact id which this UI is watching, -1 is all contacts
+     * @param idListeningTo long - local contact id which this UI is watching, -1 is all contacts
      * @param dbHelper DatabaseHelper - the database.
-     * @return TRUE if database has changed in result of the modifications.
+     * @return TRUE if database has changed in result of the update.
      */
     protected static boolean updateDatabase(List<User> users, long idListeningTo,
             DatabaseHelper dbHelper) {
         boolean presenceChanged = false;
         boolean deleteNetworks = false;
-         // the list of networks presence information for me we ignore - the networks where user is offline.
+         // list of network presence information we ignore - the networks where the user is offline.
         ArrayList<Integer> ignoredNetworks = new ArrayList<Integer>();
         SQLiteDatabase writableDb = dbHelper.getWritableDatabase();
 
