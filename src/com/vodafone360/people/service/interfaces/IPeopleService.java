@@ -25,14 +25,13 @@
 
 package com.vodafone360.people.service.interfaces;
 
-import java.util.Hashtable;
-
 import android.os.Bundle;
 import android.os.Handler;
 
 import com.vodafone360.people.datatypes.LoginDetails;
 import com.vodafone360.people.datatypes.RegistrationDetails;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
+import com.vodafone360.people.engine.presence.NetworkPresence;
 import com.vodafone360.people.service.PersistSettings.InternetAvail;
 import com.vodafone360.people.service.agent.NetworkAgentState;
 
@@ -242,29 +241,18 @@ public interface IPeopleService {
      *            information but for every contact
      */
     void getPresenceList(long contactId);
-
-//    /***
-//     * Alter the current Social Network availability state and send it to the
-//     * server.
-//     * 
-//     * @param myself is the wrapper for the own presence state, can be retrieved
-//     *            from PresenceTable.getUserByLocalContactId(long
-//     *            meProfileLocalContactId).
-//     */
-//    void setAvailability(Hashtable<String, String> myself);
     
     /**
      * Change current global (all identities) availability state.
-     * @param onlinestatus Availability to set for all identities we have. 
+     * @param status Availability to set for all identities we have. 
      */
-    void setAvailability(OnlineStatus onlinestatus);
+    void setAvailability(OnlineStatus status);
     
     /**
      * Change current availability state for a single network.
-     * @param network
-     * @param availability
+	 * @param presence Network-presence to set
      */
-    void setAvailability(String network, String availability);
+    void setAvailability(NetworkPresence presence);
 
     /***
      * Allows an Activity to indicate to the Service that it is ready and able

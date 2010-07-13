@@ -282,8 +282,8 @@ public class PresenceDbUtils {
     
     protected static boolean updateMyPresence(User user, DatabaseHelper dbHelper) {
         boolean contactsChanged = false;
-        SQLiteDatabase writableDb = dbHelper.getWritableDatabase();
-        if (PresenceTable.updateUser(user, null, writableDb) != PresenceTable.USER_NOTADDED) {
+        if (PresenceTable.updateUser(
+        		user, null, dbHelper.getWritableDatabase()) != PresenceTable.USER_NOTADDED) {
             contactsChanged = (ContactSummaryTable.updateOnlineStatus(user) == ServiceStatus.SUCCESS);
         }
         return contactsChanged;
