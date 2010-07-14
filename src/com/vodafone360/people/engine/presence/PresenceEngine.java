@@ -640,12 +640,15 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
             return;
         }
         
-        // Get presences
-        // TODO: Fill up hashtable with identities and online statuses
-        Hashtable<String, String> presenceList = HardcodedUtils.createMyAvailabilityHashtable(status);
+        // Get presence list constructed from identities
+        Hashtable<String, String> presences = getPresencesForStatus(status);
+        if(presences == null) {
+            LogUtils.logW("setMyAvailability() Ignoring setMyAvailability request because there are no identities!");
+            return;
+        }
         
         User me = new User(String.valueOf(PresenceDbUtils.getMeProfileUserId(mDbHelper)),
-                presenceList);
+                presences);
         
         // set the DB values for myself
         me.setLocalContactId(SyncMeDbUtils.getMeProfileLocalContactId(mDbHelper));
@@ -653,7 +656,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
 
         // set the engine to run now
         
-        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presenceList);
+        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presences);
     }
         
     /**
