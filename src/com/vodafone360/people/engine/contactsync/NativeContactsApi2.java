@@ -445,6 +445,9 @@ public class NativeContactsApi2 extends NativeContactsApi {
 
         // nothing found in the settings? try accountmanager
         Account[] accounts = getAccounts();
+        if (accounts == null) {
+            return null;
+        }
         for (Account account : accounts) {
             if (isVendorSpecificAccount(account.getType())) {
                 return account;
