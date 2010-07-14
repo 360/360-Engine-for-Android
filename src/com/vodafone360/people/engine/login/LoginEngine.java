@@ -99,18 +99,6 @@ public class LoginEngine extends BaseEngine {
     private final Object mMutex = new Object();
 
     /**
-     * Used to verify datatype of server response to request activation code and
-     * activation account.
-     */
-    private static final String STATUS_MSG = "StatusMsg";
-
-    /**
-     * Used to verify datatype of server response for
-     * {@link Auth#getSessionByCredentials} request.
-     */
-    private static final String AUTH_SESSION_HOLDER = "AuthSessionHolder";
-
-    /**
      * To convert between seconds and milliseconds
      */
     private static final int MS_IN_SECONDS = 1000;
@@ -1134,7 +1122,7 @@ public class LoginEngine extends BaseEngine {
      * @param data The received data
      */
     private void handleSignUpResponse(List<BaseDataType> data) {
-        ServiceStatus errorStatus = getResponseStatus("Contact", data);
+        ServiceStatus errorStatus = getResponseStatus(BaseDataType.CONTACT_DATA_TYPE, data);
         LogUtils.logD("LoginEngine.handleSignUpResponse() errorStatus[" + errorStatus.name() + "]");
         if (errorStatus == ServiceStatus.SUCCESS) {
             LogUtils.logD("LoginEngine.handleSignUpResponse() - Registration successful");
@@ -1162,7 +1150,7 @@ public class LoginEngine extends BaseEngine {
      */
     private void handleNewPublicKeyResponse(List<BaseDataType> mDataTypes) {
         LogUtils.logD("LoginEngine.handleNewPublicKeyResponse()");
-        ServiceStatus errorStatus = getResponseStatus("PublicKeyDetails", mDataTypes);
+        ServiceStatus errorStatus = getResponseStatus(BaseDataType.PUBLIC_KEY_DETAILS_DATA_TYPE, mDataTypes);
         if (errorStatus == ServiceStatus.SUCCESS) {
             LogUtils.logD("LoginEngine.handleNewPublicKeyResponse() - Succesfully retrieved");
             // AA
@@ -1187,7 +1175,7 @@ public class LoginEngine extends BaseEngine {
      */
     private void handleCreateSessionManualResponse(List<BaseDataType> data) {
         LogUtils.logD("LoginEngine.handleCreateSessionManualResponse()");
-        ServiceStatus errorStatus = getResponseStatus(AUTH_SESSION_HOLDER, data);
+        ServiceStatus errorStatus = getResponseStatus(BaseDataType.AUTH_SESSION_HOLDER_TYPE, data);
         if (errorStatus == ServiceStatus.SUCCESS && (data.size() > 0)) {
             setActivatedSession((AuthSessionHolder)data.get(0));
             startActivateAccount();
@@ -1204,7 +1192,7 @@ public class LoginEngine extends BaseEngine {
      */
     private void handleCreateSessionAutoResponse(List<BaseDataType> data) {
         LogUtils.logD("LoginEngine.handleCreateSessionResponse()");
-        ServiceStatus errorStatus = getResponseStatus(AUTH_SESSION_HOLDER, data);
+        ServiceStatus errorStatus = getResponseStatus(BaseDataType.AUTH_SESSION_HOLDER_TYPE, data);
         if (errorStatus == ServiceStatus.SUCCESS) {
             clearTimeout();
             setActivatedSession((AuthSessionHolder)data.get(0));
@@ -1238,7 +1226,7 @@ public class LoginEngine extends BaseEngine {
      */
     private void handleRequestingActivationResponse(List<BaseDataType> data) {
         LogUtils.logD("LoginEngine.handleRequestingActivationResponse()");
-        ServiceStatus errorStatus = getResponseStatus(STATUS_MSG, data);
+        ServiceStatus errorStatus = getResponseStatus(BaseDataType.STATUS_MSG_DATA_TYPE, data);
         if (errorStatus == ServiceStatus.SUCCESS) {
             // Now waiting for SMS...
             setTimeout(ACTIVATE_LOGIN_TIMEOUT);
@@ -1256,7 +1244,7 @@ public class LoginEngine extends BaseEngine {
      */
     private void handleActivateAccountResponse(List<BaseDataType> data) {
         LogUtils.logD("LoginEngine.handleActivateAccountResponse()");
-        ServiceStatus errorStatus = getResponseStatus(STATUS_MSG, data);
+        ServiceStatus errorStatus = getResponseStatus(BaseDataType.STATUS_MSG_DATA_TYPE, data);
         if (errorStatus == ServiceStatus.SUCCESS) {
             LogUtils
                     .logD("LoginEngine.handleActivateAccountResponse: ** Mobile number activated **");
@@ -1277,7 +1265,7 @@ public class LoginEngine extends BaseEngine {
      */
     private void handleServerSimpleTextResponse(List<BaseDataType> data) {
         LogUtils.logD("LoginEngine.handleServerSimpleTextResponse()");
-        ServiceStatus errorStatus = getResponseStatus("SimpleText", data);
+        ServiceStatus errorStatus = getResponseStatus(BaseDataType.SIMPLE_TEXT_DATA_TYPE, data);
         if (errorStatus == ServiceStatus.SUCCESS) {
             SimpleText simpleText = (SimpleText)data.get(0);
             completeUiRequest(ServiceStatus.SUCCESS, simpleText.mValue.toString());

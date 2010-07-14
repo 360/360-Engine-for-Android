@@ -34,14 +34,14 @@ public class SimpleText extends BaseDataType {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "SimpleText";
+    public int type() {
+        return SIMPLE_TEXT_DATA_TYPE;
     }
 
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        return name() + ": \n" + mValue;
+        return type() + ": \n" + mValue;
     }
 
     /**

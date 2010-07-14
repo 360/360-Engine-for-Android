@@ -190,8 +190,8 @@ public class SystemNotification extends PushEvent {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "SystemNotification";
+    public int type() {
+        return SYSTEM_NOTIFICATION_DATA_TYPE;
     }
 
     /**

@@ -89,8 +89,8 @@ public class ContactListResponse extends BaseDataType {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "ContactListResponse";
+    public int type() {
+        return CONTACT_LIST_RESPONSE_DATA_TYPE;
     }
 
     /** {@inheritDoc} */

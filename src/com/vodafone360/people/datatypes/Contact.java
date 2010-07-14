@@ -200,8 +200,8 @@ public class Contact extends BaseDataType implements Parcelable, Persistable {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "Contact";
+    public int type() {
+        return CONTACT_DATA_TYPE;
     }
 
     /** {@inheritDoc} */

@@ -120,8 +120,8 @@ public class UserProfile extends BaseDataType implements Parcelable {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "UserProfile";
+    public int type() {
+        return USER_PROFILE_DATA_TYPE;
     }
 
     /** {@inheritDoc} */

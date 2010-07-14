@@ -242,8 +242,10 @@ public class Identity extends BaseDataType implements Parcelable {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "Identity";
+    public int type() {
+        // TODO: Return appropriate type if its 
+        // an available identity instead of my identity
+        return MY_IDENTITY_DATA_TYPE;
     }
 
     /**
