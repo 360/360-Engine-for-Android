@@ -61,12 +61,10 @@ public abstract class NativeContactsApi {
      */
     protected static final String PEOPLE_ACCOUNT_TYPE_STRING = "com.vodafone360.people.android.account";
 
-    protected static final String GOOGLE_ACCOUNT_TYPE_STRING = "com.google";
-
     /**
-     * Vendor specific account. Only used in 2.x API.
+     * Google account, there can be more than one of these
      */
-    protected static Account PHONE_ACCOUNT = null;
+    protected static final String GOOGLE_ACCOUNT_TYPE_STRING = "com.google";
 
     /**
      * There are devices with custom contact applications. For them we need
@@ -357,6 +355,13 @@ public abstract class NativeContactsApi {
      */
     public abstract boolean isKeySupported(int key);
 
+    /**
+     * Checks if this account is a vendro specific one. All vendor specific
+     * accounts are held in the VENDOR_SPECIFIC_ACCOUNTS array.
+     * 
+     * @param type to checks for
+     * @return true if vendor specific account, false otherwise
+     */
     public boolean isVendorSpecificAccount(String type) {
         for (String vendorSpecificType : VENDOR_SPECIFIC_ACCOUNTS) {
             if (vendorSpecificType.equals(type)) {
