@@ -96,7 +96,7 @@ public enum ServiceUiRequest {
      * 
      * @see com.vodafone360.people.engine.identitys.IdentityEngine
      */
-    FETCH_IDENTITIES,
+    GET_AVAILABLE_IDENTITIES,
     /**
      * Validate credentials for specified 3rd party account, handled by
      * IdentitiesEngine.
