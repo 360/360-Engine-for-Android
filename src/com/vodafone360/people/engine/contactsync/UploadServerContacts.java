@@ -40,6 +40,7 @@ import com.vodafone360.people.database.tables.ContactsTable;
 import com.vodafone360.people.database.tables.ContactChangeLogTable.ContactChangeInfo;
 import com.vodafone360.people.database.tables.ContactChangeLogTable.ContactChangeType;
 import com.vodafone360.people.database.tables.ContactsTable.ContactIdInfo;
+import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactChanges;
 import com.vodafone360.people.datatypes.ContactDetail;
@@ -717,7 +718,7 @@ public class UploadServerContacts extends BaseSyncProcessor {
      * @param resp Response from server.
      */
     private void processNewContactsResp(final Response resp) {
-        ServiceStatus status = BaseEngine.getResponseStatus("ContactChanges",
+        ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.CONTACT_CHANGES_DATA_TYPE,
                 resp.mDataTypes);
         if (status == ServiceStatus.SUCCESS) {
             ContactChanges contactChanges = (ContactChanges)resp.mDataTypes.get(0);
@@ -846,7 +847,7 @@ public class UploadServerContacts extends BaseSyncProcessor {
      * @param resp Response from server.
      */
     private void processModifiedDetailsResp(final Response resp) {
-        ServiceStatus status = BaseEngine.getResponseStatus("ContactChanges",
+        ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.CONTACT_CHANGES_DATA_TYPE,
                 resp.mDataTypes);
         if (status == ServiceStatus.SUCCESS) {
             ContactChanges contactChanges = (ContactChanges)resp.mDataTypes.get(0);
@@ -899,7 +900,7 @@ public class UploadServerContacts extends BaseSyncProcessor {
      * @param resp Response from server.
      */
     private void processDeletedContactsResp(final Response resp) {
-        ServiceStatus status = BaseEngine.getResponseStatus("ContactListResponse",
+        ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.CONTACT_LIST_RESPONSE_DATA_TYPE,
                 resp.mDataTypes);
         if (status == ServiceStatus.SUCCESS) {
             ContactListResponse result = (ContactListResponse)resp.mDataTypes.get(0);
@@ -941,7 +942,7 @@ public class UploadServerContacts extends BaseSyncProcessor {
      * @param resp Response from server.
      */
     private void processDeletedDetailsResp(final Response resp) {
-        ServiceStatus status = BaseEngine.getResponseStatus("ContactDetailDeletion",
+        ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.CONTACT_DETAIL_DELETION_DATA_TYPE,
                 resp.mDataTypes);
         if (status == ServiceStatus.SUCCESS) {
             ContactDetailDeletion result = (ContactDetailDeletion)resp.mDataTypes.get(0);
@@ -1006,7 +1007,7 @@ public class UploadServerContacts extends BaseSyncProcessor {
      * @param resp Response from server.
      */
     private void processGroupAdditionsResp(final Response resp) {
-        ServiceStatus status = BaseEngine.getResponseStatus("ItemList", resp.mDataTypes);
+        ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.ITEM_LIST_DATA_TYPE, resp.mDataTypes);
         if (status == ServiceStatus.SUCCESS) {
             if (resp.mDataTypes.size() == 0) {
                 LogUtils.logE("UploadServerContacts." + "processGroupAdditionsResp() "
@@ -1045,7 +1046,7 @@ public class UploadServerContacts extends BaseSyncProcessor {
      * @param resp Response from server.
      */
     private void processGroupDeletionsResp(final Response resp) {
-        ServiceStatus status = BaseEngine.getResponseStatus("StatusMsg", resp.mDataTypes);
+        ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.STATUS_MSG_DATA_TYPE, resp.mDataTypes);
         if (status == ServiceStatus.SUCCESS) {
             if (resp.mDataTypes.size() == 0) {
                 LogUtils.logE("UploadServerContacts." + "processGroupDeletionsResp() "

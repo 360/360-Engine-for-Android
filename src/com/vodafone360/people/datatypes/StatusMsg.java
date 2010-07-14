@@ -92,8 +92,8 @@ public class StatusMsg extends BaseDataType implements Parcelable {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "StatusMsg";
+    public int type() {
+        return STATUS_MSG_DATA_TYPE;
     }
 
     /**
@@ -147,7 +147,7 @@ public class StatusMsg extends BaseDataType implements Parcelable {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        return name() + ":\n\tstatus = " + mStatus + "\n\tdryrun = " + mDryRun + "\n\tCode = "
+        return type() + ":\n\tstatus = " + mStatus + "\n\tdryrun = " + mDryRun + "\n\tCode = "
                 + mCode + "\n\tErr = " + mError;
     }
 

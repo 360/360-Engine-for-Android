@@ -91,15 +91,15 @@ public class ContactDetailDeletion extends BaseDataType {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "ContactDetailDeletion";
+    public int type() {
+        return CONTACT_DETAIL_DELETION_DATA_TYPE;
     }
 
     /** {@inheritDoc} */
     @Override
     public String toString() {
         StringBuffer ret = new StringBuffer();
-        ret.append(name() + ":");
+        ret.append(type() + ":");
         if (mServerVersionBefore != null) {
             ret.append("\n Server version before: " + mServerVersionBefore);
         }

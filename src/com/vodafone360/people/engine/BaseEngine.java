@@ -362,7 +362,7 @@ public abstract class BaseEngine {
      * the returned comms response data against the expected type and handles
      * all common error cases.
      * 
-     * @param requiredResp The expected type name
+     * @param requiredResp The expected type
      * @param data The data received from the comms response
      * @return SUCCESS if the first element in the list is of the expected type,
      *         ERROR_COMMS if the first element in the list is an unexpected
@@ -370,23 +370,25 @@ public abstract class BaseEngine {
      *         type or null otherwise if the data is of type ZError, a suitable
      *         error code.
      */
-    public static ServiceStatus getResponseStatus(String requiredResp,
+    public static ServiceStatus getResponseStatus(int requiredResponseType,
             List<BaseDataType> data) {
         ServiceStatus errorStatus = ServiceStatus.ERROR_COMMS;
         if (data != null) {
-            if (data.size() == 0 || data.get(0).name().compareTo(requiredResp) == 0) {
-                if (requiredResp.equals("ContactChanges") && data.size() == 0) {
+            if (data.size() == 0 || data.get(0).type() == requiredResponseType) {
+                if (requiredResponseType == BaseDataType.CONTACT_CHANGES_DATA_TYPE && 
+                        data.size() == 0) {
                     errorStatus = ServiceStatus.ERROR_COMMS_BAD_RESPONSE;
                 } else {
                     errorStatus = ServiceStatus.SUCCESS;
                 }
-            } else if (data.get(0).name().compareTo("ServerError") == 0) {
+            } else if (data.get(0).type() == BaseDataType.SERVER_ERROR_DATA_TYPE) {
                 final ServerError error = (ServerError)data.get(0);
                 LogUtils.logE("Server error: " + error);
                 errorStatus = error.toServiceStatus();
             } else {
-                LogUtils.logD("BaseEngine.genericHandleResponse: Unexpected type [" + requiredResp
-                        + "] but received [" + data.get(0).name() + "]");
+                LogUtils.logD(
+                        "BaseEngine.genericHandleResponse: Unexpected type [" + requiredResponseType
+                        + "] but received [" + data.get(0).type() + "]");
             }
         } else {
             errorStatus = ServiceStatus.ERROR_COMMS_BAD_RESPONSE;

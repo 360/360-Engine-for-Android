@@ -467,8 +467,8 @@ public class ActivityItem extends BaseDataType {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "ActivityItem";
+    public int type() {
+        return ACTIVITY_ITEM_DATA_TYPE;
     }
 
     /**
@@ -658,55 +658,54 @@ public class ActivityItem extends BaseDataType {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        StringBuffer ret = new StringBuffer();
-        ret.append(name());
-        ret.append("\n\tActivity Id = " + mActivityId);
-        ret.append("\n\tTime = " + mTime);
+        final StringBuffer sb = new StringBuffer();
+        sb.append("ActivityItem:\n\tActivity Id = " + mActivityId);
+        sb.append("\n\tTime = " + mTime);
         if (mType != null) {
-            ret.append("\n\tType = " + mType.getTypeCode());
+            sb.append("\n\tType = " + mType.getTypeCode());
         }
-        ret.append("\n\tUri = " + mUri);
-        ret.append("\n\tTitle = " + mTitle);
-        ret.append("\n\tDescription = " + mDescription);
+        sb.append("\n\tUri = " + mUri);
+        sb.append("\n\tTitle = " + mTitle);
+        sb.append("\n\tDescription = " + mDescription);
         if (mPreview != null) {
-            ret.append("\n\tPreview = " + String.valueOf(mPreview));
+            sb.append("\n\tPreview = " + String.valueOf(mPreview));
         }
-        ret.append("\n\tPreview Mime =" + mPreviewMime);
-        ret.append("\n\tPreview URL = " + mPreviewUrl);
-        ret.append("\n\tStore = " + mStore);
+        sb.append("\n\tPreview Mime =" + mPreviewMime);
+        sb.append("\n\tPreview URL = " + mPreviewUrl);
+        sb.append("\n\tStore = " + mStore);
         if (mFlagList != null) {
-            ret.append("\n\tFlag list: [");
+            sb.append("\n\tFlag list: [");
             for (int i = 0; i < mFlagList.size(); i++) {
-                ret.append(mFlagList.get(i).getFlagCode());
+                sb.append(mFlagList.get(i).getFlagCode());
                 if (i < mFlagList.size() - 1) {
-                    ret.append(", ");
+                    sb.append(", ");
                 }
             }
-            ret.append("]");
+            sb.append("]");
         }
-        ret.append("\n\tParent activity = " + mParentActivity);
-        ret.append("\n\tHas children = " + mHasChildren);
+        sb.append("\n\tParent activity = " + mParentActivity);
+        sb.append("\n\tHas children = " + mHasChildren);
         if (mVisibility != null) {
-            ret.append("\n\tVisibility: [");
+            sb.append("\n\tVisibility: [");
             for (int i = 0; i < mVisibility.size(); i++) {
-                ret.append(mVisibility.get(i).getVisibilityCode());
+                sb.append(mVisibility.get(i).getVisibilityCode());
                 if (i < mVisibility.size() - 1) {
-                    ret.append(", ");
+                    sb.append(", ");
                 }
             }
-            ret.append("]");
+            sb.append("]");
         }
 
         if (mContactList != null) {
-            ret.append("\n\tContact list: [");
+            sb.append("\n\tContact list: [");
             for (int i = 0; i < mContactList.size(); i++) {
-                ret.append(mContactList.get(i).toString());
+                sb.append(mContactList.get(i).toString());
                 if (i < mContactList.size() - 1) {
-                    ret.append(", ");
+                    sb.append(", ");
                 }
             }
-            ret.append("]");
+            sb.append("]");
         }
-        return ret.toString();
+        return sb.toString();
     }
 }

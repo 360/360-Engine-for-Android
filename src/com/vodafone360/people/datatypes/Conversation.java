@@ -33,9 +33,6 @@ import com.vodafone360.people.service.io.rpg.RpgPushMessage;
 import com.vodafone360.people.utils.LogUtils;
 
 public class Conversation extends BaseDataType {
-
-    public final static String NAME = "Conversation";
-
     private String mConversationId; // the unique server-supplied conversation
                                     // id
 
@@ -123,8 +120,8 @@ public class Conversation extends BaseDataType {
     }
 
     @Override
-    public String name() {
-        return NAME;
+    public int type() {
+        return CONVERSATION_DATA_TYPE;
     }
 
     public String getConversationId() {

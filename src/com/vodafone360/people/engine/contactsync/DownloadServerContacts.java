@@ -34,6 +34,7 @@ import com.vodafone360.people.Settings;
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.database.tables.ContactsTable;
 import com.vodafone360.people.database.tables.StateTable;
+import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactChanges;
 import com.vodafone360.people.datatypes.ContactDetail;
@@ -360,7 +361,7 @@ public class DownloadServerContacts extends BaseSyncProcessor {
             }
         }
         LogUtils.logD("DownloadServerContacts.processCommsResponse() - Page " + pageNo);
-        ServiceStatus status = BaseEngine.getResponseStatus("ContactChanges",
+        ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.CONTACT_CHANGES_DATA_TYPE,
                 resp.mDataTypes);
         if (status == ServiceStatus.SUCCESS) {
             ContactChanges contactChanges = (ContactChanges)resp.mDataTypes.get(0);
