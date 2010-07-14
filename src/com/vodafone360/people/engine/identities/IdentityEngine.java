@@ -151,10 +151,10 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     private State mState = State.IDLE;
 
     /** List array of Identities retrieved from Server. */
-    private final ArrayList<Identity> mAvailableIdentityList = new ArrayList<Identity>();
+    private ArrayList<Identity> mAvailableIdentityList;
     
     /** List array of Identities retrieved from Server. */
-    private final ArrayList<Identity> mMyIdentityList = new ArrayList<Identity>();
+    private ArrayList<Identity> mMyIdentityList;
 
     /** List array of Identities supporting chat retrieved from Server. */
     private ArrayList<String> mMyChatableIdentityList = null;
@@ -203,7 +203,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * from 360 to them.
      * 
      * @return A list of all 3rd party identities the user is signed in to plus 
-     * the 360 identity mobile. If the retrieval failed the list will
+     * the 360 identities pc and mobile.
      * be empty.
      * 
      */
