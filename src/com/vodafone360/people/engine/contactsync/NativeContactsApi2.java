@@ -440,10 +440,13 @@ public class NativeContactsApi2 extends NativeContactsApi {
             LogUtils.logE("People Account creation failed because of exception:\n", ex);
         }
         
-        // update the myContacts Ids
-        // this is currently done here as it should be performed one time only
-        // and just before the first time sync
-        fetchMyContactsGroupRowIds();
+        if (isAdded) {
+            
+            // Updating MyContacts Group IDs here for now because it needs to be done one time
+            // just before first time sync. In the future, this code may change if we modify
+            // the way we retrieve contact IDs.
+            fetchMyContactsGroupRowIds();
+        }
         
         return isAdded;
     }

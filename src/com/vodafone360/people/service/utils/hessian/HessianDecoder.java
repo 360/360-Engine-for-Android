@@ -474,8 +474,9 @@ public class HessianDecoder {
                     engineId = EngineId.ACTIVITIES_ENGINE;
                     break;
                 case FRIENDSHIP_REQUEST_RECEIVED:
+                    break;
                 case IDENTITY_CHANGE:
-                    engineId = EngineId.PRESENCE_ENGINE;
+                    engineId = EngineId.IDENTITIES_ENGINE;
                     break;
                 case IDENTITY_NETWORK_CHANGE:
                 	engineId = EngineId.IDENTITIES_ENGINE;

@@ -177,8 +177,10 @@ public class ContactDetail extends BaseDataType implements Parcelable {
         TYPE("type"),
         BYTES("bytes"), // docs are inconsistent about those
         BYTES_MIME_TYPE("bytesmime"), // might be those 3 last tags
-        BYTES_URL("bytesurl"); // are not possible in contact details
+        BYTES_URL("bytesurl"), // are not possible in contact details
         // but they are inside Content structure.
+        METADATA("metadata"); // Added to add some more extra information
+        // about the contact details.
 
         private final String tag;
 
@@ -340,6 +342,11 @@ public class ContactDetail extends BaseDataType implements Parcelable {
      * @see #nativeVal2
      */
     public String nativeVal3 = null;
+
+    /**
+     * Integer Field to store additional information.
+     */
+    public Integer metadata = -1;
 
     /**
      * Find Tags item for specified String

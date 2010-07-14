@@ -39,6 +39,7 @@ import com.vodafone360.people.datatypes.PushEvent;
 import com.vodafone360.people.datatypes.StatusMsg;
 import com.vodafone360.people.datatypes.IdentityCapability.CapabilityID;
 import com.vodafone360.people.engine.BaseEngine;
+import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
@@ -185,8 +186,8 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      */
     public ArrayList<Identity> getMyThirdPartyIdentities() {
     	return mMyIdentityList;
-    }
-    
+	}
+	    
     /**
      * 
      * Gets all third party identities and adds the mobile and pc identities 
@@ -302,7 +303,10 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * Issue request to retrieve 'My' Identities. (Request is not issued if
      * there is currently no connectivity).
      * 
+     * TODO: remove parameter as soon as branch ui-refresh is merged.
+     * 
      * @param data Bundled request data.
+     * 
      */
     private void executeGetMyIdentitiesRequest(Object data) {
         if (!isConnected()) {
@@ -357,8 +361,10 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     }
 
     /**
-     * Issue request to retrieve available Identities. (Request is not issued if
-     * there is currently no connectivity).
+     * Sends a getAvailableIdentities request to the backend.
+     * 
+     * TODO: remove the parameter as soon as we have merged with the ui-refresh 
+     * branch.
      * 
      * @param data Bundled request data.
      */
@@ -422,7 +428,9 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
                 addUiGetAvailableIdentities();
                 break;
             case IDENTITY_CHANGE:
-            	// TODO padma
+            	EngineManager.getInstance().getPresenceEngine().setMyAvailability();
+                addUiGetMyIdentities();
+                mEventCallback.kickWorkerThread();
             	break;
             default:
                 // do nothing
@@ -604,6 +612,14 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         }
     }
     
+    /**
+     * 
+     * Retrieves the filter for the getAvailableIdentities and getMyIdentities
+     * calls.
+     * 
+     * @return The identities filter in form of a bundle.
+     * 
+     */
     private Bundle getIdentitiesFilter() {
     	Bundle b = new Bundle();
         ArrayList<String> l = new ArrayList<String>();
