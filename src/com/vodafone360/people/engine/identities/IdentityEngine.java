@@ -141,13 +141,20 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         }
     }
 
+    /** The minimum interval between identity requests. */
+    private static final long MIN_REQUEST_INTERVAL = 60 * 60 * 1000;
+    /** The timestamp of which my identities were last requested. */
+    private long mLastMyIdentitiesRequestTimestamp;
+    /** The timestamp of which available identities were last requested. */
+    private long mLastAvailableIdentitiesRequestTimestamp;
+    
     private State mState = State.IDLE;
 
     /** List array of Identities retrieved from Server. */
-    private final ArrayList<Identity> mAvailableIdentityList = new ArrayList<Identity>();
+    private ArrayList<Identity> mAvailableIdentityList;
     
     /** List array of Identities retrieved from Server. */
-    private final ArrayList<Identity> mMyIdentityList = new ArrayList<Identity>();
+    private ArrayList<Identity> mMyIdentityList;
 
     /** List array of Identities supporting chat retrieved from Server. */
     private ArrayList<String> mMyChatableIdentityList = null;
@@ -166,20 +173,31 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     public IdentityEngine(IEngineEventCallback eventCallback) {
         super(eventCallback);
         mEngineId = EngineId.IDENTITIES_ENGINE;
+        
+        mMyIdentityList = new ArrayList<Identity>();
+        mAvailableIdentityList = new ArrayList<Identity>();
+        
+        mLastMyIdentitiesRequestTimestamp = 0;
+        mLastAvailableIdentitiesRequestTimestamp = 0;
     }
-    
     
     /**
      * 
      * Gets all third party identities the user is currently signed up for. 
      * 
-     * @return A list of 3rd party identities the user is signed in to or null 
-     * if there was something wrong retrieving the identities. 
+     * @return A list of 3rd party identities the user is signed in to or an 
+     * empty list if something  went wrong retrieving the identities. 
      * 
      */
     public ArrayList<Identity> getMyThirdPartyIdentities() {
+    	if ((mMyIdentityList.size() == 0) && (
+    			(System.currentTimeMillis() - mLastMyIdentitiesRequestTimestamp)
+    				> MIN_REQUEST_INTERVAL)) {
+    		sendGetMyIdentitiesRequest();
+    	}
+    	
     	return mMyIdentityList;
-    }
+	}
     
     /**
      * 
@@ -187,14 +205,28 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * from 360 to them.
      * 
      * @return A list of all 3rd party identities the user is signed in to plus 
-     * the 360 identities pc and mobile.
+     * the 360 identities pc and mobile. If the retrieval failed the list will
+     * be empty.
      * 
      */
     public ArrayList<Identity> getMy360AndThirdPartyIdentities() {
+    	if ((mMyIdentityList.size() == 0) && (
+    			(System.currentTimeMillis() - mLastAvailableIdentitiesRequestTimestamp)
+    				> MIN_REQUEST_INTERVAL)) {
+    		sendGetAvailableIdentitiesRequest();
+    	}
     	
+    	return mAvailableIdentityList;
     }
     
     
+    private void sendGetMyIdentitiesRequest() {
+    	Identities.getMyIdentities(this, prepareStringFilter(getIdentitiesFilter()));
+    }
+    
+    private void sendGetAvailableIdentitiesRequest() {
+    	Identities.getAvailableIdentities(this, prepareStringFilter(getIdentitiesFilter()));
+    }
     
     
     /**
@@ -202,21 +234,21 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * request and processed when the engine is ready.
      * 
      */
-    public void addUiGetAvailableIdentities() {
-        LogUtils.logD("IdentityEngine.addUiGetAvailableIdentities()");
-        emptyUiRequestQueue();
-        addUiRequestToQueue(ServiceUiRequest.GET_AVAILABLE_IDENTITIES, getIdentitiesFilter());
-    }
+//    private void addUiGetAvailableIdentities() {
+//        LogUtils.logD("IdentityEngine.addUiGetAvailableIdentities()");
+//        emptyUiRequestQueue();
+//        addUiRequestToQueue(ServiceUiRequest.GET_AVAILABLE_IDENTITIES, getIdentitiesFilter());
+//    }
     
     /**
      * Add request to fetch the current user's identities.
 	 * 
      */
-    public void addUiGetMyIdentities() {
-        LogUtils.logD("IdentityEngine.addUiGetMyIdentities()");
-        emptyUiRequestQueue();
-        addUiRequestToQueue(ServiceUiRequest.GET_MY_IDENTITIES, getIdentitiesFilter());
-    }
+//    private void addUiGetMyIdentities() {
+//        LogUtils.logD("IdentityEngine.addUiGetMyIdentities()");
+//        emptyUiRequestQueue();
+//        addUiRequestToQueue(ServiceUiRequest.GET_MY_IDENTITIES, getIdentitiesFilter());
+//    }
 
     /**
      * Add request to set the capabilities we wish to support for the specified
