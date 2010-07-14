@@ -69,6 +69,19 @@ public class Presence {
         QueueManager.getInstance().fireQueueStateChanged();
     }
 
+    public static void setMyAvailability(Hashtable<String, String> status) {
+        if (LoginEngine.getSession() == null) {
+            LogUtils.logE("Presence.setAvailability() No session, so return");
+            return;
+        }
+        Request request = new Request(EMPTY, Request.Type.AVAILABILITY, EngineId.UNDEFINED, true,
+                Settings.API_REQUESTS_TIMEOUT_PRESENCE_SET_AVAILABILITY);
+        request.addData("availability", status);
+
+        QueueManager.getInstance().addRequest(request);
+        QueueManager.getInstance().fireQueueStateChanged();
+    }
+    
     /**
      * API to set my availability
      * 

@@ -159,11 +159,11 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     public long getNextRunTime() {
         if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED || !mLoggedIn) {
             return -1;
-        }
-
         if (!canRun()) {
-            LogUtils.logV("PresenceEngine.getNextRunTime(): 1st contact sync is not finished:");
-            return -1;
+            mNextRuntime = -1;
+            LogUtils.logV("PresenceEngine.getNextRunTime(): 1st contact sync is not finished:"
+                    + mNextRuntime);
+            return mNextRuntime;
         }
 
         /**
@@ -528,21 +528,26 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
 
     @Override
     protected void processUiRequest(ServiceUiRequest requestId, Object data) {
+        if (!canRun()) {
+            LogUtils.logE("PresenceEngine.processUIRequest():"
+                    + " Can't run PresenceEngine before the contact list is downloaded:1");
+            return;
+        }
+        
         LogUtils.logW("PresenceEngine.processUiRequest() requestId.name[" + requestId.name() + "]");
+        
+        if(data == null && requestId != ServiceUiRequest.GET_PRESENCE_LIST) {
+            LogUtils.logW("PresenceEngine.processUiRequest() skipping processing for request with no data!");
+            return;
+        }
+        
         switch (requestId) {
             case SET_MY_AVAILABILITY:
-                if (data != null) {
-                    Presence.setMyAvailability(((OnlineStatus)data).toString());
-                    completeUiRequest(ServiceStatus.SUCCESS, null);
-                    setNextRuntime();
-                }
+                Presence.setMyAvailability((Hashtable<String, String>)data);             
                 break;
             case SET_MY_AVAILABILITY_FOR_COMMUNITY:
-            	if (data != null) {
-            		Presence.setMyAvailabilityForCommunity();
-                    completeUiRequest(ServiceStatus.SUCCESS, null);
-                    setNextRuntime();
-            	}
+            	Presence.setMyAvailabilityForCommunity();
+            	break;
             case GET_PRESENCE_LIST:
                 Presence.getPresenceList(EngineId.PRESENCE_ENGINE, null);
                 break;
@@ -593,8 +598,9 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
                     + " Can't send the setAvailability request due to DB reading errors");
             return;
         }
-        if (me.isOnline() == OnlineStatus.ONLINE.ordinal() &&
-                ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED) {
+        if ((me.isOnline() == OnlineStatus.ONLINE.ordinal() &&
+                ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED) 
+                || !canRun()) {
           LogUtils.logD("PresenceEngine.initSetMyAvailabilityRequest():"
                   + " return NO NETWORK CONNECTION or not ready");
           return;
@@ -635,9 +641,8 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         }
         
         // Get presences
-        Hashtable<String, String> presenceList = new Hashtable<String, String>();
-        
         // TODO: Fill up hashtable with identities and online statuses
+        Hashtable<String, String> presenceList = HardcodedUtils.createMyAvailabilityHashtable(status);
         
         User me = new User(String.valueOf(PresenceDbUtils.getMeProfileUserId(mDbHelper)),
                 presenceList);
