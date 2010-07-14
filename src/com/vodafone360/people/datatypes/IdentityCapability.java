@@ -140,8 +140,8 @@ public class IdentityCapability extends BaseDataType implements Parcelable {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "IdentityCapability";
+    public int type() {
+        return IDENTITY_CAPABILITY_DATA_TYPE;
     }
 
     /**

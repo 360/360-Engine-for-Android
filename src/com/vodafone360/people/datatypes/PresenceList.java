@@ -42,9 +42,6 @@ import com.vodafone360.people.utils.LogUtils;
  * MSN etc.). TODO: it doesn't have to be the BaseDataType
  */
 public class PresenceList extends BaseDataType {
-
-    public final static String NAME = "PresenceList";
-
     private long mUserId; // "myself"
 
     private String mType;
@@ -118,8 +115,8 @@ public class PresenceList extends BaseDataType {
     }
 
     @Override
-    public String name() {
-        return NAME;
+    public int type() {
+        return PRESENCE_LIST_DATA_TYPE;
     }
 
     private enum Tags {

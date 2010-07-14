@@ -92,8 +92,8 @@ public class PublicKeyDetails extends BaseDataType implements Parcelable {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "PublicKeyDetails";
+    public int type() {
+        return PUBLIC_KEY_DETAILS_DATA_TYPE;
     }
 
     /** {@inheritDoc} */
