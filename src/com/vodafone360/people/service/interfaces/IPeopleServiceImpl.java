@@ -37,8 +37,11 @@ import com.vodafone360.people.ApplicationCache;
 import com.vodafone360.people.MainApplication;
 import com.vodafone360.people.datatypes.LoginDetails;
 import com.vodafone360.people.datatypes.RegistrationDetails;
+import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.BaseEngine.IEngineEventCallback;
+import com.vodafone360.people.engine.presence.NetworkPresence;
+import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.RemoteService;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.PersistSettings.InternetAvail;
@@ -320,12 +323,21 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
     }
 
     /***
-     * @see com.vodafone360.people.service.interfaces.IPeopleService#setAvailability(Hashtable)
+     * @see com.vodafone360.people.service.interfaces.IPeopleService#setAvailability(OnlineStatus)
+     */    
+    @Override
+    public void setAvailability(OnlineStatus status) {
+        EngineManager.getInstance().getPresenceEngine().setMyAvailability(status);
+    }
+
+    /***
+     * @see com.vodafone360.people.service.interfaces.IPeopleService#setAvailability(NetworkPresence)
      */
     @Override
-    public void setAvailability(Hashtable<String, String> myself) {
-        EngineManager.getInstance().getPresenceEngine().setMyAvailability(myself);
+    public void setAvailability(NetworkPresence presence) {
+        EngineManager.getInstance().getPresenceEngine().setMyAvailability(presence);
     }
+    
 
     /***
      * @see com.vodafone360.people.service.interfaces.IPeopleService#subscribe(Handler,

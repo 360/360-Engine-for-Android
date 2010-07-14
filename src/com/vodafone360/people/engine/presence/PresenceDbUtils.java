@@ -105,8 +105,7 @@ public class PresenceDbUtils {
             // empty, need to set
             // the status for the
             // 1st time
-            // TODO: this hard code needs change, must filter the identities
-            // info by VCARD.IMADRESS
+            // TODO: Need to construct "status" from identities and utility method
             Hashtable<String, String> status = new Hashtable<String, String>();
             status.put("google", "online");
             status.put("microsoft", "online");
@@ -141,15 +140,15 @@ public class PresenceDbUtils {
      * the HandlerAgent receives the notification of presence states changes.
      *  
      * @param users List<User> - the list of user presence states
-     * @param users idListeningTo long - local contact id which this UI is watching, -1 is all contacts
+     * @param idListeningTo long - local contact id which this UI is watching, -1 is all contacts
      * @param dbHelper DatabaseHelper - the database.
-     * @return TRUE if database has changed in result of the modifications.
+     * @return TRUE if database has changed in result of the update.
      */
     protected static boolean updateDatabase(List<User> users, long idListeningTo,
             DatabaseHelper dbHelper) {
         boolean presenceChanged = false;
         boolean deleteNetworks = false;
-         // the list of networks presence information for me we ignore - the networks where user is offline.
+         // list of network presence information we ignore - the networks where the user is offline.
         ArrayList<Integer> ignoredNetworks = new ArrayList<Integer>();
         SQLiteDatabase writableDb = dbHelper.getWritableDatabase();
 
@@ -281,8 +280,8 @@ public class PresenceDbUtils {
     
     protected static boolean updateMyPresence(User user, DatabaseHelper dbHelper) {
         boolean contactsChanged = false;
-        SQLiteDatabase writableDb = dbHelper.getWritableDatabase();
-        if (PresenceTable.updateUser(user, null, writableDb) != PresenceTable.USER_NOTADDED) {
+        if (PresenceTable.updateUser(
+        		user, null, dbHelper.getWritableDatabase()) != PresenceTable.USER_NOTADDED) {
             contactsChanged = (ContactSummaryTable.updateOnlineStatus(user) == ServiceStatus.SUCCESS);
         }
         return contactsChanged;
@@ -313,13 +312,5 @@ public class PresenceDbUtils {
                     + PresenceTable.setAllUsersOfflineExceptForMe(localContactIdOfMe, writableDb));
             ContactSummaryTable.setOfflineStatusExceptForMe(localContactIdOfMe);
         }
-    }
-
-    /**
-     * @param input
-     * @return
-     */
-    public static boolean notNullOrBlank(String input) {
-        return (input != null) && input.length() > 0;
     }
 }
