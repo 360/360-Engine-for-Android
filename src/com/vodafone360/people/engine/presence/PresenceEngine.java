@@ -36,6 +36,7 @@ import com.vodafone360.people.database.tables.ActivitiesTable.TimelineSummaryIte
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.ChatMessage;
 import com.vodafone360.people.datatypes.Conversation;
+import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.PresenceList;
 import com.vodafone360.people.datatypes.PushAvailabilityEvent;
 import com.vodafone360.people.datatypes.PushChatMessageEvent;
@@ -652,12 +653,15 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
             return;
         }
         
-        // Get presences
-        // TODO: Fill up hashtable with identities and online statuses
-        Hashtable<String, String> presenceList = HardcodedUtils.createMyAvailabilityHashtable(status);
+        // Get presence list constructed from identities
+        Hashtable<String, String> presences = getPresencesForStatus(status);
+        if(presences == null) {
+            LogUtils.logW("setMyAvailability() Ignoring setMyAvailability request because there are no identities!");
+            return;
+        }
         
         User me = new User(String.valueOf(PresenceDbUtils.getMeProfileUserId(mDbHelper)),
-                presenceList);
+                presences);
         
         // set the DB values for myself
         me.setLocalContactId(SyncMeDbUtils.getMeProfileLocalContactId(mDbHelper));
@@ -665,7 +669,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
 
         // set the engine to run now
         
-        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presenceList);
+        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presences);
     }
         
     /**
@@ -777,4 +781,29 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         initSetMyAvailabilityRequest(getMyAvailabilityStatusFromDatabase());
     }
     
+    /**
+     * Convenience method.
+     * Constructs a Hash table object containing My identities mapped against the provided status.
+     * @param status Presence status to set for all identities
+     * @return The resulting Hash table, is null if no identities are present
+     */
+    public Hashtable<String, String> getPresencesForStatus(OnlineStatus status) {
+        // Get cached identities from the presence engine 
+        ArrayList<Identity> identities = 
+            EngineManager.getInstance().getIdentityEngine().getMy360AndThirdPartyIdentities();
+    
+        if(identities == null) {
+            // No identities, just return null
+            return null;
+        }
+    
+        Hashtable<String, String> presences = new Hashtable<String, String>();
+    
+        String statusString = status.toString();
+        for(Identity identity : identities) {
+            presences.put(identity.mNetwork, statusString);
+        }
+        
+        return presences;
+    }
 }

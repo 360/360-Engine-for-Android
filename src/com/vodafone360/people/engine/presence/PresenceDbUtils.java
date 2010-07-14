@@ -40,6 +40,7 @@ import com.vodafone360.people.database.tables.PresenceTable;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactDetail;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
+import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.meprofile.SyncMeDbUtils;
 import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.ServiceStatus;
@@ -105,13 +106,9 @@ public class PresenceDbUtils {
             // empty, need to set
             // the status for the
             // 1st time
-            // TODO: Need to construct "status" from identities and utility method
-            Hashtable<String, String> status = new Hashtable<String, String>();
-            status.put("google", "online");
-            status.put("microsoft", "online");
-            status.put("mobile", "online");
-            status.put("facebook.com", "online");
-            status.put("hyves.nl", "online");
+            // Get presence list constructed from identities
+            Hashtable<String, String> status =             
+                EngineManager.getInstance().getPresenceEngine().getPresencesForStatus(OnlineStatus.ONLINE);
             user = new User(String.valueOf(getMeProfileUserId(databaseHelper)), status);
         }
         return user;
