@@ -36,25 +36,25 @@ import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
  */
 public class HardcodedUtils {
     
-//    /**
-//     * To be used with IPeopleService.setAvailability until identity handling
-//     * has been refactored.
-//     * @param Desired availability state
-//     * @return A hashtable for the set availability call
-//     */
-//    public static Hashtable<String, String> createMyAvailabilityHashtable(OnlineStatus onlineStatus) {
-//        Hashtable<String, String> availability = new Hashtable<String, String>();
-//
-//        LogUtils.logD("Setting Availability to: " + onlineStatus.toString());
-//        // TODO: REMOVE HARDCODE setting everything possible to currentStatus
-//        availability.put(NetworkPresence.SocialNetwork.GOOGLE.toString(), onlineStatus.toString());
-//        availability.put(NetworkPresence.SocialNetwork.MICROSOFT.toString(), onlineStatus.toString());
-//        availability.put(NetworkPresence.SocialNetwork.MOBILE.toString(), onlineStatus.toString());
-//        availability.put(NetworkPresence.SocialNetwork.HYVES_NL.toString(), onlineStatus.toString());
-//        availability.put(NetworkPresence.SocialNetwork.FACEBOOK_COM.toString(), onlineStatus.toString());
-//
-//        return availability;
-//    }
+    /**
+     * To be used with IPeopleService.setAvailability until identity handling
+     * has been refactored.
+     * @param Desired availability state
+     * @return A hashtable for the set availability call
+     */
+    public static Hashtable<String, String> createMyAvailabilityHashtable(OnlineStatus onlineStatus) {
+        Hashtable<String, String> availability = new Hashtable<String, String>();
+
+        LogUtils.logD("Setting Availability to: " + onlineStatus.toString());
+        // TODO: REMOVE HARDCODE setting everything possible to currentStatus
+        availability.put(NetworkPresence.SocialNetwork.GOOGLE.toString(), onlineStatus.toString());
+        availability.put(NetworkPresence.SocialNetwork.MICROSOFT.toString(), onlineStatus.toString());
+        availability.put(NetworkPresence.SocialNetwork.MOBILE.toString(), onlineStatus.toString());
+        availability.put(NetworkPresence.SocialNetwork.HYVES_NL.toString(), onlineStatus.toString());
+        availability.put(NetworkPresence.SocialNetwork.FACEBOOK_COM.toString(), onlineStatus.toString());
+
+        return availability;
+    }
     
     /**
      * The static list of supported TPC accounts.
