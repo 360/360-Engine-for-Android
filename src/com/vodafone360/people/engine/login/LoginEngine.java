@@ -109,8 +109,6 @@ public class LoginEngine extends BaseEngine {
      * mutex for thread synchronization
      */
     private final Object mMutex = new Object();
-
-    /**
      * To convert between seconds and milliseconds
      */
     private static final int MS_IN_SECONDS = 1000;
