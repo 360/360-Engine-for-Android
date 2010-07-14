@@ -151,10 +151,10 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     private State mState = State.IDLE;
 
     /** List array of Identities retrieved from Server. */
-    private ArrayList<Identity> mAvailableIdentityList;
+    private final ArrayList<Identity> mAvailableIdentityList = new ArrayList<Identity>();
     
     /** List array of Identities retrieved from Server. */
-    private ArrayList<Identity> mMyIdentityList;
+    private final ArrayList<Identity> mMyIdentityList = new ArrayList<Identity>();
 
     /** List array of Identities supporting chat retrieved from Server. */
     private ArrayList<String> mMyChatableIdentityList = null;
