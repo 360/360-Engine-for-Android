@@ -169,7 +169,7 @@ public interface IPeopleService {
      * 
      * @param Bundle filter the kind of identities to return.
      */
-    void fetchMyIdentities(Bundle data);
+    //void fetchMyIdentities(Bundle data);
 
     /***
      * Begins the process of retrieving all Third party Accounts from the
@@ -178,7 +178,7 @@ public interface IPeopleService {
      * 
      * @param Bundle filter the kind of identities to return.
      */
-    void fetchAvailableIdentities(Bundle data);
+    //void fetchAvailableIdentities(Bundle data);
 
     /***
      * Calls the set identity capability status API
