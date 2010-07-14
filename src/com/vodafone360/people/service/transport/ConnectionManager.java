@@ -27,6 +27,8 @@ package com.vodafone360.people.service.transport;
 
 import java.util.ArrayList;
 
+import android.content.Context;
+import android.os.AsyncTask;
 import android.widget.Toast;
 
 import com.vodafone360.people.R;
@@ -54,13 +56,19 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
     private RemoteService mService;
 
     private DecoderThread mDecoder;
-    
+
+    /**
+     * ApplicationContext
+     */
+    private Context mContext;
+
     /**
      * the class member variable to keep the connection state.
+     * 
      * @see ITcpConnectionListener
      */
     private int mConnectionState;
-    
+
     /**
      * the list of connection state change listeners, e.g. PresenceEngine.
      */
@@ -74,15 +82,39 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
         return mInstance;
     }
 
+    /**
+     * Shows a Toast ruinning on a UI Thread. There can be a crash if the
+     * connectionmanager is called outside of an UI Thread and then treis to
+     * show a toast. Using this approach with the AsyncTask Toasts will allways
+     * be shown inside an UI Thread.
+     * 
+     * @param messageResId
+     */
+    private void showToast(int messageResId) {
+        new AsyncTask<Integer, Void, Boolean>() {
+            protected Boolean doInBackground(Integer... messageResId) {
+                try {
+                    Toast toast = Toast.makeText(mContext, messageResId[0], Toast.LENGTH_LONG);
+                    toast.show();
+                } catch (Exception exc) {
+                    return false;
+                }
+                return true;
+            }
+
+        }.execute(messageResId);
+    }
+
     private ConnectionManager() {
         EngineManager.getInstance().getLoginEngine().addListener(this);
+
     }
 
     public void connect(RemoteService service) {
         HttpConnectionThread.logI("ConnectionManager.connect()", "CONNECT CALLED BY NETWORKAGENT");
 
         mService = service;
-
+        mContext = mService.getApplicationContext();
         // start decoder
         if (mDecoder == null) {
             mDecoder = new DecoderThread();
@@ -122,7 +154,7 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
             mConnection.stopThread();
             mConnection = null;
             unsubscribeFromQueueEvents();
-            
+
             // TODO remove as soon as the network agent is out. this is a hack!
             onConnectionStateChanged(ITcpConnectionListener.STATE_DISCONNECTED);
         }
@@ -196,27 +228,27 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
         mConnection = testConn;
         QueueManager.getInstance().addQueueListener(mConnection);
     }
-    
+
     /**
      * This method is called by protocol to signal the connection state change.
+     * 
      * @param state int - the new connection state, @see ITcpConnectionListener.
      */
     public void onConnectionStateChanged(int state) {
         if (state == ITcpConnectionListener.STATE_DISCONNECTED) {
-            Toast toast = Toast.makeText(mService.getApplicationContext(), 
-                    R.string.ContactProfile_no_connection, Toast.LENGTH_LONG);
-            toast.show();
+            showToast(R.string.ContactProfile_no_connection);
         }
-        
+
         mConnectionState = state;
-        for (ITcpConnectionListener listener: mListeners) {
+        for (ITcpConnectionListener listener : mListeners) {
             listener.onConnectionStateChanged(state);
         }
     }
-    
+
     /**
-     * This method adds a listener for the connection state changes to the list, if
-     * it is not there yet.
+     * This method adds a listener for the connection state changes to the list,
+     * if it is not there yet.
+     * 
      * @param listener ITcpConnectionListener - listener.
      */
     public void addConnectionListener(ITcpConnectionListener listener) {
@@ -224,9 +256,11 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
             mListeners.add(listener);
         }
     }
-    
+
     /**
-     * This method removes a listener from the connection state changes listeners list.
+     * This method removes a listener from the connection state changes
+     * listeners list.
+     * 
      * @param listener ITcpConnectionListener - listener.
      */
     public void removeConnectionListener(ITcpConnectionListener listener) {
@@ -235,6 +269,7 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
 
     /**
      * This method returns the current connection state of the application.
+     * 
      * @see ITcpConnectionListener
      * @return int - the connection state @see ITcpConnectionListener.
      */
