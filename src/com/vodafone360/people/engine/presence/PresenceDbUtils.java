@@ -105,8 +105,7 @@ public class PresenceDbUtils {
             // empty, need to set
             // the status for the
             // 1st time
-            // TODO: this hard code needs change, must filter the identities
-            // info by VCARD.IMADRESS
+            // TODO: Need to construct "status" from identities and utility method
             Hashtable<String, String> status = new Hashtable<String, String>();
             status.put("google", "online");
             status.put("microsoft", "online");
@@ -314,13 +313,5 @@ public class PresenceDbUtils {
                     + PresenceTable.setAllUsersOfflineExceptForMe(localContactIdOfMe, writableDb));
             ContactSummaryTable.setOfflineStatusExceptForMe(localContactIdOfMe);
         }
-    }
-
-    /**
-     * @param input
-     * @return
-     */
-    public static boolean notNullOrBlank(String input) {
-        return (input != null) && input.length() > 0;
     }
 }
