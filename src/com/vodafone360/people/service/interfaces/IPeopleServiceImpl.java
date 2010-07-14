@@ -150,18 +150,18 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
     /***
      * @see com.vodafone360.people.service.interfaces.IPeopleService#fetchAvailableIdentities(Bundle)
      */
-    @Override
+/*    @Override
     public void fetchAvailableIdentities(Bundle data) {
-        EngineManager.getInstance().getIdentityEngine().addUiFetchIdentities();
-    }
+        EngineManager.getInstance().getIdentityEngine().addUiGetAvailableIdentities();
+    }*/
 
     /***
      * @see com.vodafone360.people.service.interfaces.IPeopleService#fetchMyIdentities(Bundle)
      */
-    @Override
+    /*@Override
     public void fetchMyIdentities(Bundle data) {
         EngineManager.getInstance().getIdentityEngine().addUiGetMyIdentities();
-    }
+    }*/
 
     /***
      * @see com.vodafone360.people.service.interfaces.IPeopleService#fetchPrivacyStatement()
