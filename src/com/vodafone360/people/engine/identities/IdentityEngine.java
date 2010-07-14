@@ -154,16 +154,9 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 
     private final ArrayList<StatusMsg> mStatusList = new ArrayList<StatusMsg>();
 
-    /** Definitions for expected data-types returned from Server. */
-    private static final String TYPE_IDENTITY = "Identity";
-
-    private static final String TYPE_STATUS_MSG = "StatusMsg";
-
     public static final String KEY_DATA = "data";
 
     private static final String KEY_DATA_CHATABLE_IDENTITIES = "chatable_data";
-
-    private static final String LOG_STATUS_MSG = TYPE_STATUS_MSG + ": ";
 
     /**
      * Constructor
@@ -480,13 +473,12 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     private void handleServerGetAvailableIdentitiesResponse(List<BaseDataType> data) {
         Bundle bu = null;
         LogUtils.logD("IdentityEngine: handleServerGetAvailableIdentitiesResponse");
-        ServiceStatus errorStatus = getResponseStatus(TYPE_IDENTITY, data);
+        ServiceStatus errorStatus = getResponseStatus(BaseDataType.AVAILABLE_IDENTITY_DATA_TYPE, data);
         if (errorStatus == ServiceStatus.SUCCESS) {
             mAvailableIdentityList.clear();
             for (BaseDataType item : data) {
-                if (TYPE_IDENTITY.equals(item.name())) {
+                if (item.type() == BaseDataType.AVAILABLE_IDENTITY_DATA_TYPE) {
                     mAvailableIdentityList.add((Identity)item);
-                    LogUtils.logD("Identity: " + item.name());
                 } else {
                     completeUiRequest(ServiceStatus.ERROR_UNEXPECTED_RESPONSE);
                     return;
@@ -517,13 +509,12 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      */
     private void handleValidateIdentityCredentials(List<BaseDataType> data) {
         Bundle bu = null;
-        ServiceStatus errorStatus = getResponseStatus(TYPE_STATUS_MSG, data);
+        ServiceStatus errorStatus = getResponseStatus(BaseDataType.STATUS_MSG_DATA_TYPE, data);
         if (errorStatus == ServiceStatus.SUCCESS) {
             mStatusList.clear();
             for (BaseDataType item : data) {
-                if (TYPE_STATUS_MSG.equals(item.name())) {
+                if (item.type() == BaseDataType.STATUS_MSG_DATA_TYPE) {
                     mStatusList.add((StatusMsg)item);
-                    LogUtils.logD(LOG_STATUS_MSG + item.name());
                 } else {
                     completeUiRequest(ServiceStatus.ERROR_UNEXPECTED_RESPONSE);
                     return;
@@ -554,13 +545,12 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      */
     private void handleSetIdentityCapabilityStatus(List<BaseDataType> data) {
         Bundle bu = null;
-        ServiceStatus errorStatus = getResponseStatus(TYPE_STATUS_MSG, data);
+        ServiceStatus errorStatus = getResponseStatus(BaseDataType.STATUS_MSG_DATA_TYPE, data);
         if (errorStatus == ServiceStatus.SUCCESS) {
             mStatusList.clear();
             for (BaseDataType item : data) {
-                if (TYPE_STATUS_MSG.equals(item.name())) {
+                if (item.type() == BaseDataType.STATUS_MSG_DATA_TYPE) {
                     mStatusList.add((StatusMsg)item);
-                    LogUtils.logD(LOG_STATUS_MSG + item.name());
                 } else {
                     completeUiRequest(ServiceStatus.ERROR_UNEXPECTED_RESPONSE);
                     return;

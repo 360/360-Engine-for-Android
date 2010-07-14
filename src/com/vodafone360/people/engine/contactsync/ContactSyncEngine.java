@@ -822,7 +822,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         }
         if (resp.mDataTypes != null && resp.mDataTypes.size() > 0) {
             LogUtils.logD("ContactSyncEngine.processCommsResponse: Req ID = " + resp.mReqId
-                    + ", type = " + resp.mDataTypes.get(0).name());
+                    + ", type = " + resp.mDataTypes.get(0).type());
         } else {
             LogUtils.logD("ContactSyncEngine.processCommsResponse: Req ID = " + resp.mReqId
                     + ", type = NULL");
@@ -844,7 +844,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
             return false;
         }
         BaseDataType dataType = resp.mDataTypes.get(0);
-        if ((dataType == null) || !dataType.name().equals("PushEvent")) {
+        if ((dataType == null) || dataType.type() != BaseDataType.PUSH_EVENT_DATA_TYPE) {
             return false;
         }
         PushEvent pushEvent = (PushEvent)dataType;

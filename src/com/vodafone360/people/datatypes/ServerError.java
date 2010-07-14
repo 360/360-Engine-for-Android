@@ -31,9 +31,6 @@ import com.vodafone360.people.service.ServiceStatus;
  * BaseDataType representing an error returned from Server
  */
 public class ServerError extends BaseDataType {
-
-    public final static String NAME = "ServerError";
-
     /**
      * Enumeration of Server error types.
      */
@@ -78,8 +75,8 @@ public class ServerError extends BaseDataType {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return NAME;
+    public int type() {
+        return SERVER_ERROR_DATA_TYPE;
     }
 
     /**

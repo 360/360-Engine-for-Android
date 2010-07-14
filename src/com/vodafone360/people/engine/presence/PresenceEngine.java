@@ -417,21 +417,27 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
 
         if (dataTypes != null) {
             for (BaseDataType mBaseDataType : dataTypes) {
-                String name = mBaseDataType.name();
-                if (name.equals(PresenceList.NAME)) {
-                    handlePresenceList((PresenceList)mBaseDataType);
-                } else if (name.equals(PushEvent.NAME)) {
-                    handlePushEvent(((PushEvent)mBaseDataType));
-                } else if (name.equals(Conversation.NAME)) {
-                    // a new conversation has just started
-                    handleNewConversationId((Conversation)mBaseDataType);
-                } else if (name.equals(SystemNotification.class.getSimpleName())) {
-                    handleSystemNotification((SystemNotification)mBaseDataType);
-                } else if (name.equals(ServerError.NAME)) {
-                    handleServerError((ServerError)mBaseDataType);
-                } else {
-                    LogUtils.logE("PresenceEngine.handleServerResponse()"
-                            + ": response datatype not recognized:" + name);
+                final int type  = mBaseDataType.type();
+                switch(type) {
+                    case BaseDataType.PRESENCE_LIST_DATA_TYPE:
+                        handlePresenceList((PresenceList)mBaseDataType);
+                        break;
+                    case BaseDataType.PUSH_EVENT_DATA_TYPE:
+                        handlePushEvent(((PushEvent)mBaseDataType));
+                        break;
+                    case BaseDataType.CONVERSATION_DATA_TYPE:
+                        // a new conversation has just started
+                        handleNewConversationId((Conversation)mBaseDataType);
+                        break;
+                    case BaseDataType.SYSTEM_NOTIFICATION_DATA_TYPE:
+                        handleSystemNotification((SystemNotification)mBaseDataType);
+                        break;
+                    case BaseDataType.SERVER_ERROR_DATA_TYPE:
+                        handleServerError((ServerError)mBaseDataType);
+                        break;
+                    default:
+                        LogUtils.logE("PresenceEngine.handleServerResponse()"
+                                + ": response datatype not recognized:" + type);
                 }
             }
         } else {
@@ -491,7 +497,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
                 break;
             default:
                 LogUtils.logE("PresenceEngine.handleServerResponse():"
-                        + " push message type was not recognized:" + event.name());
+                        + " push message type was not recognized:" + event.mMessageType);
         }
     }
 

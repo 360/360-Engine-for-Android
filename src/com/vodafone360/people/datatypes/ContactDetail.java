@@ -365,8 +365,8 @@ public class ContactDetail extends BaseDataType implements Parcelable {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "ContactDetail";
+    public int type() {
+        return CONTACT_DETAIL_DATA_TYPE;
     }
 
     /**
