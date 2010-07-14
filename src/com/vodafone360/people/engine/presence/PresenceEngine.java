@@ -62,13 +62,14 @@ import com.vodafone360.people.service.io.api.Chat;
 import com.vodafone360.people.service.io.api.Presence;
 import com.vodafone360.people.service.transport.ConnectionManager;
 import com.vodafone360.people.service.transport.tcp.ITcpConnectionListener;
+import com.vodafone360.people.utils.HardcodedUtils;
 import com.vodafone360.people.utils.LogUtils;
 
 /**
  * Handles the Presence life cycle
  */
 public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
-        IContactSyncObserver, ITcpConnectionListener {
+        ITcpConnectionListener {
     /** Check every 10 minutes. **/
     private final static long CHECK_FREQUENCY = 24 * 60 * 60 * 1000;
 
@@ -82,8 +83,6 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     private final Hashtable<String, ChatMessage> mSendMessagesHash; // (to, message)
 
     private List<TimelineSummaryItem> mFailedMessagesList; // (to, network)
-
-    private boolean mContObsAdded;
     
     /** The list of Users still to be processed. **/
     private List<User> mUsers = null;
@@ -129,7 +128,6 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         mDbHelper = databaseHelper;
         mSendMessagesHash = new Hashtable<String, ChatMessage>();
         mFailedMessagesList = new ArrayList<TimelineSummaryItem>();
-        addAsContactSyncObserver();
     }
 
     @Override
@@ -158,11 +156,6 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
 
     @Override
     public long getNextRunTime() {
-
-        if (!mContObsAdded) {
-            addAsContactSyncObserver();
-        }
-
         if (!canRun()) {
             mNextRuntime = -1;
             LogUtils.logV("PresenceEngine.getNextRunTime(): 1st contact sync is not finished:"
@@ -265,7 +258,6 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
             setNextRuntime();
         } else {
             setPresenceOffline();
-            mContObsAdded = false;
             mFailedMessagesList.clear();
             mSendMessagesHash.clear();
         }
@@ -553,59 +545,48 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
                     + " Can't run PresenceEngine before the contact list is downloaded:1");
             return;
         }
+        
         LogUtils.logW("PresenceEngine.processUiRequest() requestId.name[" + requestId.name() + "]");
+        
+        if(data == null && requestId != ServiceUiRequest.GET_PRESENCE_LIST) {
+            LogUtils.logW("PresenceEngine.processUiRequest() skipping processing for request with no data!");
+            return;
+        }
+        
         switch (requestId) {
             case SET_MY_AVAILABILITY:
-                if (data != null) {
-                    Presence.setMyAvailability(((OnlineStatus)data).toString());
-                    completeUiRequest(ServiceStatus.SUCCESS, null);
-                    setNextRuntime();
-                }
+                Presence.setMyAvailability((Hashtable<String, String>)data);             
                 break;
             case SET_MY_AVAILABILITY_FOR_COMMUNITY:
-            	if (data != null) {
-            		Presence.setMyAvailabilityForCommunity();
-                    completeUiRequest(ServiceStatus.SUCCESS, null);
-                    setNextRuntime();
-            	}
+            	Presence.setMyAvailabilityForCommunity();
+            	break;
             case GET_PRESENCE_LIST:
                 Presence.getPresenceList(EngineId.PRESENCE_ENGINE, null);
-                completeUiRequest(ServiceStatus.SUCCESS, null);
-                setNextRuntime();
                 break;
-
             case CREATE_CONVERSATION:
-                if (data != null) {
-                    List<String> tos = ((ChatMessage)data).getTos();
-                    LogUtils.logW("PresenceEngine processUiRequest() CREATE_CONVERSATION with: "
-                            + tos);
-                    Chat.startChat(tos);
-                    // Request to update the UI
-                    completeUiRequest(ServiceStatus.SUCCESS, null);
-                    // Request to update the UI
-                    setNextRuntime();
-                }
+                List<String> tos = ((ChatMessage)data).getTos();
+                LogUtils.logW("PresenceEngine processUiRequest() CREATE_CONVERSATION with: "
+                        + tos);
+                Chat.startChat(tos);
                 break;
             case SEND_CHAT_MESSAGE:
-                if (data != null) {
-                    ChatMessage msg = (ChatMessage)data;
-                    updateChatDatabase(msg, TimelineSummaryItem.Type.OUTGOING);
+                ChatMessage msg = (ChatMessage)data;
+                updateChatDatabase(msg, TimelineSummaryItem.Type.OUTGOING);
 
-                    LogUtils.logW("PresenceEngine processUiRequest() SEND_CHAT_MESSAGE :" + msg);
-                    //cache the message (necessary for failed message sending failures)
-                    mSendMessagesHash.put(msg.getTos().get(0), msg);
-                    
-                    Chat.sendChatMessage(msg);
-                    // Request to update the UI
-                    completeUiRequest(ServiceStatus.SUCCESS, null);
-                    // Request to update the UI
-                    setNextRuntime();
-                }
+                LogUtils.logW("PresenceEngine processUiRequest() SEND_CHAT_MESSAGE :" + msg);
+                //cache the message (necessary for failed message sending failures)
+                mSendMessagesHash.put(msg.getTos().get(0), msg);
+                
+                Chat.sendChatMessage(msg);
                 break;
             default:
                 LogUtils.logE("PresenceEngine processUiRequest() Unhandled UI request ["
                         + requestId.name() + "]");
+                return; // don't complete with success and schedule the next runtime
         }
+        
+        completeUiRequest(ServiceStatus.SUCCESS, null);
+        setNextRuntime();
     }
 
     /**
@@ -618,14 +599,18 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         addUiRequestToQueue(ServiceUiRequest.GET_PRESENCE_LIST, null);
     }
 
-    
-    private void initSetMyAvailabilityRequest(User myself) {
-        if (myself == null) {
+    /**
+     * Method used to jump start setting the availability. 
+     * This is primarily used for reacting to login/connection state changes.
+     * @param me Our User
+     */
+    private void initSetMyAvailabilityRequest(User me) {
+        if (me == null) {
             LogUtils.logE("PresenceEngine.initSetMyAvailabilityRequest():"
                     + " Can't send the setAvailability request due to DB reading errors");
             return;
         }
-        if ((myself.isOnline() == OnlineStatus.ONLINE.ordinal() &&
+        if ((me.isOnline() == OnlineStatus.ONLINE.ordinal() &&
                 ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED) 
                 || !canRun()) {
           LogUtils.logD("PresenceEngine.initSetMyAvailabilityRequest():"
@@ -635,15 +620,15 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         
         Hashtable<String, String> availability = new Hashtable<String, String>();
         
-        for (NetworkPresence presence : myself.getPayload()) {
+        for (NetworkPresence presence : me.getPayload()) {
             availability.put(SocialNetwork.getPresenceValue(presence.getNetworkId()).toString(),
                     OnlineStatus.getValue(presence.getOnlineStatusId()).toString());
         }
 
         // set the DB values
-        myself.setLocalContactId(SyncMeDbUtils.getMeProfileLocalContactId(mDbHelper));
+        me.setLocalContactId(SyncMeDbUtils.getMeProfileLocalContactId(mDbHelper));
         
-        updateMyPresenceInDatabase(myself);
+        updateMyPresenceInDatabase(me);
 
         addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, availability);
     }
@@ -668,9 +653,8 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         }
         
         // Get presences
-        Hashtable<String, String> presenceList = new Hashtable<String, String>();
-        
         // TODO: Fill up hashtable with identities and online statuses
+        Hashtable<String, String> presenceList = HardcodedUtils.createMyAvailabilityHashtable(status);
         
         User me = new User(String.valueOf(PresenceDbUtils.getMeProfileUserId(mDbHelper)),
                 presenceList);
@@ -771,53 +755,6 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
                 createConversation(msg);
             }
         }
-    }
-
-    /**
-     * Add ActivitiesEngine as an observer of the ContactSyncEngine. Need to be
-     * able to obtain a handle to the EngineManager and a handle to the
-     * ContactSyncEngine.
-     */
-    private void addAsContactSyncObserver() {
-        if (EngineManager.getInstance() != null
-                && EngineManager.getInstance().getContactSyncEngine() != null) {
-            EngineManager.getInstance().getContactSyncEngine().addEventCallback(this);
-            mContObsAdded = true;
-            LogUtils.logD("ActivityEngine contactSync observer added.");
-        } else {
-            LogUtils.logE("ActivityEngine can't add to contactSync observers.");
-        }
-    }
-
-    @Override
-    public void onContactSyncStateChange(Mode mode, State oldState, State newState) {
-        LogUtils.logD("PresenceEngine onContactSyncStateChange called.");
-    }
-
-    @Override
-    public void onProgressEvent(State currentState, int percent) {
-        if (percent == 100) {
-            switch (currentState) {
-                case FETCHING_SERVER_CONTACTS:
-                    LogUtils
-                            .logD("PresenceEngine onProgressEvent: FETCHING_SERVER_CONTACTS is done");
-                    // mDownloadServerContactsComplete = true;
-                    // break;
-                    // case SYNCING_SERVER_ME_PROFILE:
-                    // LogUtils
-                    // .logD("PresenceEngine onProgressEvent: FETCHING_SERVER_ME_PROFILE is done");
-                    // mDownloadMeProfileComplete = true;
-                    // break;
-                default:
-                    // nothing to do now
-                    break;
-            }
-        }
-    }
-
-    @Override
-    public void onSyncComplete(ServiceStatus status) {
-        LogUtils.logD("PresenceEngine onSyncComplete called.");
     }
     
     @Override
