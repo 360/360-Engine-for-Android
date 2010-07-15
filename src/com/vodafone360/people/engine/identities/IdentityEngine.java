@@ -614,7 +614,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         if (errorStatus == ServiceStatus.SUCCESS) {
             mStatusList.clear();
             for (BaseDataType item : data) {
-                if (item.type() == BaseDataType.STATUS_MSG_DATA_TYPE) {
+                if (item.getType() == BaseDataType.STATUS_MSG_DATA_TYPE) {
                     mStatusList.add((StatusMsg)item);
                 } else {
                     completeUiRequest(ServiceStatus.ERROR_UNEXPECTED_RESPONSE);
@@ -650,7 +650,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         if (errorStatus == ServiceStatus.SUCCESS) {
             mStatusList.clear();
             for (BaseDataType item : data) {
-                if (item.type() == BaseDataType.STATUS_MSG_DATA_TYPE) {
+                if (item.getType() == BaseDataType.STATUS_MSG_DATA_TYPE) {
                     mStatusList.add((StatusMsg)item);
                 } else {
                     completeUiRequest(ServiceStatus.ERROR_UNEXPECTED_RESPONSE);

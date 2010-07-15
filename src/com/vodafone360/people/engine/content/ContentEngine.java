@@ -200,8 +200,8 @@ public class ContentEngine extends BaseEngine {
         }
 
         Object data = mDataTypes.get(0);
-        if (mDataTypes.get(0).type() == BaseDataType.SERVER_ERROR_DATA_TYPE
-                || mDataTypes.get(0).type() == BaseDataType.SYSTEM_NOTIFICATION_DATA_TYPE) {
+        if (mDataTypes.get(0).getType() == BaseDataType.SERVER_ERROR_DATA_TYPE
+                || mDataTypes.get(0).getType() == BaseDataType.SYSTEM_NOTIFICATION_DATA_TYPE) {
             co.setTransferStatus(ContentObject.TransferStatus.ERROR);
             RuntimeException exc = new RuntimeException(data.toString());
             co.getTransferListener().transferError(co, exc);

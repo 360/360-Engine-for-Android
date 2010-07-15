@@ -30,11 +30,10 @@ package com.vodafone360.people.datatypes;
  */
 abstract public class BaseDataType {
     /**
-     * Return name of the current Data-type.
-     * 
-     * @return int containing the data-type.
+     * Get the data type
+     * @return The data-type.
      */
-    abstract public int type();
+    abstract public int getType();
     
     /**
      * Unknown data type

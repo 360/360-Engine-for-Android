@@ -120,7 +120,7 @@ public class Conversation extends BaseDataType {
     }
 
     @Override
-    public int type() {
+    public int getType() {
         return CONVERSATION_DATA_TYPE;
     }
 
@@ -140,7 +140,7 @@ public class Conversation extends BaseDataType {
         this.mTos = tos;
     }
 
-    public String getType() {
+    public String getConversationType() {
         return mType;
     }
 
@@ -154,8 +154,14 @@ public class Conversation extends BaseDataType {
 
     @Override
     public String toString() {
-        return "Conversation [CONVERSATION_ID=" + CONVERSATION_ID + ", TOS=" + TOS
-                + ", mConversationId=" + mConversationId + ", mUserId=" + mUserId + ", mTos="
-                + mTos + ", mType=" + mType + "]";
+        final StringBuilder sb = 
+            new StringBuilder("Conversation [CONVERSATION_ID=");
+        sb.append(CONVERSATION_ID);
+        sb.append(", TOS="); sb.append(TOS);
+        sb.append(", mConversationId="); sb.append(mConversationId);
+        sb.append(", mUserId=");  sb.append(mUserId); 
+        sb.append(", mTos="); sb.append(mTos); 
+        sb.append(", mType="); sb.append(mType); sb.append("]");
+        return sb.toString();
     }
 }

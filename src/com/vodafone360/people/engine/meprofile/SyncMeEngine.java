@@ -373,7 +373,7 @@ public class SyncMeEngine extends BaseEngine {
         if (status == ServiceStatus.SUCCESS) {
             if (resp.mReqId == null || resp.mReqId == 0) {
                 if (resp.mDataTypes.size() > 0
-                        && resp.mDataTypes.get(0).type() == BaseDataType.SYSTEM_NOTIFICATION_DATA_TYPE
+                        && resp.mDataTypes.get(0).getType() == BaseDataType.SYSTEM_NOTIFICATION_DATA_TYPE
                         && ((SystemNotification)resp.mDataTypes.get(0)).getSysCode() == SystemNotification.SysNotificationCode.EXTERNAL_HTTP_ERROR) {
                     LogUtils.logE("SyncMeProfile processMeProfileThumbnailResponse():"
                             + SystemNotification.SysNotificationCode.EXTERNAL_HTTP_ERROR);
@@ -381,7 +381,7 @@ public class SyncMeEngine extends BaseEngine {
                 }
                 completeUiRequest(status);
                 return;
-            } else if (resp.mDataTypes.get(0).type() == BaseDataType.SYSTEM_NOTIFICATION_DATA_TYPE) {
+            } else if (resp.mDataTypes.get(0).getType() == BaseDataType.SYSTEM_NOTIFICATION_DATA_TYPE) {
                 if (((SystemNotification)resp.mDataTypes.get(0)).getSysCode() == SystemNotification.SysNotificationCode.EXTERNAL_HTTP_ERROR) {
                     LogUtils.logE("SyncMeProfile processMeProfileThumbnailResponse():"
                             + SystemNotification.SysNotificationCode.EXTERNAL_HTTP_ERROR);
@@ -596,7 +596,7 @@ public class SyncMeEngine extends BaseEngine {
             return false;
         }
         BaseDataType dataType = resp.mDataTypes.get(0);
-        if ((dataType == null) || dataType.type() != BaseDataType.PUSH_EVENT_DATA_TYPE) {
+        if ((dataType == null) || dataType.getType() != BaseDataType.PUSH_EVENT_DATA_TYPE) {
             return false;
         }
         PushEvent pushEvent = (PushEvent) dataType;

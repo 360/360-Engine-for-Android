@@ -467,7 +467,7 @@ public class ActivityItem extends BaseDataType {
 
     /** {@inheritDoc} */
     @Override
-    public int type() {
+    public int getType() {
         return ACTIVITY_ITEM_DATA_TYPE;
     }
 
@@ -658,20 +658,21 @@ public class ActivityItem extends BaseDataType {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer();
-        sb.append("ActivityItem:\n\tActivity Id = " + mActivityId);
-        sb.append("\n\tTime = " + mTime);
+        final StringBuffer sb = 
+            new StringBuffer("ActivityItem:\n\tActivity Id = ");
+        sb.append(mActivityId);
+        sb.append("\n\tTime = "); sb.append(mTime);
         if (mType != null) {
-            sb.append("\n\tType = " + mType.getTypeCode());
+            sb.append("\n\tType = "); sb.append(mType.getTypeCode());
         }
-        sb.append("\n\tUri = " + mUri);
-        sb.append("\n\tTitle = " + mTitle);
-        sb.append("\n\tDescription = " + mDescription);
+        sb.append("\n\tUri = "); sb.append(mUri);
+        sb.append("\n\tTitle = "); sb.append(mTitle);
+        sb.append("\n\tDescription = "); sb.append(mDescription);
         if (mPreview != null) {
-            sb.append("\n\tPreview = " + String.valueOf(mPreview));
+            sb.append("\n\tPreview = "); sb.append(String.valueOf(mPreview));
         }
-        sb.append("\n\tPreview Mime =" + mPreviewMime);
-        sb.append("\n\tPreview URL = " + mPreviewUrl);
+        sb.append("\n\tPreview Mime ="); sb.append(mPreviewMime);
+        sb.append("\n\tPreview URL = "); sb.append(mPreviewUrl);
         sb.append("\n\tStore = " + mStore);
         if (mFlagList != null) {
             sb.append("\n\tFlag list: [");
@@ -683,8 +684,8 @@ public class ActivityItem extends BaseDataType {
             }
             sb.append("]");
         }
-        sb.append("\n\tParent activity = " + mParentActivity);
-        sb.append("\n\tHas children = " + mHasChildren);
+        sb.append("\n\tParent activity = "); sb.append(mParentActivity);
+        sb.append("\n\tHas children = "); sb.append(mHasChildren);
         if (mVisibility != null) {
             sb.append("\n\tVisibility: [");
             for (int i = 0; i < mVisibility.size(); i++) {

@@ -135,7 +135,7 @@ public class ChatMessage extends BaseDataType {
     }
 
     @Override
-    public int type() {
+    public int getType() {
         return CHAT_MSG_DATA_TYPE;
     }
 
@@ -189,9 +189,14 @@ public class ChatMessage extends BaseDataType {
 
     @Override
     public String toString() {
-        return "ChatMessage [mBody=" + mBody + ", mConversationId=" + mConversationId
-                + ", mLocalContactId=" + mLocalContactId + ", mNetworkId=" + mNetworkId
-                + ", mUserId=" + mUserId + ", mTos=" + mTos + "]";
+        final StringBuilder sb = new StringBuilder("Chat Message [mBody=");
+        sb.append(mBody); 
+        sb.append(", mConversationId="); sb.append(mConversationId);
+        sb.append(", mLocalContactId="); sb.append(mLocalContactId); 
+        sb.append(", mNetworkId=");  sb.append(mNetworkId);
+        sb.append(", mUserId="); sb.append(mUserId); 
+        sb.append(", mTos="); sb.append(mTos); sb.append("]");
+        return sb.toString();
     }
     
     /**

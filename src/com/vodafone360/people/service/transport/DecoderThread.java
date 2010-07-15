@@ -225,12 +225,11 @@ public class DecoderThread implements Runnable {
                 }
                 if (type != Type.PUSH_MSG && engine != EngineId.UNDEFINED) {
                     List<BaseDataType> list = new ArrayList<BaseDataType>();
-                    ServerError error = new ServerError();
                     // this error type was chosen to make engines remove request
                     // or retry
                     // we may consider using other error code later
-                    error.errorType = ServerError.ErrorTypes.INTERNALERROR.name();
-                    error.errorValue = "Decoder thread was unable to decode server message";
+                    ServerError error = new ServerError(ServerError.ErrorType.INTERNALERROR);
+                    error.errorDescription = "Decoder thread was unable to decode server message";
                     list.add(error);
                     mRespQueue.addToResponseQueue(reqId, list, engine);
                 }

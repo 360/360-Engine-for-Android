@@ -40,7 +40,6 @@ public class PushClosedConversationEvent extends PushEvent {
         super();
         mEngineId = engine;
         LogUtils.logE("closed conversation:" + msg.mHash);
-        // LogUtils.logD("New conversation received:\n"+mConversation.toString());
         mMessageType = msg.mType;
 
     }

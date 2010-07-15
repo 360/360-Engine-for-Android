@@ -248,8 +248,15 @@ public class Identity extends BaseDataType implements Parcelable {
 
     /** {@inheritDoc} */
     @Override
+<<<<<<< HEAD
     public int type() {
         return mType;
+=======
+    public int getType() {
+        // TODO: Return appropriate type if its 
+        // an available identity instead of my identity
+        return MY_IDENTITY_DATA_TYPE;
+>>>>>>> Correction to my previous type() modification and cleaned up a lot of toString() methods
     }
 
     /**
@@ -401,45 +408,48 @@ public class Identity extends BaseDataType implements Parcelable {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        StringBuffer ret = new StringBuffer();
-        ret.append("Name:         " + mName);
-        ret.append("\nPluginID:     " + mPluginId);
-        ret.append("\nNetwork:      " + mNetwork);
-        ret.append("\nNetworkURL:   " + mNetworkUrl);
-        ret.append("\nAuthType:     " + mAuthType);
-        ret.append("\nIcon mime:    " + mIconMime);
-        ret.append("\nIconURL:      " + mIconUrl);
-        ret.append("\nOrder:        " + mOrder);
-
-        ret.append("\nActive:       " + mActive);
-        ret.append("\nCreated:      " + mCreated);
-        ret.append("\nUpdated:      " + mUpdated);
-        ret.append("\nIdentityId:   " + mIdentityId);
-        ret.append("\nUserId:       " + mUserId);
-        ret.append("\nUserName:     " + mUserName);
-        ret.append("\nDisplayName:  " + mDisplayName);
-        ret.append("\nIdentityType: " + mIdentityType);
+        final StringBuffer sb = new StringBuffer("Name:");
+        sb.append(mName);
+        sb.append("\nPluginID:"); sb.append(mPluginId);
+        sb.append("\nNetwork:"); sb.append(mNetwork);
+        sb.append("\nNetworkURL:"); sb.append(mNetworkUrl);
+        sb.append("\nAuthType:"); sb.append(mAuthType);
+        sb.append("\nIcon mime:"); sb.append(mIconMime);
+        sb.append("\nIconURL:"); sb.append(mIconUrl);
+        sb.append("\nOrder:"); sb.append(mOrder);
+        sb.append("\nActive:"); sb.append(mActive);
+        sb.append("\nCreated:"); sb.append(mCreated);
+        sb.append("\nUpdated:"); sb.append(mUpdated);
+        sb.append("\nIdentityId:"); sb.append(mIdentityId);
+        sb.append("\nUserId:"); sb.append(mUserId);
+        sb.append("\nUserName:"); sb.append(mUserName);
+        sb.append("\nDisplayName:"); sb.append(mDisplayName);
+        sb.append("\nIdentityType:"); sb.append(mIdentityType);
 
         if (mCountryList != null) {
-            ret.append("\nCountry List: (" + mCountryList.size() + ") = [");
+            sb.append("\nCountry List: ("); 
+            sb.append(mCountryList.size());
+            sb.append(") = [");
             for (int i = 0; i < mCountryList.size(); i++) {
-                ret.append(mCountryList.get(i));
+                sb.append(mCountryList.get(i));
                 if (i < mCountryList.size() - 1)
-                    ret.append(", ");
+                    sb.append(", ");
             }
-            ret.append("]");
+            sb.append("]");
         }
 
         if (mCapabilities != null) {
-            ret.append("\nCapabilities (" + mCapabilities.size() + ")");
+            sb.append("\nCapabilities ("); 
+            sb.append(mCapabilities.size());
+            sb.append(")");
             for (int i = 0; i < mCapabilities.size(); i++) {
-                ret.append("\n" + mCapabilities.get(i).toString());
+                sb.append("\n" + mCapabilities.get(i).toString());
                 if (i < mCapabilities.size() - 1) {
-                    ret.append("\n\t---");
+                    sb.append("\n\t---");
                 }
             }
         }
-        return ret.toString();
+        return sb.toString();
     }
 
     /** {@inheritDoc} */
