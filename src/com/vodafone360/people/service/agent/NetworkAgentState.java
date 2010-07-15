@@ -237,10 +237,15 @@ public class NetworkAgentState {
 
     @Override
     public String toString() {
-        return "NetworkAgentState [" + "agentState[" + mAgentState + "] " + "isInBackground["
-                + mIsInBackground + "] " + "isRoaming[" + mIsRoaming + "] " + "disconnectReason["
-                + mDisconnectReason + "]" + "internetConnected[" + mInternetConnected + "] "
-                + "networkWorking[" + mNetworkWorking + "] " + "wifiActive[" + mWifiActive + "]"
-                + "]";
+        final StringBuilder sb = new StringBuilder("NetworkAgentState [");
+        sb.append("agentState["); sb.append(mAgentState); sb.append("] "); 
+        sb.append("isInBackground["); sb.append(mIsInBackground); sb.append("] "); 
+        sb.append("isRoaming["); sb.append(mIsRoaming); sb.append("] "); 
+        sb.append("disconnectReason["); sb.append(mDisconnectReason); sb.append("]"); 
+        sb.append("internetConnected["); sb.append(mInternetConnected); sb.append("] ");
+        sb.append("networkWorking["); sb.append(mNetworkWorking); sb.append("] "); 
+        sb.append("wifiActive["); sb.append(mWifiActive); sb.append("]");
+        sb.append("]");
+        return sb.toString();
     }
 }

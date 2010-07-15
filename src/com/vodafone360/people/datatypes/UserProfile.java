@@ -120,7 +120,7 @@ public class UserProfile extends BaseDataType implements Parcelable {
 
     /** {@inheritDoc} */
     @Override
-    public int type() {
+    public int getType() {
         return USER_PROFILE_DATA_TYPE;
     }
 
@@ -133,35 +133,41 @@ public class UserProfile extends BaseDataType implements Parcelable {
         } else {
             time = new Date(0);
         }
-        StringBuffer ret = new StringBuffer();
-        ret.append("--\nUserProfile data:" + "\n\tUser ID: " + userID + "\n\tProfile Path: "
-                + profilePath + "\n\tContact ID: " + contactID + "\n\tGender: " + gender
-                + "\n\tIs Me: " + isMe + "\n\tAbout me: " + aboutMe + "\n\tFriend of mine: "
-                + friendOfMine + "\n\tupdated: " + updated + " Date: " + time.toGMTString() + "\n");
-        StringBuffer s = new StringBuffer();
+        final StringBuffer sb = new StringBuffer("--\nUser Profile data:");
+        sb.append("\n\tUser ID: "); sb.append(userID);
+        sb.append("\n\tProfile Path: "); sb.append(profilePath);
+        sb.append("\n\tContact ID: "); sb.append(contactID);
+        sb.append("\n\tGender: "); sb.append(gender);
+        sb.append("\n\tIs Me: "); sb.append(isMe); 
+        sb.append("\n\tAbout me: "); sb.append(aboutMe);
+        sb.append("\n\tFriend of mine: "); sb.append(friendOfMine);
+        sb.append("\n\tupdated: "); sb.append(updated); 
+        sb.append(" Date: "); sb.append(time.toGMTString()); 
+        sb.append("\n");
         if (sources != null) {
-            s.append("Sources (" + sources.size() + "): ");
+            sb.append("Sources ("); sb.append(sources.size()); 
+            sb.append("): ");
             for (int i = 0; i < sources.size(); i++) {
-                s.append(sources.get(i) + ",");
+                sb.append(sources.get(i)); sb.append(",");
             }
         }
 
         if (fofList != null) {
-            ret.append("Group id list = [");
+            sb.append("Group id list = [");
             for (int i = 0; i < fofList.size(); i++) {
-                ret.append(fofList.get(i));
+                sb.append(fofList.get(i));
                 if (i < fofList.size() - 1) {
-                    ret.append(",");
+                    sb.append(",");
                 }
             }
         }
-        ret.append(s);
-        ret.append("Contact details (" + details.size() + "):\n");
+
+        sb.append("Contact details ("); sb.append(details.size()); sb.append("):\n");
         for (int i = 0; i < details.size(); i++) {
-            ret.append(details.get(i).toString() + "\n");
+            sb.append(details.get(i).toString() + "\n");
         }
-        ret.append("\n--------------------------------------------------");
-        return ret.toString();
+        sb.append("\n--------------------------------------------------");
+        return sb.toString();
     }
 
     /**

@@ -239,8 +239,11 @@ public class User {
 
     @Override
     public String toString() {
-        return "User [mLocalContactId=" + mLocalContactId + ", mOverallOnline=" + mOverallOnline
-                + ", mPayload=" + mPayload + "]";
+        final StringBuffer sb = new StringBuffer("User [mLocalContactId=");
+        sb.append(mLocalContactId);
+        sb.append(", mOverallOnline="); sb.append(mOverallOnline);
+        sb.append(", mPayload="); sb.append(mPayload); sb.append("]");
+        return sb.toString();
     }
 
     /**

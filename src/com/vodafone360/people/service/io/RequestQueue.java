@@ -462,8 +462,9 @@ public class RequestQueue {
             return "";
         }
 
-        StringBuffer sb = new StringBuffer("Queue Size: " + mRequests.size()
-                + "; Request method-name [isActive]: ");
+        final StringBuffer sb = new StringBuffer("Queue Size: "); 
+        sb.append(mRequests.size());
+        sb.append("; Request method-name [isActive]: ");
 
         for (int i = 0; i < mRequests.size(); i++) {
             Request request = mRequests.get(i);
@@ -471,7 +472,10 @@ public class RequestQueue {
             if (null == request) {
                 sb.append("null request");
             } else {
-                sb.append(request.getApiMethodName() + " [" + request.isActive() + "]");
+                sb.append(request.getApiMethodName()); 
+                sb.append(" ["); 
+                sb.append(request.isActive()); 
+                sb.append("]");
             }
 
             if (i < (mRequests.size() - 1)) {

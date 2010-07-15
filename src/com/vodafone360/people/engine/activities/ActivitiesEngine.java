@@ -489,12 +489,12 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
                 + errorStatus);
         if (ServiceStatus.SUCCESS == errorStatus) {
             for (BaseDataType item : data) {
-                if (item.type() == BaseDataType.ACTIVITY_ITEM_DATA_TYPE) {
+                if (item.getType() == BaseDataType.ACTIVITY_ITEM_DATA_TYPE) {
                     activityList.add((ActivityItem)item);
                 } else {
                     LogUtils
                             .logE("ActivityEngine.handleGetActivitiesResponse will not handle strange type = "
-                                    + item.type());
+                                    + item.getType());
                 }
             }
             errorStatus = updateDatabase(activityList);

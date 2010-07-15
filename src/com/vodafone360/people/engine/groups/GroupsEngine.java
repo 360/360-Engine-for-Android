@@ -31,6 +31,7 @@ import android.content.Context;
 
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.database.tables.GroupsTable;
+import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.GroupItem;
 import com.vodafone360.people.datatypes.ItemList;
 import com.vodafone360.people.engine.BaseEngine;
@@ -103,7 +104,8 @@ public class GroupsEngine extends BaseEngine {
     @Override
     protected void processCommsResponse(Response resp) {
         LogUtils.logD("DownloadGroups.processCommsResponse()");
-        ServiceStatus status = BaseEngine.getResponseStatus("ItemList", resp.mDataTypes);
+        ServiceStatus status = 
+            BaseEngine.getResponseStatus(BaseDataType.ITEM_LIST_DATA_TYPE, resp.mDataTypes);
         if (status == ServiceStatus.SUCCESS) {
             final List<GroupItem> tempGroupList = new ArrayList<GroupItem>();
             for (int i = 0; i < resp.mDataTypes.size(); i++) {

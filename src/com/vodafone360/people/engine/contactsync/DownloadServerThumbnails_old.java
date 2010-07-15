@@ -176,7 +176,7 @@ public class DownloadServerThumbnails_old extends BaseSyncProcessor {
         if (resp.mReqId == null || resp.mReqId == 0) {
             if (resp.mDataTypes.size() > 0) {
                 BaseDataType data = resp.mDataTypes.get(0);
-                if (data.type() == BaseDataType.SYSTEM_NOTIFICATION_DATA_TYPE) {
+                if (data.getType() == BaseDataType.SYSTEM_NOTIFICATION_DATA_TYPE) {
                     if (((SystemNotification)data).getSysCode() == SystemNotification.SysNotificationCode.EXTERNAL_HTTP_ERROR) {
                         LogUtils
                                 .logE("DownloadServerThumbnails.processCommsResponse() - System Notification: External HTTP request failed");

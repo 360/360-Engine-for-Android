@@ -93,14 +93,23 @@ public class AuthSessionHolder extends BaseDataType {
 
     /** {@inheritDoc} */
     @Override
+<<<<<<< HEAD
     public int type() {
+=======
+    public int getType() {
+>>>>>>> 5ab21f731a48ab98689573eeae02afa669913d42
         return AUTH_SESSION_HOLDER_TYPE;
     }
 
     /** {@inheritDoc} */
     public String toString() {
-        return "AuthSessionHolder: \n" + "\n  userID: \t   " + userID + "\n  sessionSecret: "
-                + sessionSecret + "\n  userName: \t " + userName + "\n  sessionID: \t" + sessionID;
+        final StringBuilder sb = 
+            new StringBuilder("Auth Session Holder: \n  userID: \t   ");
+        sb.append(userID); 
+        sb.append("\n  sessionSecret: "); sb.append(sessionSecret); 
+        sb.append("\n  userName: \t "); sb.append(userName); 
+        sb.append("\n  sessionID: \t"); sb.append(sessionID);
+        return sb.toString();
     }
 
     /**

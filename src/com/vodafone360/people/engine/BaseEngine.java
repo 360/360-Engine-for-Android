@@ -374,21 +374,21 @@ public abstract class BaseEngine {
             List<BaseDataType> data) {
         ServiceStatus errorStatus = ServiceStatus.ERROR_COMMS;
         if (data != null) {
-            if (data.size() == 0 || data.get(0).type() == requiredResponseType) {
+            if (data.size() == 0 || data.get(0).getType() == requiredResponseType) {
                 if (requiredResponseType == BaseDataType.CONTACT_CHANGES_DATA_TYPE && 
                         data.size() == 0) {
                     errorStatus = ServiceStatus.ERROR_COMMS_BAD_RESPONSE;
                 } else {
                     errorStatus = ServiceStatus.SUCCESS;
                 }
-            } else if (data.get(0).type() == BaseDataType.SERVER_ERROR_DATA_TYPE) {
+            } else if (data.get(0).getType() == BaseDataType.SERVER_ERROR_DATA_TYPE) {
                 final ServerError error = (ServerError)data.get(0);
                 LogUtils.logE("Server error: " + error);
                 errorStatus = error.toServiceStatus();
             } else {
                 LogUtils.logD(
                         "BaseEngine.genericHandleResponse: Unexpected type [" + requiredResponseType
-                        + "] but received [" + data.get(0).type() + "]");
+                        + "] but received [" + data.get(0).getType() + "]");
             }
         } else {
             errorStatus = ServiceStatus.ERROR_COMMS_BAD_RESPONSE;
