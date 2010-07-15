@@ -163,8 +163,6 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 
     public static final String KEY_DATA = "data";
 
-    private static final String KEY_DATA_CHATABLE_IDENTITIES = "chatable_data";
-
     /**
      * Constructor
      * 
@@ -201,11 +199,11 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     
     /**
      * 
-     * Gets all third party identities and adds the mobile and pc identities 
+     * Gets all third party identities and adds the mobile identity
      * from 360 to them.
      * 
      * @return A list of all 3rd party identities the user is signed in to plus 
-     * the 360 identities pc and mobile. If the retrieval failed the list will
+     * the 360 identity mobile. If the retrieval failed the list will
      * be empty.
      * 
      */
@@ -217,6 +215,48 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     	}
     	
     	return mAvailableIdentityList;
+    }
+    
+    /**
+     * 
+     * Takes all third party identities that have a chat capability set to true.
+     * It also includes the 360 identity mobile.
+     * 
+     * @return A list of chattable 3rd party identities the user is signed in to
+     * plus the mobile 360 identity. If the retrieval identities failed the 
+     * returned list will be empty.
+     * 
+     */
+    public ArrayList<Identity> getMy360AndThirdPartyChattableIdentities() {
+    	ArrayList<Identity> chatableIdentities = new ArrayList<Identity>();
+    	
+    	// checking each identity for its chat capability and adding it to the
+    	// list if it does
+    	for (int i = 0; i < mMyIdentityList.size(); i++) {
+    		Identity identity = mMyIdentityList.get(i);
+    		List<IdentityCapability> capabilities = identity.mCapabilities;
+    		
+    		if (null == capabilities) {
+    			continue;	// if the capabilties are null skip to next identity
+    		}
+    		
+    		// run through capabilties and check for chat
+    		for (int j = 0; j < capabilities.size(); j++) {
+    			IdentityCapability capability = capabilities.get(j);
+    			
+    			if (null == capability) {
+    				continue;	// skip null capabilities
+    			}
+    			
+    			if ((capability.mCapability == IdentityCapability.CapabilityID.chat) &&
+    					(capability.mValue == true)) {
+    				chatableIdentities.add(identity);
+    				break;
+    			}
+    		}
+    	}
+    	
+    	return chatableIdentities;
     }
     
     
@@ -419,23 +459,21 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
             PushEvent evt = (PushEvent)resp.mDataTypes.get(0);
             handlePushResponse(evt.mMessageType);
         } else {
-	        switch (mState) {
-	            case IDLE:
-	                LogUtils.logW("IDLE should never happend");
-	                break;
-	            case FETCHING_IDENTITIES:
-	            case GETTING_MY_IDENTITIES:
-	            case GETTING_MY_CHATABLE_IDENTITIES:
-	                handleServerGetAvailableIdentitiesResponse(resp.mDataTypes);
-	                break;
-	            case SETTING_IDENTITY_CAPABILITY_STATUS:
-	                handleSetIdentityCapabilityStatus(resp.mDataTypes);
-	                break;
-	            case VALIDATING_IDENTITY_CREDENTIALS:
-	                handleValidateIdentityCredentials(resp.mDataTypes);
-	                break;
+	        switch (resp.mDataTypes.get(0).type()) {
+	        	case BaseDataType.MY_IDENTITY_DATA_TYPE:
+	        		handleGetMyIdentitiesResponse(resp.mDataTypes);
+	        		break;
+	        	case BaseDataType.AVAILABLE_IDENTITY_DATA_TYPE:
+	        		handleGetAvailableIdentitiesResponse(resp.mDataTypes);
+	        		break;
+	        	case BaseDataType.IDENTITY_CAPABILITY_DATA_TYPE:
+	        		handleSetIdentityCapabilityStatus(resp.mDataTypes);
+	        		break;
+	        	case BaseDataType.STATUS_MSG_DATA_TYPE:
+	        		handleValidateIdentityCredentials(resp.mDataTypes);
+	        		break;
 	            default:
-	                LogUtils.logW("default should never happend");
+	                LogUtils.logW("DEFAULT should never happened.");
 	                break;
 	        }
         }
@@ -450,11 +488,11 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         LogUtils.logD("IdentityEngine handlePushRequest");
         switch (evt) {
             case IDENTITY_NETWORK_CHANGE:
-                addUiGetAvailableIdentities();
+                sendGetAvailableIdentitiesRequest();
                 break;
             case IDENTITY_CHANGE:
             	EngineManager.getInstance().getPresenceEngine().setMyAvailability();
-                addUiGetMyIdentities();
+                sendGetMyIdentitiesRequest();
                 mEventCallback.kickWorkerThread();
             	break;
             default:
@@ -507,32 +545,61 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * 
      * @param data List of BaseDataTypes generated from Server response.
      */
-    private void handleServerGetAvailableIdentitiesResponse(List<BaseDataType> data) {
-        Bundle bu = null;
+    private void handleGetAvailableIdentitiesResponse(List<BaseDataType> data) {
         LogUtils.logD("IdentityEngine: handleServerGetAvailableIdentitiesResponse");
         ServiceStatus errorStatus = getResponseStatus(BaseDataType.AVAILABLE_IDENTITY_DATA_TYPE, data);
+        
         if (errorStatus == ServiceStatus.SUCCESS) {
-            mAvailableIdentityList.clear();
-            for (BaseDataType item : data) {
-                if (item.type() == BaseDataType.AVAILABLE_IDENTITY_DATA_TYPE) {
-                    mAvailableIdentityList.add((Identity)item);
-                } else {
-                    completeUiRequest(ServiceStatus.ERROR_UNEXPECTED_RESPONSE);
-                    return;
-                }
-            }
-            bu = new Bundle();
-            if (mState == State.GETTING_MY_IDENTITIES
-                    || (mState == State.GETTING_MY_CHATABLE_IDENTITIES)) {
-                // store local copy of my identities
-                makeChatableIdentitiesCache(mAvailableIdentityList);
-                bu.putStringArrayList(KEY_DATA_CHATABLE_IDENTITIES, mMyChatableIdentityList);
-            }
-            bu.putParcelableArrayList(KEY_DATA, mAvailableIdentityList);
+        	synchronized (mAvailableIdentityList) {
+	            mAvailableIdentityList.clear();
+	            
+	            for (BaseDataType item : data) {
+	            	mAvailableIdentityList.add((Identity)item);
+	            }
+        	}
         }
-        LogUtils.logD("IdentityEngine: handleServerGetAvailableIdentitiesResponse completw UI req");
-        completeUiRequest(errorStatus, bu);
-        newState(State.IDLE);
+        
+        LogUtils.logD("IdentityEngine: handleGetAvailableIdentitiesResponse complete request.");
+    }
+    
+    /**
+     * Handle Server response to request for available Identities. The response
+     * should be a list of Identity items. The request is completed with
+     * ServiceStatus.SUCCESS or ERROR_UNEXPECTED_RESPONSE if the data-type
+     * retrieved are not Identity items.
+     * 
+     * @param data List of BaseDataTypes generated from Server response.
+     */
+    private void handleGetMyIdentitiesResponse(List<BaseDataType> data) {
+        LogUtils.logD("IdentityEngine: handleGetMyIdentitiesResponse");
+        ServiceStatus errorStatus = getResponseStatus(BaseDataType.MY_IDENTITY_DATA_TYPE, data);
+        
+        if (errorStatus == ServiceStatus.SUCCESS) {
+        	// create mobile identity to support 360 chat
+        	IdentityCapability iCapability = new IdentityCapability();
+        	iCapability.mCapability = IdentityCapability.CapabilityID.chat;
+        	iCapability.mValue = new Boolean(true);
+        	ArrayList<IdentityCapability> capabilities = 
+        								new ArrayList<IdentityCapability>();
+        	capabilities.add(iCapability);
+        	
+        	Identity mobileIdentity = new Identity();
+        	mobileIdentity.mNetwork = "mobile";
+        	mobileIdentity.mName = "Vodafone";
+        	mobileIdentity.mCapabilities = capabilities;
+        	// end: create mobile identity to support 360 chat
+        	
+        	synchronized (mAvailableIdentityList) {
+	            mMyIdentityList.clear();
+	            
+	            for (BaseDataType item : data) {
+	            	mMyIdentityList.add((Identity)item);
+	            }
+	            mMyIdentityList.add(mobileIdentity);
+        	}
+        }
+        
+        LogUtils.logD("IdentityEngine: handleGetMyIdentitiesResponse complete request.");
     }
 
     /**
