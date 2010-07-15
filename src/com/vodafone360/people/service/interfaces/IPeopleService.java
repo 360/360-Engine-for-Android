@@ -167,16 +167,6 @@ public interface IPeopleService {
 
     /**
      * 
-     * Gets all third party identities the user is currently signed up for. 
-     * 
-     * @return A list of 3rd party identities the user is signed in to or an 
-     * empty list if something  went wrong retrieving the identities. 
-     * 
-     */
-    public ArrayList<Identity> getMyThirdPartyIdentities();
-    
-    /**
-     * 
      * Gets all third party identities and adds the mobile identity
      * from 360 to them.
      * 
@@ -185,7 +175,17 @@ public interface IPeopleService {
      * be empty.
      * 
      */
-    public ArrayList<Identity> getMy360AndThirdPartyIdentities();
+    public ArrayList<Identity> getAvailableThirdPartyIdentities();
+    
+    /**
+     * 
+     * Gets all third party identities the user is currently signed up for. 
+     * 
+     * @return A list of 3rd party identities the user is signed in to or an 
+     * empty list if something  went wrong retrieving the identities. 
+     * 
+     */
+    public ArrayList<Identity> getMyThirdPartyIdentities();
     
     /**
      * 
