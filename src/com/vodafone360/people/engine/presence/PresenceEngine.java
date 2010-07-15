@@ -781,7 +781,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     public Hashtable<String, String> getPresencesForStatus(OnlineStatus status) {
         // Get cached identities from the presence engine 
         ArrayList<Identity> identities = 
-            EngineManager.getInstance().getIdentityEngine().getMy360AndThirdPartyIdentities();
+            EngineManager.getInstance().getIdentityEngine().getMy360AndThirdPartyChattableIdentities();
     
         if(identities == null) {
             // No identities, just return null
@@ -792,9 +792,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     
         String statusString = status.toString();
         for(Identity identity : identities) {
-            if(!identity.mNetwork.equals(SocialNetwork.PC.toString())) {
                 presences.put(identity.mNetwork, statusString);
-            }
         }
         
         return presences;
