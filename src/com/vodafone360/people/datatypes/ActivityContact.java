@@ -145,7 +145,7 @@ public class ActivityContact extends BaseDataType {
 
     /** {@inheritDoc} */
     @Override
-    public int type() {
+    public int getType() {
         return ACTIVITY_CONTACT_DATA_TYPE;
     }
 

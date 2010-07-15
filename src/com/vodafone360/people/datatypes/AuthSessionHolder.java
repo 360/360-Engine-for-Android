@@ -91,13 +91,8 @@ public class AuthSessionHolder extends BaseDataType {
         return null;
     }
 
-    /** {@inheritDoc} */
-    @Override
-<<<<<<< HEAD
-    public int type() {
-=======
+
     public int getType() {
->>>>>>> 5ab21f731a48ab98689573eeae02afa669913d42
         return AUTH_SESSION_HOLDER_TYPE;
     }
 

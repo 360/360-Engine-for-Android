@@ -135,11 +135,7 @@ public class ChatMessage extends BaseDataType {
     }
 
     @Override
-<<<<<<< HEAD
-    public int type() {
-=======
     public int getType() {
->>>>>>> 5ab21f731a48ab98689573eeae02afa669913d42
         return CHAT_MSG_DATA_TYPE;
     }
 
