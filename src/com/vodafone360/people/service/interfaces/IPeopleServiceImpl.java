@@ -35,6 +35,7 @@ import android.os.Message;
 
 import com.vodafone360.people.ApplicationCache;
 import com.vodafone360.people.MainApplication;
+import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.LoginDetails;
 import com.vodafone360.people.datatypes.RegistrationDetails;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
@@ -147,21 +148,26 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
         EngineManager.getInstance().getUpgradeEngine().checkForUpdates();
     }
 
-    /***
-     * @see com.vodafone360.people.service.interfaces.IPeopleService#fetchAvailableIdentities(Bundle)
+    /**
+     * @see com.vodafone360.people.service.interfaces.IPeopleService#getMyThirdPartyIdentities()
      */
-/*    @Override
-    public void fetchAvailableIdentities(Bundle data) {
-        EngineManager.getInstance().getIdentityEngine().addUiGetAvailableIdentities();
-    }*/
+    public ArrayList<Identity> getMyThirdPartyIdentities() {
+    	return EngineManager.getInstance().getIdentityEngine().getMyThirdPartyIdentities();
+    }
 
-    /***
-     * @see com.vodafone360.people.service.interfaces.IPeopleService#fetchMyIdentities(Bundle)
+    /**
+     * @see com.vodafone360.people.service.interfaces.IPeopleService#getMy360AndThirdPartyIdentities()
      */
-    /*@Override
-    public void fetchMyIdentities(Bundle data) {
-        EngineManager.getInstance().getIdentityEngine().addUiGetMyIdentities();
-    }*/
+    public ArrayList<Identity> getMy360AndThirdPartyIdentities() {
+    	return EngineManager.getInstance().getIdentityEngine().getMy360AndThirdPartyIdentities();
+    }
+    
+    /**
+     * @see com.vodafone360.people.service.interfaces.IPeopleService#getMy360AndThirdPartyChattableIdentities()
+     */
+    public ArrayList<Identity> getMy360AndThirdPartyChattableIdentities() {
+    	return EngineManager.getInstance().getIdentityEngine().getMy360AndThirdPartyChattableIdentities();
+    }
 
     /***
      * @see com.vodafone360.people.service.interfaces.IPeopleService#fetchPrivacyStatement()

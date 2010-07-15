@@ -25,9 +25,12 @@
 
 package com.vodafone360.people.service.interfaces;
 
+import java.util.ArrayList;
+
 import android.os.Bundle;
 import android.os.Handler;
 
+import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.LoginDetails;
 import com.vodafone360.people.datatypes.RegistrationDetails;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
@@ -162,14 +165,39 @@ public interface IPeopleService {
      */
     void pingUserActivity();
 
-    /***
-     * Begins the process of retrieving Third party Accounts that the user is
-     * already registered with from the Vodafone 360 back end. The response is
-     * sent to any currently registered Activity handlers.
+    /**
      * 
-     * @param Bundle filter the kind of identities to return.
+     * Gets all third party identities the user is currently signed up for. 
+     * 
+     * @return A list of 3rd party identities the user is signed in to or an 
+     * empty list if something  went wrong retrieving the identities. 
+     * 
      */
-    //void fetchMyIdentities(Bundle data);
+    public ArrayList<Identity> getMyThirdPartyIdentities();
+    
+    /**
+     * 
+     * Gets all third party identities and adds the mobile identity
+     * from 360 to them.
+     * 
+     * @return A list of all 3rd party identities the user is signed in to plus 
+     * the 360 identity mobile. If the retrieval failed the list will
+     * be empty.
+     * 
+     */
+    public ArrayList<Identity> getMy360AndThirdPartyIdentities();
+    
+    /**
+     * 
+     * Takes all third party identities that have a chat capability set to true.
+     * It also includes the 360 identity mobile.
+     * 
+     * @return A list of chattable 3rd party identities the user is signed in to
+     * plus the mobile 360 identity. If the retrieval identities failed the 
+     * returned list will be empty.
+     * 
+     */
+    public ArrayList<Identity> getMy360AndThirdPartyChattableIdentities();
 
     /***
      * Begins the process of retrieving all Third party Accounts from the
