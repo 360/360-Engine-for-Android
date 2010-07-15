@@ -795,7 +795,11 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         } 
     }
     
-    public void setMyAvailability() {
+    /**
+     * This method gets the availability information for Me Profile from the Presence
+     * table and updates the same to the server.
+     */
+    public final void setMyAvailability() {
         initSetMyAvailabilityRequest(getMyAvailabilityStatusFromDatabase());
     }
     
