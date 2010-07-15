@@ -465,7 +465,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
             PushEvent evt = (PushEvent)resp.mDataTypes.get(0);
             handlePushResponse(evt.mMessageType);
         } else {
-	        switch (resp.mDataTypes.get(0).type()) {
+	        switch (resp.mDataTypes.get(0).getType()) {
 	        	case BaseDataType.MY_IDENTITY_DATA_TYPE:
 	        		handleGetMyIdentitiesResponse(resp.mDataTypes);
 	        		break;
