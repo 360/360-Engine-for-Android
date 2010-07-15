@@ -145,6 +145,8 @@ public class Identity extends BaseDataType implements Parcelable {
     public List<String> mCountryList = null;
 
     public String mIdentityType = null;
+    
+    private int mType;
 
     /**
      * Comparator class used to compare Identities retrieved from server to
@@ -230,6 +232,10 @@ public class Identity extends BaseDataType implements Parcelable {
     public Identity() {
         // Do nothing.
     }
+    
+    public Identity(int type) {
+    	mType = type;
+    }
 
     /**
      * Create Identity from Parcel.
@@ -243,9 +249,7 @@ public class Identity extends BaseDataType implements Parcelable {
     /** {@inheritDoc} */
     @Override
     public int type() {
-        // TODO: Return appropriate type if its 
-        // an available identity instead of my identity
-        return MY_IDENTITY_DATA_TYPE;
+        return mType;
     }
 
     /**
