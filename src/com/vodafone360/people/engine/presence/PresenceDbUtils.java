@@ -199,6 +199,7 @@ public class PresenceDbUtils {
                     }
                 } 
                 if (user.getLocalContactId() > -1) {
+                    // will not save infos from the ignored networks
                     updateUserRecord(user, ignoredNetworks, writableDb);
                     if (user.getLocalContactId() == idListeningTo) {
                         presenceChanged = true;    
