@@ -31,6 +31,9 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.text.TextUtils;
 
+import com.vodafone360.people.utils.LogUtils;
+import com.vodafone360.people.utils.VersionUtils;
+
 /**
  * Class that provides an abstraction layer for accessing the Native Contacts API.
  * The underlying API to be used should be the most suitable for the SDK version of the device.
@@ -373,7 +376,7 @@ public abstract class NativeContactsApi {
      */
     public abstract boolean isKeySupported(int key);
     /**
-     * Checks if this account is a vendro specific one. All vendor specific
+     * Checks if this account is a vendor specific one. All vendor specific
      * accounts are held in the VENDOR_SPECIFIC_ACCOUNTS array.
      * 
      * @param type to checks for

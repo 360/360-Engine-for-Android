@@ -183,7 +183,8 @@ public class NativeImporter {
      * Boolean that tracks if the first time Import for 2.X is ongoing.
      */
     private boolean mIsFirstImportOn2X = false;
-    
+
+
     /**
      * Constructor.
      * 
@@ -204,24 +205,37 @@ public class NativeImporter {
      * Sets the accounts used to import the native contacs.
      */
     private void initAccounts(boolean firstTimeImport) {
-        
+
         /**
-         * In case of Android 2.X, the accounts used are different depending if it's
-         * first time sync or not.
-         * On Android 1.X, we can just ignore the accounts logic as not supported by the platform.
-         * 
-         * At first time sync, we need to import the native contacts from all the Google accounts.
-         * These native contacts are then stored in the 360 People account and native changes will
-         * be only detected from the 360 People account.
+         * In case of Android 2.X, the accounts used are different depending if
+         * it's first time sync or not. On Android 1.X, we can just ignore the
+         * accounts logic as not supported by the platform. At first time sync,
+         * we need to import the native contacts from all the Google accounts.
+         * These native contacts are then stored in the 360 People account and
+         * native changes will be only detected from the 360 People account.
          */
- 
+
         if (VersionUtils.is2XPlatform()) {
-            // account to import from: 360 account if created, all the google accounts otherwise 
-            final String accountType = firstTimeImport ? GOOGLE_ACCOUNT_TYPE : NativeContactsApi.PEOPLE_ACCOUNT_TYPE;
-            
-            mAccounts = mNativeContactsApi.getAccountsByType(accountType);
-            
-            if (firstTimeImport) mIsFirstImportOn2X = true;
+            // account to import from: 360 account if created, all the google
+            // accounts otherwise
+            if (firstTimeImport) {
+                ArrayList<Account> accountList = new ArrayList<Account>();
+                for (Account account : mNativeContactsApi
+                        .getAccountsByType(NativeContactsApi.GOOGLE_ACCOUNT_TYPE)) {
+                    accountList.add(account);
+                }
+                for (Account account : mNativeContactsApi
+                        .getAccountsByType(NativeContactsApi.PHONE_ACCOUNT_TYPE)) {
+                    accountList.add(account);
+                }
+                mAccounts = accountList.toArray(new Account[0]);
+            } else {
+                mAccounts = mNativeContactsApi
+                        .getAccountsByType(NativeContactsApi.PEOPLE_ACCOUNT_TYPE);
+            }
+
+            if (firstTimeImport)
+                mIsFirstImportOn2X = true;
         }
     }
 
