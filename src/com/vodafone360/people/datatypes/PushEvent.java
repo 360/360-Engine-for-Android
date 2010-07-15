@@ -40,7 +40,7 @@ public class PushEvent extends BaseDataType {
 
     /** {@inheritDoc} */
     @Override
-    public int type() {
+    public int getType() {
         return PUSH_EVENT_DATA_TYPE;
     }
 
@@ -60,6 +60,9 @@ public class PushEvent extends BaseDataType {
 
     @Override
     public String toString() {
-        return "PushEvent [mEngineId=" + mEngineId + ", mMessageType=" + mMessageType + "]";
+        final StringBuilder sb = new StringBuilder("PushEvent [mEngineId=");
+        sb.append(mEngineId);
+        sb.append(", mMessageType="); sb.append(mMessageType); sb.append(")");
+        return sb.toString();
     }
 }

@@ -92,7 +92,7 @@ public class StatusMsg extends BaseDataType implements Parcelable {
 
     /** {@inheritDoc} */
     @Override
-    public int type() {
+    public int getType() {
         return STATUS_MSG_DATA_TYPE;
     }
 
@@ -147,8 +147,12 @@ public class StatusMsg extends BaseDataType implements Parcelable {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        return type() + ":\n\tstatus = " + mStatus + "\n\tdryrun = " + mDryRun + "\n\tCode = "
-                + mCode + "\n\tErr = " + mError;
+        final StringBuffer sb = new StringBuffer("Status Message:\n\tstatus = ");
+        sb.append(mStatus);
+        sb.append("\n\tdryrun = "); sb.append(mDryRun);
+        sb.append("\n\tCode = "); sb.append(mCode);
+        sb.append("\n\tErr = "); sb.append(mError);
+        return sb.toString();
     }
 
     /** {@inheritDoc} */

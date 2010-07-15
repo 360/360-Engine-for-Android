@@ -182,8 +182,8 @@ public class HessianDecoder {
         // check for fail
         // read reason string and throw exception
         if (tag == 'f') {
-            ServerError zybErr = new ServerError();
-            zybErr.errorType = mMicroHessianInput.readFault().errString();
+            ServerError zybErr = 
+                new ServerError(mMicroHessianInput.readFault().errString());
             mResultList.add(zybErr);
             return mResultList;
         }

@@ -436,7 +436,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         }
         if (dataTypes != null) {
             for (BaseDataType mBaseDataType : dataTypes) {
-                final int type  = mBaseDataType.type();
+                final int type  = mBaseDataType.getType();
                 switch(type) {
                     case BaseDataType.PRESENCE_LIST_DATA_TYPE:
                         handlePresenceList((PresenceList)mBaseDataType);
@@ -811,7 +811,9 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     
         String statusString = status.toString();
         for(Identity identity : identities) {
-            presences.put(identity.mNetwork, statusString);
+            if(!identity.mNetwork.equals(SocialNetwork.PC.toString())) {
+                presences.put(identity.mNetwork, statusString);
+            }
         }
         
         return presences;

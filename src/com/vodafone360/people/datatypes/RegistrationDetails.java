@@ -66,16 +66,24 @@ public class RegistrationDetails implements Parcelable {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        String returnString = ("Full Name: " + mFullname + "\n" + "Username: "
-                + mUsername + "\n" + "Password: " + mPassword + "\n" + "Email: " + mEmail + "\n"
-                + "Birthday: " + mBirthdayDate + "\n" + "Msisdn: " + mMsisdn + "\n"
-                + "Accepted Terms/Conditions: " + mAcceptedTAndC + "\n" + "Country Code: "
-                + mCountrycode + "\n" + "Time zone: " + mTimezone + "\n" + "Language: " + mLanguage
-                + "\n" + "Mobile Operation Id: " + mMobileOperatorId + "\n" + "Mobile Mode Id: "
-                + mMobileModelId + "\n" + "Send Confirmation Mail: " + mSendConfirmationMail + "\n"
-                + "Send Confirmation SMS: " + mSendConfirmationSms + "\n"
-                + "Subscribe to news letter: " + mSubscribeToNewsLetter + "\n");
-        return returnString;
+        final StringBuffer sb = new StringBuffer("Full Name: ");
+        sb.append(mFullname);
+        sb.append("\nUsername: "); sb.append(mUsername);
+        sb.append("\nPassword: "); sb.append(mPassword); 
+        sb.append("\nEmail: "); sb.append(mEmail); 
+        sb.append("\nBirthday: "); sb.append(mBirthdayDate); 
+        sb.append("\nMsisdn: "); sb.append(mMsisdn); 
+        sb.append("\nAccepted Terms/Conditions: "); sb.append(mAcceptedTAndC); 
+        sb.append("\nCountry Code: "); sb.append(mCountrycode); 
+        sb.append("\nTime zone: "); sb.append(mTimezone); 
+        sb.append("\nLanguage: "); sb.append(mLanguage);
+        sb.append("\nMobile Operation Id: "); sb.append(mMobileOperatorId);
+        sb.append("\nMobile Mode Id: "); sb.append(mMobileModelId); 
+        sb.append("\nSend Confirmation Mail: "); sb.append(mSendConfirmationMail); 
+        sb.append("\nSend Confirmation SMS: "); sb.append(mSendConfirmationSms); 
+        sb.append("\nSubscribe to news letter: "); sb.append(mSubscribeToNewsLetter); 
+        sb.append("\n");
+        return sb.toString();
     }
 
     /**

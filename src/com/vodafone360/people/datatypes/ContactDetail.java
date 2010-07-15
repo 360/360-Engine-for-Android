@@ -365,7 +365,7 @@ public class ContactDetail extends BaseDataType implements Parcelable {
 
     /** {@inheritDoc} */
     @Override
-    public int type() {
+    public int getType() {
         return CONTACT_DETAIL_DATA_TYPE;
     }
 
@@ -545,29 +545,43 @@ public class ContactDetail extends BaseDataType implements Parcelable {
         } else {
             time = new Date(0);
         }
-        String ret = "\tContact detail:" + "\n\t\tLocal Detail ID: " + localDetailID
-                + "\n\t\tLocal Contact ID: " + localContactID + "\n\t\tKey: " + key
-                + "\n\t\tKey type: " + keyType + "\n\t\tValue: " + value + "\n\t\tDeleted: "
-                + deleted + "\n\t\tOrder: " + order + "\n\t\tLocation: " + location + "\n\t\tAlt: "
-                + alt + "\n\t\tContact ID: " + serverContactId + "\n\t\tNative Contact ID: "
-                + nativeContactId + "\n\t\tNative Detail ID: " + nativeDetailId
-                + "\n\t\tNative Val 1: " + nativeVal1 + "\n\t\tNative Val 2: " + nativeVal2
-                + "\n\t\tNative Val 3: " + nativeVal3 + "\n\t\tPhoto Mime Type: " + photo_mime_type
-                + "\n\t\tPhoto URL: " + photo_url + "\n\t\tUpdated: " + updated + " Date: "
-                + time.toGMTString() + "\n\t\tUnique ID: " + unique_id
-                + "\n\t\tserverContactId: " + serverContactId
-                + "\n\t\tsyncNativeContactId: " + syncNativeContactId;
+        
+        final StringBuilder sb = 
+            new StringBuilder("\tContact detail:\n\t\tLocal Detail ID: ");
+        sb.append(localDetailID);
+        sb.append("\n\t\tLocal Contact ID: "); sb.append(localContactID); 
+        sb.append("\n\t\tKey: "); sb.append(key);
+        sb.append("\n\t\tKey type: "); sb.append(keyType); 
+        sb.append("\n\t\tValue: ");  sb.append(value); 
+        sb.append("\n\t\tDeleted: "); sb.append(deleted);
+        sb.append("\n\t\tOrder: "); sb.append(order); 
+        sb.append("\n\t\tLocation: "); sb.append(location); 
+        sb.append("\n\t\tAlt: "); sb.append(alt);
+        sb.append("\n\t\tContact ID: "); sb.append(serverContactId);
+        sb.append("\n\t\tNative Contact ID: "); sb.append(nativeContactId); 
+        sb.append("\n\t\tNative Detail ID: "); sb.append(nativeDetailId);
+        sb.append("\n\t\tNative Val 1: "); sb.append(nativeVal1); 
+        sb.append("\n\t\tNative Val 2: "); sb.append(nativeVal2);
+        sb.append("\n\t\tNative Val 3: "); sb.append(nativeVal3); 
+        sb.append("\n\t\tPhoto Mime Type: "); sb.append(photo_mime_type);
+        sb.append("\n\t\tPhoto URL: "); sb.append(photo_url); 
+        sb.append("\n\t\tUpdated: "); sb.append(updated); 
+        sb.append(" Date: "); sb.append(time.toGMTString()); 
+        sb.append("\n\t\tUnique ID: "); sb.append(unique_id);
+        sb.append("\n\t\tserverContactId: "); sb.append(serverContactId);
+        sb.append("\n\t\tsyncNativeContactId: "); sb.append(syncNativeContactId);;
+        
         if (location != null) {
-            ret += "\n\t\tLocation: " + location.toString();
+            sb.append("\n\t\tLocation: "); sb.append(location.toString());;
         }
 
         if (photo != null) {
-            ret += "\n\t\tPhoto BYTE[] is present";
+            sb.append("\n\t\tPhoto BYTE[] is present");
         }
-        ret += "\n\t\tPhoto MIME type: " + photo_mime_type;
-        ret += "\n\t\tPhoto URL: " + photo_url;
+        sb.append("\n\t\tPhoto MIME type: "); sb.append(photo_mime_type);;
+        sb.append("\n\t\tPhoto URL: "); sb.append(photo_url);;
 
-        return ret;
+        return sb.toString();
     }
 
     /**

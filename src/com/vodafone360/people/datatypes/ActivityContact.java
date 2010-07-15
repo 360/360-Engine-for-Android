@@ -145,7 +145,7 @@ public class ActivityContact extends BaseDataType {
 
     /** {@inheritDoc} */
     @Override
-    public int type() {
+    public int getType() {
         return ACTIVITY_CONTACT_DATA_TYPE;
     }
 
@@ -225,8 +225,9 @@ public class ActivityContact extends BaseDataType {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer();
-        sb.append("ActivityContact:\n\t\tContact Id = "); sb.append(mContactId);
+        final StringBuffer sb = 
+            new StringBuffer("ActivityContact:\n\t\tContact Id = ");
+        sb.append(mContactId);
         sb.append("\n\t\tLocal contact Id = "); sb.append(mLocalContactId);
         sb.append("\n\t\tUser Id = "); sb.append(mUserId);
         sb.append("\n\t\tName = "); sb.append(mName);

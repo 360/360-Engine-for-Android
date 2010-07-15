@@ -89,33 +89,35 @@ public class ContactListResponse extends BaseDataType {
 
     /** {@inheritDoc} */
     @Override
-    public int type() {
+    public int getType() {
         return CONTACT_LIST_RESPONSE_DATA_TYPE;
     }
 
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        StringBuffer ret = new StringBuffer();
-        ret.append("ContactListResponse: ");
+        final StringBuffer sb = 
+            new StringBuffer("ContactListResponse: ");
         if (mServerRevisionBefore != null) {
-            ret.append("\n  Server revision before: " + mServerRevisionBefore);
+            sb.append("\n  Server revision before: "); 
+            sb.append(mServerRevisionBefore);
         }
         if (mServerRevisionAfter != null) {
-            ret.append("\n  Server revision after: " + mServerRevisionAfter);
+            sb.append("\n  Server revision after: "); 
+            sb.append(mServerRevisionAfter);
         }
         if (mContactIdList != null) {
-            ret.append("\n  Contact IDs: [");
+            sb.append("\n  Contact IDs: [");
             for (int i = 0; i < mContactIdList.size(); i++) {
-                ret.append(" " + mContactIdList.get(i));
+                sb.append(" " + mContactIdList.get(i));
                 if (i < mContactIdList.size() - 1) {
-                    ret.append(",");
+                    sb.append(",");
                 }
             }
-            ret.append("]");
+            sb.append("]");
         }
 
-        return ret.toString();
+        return sb.toString();
     }
 
     /**

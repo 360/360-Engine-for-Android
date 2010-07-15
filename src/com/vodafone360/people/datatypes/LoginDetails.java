@@ -48,10 +48,14 @@ public class LoginDetails implements Parcelable {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        String returnString = ("Name: " + mUsername + "\n" + "Password: " + mPassword + "\n"
-                + "\n" + "Mobile No: " + mMobileNo + "\n" + "Remember Me: " + mRememberMe + "\n"
-                + "Auto Connect: " + mAutoConnect + "\n" + "Subscriber ID: " + mSubscriberId);
-        return returnString;
+        final StringBuilder sb = new StringBuilder("Name: ");
+        sb.append(mUsername); 
+        sb.append("\nPassword: "); sb.append(mPassword);
+        sb.append("Mobile No: "); sb.append(mMobileNo); 
+        sb.append("\nRemember Me: ");  sb.append(mRememberMe);
+        sb.append("\nAuto Connect: "); sb.append(mAutoConnect); 
+        sb.append("\nSubscriber ID: "); sb.append(mSubscriberId);
+        return sb.toString();
     }
 
     /**

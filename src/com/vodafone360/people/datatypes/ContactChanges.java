@@ -114,15 +114,14 @@ public class ContactChanges extends BaseDataType {
 
     /** {@inheritDoc} */
     @Override
-    public int type() {
+    public int getType() {
         return CONTACT_CHANGES_DATA_TYPE;
     }
 
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer();
-        sb.append("ContactChanges:");
+        final StringBuffer sb = new StringBuffer("Contact Changes:");
         if (mCurrentServerVersion != null) {
             sb.append("\n Version on server: "); sb.append(mCurrentServerVersion.toString());
         }
