@@ -203,7 +203,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * from 360 to them.
      * 
      * @return A list of all 3rd party identities the user is signed in to plus 
-     * the 360 identities pc and mobile.
+     * the 360 identity mobile. If the retrieval failed the list will
      * be empty.
      * 
      */
