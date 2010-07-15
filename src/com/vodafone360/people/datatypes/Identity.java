@@ -248,15 +248,10 @@ public class Identity extends BaseDataType implements Parcelable {
 
     /** {@inheritDoc} */
     @Override
-<<<<<<< HEAD
-    public int type() {
-        return mType;
-=======
     public int getType() {
         // TODO: Return appropriate type if its 
         // an available identity instead of my identity
         return MY_IDENTITY_DATA_TYPE;
->>>>>>> Correction to my previous type() modification and cleaned up a lot of toString() methods
     }
 
     /**
