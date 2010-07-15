@@ -55,10 +55,35 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 	NativeContactsApiTestHelper mNabApiHelper;
 	
 	static final int NUM_ACCOUNTS_TO_CREATE = 5;
-	private static final String PEOPLE_ACCOUNT_TYPE = "com.vodafone360.people.android.account";
+	 /**
+     * 360 client account type.
+     */
+    private static final int PEOPLE_ACCOUNT_TYPE = 1;
+
+    /**
+     * Google account type.
+     */
+    private static final int GOOGLE_ACCOUNT_TYPE = 2;
+
+    /**
+     * Vendor specific type.
+     */
+    private static final int PHONE_ACCOUNT_TYPE = 3;
+
+    /**
+     * Account type for 360 People in the Native Accounts. 
+     * MUST be a copy of type in 'res/xml/authenticator.xml' 
+     */
+    protected static final String PEOPLE_ACCOUNT_TYPE_STRING = "com.vodafone360.people.android.account";
+
+    /**
+     * Google account, there can be more than one of these
+     */
+    protected static final String GOOGLE_ACCOUNT_TYPE_STRING = "com.google";
+
 	private static final String PEOPLE_USERNAME = "john.doe";
 	private static final Account s360PeopleAccount = new Account(
-			PEOPLE_USERNAME, PEOPLE_ACCOUNT_TYPE);
+			PEOPLE_USERNAME, PEOPLE_ACCOUNT_TYPE_STRING);
 	
 	private final boolean mUsing2xApi = VersionUtils.is2XPlatform();
 	
@@ -263,8 +288,8 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 	@SmallTest
 	@Suppress
 	public void testGetAccountsByType() {
-		assertNull(mNabApi.getAccountsByType("ghewoih4oihoi"));
-		assertNull(mNabApi.getAccountsByType("xpto"));
+		assertNull(mNabApi.getAccountsByType(5));
+		assertNull(mNabApi.getAccountsByType(6));
 		assertNull(mNabApi.getAccountsByType(PEOPLE_ACCOUNT_TYPE));
 			
 		if(mUsing2xApi) {
@@ -274,7 +299,7 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 				
 				Account[] accounts = mNabApi.getAccountsByType(PEOPLE_ACCOUNT_TYPE);
 				assertNotNull(accounts);
-				assertNull(mNabApi.getAccountsByType("xpto"));
+				assertNull(mNabApi.getAccountsByType(9));
 				assertEquals(accounts.length, i+1);
 			}
 
@@ -285,7 +310,7 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 
 				Account[] accounts = mNabApi.getAccountsByType(PEOPLE_ACCOUNT_TYPE);
 				assertEquals(j > 1, accounts != null);
-				assertNull(mNabApi.getAccountsByType("xpto"));
+				assertNull(mNabApi.getAccountsByType(9));
 				int numAccounts = 0;
 				if(accounts != null) {
 					numAccounts = accounts.length;
