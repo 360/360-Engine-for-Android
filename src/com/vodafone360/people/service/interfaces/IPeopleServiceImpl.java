@@ -158,8 +158,8 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
     /**
      * @see com.vodafone360.people.service.interfaces.IPeopleService#getMy360AndThirdPartyIdentities()
      */
-    public ArrayList<Identity> getMy360AndThirdPartyIdentities() {
-    	return EngineManager.getInstance().getIdentityEngine().getMy360AndThirdPartyIdentities();
+    public ArrayList<Identity> getAvailableThirdPartyIdentities() {
+    	return EngineManager.getInstance().getIdentityEngine().getAvailableThirdPartyIdentities();
     }
     
     /**

@@ -181,6 +181,26 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     
     /**
      * 
+     * Gets all third party identities and adds the mobile identity
+     * from 360 to them.
+     * 
+     * @return A list of all 3rd party identities the user is signed in to plus 
+     * the 360 identity mobile. If the retrieval failed the list will
+     * be empty.
+     * 
+     */
+    public ArrayList<Identity> getAvailableThirdPartyIdentities() {
+    	if ((mMyIdentityList.size() == 0) && (
+    			(System.currentTimeMillis() - mLastAvailableIdentitiesRequestTimestamp)
+    				> MIN_REQUEST_INTERVAL)) {
+    		sendGetAvailableIdentitiesRequest();
+    	}
+    	
+    	return mAvailableIdentityList;
+    }
+    
+    /**
+     * 
      * Gets all third party identities the user is currently signed up for. 
      * 
      * @return A list of 3rd party identities the user is signed in to or an 
@@ -196,26 +216,6 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     	
     	return mMyIdentityList;
 	}
-    
-    /**
-     * 
-     * Gets all third party identities and adds the mobile identity
-     * from 360 to them.
-     * 
-     * @return A list of all 3rd party identities the user is signed in to plus 
-     * the 360 identity mobile. If the retrieval failed the list will
-     * be empty.
-     * 
-     */
-    public ArrayList<Identity> getMy360AndThirdPartyIdentities() {
-    	if ((mMyIdentityList.size() == 0) && (
-    			(System.currentTimeMillis() - mLastAvailableIdentitiesRequestTimestamp)
-    				> MIN_REQUEST_INTERVAL)) {
-    		sendGetAvailableIdentitiesRequest();
-    	}
-    	
-    	return mAvailableIdentityList;
-    }
     
     /**
      * 
