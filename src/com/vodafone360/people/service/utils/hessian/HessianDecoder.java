@@ -248,10 +248,10 @@ public class HessianDecoder {
                 Vector<Hashtable<String, Object>> idcap = null;
                 if (map.containsKey(KEY_IDENTITY_LIST)) {
                     idcap = (Vector<Hashtable<String, Object>>)map.get(KEY_IDENTITY_LIST);
-                    mType = BaseDataType.AVAILABLE_IDENTITY_DATA_TYPE;
+                    mType = BaseDataType.MY_IDENTITY_DATA_TYPE;
                 } else {
                     idcap = (Vector<Hashtable<String, Object>>)map.get(KEY_AVAILABLE_IDENTITY_LIST);
-                    mType = BaseDataType.MY_IDENTITY_DATA_TYPE;
+                    mType = BaseDataType.AVAILABLE_IDENTITY_DATA_TYPE;
                 }
 
                 for (Hashtable<String, Object> obj : idcap) {
