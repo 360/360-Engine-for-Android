@@ -37,7 +37,6 @@ import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.IdentityCapability;
 import com.vodafone360.people.datatypes.PushEvent;
 import com.vodafone360.people.datatypes.StatusMsg;
-import com.vodafone360.people.datatypes.IdentityCapability.CapabilityID;
 import com.vodafone360.people.engine.BaseEngine;
 import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.EngineManager.EngineId;
@@ -47,6 +46,7 @@ import com.vodafone360.people.service.io.ResponseQueue.Response;
 import com.vodafone360.people.service.io.api.Identities;
 import com.vodafone360.people.service.io.rpg.PushMessageTypes;
 import com.vodafone360.people.service.transport.ConnectionManager;
+import com.vodafone360.people.service.transport.http.HttpConnectionThread;
 import com.vodafone360.people.service.transport.tcp.ITcpConnectionListener;
 import com.vodafone360.people.utils.LogUtils;
 
@@ -75,25 +75,6 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * Mutex for thread synchronisation
      */
     private final Object mMutex = new Object();
-
-    // /**
-    // * Container class for Identity Capability Status request.
-    // * Consists of a network, identity id and a filter containing the required
-    // * capabilities.
-    // */
-    // private class IdentityCapabilityStatusRequest {
-    // private String mNetwork;
-    // private String mIdentityId;
-    // private Map<String, Object> mStatus = null;
-    //		
-    // /**
-    // * Supply filter containing required capabilities.
-    // * @param filter Bundle containing capabilities filter.
-    // */
-    // public void setCapabilityStatus(Bundle filter){
-    // mStatus = prepareBoolFilter(filter);
-    // }
-    // }
 
     /**
      * Container class for Identity Capability Status request. Consists of a
@@ -190,11 +171,13 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * 
      */
     public ArrayList<Identity> getAvailableThirdPartyIdentities() {
-    	if ((mMyIdentityList.size() == 0) && (
+    	if ((mAvailableIdentityList.size() == 0) && (
     			(System.currentTimeMillis() - mLastAvailableIdentitiesRequestTimestamp)
     				> MIN_REQUEST_INTERVAL)) {
     		sendGetAvailableIdentitiesRequest();
     	}
+    	
+    	HttpConnectionThread.logE("getAvailableThirdPartyIdentities", mAvailableIdentityList.toString(), null);
     	
     	return mAvailableIdentityList;
     }
@@ -213,6 +196,8 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     				> MIN_REQUEST_INTERVAL)) {
     		sendGetMyIdentitiesRequest();
     	}
+    	
+    	HttpConnectionThread.logE("IE.getMyThirdPartyIdentities", mMyIdentityList.toString(), null);
     	
     	return mMyIdentityList;
 	}
@@ -256,39 +241,40 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     		}
     	}
     	
+    	// add mobile identity to support 360 chat
+    	IdentityCapability iCapability = new IdentityCapability();
+    	iCapability.mCapability = IdentityCapability.CapabilityID.chat;
+    	iCapability.mValue = new Boolean(true);
+    	ArrayList<IdentityCapability> mobileCapabilities = 
+    								new ArrayList<IdentityCapability>();
+    	mobileCapabilities.add(iCapability);
+    	
+    	Identity mobileIdentity = new Identity();
+    	mobileIdentity.mNetwork = "mobile";
+    	mobileIdentity.mName = "Vodafone";
+    	mobileIdentity.mCapabilities = mobileCapabilities;
+    	chatableIdentities.add(mobileIdentity);
+    	// end: add mobile identity to support 360 chat
+    	
     	return chatableIdentities;
     }
     
     
+    /**
+     * Sends a get my identities request to the server which will be handled
+     * by onProcessCommsResponse once a response comes in.
+     */
     private void sendGetMyIdentitiesRequest() {
     	Identities.getMyIdentities(this, prepareStringFilter(getIdentitiesFilter()));
     }
     
+    /**
+     * Send a get available identities request to the backend which will be 
+     * handled by onProcessCommsResponse once a response comes in.
+     */
     private void sendGetAvailableIdentitiesRequest() {
     	Identities.getAvailableIdentities(this, prepareStringFilter(getIdentitiesFilter()));
     }
-    
-    
-    /**
-     * Add request to fetch available identities. The request is added to the UI
-     * request and processed when the engine is ready.
-     * 
-     */
-//    private void addUiGetAvailableIdentities() {
-//        LogUtils.logD("IdentityEngine.addUiGetAvailableIdentities()");
-//        emptyUiRequestQueue();
-//        addUiRequestToQueue(ServiceUiRequest.GET_AVAILABLE_IDENTITIES, getIdentitiesFilter());
-//    }
-    
-    /**
-     * Add request to fetch the current user's identities.
-	 * 
-     */
-//    private void addUiGetMyIdentities() {
-//        LogUtils.logD("IdentityEngine.addUiGetMyIdentities()");
-//        emptyUiRequestQueue();
-//        addUiRequestToQueue(ServiceUiRequest.GET_MY_IDENTITIES, getIdentitiesFilter());
-//    }
 
     /**
      * Add request to set the capabilities we wish to support for the specified
@@ -344,12 +330,6 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     protected void processUiRequest(ServiceUiRequest requestType, Object data) {
         LogUtils.logD("IdentityEngine.processUiRequest() - reqID = " + requestType);
         switch (requestType) {
-            case GET_AVAILABLE_IDENTITIES:
-                executeGetAvailableIdentitiesRequest(data);
-                break;
-            case GET_MY_IDENTITIES:
-                executeGetMyIdentitiesRequest(data);
-                break;
             case VALIDATE_IDENTITY_CREDENTIALS:
                 executeValidateIdentityCredentialsRequest(data);
                 break;
@@ -361,25 +341,6 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
             default:
                 completeUiRequest(ServiceStatus.ERROR_NOT_FOUND, null);
                 break;
-        }
-    }
-    
-    /**
-     * Issue request to retrieve 'My' Identities. (Request is not issued if
-     * there is currently no connectivity).
-     * 
-     * TODO: remove parameter as soon as branch ui-refresh is merged.
-     * 
-     * @param data Bundled request data.
-     * 
-     */
-    private void executeGetMyIdentitiesRequest(Object data) {
-        if (!isConnected()) {
-            return;
-        }
-        newState(State.GETTING_MY_IDENTITIES);
-        if (!setReqId(Identities.getMyIdentities(this, prepareStringFilter((Bundle)data)))) {
-            completeUiRequest(ServiceStatus.ERROR_BAD_SERVER_PARAMETER);
         }
     }
 
@@ -424,26 +385,6 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
             completeUiRequest(ServiceStatus.ERROR_BAD_SERVER_PARAMETER);
         }
     }
-
-    /**
-     * Sends a getAvailableIdentities request to the backend.
-     * 
-     * TODO: remove the parameter as soon as we have merged with the ui-refresh 
-     * branch.
-     * 
-     * @param data Bundled request data.
-     */
-    private void executeGetAvailableIdentitiesRequest(Object data) {
-        if (!isConnected()) {
-            return;
-        }
-        newState(State.FETCHING_IDENTITIES);
-        mAvailableIdentityList.clear();
-        if (!setReqId(Identities.getAvailableIdentities(this, prepareStringFilter((Bundle)data)))) {
-            completeUiRequest(ServiceStatus.ERROR_BAD_SERVER_PARAMETER);
-        }
-    }
-
     
     /**
      * Process a response received from Server. The response is handled
@@ -546,6 +487,8 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * @param data List of BaseDataTypes generated from Server response.
      */
     private void handleGetAvailableIdentitiesResponse(List<BaseDataType> data) {
+    	HttpConnectionThread.logE("IE.handleGetAvailableIdentitiesResponse", "", null);
+    	
         LogUtils.logD("IdentityEngine: handleServerGetAvailableIdentitiesResponse");
         ServiceStatus errorStatus = getResponseStatus(BaseDataType.AVAILABLE_IDENTITY_DATA_TYPE, data);
         
@@ -571,31 +514,19 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * @param data List of BaseDataTypes generated from Server response.
      */
     private void handleGetMyIdentitiesResponse(List<BaseDataType> data) {
+    	HttpConnectionThread.logE("handleGetMyIdentitiesResponse", "", null);
+    	
         LogUtils.logD("IdentityEngine: handleGetMyIdentitiesResponse");
         ServiceStatus errorStatus = getResponseStatus(BaseDataType.MY_IDENTITY_DATA_TYPE, data);
         
-        if (errorStatus == ServiceStatus.SUCCESS) {
-        	// create mobile identity to support 360 chat
-        	IdentityCapability iCapability = new IdentityCapability();
-        	iCapability.mCapability = IdentityCapability.CapabilityID.chat;
-        	iCapability.mValue = new Boolean(true);
-        	ArrayList<IdentityCapability> capabilities = 
-        								new ArrayList<IdentityCapability>();
-        	capabilities.add(iCapability);
-        	
-        	Identity mobileIdentity = new Identity();
-        	mobileIdentity.mNetwork = "mobile";
-        	mobileIdentity.mName = "Vodafone";
-        	mobileIdentity.mCapabilities = capabilities;
-        	// end: create mobile identity to support 360 chat
-        	
-        	synchronized (mAvailableIdentityList) {
+        if (errorStatus == ServiceStatus.SUCCESS) {        	
+        	synchronized (mMyIdentityList) {
 	            mMyIdentityList.clear();
 	            
 	            for (BaseDataType item : data) {
 	            	mMyIdentityList.add((Identity)item);
+	            	HttpConnectionThread.logE("Identity: ", ((Identity)item).toString(), null);
 	            }
-	            mMyIdentityList.add(mobileIdentity);
         	}
         }
         
@@ -677,29 +608,6 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     	int connState = ConnectionManager.getInstance().getConnectionState();
         return (connState == ITcpConnectionListener.STATE_CONNECTED);
     }
-
-    /**
-     * Create cache of 'chat-able' identities.
-     * 
-     * @param list List array of retrieved Identities.
-     */
-    private void makeChatableIdentitiesCache(List<Identity> list) {
-        if (mMyChatableIdentityList == null) {
-            mMyChatableIdentityList = new ArrayList<String>();
-        } else {
-            mMyChatableIdentityList.clear();
-        }
-
-        for (Identity id : list) {
-            if (id.mActive && id.mCapabilities != null) {
-                for (IdentityCapability ic : id.mCapabilities) {
-                    if (ic.mCapability == CapabilityID.chat && ic.mValue) {
-                        mMyChatableIdentityList.add(id.mNetwork);
-                    }
-                }
-            }
-        }
-    }
     
     /**
      * 
@@ -722,7 +630,8 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 	public void onConnectionStateChanged(int state) {
 		if (state == ITcpConnectionListener.STATE_CONNECTED) {
 	        emptyUiRequestQueue();
-	        addUiRequestToQueue(ServiceUiRequest.GET_AVAILABLE_IDENTITIES, getIdentitiesFilter());
+	        sendGetAvailableIdentitiesRequest();
+	        sendGetMyIdentitiesRequest();
 		}
 	}
 	

@@ -107,44 +107,44 @@ public class Identity extends BaseDataType implements Parcelable {
         }
     }
 
-    public String mPluginId = null;
+    public String mPluginId;
 
-    public String mNetwork = null;
+    public String mNetwork;
 
-    public URL mNetworkUrl = null;
+    public URL mNetworkUrl;
 
-    public URL mIconUrl = null;
+    public URL mIconUrl;
 
-    public URL mIcon2Url = null;
+    public URL mIcon2Url;
 
     public String mAuthType;
 
-    public String mIconMime = null;
+    public String mIconMime;
 
-    public Integer mOrder = null;
+    public int mOrder;
 
-    public String mName = null;
+    public String mName;
 
-    public List<IdentityCapability> mCapabilities = null;
+    public List<IdentityCapability> mCapabilities;
 
     /** Properties below are only present after GetMyIdentities. */
-    public Boolean mActive = null;
+    public boolean mActive;
 
-    public Long mCreated = null;
+    public long mCreated;
 
-    public Long mUpdated = null;
+    public long mUpdated;
 
-    public String mIdentityId = null;
+    public String mIdentityId;
 
-    public Integer mUserId = null;
+    public int mUserId;
 
-    public String mUserName = null;
+    public String mUserName;
 
-    public String mDisplayName = null;
+    public String mDisplayName;
 
-    public List<String> mCountryList = null;
+    public List<String> mCountryList;
 
-    public String mIdentityType = null;
+    public String mIdentityType;
     
     private int mType;
 
@@ -156,7 +156,7 @@ public class Identity extends BaseDataType implements Parcelable {
 
         @Override
         public int compare(Identity object1, Identity object2) {
-            return object1.mOrder.compareTo(object2.mOrder);
+            return new Integer(object1.mOrder).compareTo(new Integer(object2.mOrder));
         }
     }
 
@@ -249,9 +249,7 @@ public class Identity extends BaseDataType implements Parcelable {
     /** {@inheritDoc} */
     @Override
     public int getType() {
-        // TODO: Return appropriate type if its 
-        // an available identity instead of my identity
-        return MY_IDENTITY_DATA_TYPE;
+        return mType;
     }
 
     /**
@@ -479,7 +477,7 @@ public class Identity extends BaseDataType implements Parcelable {
         mIconUrl = null;
         mAuthType = null;
         mIconMime = null;
-        mOrder = null;
+        mOrder = -1;
         mName = null;
         mCapabilities = null;
 
@@ -576,7 +574,7 @@ public class Identity extends BaseDataType implements Parcelable {
             dest.writeString(mIconMime);
         }
 
-        if (mOrder != null) {
+        if (mOrder != -1) {
             validDataList[MemberData.ORDER.ordinal()] = true;
             dest.writeInt(mOrder);
         }
