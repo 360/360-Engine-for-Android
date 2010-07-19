@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Vector;
 
 import com.vodafone360.people.datatypes.ActivityContact;
+import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactChanges;
 import com.vodafone360.people.datatypes.ContactDetail;
@@ -72,7 +73,7 @@ public class NowPlusDatatypesTests extends AndroidTestCase {
 		
 		ActivityContact output = ActivityContact.createFromHashTable(hash);
 		
-		assertEquals(input.name(), output.name());
+		assertEquals(input.getType(), output.getType());
 	    assertEquals(input.toString(), output.toString());
 	    assertEquals(input.mAddress, output.mAddress);
 	    assertEquals(input.mAvatarUrl, output.mAvatarUrl);
@@ -111,7 +112,7 @@ public class NowPlusDatatypesTests extends AndroidTestCase {
 		ContactChanges helper = new ContactChanges();
 		ContactChanges output = helper.createFromHashtable(hash);
 		
-		assertEquals(input.name(), output.name());
+		assertEquals(input.getType(), output.getType());
 	    assertEquals(input.toString(), output.toString());
 	    assertEquals(input.mContacts, output.mContacts);
 	    assertEquals(input.mCurrentServerVersion, output.mCurrentServerVersion);
@@ -138,7 +139,7 @@ public class NowPlusDatatypesTests extends AndroidTestCase {
 		ContactDetailDeletion helper = new ContactDetailDeletion();
 		ContactDetailDeletion output = helper.createFromHashtable(hash);
 		
-		assertEquals(input.name(), output.name());
+		assertEquals(input.getType(), output.getType());
 	    assertEquals(input.toString(), output.toString());
 	    assertEquals(input.mServerVersionBefore, output.mServerVersionBefore);
 	    assertEquals(input.mServerVersionAfter, output.mServerVersionAfter);
@@ -166,7 +167,7 @@ public class NowPlusDatatypesTests extends AndroidTestCase {
 		ContactListResponse output = helper.createFromHashTable(hash);	// createFromHashTable should be static
 		
 		input.mContactIdList.add(contactId);
-		assertEquals(input.name(), output.name());
+		assertEquals(input.getType(), output.getType());
 	    assertEquals(input.toString(), output.toString());
 		assertEquals(input.mServerRevisionBefore, output.mServerRevisionBefore);
 		assertEquals(input.mServerRevisionAfter, output.mServerRevisionAfter);
@@ -206,7 +207,7 @@ public class NowPlusDatatypesTests extends AndroidTestCase {
 		GroupItem helper = new GroupItem();
 		GroupItem output = helper.createFromHashtable(hash);
 		
-		assertEquals(input.name(), output.name());
+		assertEquals(input.getType(), output.getType());
 	    assertEquals(input.toString(), output.toString());
 	    assertEquals(input.mGroupType, output.mGroupType);
 	    assertEquals(input.mIsReadOnly, output.mIsReadOnly);
@@ -234,7 +235,7 @@ public class NowPlusDatatypesTests extends AndroidTestCase {
 		IdentityCapability helper = new IdentityCapability();
 		IdentityCapability output = helper.createFromHashtable(hash);
 		
-		assertEquals(input.name(), output.name());
+		assertEquals(input.getType(), output.getType());
 	    assertEquals(input.toString(), output.toString());
 	    assertEquals(input.describeContents(), output.describeContents());
 	    assertEquals(input.mCapability, output.mCapability);
@@ -283,7 +284,7 @@ public class NowPlusDatatypesTests extends AndroidTestCase {
 		Identity helper = new Identity();
 		Identity output = helper.createFromHashtable(hash);
 		
-		assertEquals(input.name(), output.name());
+		assertEquals(input.getType(), output.getType());
 	    assertEquals(input.toString(), output.toString());
 	    assertTrue(input.isSameAs(output));
 	}	
@@ -318,7 +319,7 @@ public class NowPlusDatatypesTests extends AndroidTestCase {
 		
 		GroupItem input = helper.createFromHashtable(hashGroup);
 		GroupItem output = (GroupItem) groupPriv.mItemList.get(0);
-		assertEquals(input.name(), output.name());
+		assertEquals(input.getType(), output.getType());
 	    assertEquals(input.toString(), output.toString());
 	    assertEquals(input.mGroupType, output.mGroupType);
 	    assertEquals(input.mIsReadOnly, output.mIsReadOnly);
@@ -351,7 +352,7 @@ public class NowPlusDatatypesTests extends AndroidTestCase {
 	    PublicKeyDetails output = PublicKeyDetails.createFromHashtable(hash);
 	    
 	    assertEquals(input.describeContents(), output.describeContents());
-	    assertEquals(input.name(), output.name());
+	    assertEquals(input.getType(), output.getType());
 	    assertEquals(input.toString(), output.toString());
 	    assertEquals(input.mModulus, output.mModulus);
 	    assertEquals(input.mExponential, output.mExponential);
@@ -366,7 +367,7 @@ public class NowPlusDatatypesTests extends AndroidTestCase {
 		
 		PushEvent input = (PushEvent) PushEvent.createPushEvent(msg, engId);
 		
-		assertEquals("PushEvent", input.name());
+		assertEquals(BaseDataType.PUSH_EVENT_DATA_TYPE, input.getType());
 		assertEquals(msg.mType, input.mMessageType);
 		assertEquals(engId, input.mEngineId);
 	}
@@ -386,7 +387,7 @@ public class NowPlusDatatypesTests extends AndroidTestCase {
 		StatusMsg helper = new StatusMsg();
 		StatusMsg output = helper.createFromHashtable(hash);
 		
-		assertEquals(input.name(), output.name());
+		assertEquals(BaseDataType.STATUS_MSG_DATA_TYPE, output.getType());
 	    assertEquals(input.toString(), output.toString());
 	    assertEquals(input.mStatus, output.mStatus);
 	    assertEquals(input.mDryRun, output.mDryRun);
@@ -413,7 +414,7 @@ public class NowPlusDatatypesTests extends AndroidTestCase {
 		
 		UserProfile output = UserProfile.createFromHashtable(hash);
 		
-		assertEquals(input.name(), output.name());
+		assertEquals(BaseDataType.USER_PROFILE_DATA_TYPE, output.getType());
 	    assertEquals(input.toString(), output.toString());
 	    assertEquals(input.userID, output.userID);
 	    assertEquals(input.aboutMe, output.aboutMe);

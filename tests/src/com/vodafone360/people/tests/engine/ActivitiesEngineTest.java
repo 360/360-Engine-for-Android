@@ -458,9 +458,8 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
                 mEng.onCommsInMessage();
                 break;
             case GET_ACTIVITIES_SERVER_ERR:
-                ServerError err = new ServerError();
-                err.errorType = "Catastrophe";
-                err.errorValue = "Fail";
+                ServerError err = new ServerError("Catastrophe");
+                err.errorDescription = "Fail";
                 data.add(err);
                 respQueue.addToResponseQueue(reqId, data, engine);
                 mEng.onCommsInMessage();
@@ -481,9 +480,8 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
                 mEng.onCommsInMessage();
                 break;
             case ON_SYNC_COMPLETE:
-                ServerError err2 = new ServerError();
-                err2.errorType = "Catastrophe";
-                err2.errorValue = "Fail";
+                ServerError err2 = new ServerError("Catastrophe");
+                err2.errorDescription = "Fail";
                 data.add(err2);
                 respQueue.addToResponseQueue(reqId, data, engine);
                 mEng.onCommsInMessage();

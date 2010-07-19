@@ -90,7 +90,7 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
         mState = IdentityTestState.FETCH_IDENTITIES;
 
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
-        mEng.addUiFetchIdentities();
+        mEng.getAvailableThirdPartyIdentities();
         // mEng.run();
         ServiceStatus status = mEngineTester.waitForEvent();
         assertEquals(ServiceStatus.SUCCESS, status);
@@ -112,7 +112,7 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
         mState = IdentityTestState.GET_MY_IDENTITIES;
 
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
-        mEng.addUiGetMyIdentities();
+        mEng.getMyThirdPartyIdentities();
         // mEng.run();
         ServiceStatus status = mEngineTester.waitForEvent();
         assertEquals(ServiceStatus.SUCCESS, status);
@@ -133,7 +133,7 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
         mState = IdentityTestState.FETCH_IDENTITIES_FAIL;
 
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
-        mEng.addUiFetchIdentities();
+        mEng.getAvailableThirdPartyIdentities();
         // mEng.run();
         ServiceStatus status = mEngineTester.waitForEvent();
         assertFalse(ServiceStatus.SUCCESS == status);
@@ -148,7 +148,7 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
         mState = IdentityTestState.FETCH_IDENTITIES_POPULATED;
 
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
-        mEng.addUiFetchIdentities();
+        mEng.getAvailableThirdPartyIdentities();
         // mEng.run();
         ServiceStatus status = mEngineTester.waitForEvent();
         assertEquals(ServiceStatus.SUCCESS, status);
@@ -201,7 +201,7 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
         mState = IdentityTestState.GET_CHATABLE_IDENTITIES;
 
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
-        mEng.getMyChatableIdentities();
+        mEng.getMy360AndThirdPartyChattableIdentities();
         ServiceStatus status = mEngineTester.waitForEvent();
         assertEquals(ServiceStatus.SUCCESS, status);
 
@@ -256,9 +256,8 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
                 mEng.onCommsInMessage();
                 break;
             case FETCH_IDENTITIES_FAIL:
-                ServerError err = new ServerError();
-                err.errorType = "Catastrophe";
-                err.errorValue = "Fail";
+                ServerError err = new ServerError("Catastrophe");
+                err.errorDescription = "Fail";
                 data.add(err);
                 respQueue.addToResponseQueue(reqId, data, engine);
                 mEng.onCommsInMessage();
@@ -282,9 +281,8 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
                 mEng.onCommsInMessage();
                 break;
             case VALIDATE_ID_CREDENTIALS_FAIL:
-                ServerError err2 = new ServerError();
-                err2.errorType = "Catastrophe";
-                err2.errorValue = "Fail";
+                ServerError err2 = new ServerError("Catastrophe");
+                err2.errorDescription = "Fail";
                 data.add(err2);
                 respQueue.addToResponseQueue(reqId, data, engine);
                 mEng.onCommsInMessage();
