@@ -42,6 +42,7 @@ import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
+import com.vodafone360.people.service.agent.UiAgent;
 import com.vodafone360.people.service.io.ResponseQueue.Response;
 import com.vodafone360.people.service.io.api.Identities;
 import com.vodafone360.people.service.io.rpg.PushMessageTypes;
@@ -143,6 +144,8 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     private final ArrayList<StatusMsg> mStatusList = new ArrayList<StatusMsg>();
 
     public static final String KEY_DATA = "data";
+	public static final String KEY_AVAILABLE_IDS = "availableids";
+	public static final String KEY_MY_IDS = "myids";
 
     /**
      * Constructor
@@ -502,6 +505,8 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         	}
         }
         
+        pushIdentitiesToUi(ServiceUiRequest.GET_AVAILABLE_IDENTITIES);
+        
         LogUtils.logD("IdentityEngine: handleGetAvailableIdentitiesResponse complete request.");
     }
     
@@ -529,6 +534,8 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 	            }
         	}
         }
+        
+        pushIdentitiesToUi(ServiceUiRequest.GET_MY_IDENTITIES);
         
         LogUtils.logD("IdentityEngine: handleGetMyIdentitiesResponse complete request.");
     }
@@ -598,6 +605,34 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         newState(State.IDLE);
     }
 
+    /**
+     * 
+     * Pushes the identities retrieved by get my identities or by get available identities
+     * to the ui.
+     * 
+     * @param request The request type: either get my identities, or get available identities.
+     */
+    private void pushIdentitiesToUi(ServiceUiRequest request) {
+    	String requestKey = null;
+    	ArrayList<Identity> idBundle = null;
+    	if (request == ServiceUiRequest.GET_AVAILABLE_IDENTITIES) {
+    		requestKey = KEY_AVAILABLE_IDS;
+    		idBundle = mAvailableIdentityList;
+    	} else {
+    		requestKey = KEY_MY_IDS;
+    		idBundle = mMyIdentityList;
+    	}
+    	
+        // send update to 3rd party identities ui if it is up
+        Bundle b = new Bundle();
+        b.putParcelableArrayList(requestKey, idBundle);
+        
+        UiAgent uiAgent = mEventCallback.getUiAgent();
+        if (uiAgent != null && uiAgent.isSubscribed()) {
+            uiAgent.sendUnsolicitedUiEvent(request, b);
+        } // end: send update to 3rd party identities ui if it is up
+    }
+    
     /**
      * Get Connectivity status from the connection manager.
      * 
