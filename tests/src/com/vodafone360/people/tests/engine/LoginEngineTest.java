@@ -563,7 +563,7 @@ public class LoginEngineTest extends InstrumentationTestCase implements
                 mEng.onCommsInMessage();
                 break;
             case REGISTRATION_ERROR:
-                data.add(new ServerError());
+                data.add(new ServerError(ServerError.ErrorType.UNKNOWN));
                 respQueue.addToResponseQueue(reqId, data, engine);
                 mEng.onCommsInMessage();
                 break;
@@ -577,7 +577,7 @@ public class LoginEngineTest extends InstrumentationTestCase implements
                 mEng.onCommsInMessage();
                 break;
             case SERVER_ERROR:
-                data.add(new ServerError());
+                data.add(new ServerError(ServerError.ErrorType.UNKNOWN));
                 respQueue.addToResponseQueue(reqId, data, engine);
                 mEng.onCommsInMessage();
                 break;
