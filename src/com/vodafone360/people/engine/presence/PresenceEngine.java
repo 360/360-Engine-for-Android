@@ -36,6 +36,7 @@ import com.vodafone360.people.database.tables.ActivitiesTable.TimelineSummaryIte
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.ChatMessage;
 import com.vodafone360.people.datatypes.Conversation;
+import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.PresenceList;
 import com.vodafone360.people.datatypes.PushAvailabilityEvent;
 import com.vodafone360.people.datatypes.PushChatMessageEvent;
@@ -416,21 +417,21 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
 
         if (dataTypes != null) {
             for (BaseDataType mBaseDataType : dataTypes) {
-                String name = mBaseDataType.name();
-                if (name.equals(PresenceList.NAME)) {
+                int type = mBaseDataType.getType();
+                if (type == BaseDataType.PRESENCE_LIST_DATA_TYPE) {
                     handlePresenceList((PresenceList)mBaseDataType);
-                } else if (name.equals(PushEvent.NAME)) {
+                } else if (type == BaseDataType.PUSH_EVENT_DATA_TYPE) {
                     handlePushEvent(((PushEvent)mBaseDataType));
-                } else if (name.equals(Conversation.NAME)) {
+                } else if (type == BaseDataType.CONVERSATION_DATA_TYPE) {
                     // a new conversation has just started
                     handleNewConversationId((Conversation)mBaseDataType);
-                } else if (name.equals(SystemNotification.class.getSimpleName())) {
+                } else if (type == BaseDataType.SYSTEM_NOTIFICATION_DATA_TYPE) {
                     handleSystemNotification((SystemNotification)mBaseDataType);
-                } else if (name.equals(ServerError.NAME)) {
+                } else if (type == BaseDataType.SERVER_ERROR_DATA_TYPE) {
                     handleServerError((ServerError)mBaseDataType);
                 } else {
                     LogUtils.logE("PresenceEngine.handleServerResponse()"
-                            + ": response datatype not recognized:" + name);
+                            + ": response datatype not recognized:" + type);
                 }
             }
         } else {
@@ -490,7 +491,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
                 break;
             default:
                 LogUtils.logE("PresenceEngine.handleServerResponse():"
-                        + " push message type was not recognized:" + event.name());
+                        + " push message type was not recognized:" + event.getType());
         }
     }
 
@@ -765,5 +766,31 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     public final void setMyAvailability() {
         initSetMyAvailabilityRequest(getMyAvailabilityStatusFromDatabase());
     }
+
+    /**
+     * Convenience method.
+     * Constructs a Hash table object containing My identities mapped against the provided status.
+     * @param status Presence status to set for all identities
+     * @return The resulting Hash table, is null if no identities are present
+     */
+    public Hashtable<String, String> getPresencesForStatus(OnlineStatus status) {
+        // Get cached identities from the presence engine 
+        ArrayList<Identity> identities = 
+            EngineManager.getInstance().getIdentityEngine().getMy360AndThirdPartyChattableIdentities();
     
+        if(identities == null) {
+            // No identities, just return null
+            return null;
+        }
+    
+        Hashtable<String, String> presences = new Hashtable<String, String>();
+    
+        String statusString = status.toString();
+        for(Identity identity : identities) {
+                presences.put(identity.mNetwork, statusString);
+        }
+        
+        return presences;
+    }
+
 }
