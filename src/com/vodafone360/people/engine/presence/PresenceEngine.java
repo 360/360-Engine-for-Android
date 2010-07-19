@@ -36,7 +36,6 @@ import com.vodafone360.people.database.tables.ActivitiesTable.TimelineSummaryIte
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.ChatMessage;
 import com.vodafone360.people.datatypes.Conversation;
-import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.PresenceList;
 import com.vodafone360.people.datatypes.PushAvailabilityEvent;
 import com.vodafone360.people.datatypes.PushChatMessageEvent;
@@ -417,27 +416,21 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
 
         if (dataTypes != null) {
             for (BaseDataType mBaseDataType : dataTypes) {
-                final int type  = mBaseDataType.getType();
-                switch(type) {
-                    case BaseDataType.PRESENCE_LIST_DATA_TYPE:
-                        handlePresenceList((PresenceList)mBaseDataType);
-                        break;
-                    case BaseDataType.PUSH_EVENT_DATA_TYPE:
-                        handlePushEvent(((PushEvent)mBaseDataType));
-                        break;
-                    case BaseDataType.CONVERSATION_DATA_TYPE:
-                        // a new conversation has just started
-                        handleNewConversationId((Conversation)mBaseDataType);
-                        break;
-                    case BaseDataType.SYSTEM_NOTIFICATION_DATA_TYPE:
-                        handleSystemNotification((SystemNotification)mBaseDataType);
-                        break;
-                    case BaseDataType.SERVER_ERROR_DATA_TYPE:
-                        handleServerError((ServerError)mBaseDataType);
-                        break;
-                    default:
-                        LogUtils.logE("PresenceEngine.handleServerResponse()"
-                                + ": response datatype not recognized:" + type);
+                String name = mBaseDataType.name();
+                if (name.equals(PresenceList.NAME)) {
+                    handlePresenceList((PresenceList)mBaseDataType);
+                } else if (name.equals(PushEvent.NAME)) {
+                    handlePushEvent(((PushEvent)mBaseDataType));
+                } else if (name.equals(Conversation.NAME)) {
+                    // a new conversation has just started
+                    handleNewConversationId((Conversation)mBaseDataType);
+                } else if (name.equals(SystemNotification.class.getSimpleName())) {
+                    handleSystemNotification((SystemNotification)mBaseDataType);
+                } else if (name.equals(ServerError.NAME)) {
+                    handleServerError((ServerError)mBaseDataType);
+                } else {
+                    LogUtils.logE("PresenceEngine.handleServerResponse()"
+                            + ": response datatype not recognized:" + name);
                 }
             }
         } else {
@@ -497,7 +490,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
                 break;
             default:
                 LogUtils.logE("PresenceEngine.handleServerResponse():"
-                        + " push message type was not recognized:" + event.mMessageType);
+                        + " push message type was not recognized:" + event.name());
         }
     }
 
@@ -543,7 +536,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         
         switch (requestId) {
             case SET_MY_AVAILABILITY:
-                Presence.setMyAvailability((Hashtable<String, String>)data);             
+                Presence.setMyAvailability(((OnlineStatus)data).toString());
                 break;
             case SET_MY_AVAILABILITY_FOR_COMMUNITY:
             	Presence.setMyAvailabilityForCommunity();
@@ -598,6 +591,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
                     + " Can't send the setAvailability request due to DB reading errors");
             return;
         }
+
         if ((me.isOnline() == OnlineStatus.ONLINE.ordinal() &&
                 ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED) 
                 || !canRun()) {
@@ -640,15 +634,12 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
             return;
         }
         
-        // Get presence list constructed from identities
-        Hashtable<String, String> presences = getPresencesForStatus(status);
-        if(presences == null) {
-            LogUtils.logW("setMyAvailability() Ignoring setMyAvailability request because there are no identities!");
-            return;
-        }
+        // Get presences
+        // TODO: Fill up hashtable with identities and online statuses
+        Hashtable<String, String> presenceList = HardcodedUtils.createMyAvailabilityHashtable(status);
         
         User me = new User(String.valueOf(PresenceDbUtils.getMeProfileUserId(mDbHelper)),
-                presences);
+                presenceList);
         
         // set the DB values for myself
         me.setLocalContactId(SyncMeDbUtils.getMeProfileLocalContactId(mDbHelper));
@@ -656,7 +647,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
 
         // set the engine to run now
         
-        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presences);
+        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presenceList);
     }
         
     /**
@@ -747,6 +738,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
             }
         }
     }
+    
     public void onConnectionStateChanged(int state) {
         if (mLoggedIn && canRun()) {
             switch (state) {
@@ -764,6 +756,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         }
     }
         
+
     /**
      * This method gets the availability information for Me Profile from the Presence
      * table and updates the same to the server.
@@ -772,29 +765,4 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         initSetMyAvailabilityRequest(getMyAvailabilityStatusFromDatabase());
     }
     
-    /**
-     * Convenience method.
-     * Constructs a Hash table object containing My identities mapped against the provided status.
-     * @param status Presence status to set for all identities
-     * @return The resulting Hash table, is null if no identities are present
-     */
-    public Hashtable<String, String> getPresencesForStatus(OnlineStatus status) {
-        // Get cached identities from the presence engine 
-        ArrayList<Identity> identities = 
-            EngineManager.getInstance().getIdentityEngine().getMy360AndThirdPartyChattableIdentities();
-    
-        if(identities == null) {
-            // No identities, just return null
-            return null;
-        }
-    
-        Hashtable<String, String> presences = new Hashtable<String, String>();
-    
-        String statusString = status.toString();
-        for(Identity identity : identities) {
-                presences.put(identity.mNetwork, statusString);
-        }
-        
-        return presences;
-    }
 }
