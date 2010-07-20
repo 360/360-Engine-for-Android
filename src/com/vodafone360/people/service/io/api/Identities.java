@@ -167,7 +167,7 @@ public class Identities {
      */
     public static int validateIdentityCredentials(BaseEngine engine, Boolean dryrun,
             String network, String username, String password, String server, String contactdetail,
-            Map<String, Object> identitycapabilitystatus) {
+            Map<String, Boolean> identitycapabilitystatus) {
         if (LoginEngine.getSession() == null) {
             LogUtils.logE("Identities.validateIdentityCredentials() Invalid session, return -1");
             return -1;

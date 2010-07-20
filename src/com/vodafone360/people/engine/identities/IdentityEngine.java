@@ -40,6 +40,7 @@ import com.vodafone360.people.datatypes.StatusMsg;
 import com.vodafone360.people.engine.BaseEngine;
 import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.EngineManager.EngineId;
+import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.UiAgent;
@@ -47,7 +48,6 @@ import com.vodafone360.people.service.io.ResponseQueue.Response;
 import com.vodafone360.people.service.io.api.Identities;
 import com.vodafone360.people.service.io.rpg.PushMessageTypes;
 import com.vodafone360.people.service.transport.ConnectionManager;
-import com.vodafone360.people.service.transport.http.HttpConnectionThread;
 import com.vodafone360.people.service.transport.tcp.ITcpConnectionListener;
 import com.vodafone360.people.utils.LogUtils;
 
@@ -67,7 +67,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         IDLE,
         FETCHING_IDENTITIES,
         VALIDATING_IDENTITY_CREDENTIALS,
-        SETTING_IDENTITY_CAPABILITY_STATUS,
+        SETTING_IDENTITY_STATUS,
         GETTING_MY_IDENTITIES,
         GETTING_MY_CHATABLE_IDENTITIES
     }
@@ -103,15 +103,16 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * dry-run flag, network, user-name, password, set of required capabilities.
      */
     private static class IdentityValidateCredentialsRequest {
+    	/** Performs a dry run if true. */
         private boolean mDryRun;
-
+        /** Network to sign into. */
         private String mNetwork;
-
+        /** Username to sign into identity with. */
         private String mUserName;
-
+        /** Password to sign into identity with. */
         private String mPassword;
 
-        private Map<String, Object> mStatus = null;
+        private Map<String, Boolean> mStatus = null;
 
         /**
          * Supply filter containing required capabilities.
@@ -130,6 +131,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     /** The timestamp of which available identities were last requested. */
     private long mLastAvailableIdentitiesRequestTimestamp;
     
+    /** The state of the state machine handling ui requests. */
     private State mState = State.IDLE;
 
     /** List array of Identities retrieved from Server. */
@@ -141,10 +143,14 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     /** List array of Identities supporting chat retrieved from Server. */
     private ArrayList<String> mMyChatableIdentityList = null;
 
+    /** Holds the status messages of the setIdentityCapability-request. */
     private final ArrayList<StatusMsg> mStatusList = new ArrayList<StatusMsg>();
 
+    /** The key for setIdentityCapability data type for the push ui message. */
     public static final String KEY_DATA = "data";
+    /** The key for available identities for the push ui message. */
 	public static final String KEY_AVAILABLE_IDS = "availableids";
+	/** The key for my identities for the push ui message. */
 	public static final String KEY_MY_IDS = "myids";
 
     /**
@@ -179,9 +185,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     				> MIN_REQUEST_INTERVAL)) {
     		sendGetAvailableIdentitiesRequest();
     	}
-    	
-    	HttpConnectionThread.logE("getAvailableThirdPartyIdentities", mAvailableIdentityList.toString(), null);
-    	
+    	    	
     	return mAvailableIdentityList;
     }
     
@@ -199,9 +203,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     				> MIN_REQUEST_INTERVAL)) {
     		sendGetMyIdentitiesRequest();
     	}
-    	
-    	HttpConnectionThread.logE("IE.getMyThirdPartyIdentities", mMyIdentityList.toString(), null);
-    	
+    	    	
     	return mMyIdentityList;
 	}
     
@@ -217,10 +219,11 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      */
     public ArrayList<Identity> getMy360AndThirdPartyChattableIdentities() {
     	ArrayList<Identity> chatableIdentities = new ArrayList<Identity>();
+    	int identityListSize = mMyIdentityList.size(); 
     	
     	// checking each identity for its chat capability and adding it to the
     	// list if it does
-    	for (int i = 0; i < mMyIdentityList.size(); i++) {
+    	for (int i = 0; i < identityListSize; i++) {
     		Identity identity = mMyIdentityList.get(i);
     		List<IdentityCapability> capabilities = identity.mCapabilities;
     		
@@ -245,15 +248,15 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     	}
     	
     	// add mobile identity to support 360 chat
-    	IdentityCapability iCapability = new IdentityCapability();
-    	iCapability.mCapability = IdentityCapability.CapabilityID.chat;
-    	iCapability.mValue = new Boolean(true);
+    	IdentityCapability capability = new IdentityCapability();
+    	capability.mCapability = IdentityCapability.CapabilityID.chat;
+    	capability.mValue = new Boolean(true);
     	ArrayList<IdentityCapability> mobileCapabilities = 
     								new ArrayList<IdentityCapability>();
-    	mobileCapabilities.add(iCapability);
+    	mobileCapabilities.add(capability);
     	
     	Identity mobileIdentity = new Identity();
-    	mobileIdentity.mNetwork = "mobile";
+    	mobileIdentity.mNetwork = SocialNetwork.MOBILE.toString();
     	mobileIdentity.mName = "Vodafone";
     	mobileIdentity.mCapabilities = mobileCapabilities;
     	chatableIdentities.add(mobileIdentity);
@@ -280,14 +283,11 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     }
 
     /**
-     * Add request to set the capabilities we wish to support for the specified
-     * identity (such as support sync of contacts, receipt of status updates,
-     * chat etc.)
+     * Enables or disables the given social network.
      * 
      * @param network Name of the identity,
      * @param identityId Id of identity.
-     * @param identityStatus Bundle containing the capability information for
-     *            this identity.
+     * @param identityStatus True if identity should be enabled, false otherwise.
      */
     public void addUiSetIdentityStatus(String network, String identityId, boolean identityStatus) {
         LogUtils.logD("IdentityEngine.addUiSetIdentityCapabilityStatus()");
@@ -337,8 +337,6 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
                 executeValidateIdentityCredentialsRequest(data);
                 break;
             case SET_IDENTITY_CAPABILITY_STATUS:
-                // changed the method called
-                // startSetIdentityCapabilityStatus(data);
                 executeSetIdentityStatusRequest(data);
                 break;
             default:
@@ -357,7 +355,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         if (!isConnected()) {
             return;
         }
-        newState(State.SETTING_IDENTITY_CAPABILITY_STATUS);
+        newState(State.SETTING_IDENTITY_STATUS);
         IdentityStatusRequest reqData = (IdentityStatusRequest)data;
         if (!setReqId(Identities.setIdentityStatus(this, reqData.mNetwork, reqData.mIdentityId,
                 reqData.mIdentityStatus))) {
@@ -399,10 +397,10 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     protected void processCommsResponse(Response resp) {
         LogUtils.logD("IdentityEngine.processCommsResponse() - resp = " + resp);
         
-        if (resp.mReqId == 0 && resp.mDataTypes.size() > 0) {
+        if (resp.mReqId == 0 && resp.mDataTypes.size() > 0) {	// push msg
             PushEvent evt = (PushEvent)resp.mDataTypes.get(0);
             handlePushResponse(evt.mMessageType);
-        } else {
+        } else if (resp.mDataTypes.size() > 0) {				// regular response
 	        switch (resp.mDataTypes.get(0).getType()) {
 	        	case BaseDataType.MY_IDENTITY_DATA_TYPE:
 	        		handleGetMyIdentitiesResponse(resp.mDataTypes);
@@ -411,15 +409,17 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 	        		handleGetAvailableIdentitiesResponse(resp.mDataTypes);
 	        		break;
 	        	case BaseDataType.IDENTITY_CAPABILITY_DATA_TYPE:
-	        		handleSetIdentityCapabilityStatus(resp.mDataTypes);
+	        		handleSetIdentityStatus(resp.mDataTypes);
 	        		break;
 	        	case BaseDataType.STATUS_MSG_DATA_TYPE:
 	        		handleValidateIdentityCredentials(resp.mDataTypes);
 	        		break;
 	            default:
-	                LogUtils.logW("DEFAULT should never happened.");
+	                LogUtils.logW("IdentityEngine.processCommsResponse DEFAULT should never happened.");
 	                break;
 	        }
+        } else {
+        	LogUtils.logW("IdentityEngine.processCommsResponse List was empty!");
         }
     }
 
@@ -489,9 +489,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * 
      * @param data List of BaseDataTypes generated from Server response.
      */
-    private void handleGetAvailableIdentitiesResponse(List<BaseDataType> data) {
-    	HttpConnectionThread.logE("IE.handleGetAvailableIdentitiesResponse", "", null);
-    	
+    private void handleGetAvailableIdentitiesResponse(List<BaseDataType> data) {    	
         LogUtils.logD("IdentityEngine: handleServerGetAvailableIdentitiesResponse");
         ServiceStatus errorStatus = getResponseStatus(BaseDataType.AVAILABLE_IDENTITY_DATA_TYPE, data);
         
@@ -518,9 +516,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * 
      * @param data List of BaseDataTypes generated from Server response.
      */
-    private void handleGetMyIdentitiesResponse(List<BaseDataType> data) {
-    	HttpConnectionThread.logE("handleGetMyIdentitiesResponse", "", null);
-    	
+    private void handleGetMyIdentitiesResponse(List<BaseDataType> data) {    	
         LogUtils.logD("IdentityEngine: handleGetMyIdentitiesResponse");
         ServiceStatus errorStatus = getResponseStatus(BaseDataType.MY_IDENTITY_DATA_TYPE, data);
         
@@ -530,7 +526,6 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 	            
 	            for (BaseDataType item : data) {
 	            	mMyIdentityList.add((Identity)item);
-	            	HttpConnectionThread.logE("Identity: ", ((Identity)item).toString(), null);
 	            }
         	}
         }
@@ -585,7 +580,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * 
      * @param data List of BaseDataTypes generated from Server response.
      */
-    private void handleSetIdentityCapabilityStatus(List<BaseDataType> data) {
+    private void handleSetIdentityStatus(List<BaseDataType> data) {
         Bundle bu = null;
         ServiceStatus errorStatus = getResponseStatus(BaseDataType.STATUS_MSG_DATA_TYPE, data);
         if (errorStatus == ServiceStatus.SUCCESS) {
@@ -713,10 +708,10 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * @param filter Bundle containing filter.
      * @return Map containing set of capabilities.
      */
-    private static Map<String, Object> prepareBoolFilter(Bundle filter) {
-        Map<String, Object> objectFilter = null;
+    private static Map<String, Boolean> prepareBoolFilter(Bundle filter) {
+        Map<String, Boolean> objectFilter = null;
         if (filter != null && (filter.keySet().size() > 0)) {
-            objectFilter = new Hashtable<String, Object>();
+            objectFilter = new Hashtable<String, Boolean>();
             for (String key : filter.keySet()) {
                 objectFilter.put(key, filter.getBoolean(key));
             }

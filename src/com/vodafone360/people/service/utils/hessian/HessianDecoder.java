@@ -244,18 +244,18 @@ public class HessianDecoder {
                 mResultList.add(UserProfile.createFromHashtable(userProfileHash));
             } else if ((map.containsKey(KEY_IDENTITY_LIST))
                     || (map.containsKey(KEY_AVAILABLE_IDENTITY_LIST))) {
-            	int mType = 0;
+            	int identityType = 0;
                 Vector<Hashtable<String, Object>> idcap = null;
                 if (map.containsKey(KEY_IDENTITY_LIST)) {
                     idcap = (Vector<Hashtable<String, Object>>)map.get(KEY_IDENTITY_LIST);
-                    mType = BaseDataType.MY_IDENTITY_DATA_TYPE;
+                    identityType = BaseDataType.MY_IDENTITY_DATA_TYPE;
                 } else {
                     idcap = (Vector<Hashtable<String, Object>>)map.get(KEY_AVAILABLE_IDENTITY_LIST);
-                    mType = BaseDataType.AVAILABLE_IDENTITY_DATA_TYPE;
+                    identityType = BaseDataType.AVAILABLE_IDENTITY_DATA_TYPE;
                 }
 
                 for (Hashtable<String, Object> obj : idcap) {
-                    Identity id = new Identity(mType);
+                    Identity id = new Identity(identityType);
                     mResultList.add(id.createFromHashtable(obj));
                 }
 
