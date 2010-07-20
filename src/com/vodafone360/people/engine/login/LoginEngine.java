@@ -109,6 +109,7 @@ public class LoginEngine extends BaseEngine {
      * mutex for thread synchronization
      */
     private final Object mMutex = new Object();
+    /**
      * To convert between seconds and milliseconds
      */
     private static final int MS_IN_SECONDS = 1000;
@@ -528,7 +529,7 @@ public class LoginEngine extends BaseEngine {
             case FETCHING_TERMS_OF_SERVICE:
             case FETCHING_PRIVACY_STATEMENT:
             case FETCHING_USERNAME_STATE:
-                handleServerSimpleTextResponse(resp.mDataTypes, mState);
+                handleServerSimpleTextResponse(resp.mDataTypes);
                 break;
             default: // do nothing.
                 break;
@@ -1284,6 +1285,25 @@ public class LoginEngine extends BaseEngine {
         }
         completeUiRequest(errorStatus, null);
     }
+    
+    /***
+    * Informs the UI to update any terms which are being shown on screen.
+    *
+    * @param serviceStatus Current ServiceStatus.
+    * @param messageText Legacy call for old UI (TODO: remove after UI-Refresh
+    * merge). NULL when combined with a ServiceStatus of
+    * ERROR_COMMS, or contains the Privacy or Terms and Conditions
+    * text to be displayed in the UI.
+    */
+        private void updateTermsState(ServiceStatus serviceStatus, String messageText) {
+            ApplicationCache.setTermsStatus(serviceStatus);
+
+            /** Trigger UiAgent. **/
+            mUiAgent.sendUnsolicitedUiEvent(ServiceUiRequest.TERMS_CHANGED_EVENT, null);
+
+            /** Clear this request from the UI queue. **/
+            completeUiRequest(serviceStatus, messageText);
+        }
 
     /**
      * A broadcast receiver which is used to receive notifications when a data
