@@ -140,7 +140,7 @@ public class ChatMessage extends BaseDataType {
 =======
     @Override
     public int getType() {
->>>>>>> Fixing the wrecked code from my failed merge
+>>>>>>> 67ee645c05be823948f5424f686f7b2719140f8e
         return CHAT_MSG_DATA_TYPE;
     }
 

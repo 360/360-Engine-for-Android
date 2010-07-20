@@ -158,19 +158,11 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     public long getNextRunTime() {
         if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED || !mLoggedIn) {
             return -1;
-<<<<<<< HEAD
-        if (!canRun()) {
-            mNextRuntime = -1;
-            LogUtils.logV("PresenceEngine.getNextRunTime(): 1st contact sync is not finished:"
-                    + mNextRuntime);
-            return mNextRuntime;
-=======
         }
 
         if (!isFirstTimeSyncComplete()) {
             LogUtils.logV("PresenceEngine.getNextRunTime(): 1st contact sync is not finished:");
             return -1;
->>>>>>> Code review comments by Rudy
         }
 
         /**
@@ -743,7 +735,8 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
             }
         }
     }
-    
+
+    @Override
     public void onConnectionStateChanged(int state) {
         if (mLoggedIn && isFirstTimeSyncComplete()) {
             switch (state) {
@@ -760,7 +753,11 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
             }    
         }
     }
+<<<<<<< HEAD
         
+=======
+    
+>>>>>>> 67ee645c05be823948f5424f686f7b2719140f8e
 
     /**
      * This method gets the availability information for Me Profile from the Presence

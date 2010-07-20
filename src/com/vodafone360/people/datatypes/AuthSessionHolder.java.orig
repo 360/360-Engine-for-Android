@@ -92,13 +92,12 @@ public class AuthSessionHolder extends BaseDataType {
     }
 
 <<<<<<< HEAD
-    /** {@inheritDoc} */
-    @Override
+
     public int getType() {
 =======
 
     public int getType() {
->>>>>>> Fixing the wrecked code from my failed merge
+>>>>>>> 67ee645c05be823948f5424f686f7b2719140f8e
         return AUTH_SESSION_HOLDER_TYPE;
     }
 

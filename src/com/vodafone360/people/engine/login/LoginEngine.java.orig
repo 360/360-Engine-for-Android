@@ -110,10 +110,8 @@ public class LoginEngine extends BaseEngine {
      * mutex for thread synchronization
      */
     private final Object mMutex = new Object();
-
-    /**
 =======
->>>>>>> Changed the horrid String name() for Data type to a plain int type(). This should help with the refactoring not mention GC and speed.
+>>>>>>> 67ee645c05be823948f5424f686f7b2719140f8e
      * To convert between seconds and milliseconds
      */
     private static final int MS_IN_SECONDS = 1000;

@@ -205,7 +205,7 @@ public class Contact extends BaseDataType implements Parcelable, Persistable {
 =======
     @Override
     public int getType() {
->>>>>>> Fixing the wrecked code from my failed merge
+>>>>>>> 67ee645c05be823948f5424f686f7b2719140f8e
         return CONTACT_DATA_TYPE;
     }
 
