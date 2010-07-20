@@ -220,13 +220,19 @@ public class NativeImporter {
             // accounts otherwise
             if (firstTimeImport) {
                 ArrayList<Account> accountList = new ArrayList<Account>();
-                for (Account account : mNativeContactsApi
-                        .getAccountsByType(NativeContactsApi.GOOGLE_ACCOUNT_TYPE)) {
-                    accountList.add(account);
+                
+                Account googleAccounts[]=mNativeContactsApi.getAccountsByType(NativeContactsApi.GOOGLE_ACCOUNT_TYPE);
+                if (googleAccounts!=null && googleAccounts.length>0){
+                  for (Account account : mNativeContactsApi
+                          .getAccountsByType(NativeContactsApi.GOOGLE_ACCOUNT_TYPE)) {
+                      accountList.add(account);
+                  }
                 }
-                for (Account account : mNativeContactsApi
-                        .getAccountsByType(NativeContactsApi.PHONE_ACCOUNT_TYPE)) {
-                    accountList.add(account);
+                Account phoneAccounts[]=mNativeContactsApi.getAccountsByType(NativeContactsApi.PHONE_ACCOUNT_TYPE);
+                if (phoneAccounts!=null && phoneAccounts.length>0){
+                  for (Account account : phoneAccounts) {
+                     accountList.add(account);
+                  }
                 }
                 mAccounts = accountList.toArray(new Account[0]);
             } else {
