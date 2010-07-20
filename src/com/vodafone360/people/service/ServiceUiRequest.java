@@ -224,10 +224,6 @@ public enum ServiceUiRequest {
      * Request to set the presence availability status. 
      */
     SET_MY_AVAILABILITY,
-    /**
-     * Request to set the presence availability status for a single community
-     */
-    SET_MY_AVAILABILITY_FOR_COMMUNITY,
     /** Start a chat conversation. */
     CREATE_CONVERSATION,
     /** Send chat message. */

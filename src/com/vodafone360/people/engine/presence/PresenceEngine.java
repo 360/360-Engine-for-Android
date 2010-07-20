@@ -537,11 +537,8 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         
         switch (requestId) {
             case SET_MY_AVAILABILITY:
-                Presence.setMyAvailability(((OnlineStatus)data).toString());
+                Presence.setMyAvailability((Hashtable<String,String>)data);
                 break;
-            case SET_MY_AVAILABILITY_FOR_COMMUNITY:
-            	Presence.setMyAvailabilityForCommunity();
-            	break;
             case GET_PRESENCE_LIST:
                 Presence.getPresenceList(EngineId.PRESENCE_ENGINE, null);
                 break;
