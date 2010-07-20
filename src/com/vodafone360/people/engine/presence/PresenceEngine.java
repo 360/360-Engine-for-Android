@@ -145,12 +145,11 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     }
 
     /**
-     * checks the external conditions which have to be happen before the engine
-     * can run
+     * Checks if the SyncMe and ContactSync Engines have both completed first time sync.
      * 
-     * @return true if everything is ready
+     * @return true if both engines have completed first time sync
      */
-    private boolean canRun() {
+    private boolean isFirstTimeSyncComplete() {
         return EngineManager.getInstance().getSyncMeEngine().isFirstTimeMeSyncComplete() &&
             EngineManager.getInstance().getContactSyncEngine().isFirstTimeSyncComplete();
     }
@@ -159,11 +158,11 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     public long getNextRunTime() {
         if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED || !mLoggedIn) {
             return -1;
-        if (!canRun()) {
-            mNextRuntime = -1;
-            LogUtils.logV("PresenceEngine.getNextRunTime(): 1st contact sync is not finished:"
-                    + mNextRuntime);
-            return mNextRuntime;
+        }
+
+        if (!isFirstTimeSyncComplete()) {
+            LogUtils.logV("PresenceEngine.getNextRunTime(): 1st contact sync is not finished:");
+            return -1;
         }
 
         /**
@@ -227,7 +226,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         LogUtils.logI("PresenceEngine.onLoginStateChanged() loggedIn[" + loggedIn + "]");
         mLoggedIn = loggedIn;
         if (mLoggedIn) {
-            if (canRun()) {
+            if (isFirstTimeSyncComplete()) {
                 getPresenceList();
                 initSetMyAvailabilityRequest(getMyAvailabilityStatusFromDatabase());
                 setTimeout(CHECK_FREQUENCY);    
@@ -251,7 +250,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         // Offline presence update request should take the highest priority.
         mUsers = null;
         mState = IDLE;
-        mEventCallback.getUiAgent().updatePresence(-1);
+        mEventCallback.getUiAgent().updatePresence(UiAgent.ALL_USERS);
     }
 
     @Override
@@ -269,7 +268,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
             case IDLE:
             default:
                 if (mLoggedIn) {
-                    if (canRun()) {
+                    if (isFirstTimeSyncComplete()) {
                         getPresenceList();
                         initSetMyAvailabilityRequest(getMyAvailabilityStatusFromDatabase());
                         // Request to update the UI
@@ -522,7 +521,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
 
     @Override
     protected void processUiRequest(ServiceUiRequest requestId, Object data) {
-        if (!canRun()) {
+        if (!isFirstTimeSyncComplete()) {
             LogUtils.logE("PresenceEngine.processUIRequest():"
                     + " Can't run PresenceEngine before the contact list is downloaded:1");
             return;
@@ -592,7 +591,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
 
         if ((me.isOnline() == OnlineStatus.ONLINE.ordinal() &&
                 ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED) 
-                || !canRun()) {
+                || !isFirstTimeSyncComplete()) {
           LogUtils.logD("PresenceEngine.initSetMyAvailabilityRequest():"
                   + " return NO NETWORK CONNECTION or not ready");
           return;
@@ -736,9 +735,10 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
             }
         }
     }
-    
+
+    @Override
     public void onConnectionStateChanged(int state) {
-        if (mLoggedIn && canRun()) {
+        if (mLoggedIn && isFirstTimeSyncComplete()) {
             switch (state) {
                 case STATE_CONNECTED:
                     getPresenceList();
