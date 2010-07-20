@@ -63,7 +63,10 @@
 			
 			<ListView android:id="@id/android:list"
 			 	android:layout_width="fill_parent" 
-			 	android:layout_height="fill_parent">
+			 	android:layout_height="fill_parent"
+			 	android:cacheColorHint="#ffffff"
+			 	>
+			 	
 			</ListView>
 			
 			<!-- this is needed because when the list above is set to wrap_content

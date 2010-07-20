@@ -211,31 +211,31 @@ public abstract class ContactSummaryTable {
      * Column indices which match the query string returned by
      * {@link #getFullQueryList()}.
      */
-    private static final int SUMMARY_ID = 0;
+    public static final int SUMMARY_ID = 0;
 
-    private static final int LOCALCONTACT_ID = 1;
+    public static final int LOCALCONTACT_ID = 1;
 
-    private static final int FORMATTED_NAME = 2;
+    public static final int FORMATTED_NAME = 2;
 
-    private static final int STATUS_TEXT = 3;
+    public static final int STATUS_TEXT = 3;
 
     @SuppressWarnings("unused")
     @Deprecated
-    private static final int ONLINE_STATUS = 4;
+    public static final int ONLINE_STATUS = 4;
 
-    private static final int NATIVE_CONTACTID = 5;
+    public static final int NATIVE_CONTACTID = 5;
 
-    private static final int FRIEND_MINE = 6;
+    public static final int FRIEND_MINE = 6;
 
-    private static final int PICTURE_LOADED = 7;
+    public static final int PICTURE_LOADED = 7;
 
-    private static final int SNS = 8;
+    public static final int SNS = 8;
 
-    private static final int SYNCTOPHONE = 9;
+    public static final int SYNCTOPHONE = 9;
 
-    private static final int ALTFIELD_TYPE = 10;
+    public static final int ALTFIELD_TYPE = 10;
 
-    private static final int ALTDETAIL_TYPE = 11;
+    public static final int ALTDETAIL_TYPE = 11;
 
     /**
      * Fetches the contact summary data from the current record of the given
@@ -1277,7 +1277,7 @@ public abstract class ContactSummaryTable {
      * @param localContactID
      * @return the presence status of the contact
      */
-    private synchronized static OnlineStatus getPresence(Long localContactID) {
+    public synchronized static OnlineStatus getPresence(Long localContactID) {
         OnlineStatus onlineStatus = OnlineStatus.OFFLINE;
         Integer val = sPresenceMap.get(localContactID);
         if (val != null) {
