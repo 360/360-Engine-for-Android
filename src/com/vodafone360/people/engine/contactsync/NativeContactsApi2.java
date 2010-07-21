@@ -100,7 +100,7 @@ public class NativeContactsApi2 extends NativeContactsApi {
     /**
      * Vendor specific account. Only used in 2.x API.
      */
-    private static Account PHONE_ACCOUNT = null;
+    private static Account sPhoneAccount = null;
 
     /**
      * Regular expression for a date that can be handled by the People Client at
@@ -384,7 +384,7 @@ public class NativeContactsApi2 extends NativeContactsApi {
     @Override
     protected void initialize() {
         // perform here any one time initialization
-        PHONE_ACCOUNT = getVendorSpecificAccount();
+        sPhoneAccount = getVendorSpecificAccount();
     }
 
     /**
@@ -487,16 +487,16 @@ public class NativeContactsApi2 extends NativeContactsApi {
                         accounts[i] = new Account(accounts2xApi[i].name, accounts2xApi[i].type);
                     }
                     return accounts;
-                }else{
+                } else {
                     return null;
                 }
             }
             case PHONE_ACCOUNT_TYPE: {
-                if (PHONE_ACCOUNT==null){
+                if (sPhoneAccount == null) {
                     return null;
                 }
                 return new Account[] {
-                    PHONE_ACCOUNT
+                    sPhoneAccount
                 };
             }
             default:
