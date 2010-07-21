@@ -529,7 +529,7 @@ public class LoginEngine extends BaseEngine {
             case FETCHING_TERMS_OF_SERVICE:
             case FETCHING_PRIVACY_STATEMENT:
             case FETCHING_USERNAME_STATE:
-                handleServerSimpleTextResponse(resp.mDataTypes);
+                handleServerSimpleTextResponse(resp.mDataTypes, mState);
                 break;
             default: // do nothing.
                 break;
@@ -1275,35 +1275,51 @@ public class LoginEngine extends BaseEngine {
      * 
      * @param data The received data
      */
-    private void handleServerSimpleTextResponse(List<BaseDataType> data) {
-        LogUtils.logD("LoginEngine.handleServerSimpleTextResponse()");
-        ServiceStatus errorStatus = getResponseStatus(BaseDataType.SIMPLE_TEXT_DATA_TYPE, data);
-        if (errorStatus == ServiceStatus.SUCCESS) {
-            SimpleText simpleText = (SimpleText)data.get(0);
-            completeUiRequest(ServiceStatus.SUCCESS, simpleText.mValue.toString());
-            return;
+    private void handleServerSimpleTextResponse(List<BaseDataType> data, State type) {
+        LogUtils.logV("LoginEngine.handleServerSimpleTextResponse()");
+        ServiceStatus serviceStatus = getResponseStatus(BaseDataType.SIMPLE_TEXT_DATA_TYPE, data);
+
+        String result = null;
+        if (serviceStatus == ServiceStatus.SUCCESS) {
+            result = ((SimpleText) data.get(0)).mValue.toString().replace(
+                    CARRIAGE_RETURN_CHARACTER, SPACE_CHARACTER);
+
+            switch (type) {
+                case FETCHING_TERMS_OF_SERVICE:
+                    LogUtils.logD("LoginEngine.handleServerSimpleTextResponse() Terms of Service");
+                    ApplicationCache.setTermsOfService(result, mContext);
+                    break;
+                case FETCHING_PRIVACY_STATEMENT:
+                    LogUtils.logD("LoginEngine.handleServerSimpleTextResponse() Privacy Statemet");
+                    ApplicationCache.setPrivacyStatemet(result, mContext);
+                    break;
+                case FETCHING_USERNAME_STATE:
+                    // TODO: Unused by UI.
+                    break;
+            }
         }
-        completeUiRequest(errorStatus, null);
+
+        updateTermsState(serviceStatus, result);
     }
-    
+
     /***
-    * Informs the UI to update any terms which are being shown on screen.
-    *
-    * @param serviceStatus Current ServiceStatus.
-    * @param messageText Legacy call for old UI (TODO: remove after UI-Refresh
-    * merge). NULL when combined with a ServiceStatus of
-    * ERROR_COMMS, or contains the Privacy or Terms and Conditions
-    * text to be displayed in the UI.
-    */
-        private void updateTermsState(ServiceStatus serviceStatus, String messageText) {
-            ApplicationCache.setTermsStatus(serviceStatus);
+     * Informs the UI to update any terms which are being shown on screen.
+     *
+     * @param serviceStatus Current ServiceStatus.
+     * @param messageText Legacy call for old UI (TODO: remove after UI-Refresh
+     *          merge).  NULL when combined with a ServiceStatus of
+     *          ERROR_COMMS, or contains the Privacy or Terms and Conditions
+     *          text to be displayed in the UI.
+     */
+    private void updateTermsState(ServiceStatus serviceStatus, String messageText) {
+        ApplicationCache.setTermsStatus(serviceStatus);
 
-            /** Trigger UiAgent. **/
-            mUiAgent.sendUnsolicitedUiEvent(ServiceUiRequest.TERMS_CHANGED_EVENT, null);
+        /** Trigger UiAgent. **/
+        mUiAgent.sendUnsolicitedUiEvent(ServiceUiRequest.TERMS_CHANGED_EVENT, null);
 
-            /** Clear this request from the UI queue. **/
-            completeUiRequest(serviceStatus, messageText);
-        }
+        /** Clear this request from the UI queue. **/
+        completeUiRequest(serviceStatus, messageText);
+    }
 
     /**
      * A broadcast receiver which is used to receive notifications when a data
