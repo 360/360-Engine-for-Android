@@ -221,15 +221,15 @@ public class NativeImporter {
             if (firstTimeImport) {
                 ArrayList<Account> accountList = new ArrayList<Account>();
                 
-                Account googleAccounts[]=mNativeContactsApi.getAccountsByType(NativeContactsApi.GOOGLE_ACCOUNT_TYPE);
-                if (googleAccounts!=null && googleAccounts.length>0){
-                  for (Account account : mNativeContactsApi
-                          .getAccountsByType(NativeContactsApi.GOOGLE_ACCOUNT_TYPE)) {
+                Account googleAccounts[] = mNativeContactsApi.getAccountsByType(NativeContactsApi.GOOGLE_ACCOUNT_TYPE);
+                if (googleAccounts!=null ){
+                  for (Account account : googleAccounts) {
                       accountList.add(account);
                   }
                 }
-                Account phoneAccounts[]=mNativeContactsApi.getAccountsByType(NativeContactsApi.PHONE_ACCOUNT_TYPE);
-                if (phoneAccounts!=null && phoneAccounts.length>0){
+                
+                Account phoneAccounts[] = mNativeContactsApi.getAccountsByType(NativeContactsApi.PHONE_ACCOUNT_TYPE);
+                if (phoneAccounts!=null){
                   for (Account account : phoneAccounts) {
                      accountList.add(account);
                   }
@@ -334,7 +334,7 @@ public class NativeImporter {
         LogUtils.logD("NativeImporter.getIdsLists()");
 
         // Get the list of native ids for the contacts
-        if (mAccounts == null) {
+        if (mAccounts == null || 0 == mAccounts.length) {
 
             // default account
             LogUtils.logD("NativeImporter.getIdsLists() - using default account");

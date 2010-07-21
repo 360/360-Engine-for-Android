@@ -487,9 +487,14 @@ public class NativeContactsApi2 extends NativeContactsApi {
                         accounts[i] = new Account(accounts2xApi[i].name, accounts2xApi[i].type);
                     }
                     return accounts;
+                }else{
+                    return null;
                 }
             }
             case PHONE_ACCOUNT_TYPE: {
+                if (PHONE_ACCOUNT==null){
+                    return null;
+                }
                 return new Account[] {
                     PHONE_ACCOUNT
                 };
