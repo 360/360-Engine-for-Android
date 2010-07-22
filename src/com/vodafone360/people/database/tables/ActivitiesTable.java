@@ -1245,8 +1245,9 @@ public abstract class ActivitiesTable {
         }
         final String searchName = DatabaseUtils.sqlEscapeString(name);
         if (PhoneNumberUtils.isWellFormedSmsAddress(name)) {
-            return "PHONE_NUMBERS_EQUAL(" + Field.CONTACT_NAME + ","
-                + searchName + ")";
+            return "(PHONE_NUMBERS_EQUAL(" + Field.CONTACT_NAME + ","
+                + searchName + ") OR "+ Field.CONTACT_NAME + "="
+                + searchName+")";
         } else {
             return Field.CONTACT_NAME + "=" + searchName;
         }
