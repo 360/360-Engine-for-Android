@@ -79,7 +79,9 @@ public class Request {
         CREATE_CONVERSATION,
         SEND_CHAT_MESSAGE,
         PUSH_MSG,
-        EXTERNAL_RPG_RESPONSE
+        EXTERNAL_RPG_RESPONSE,
+        GET_MY_IDENTITIES,
+        GET_AVAILABLE_IDENTITIES
         // response to external RPG request
     }
 

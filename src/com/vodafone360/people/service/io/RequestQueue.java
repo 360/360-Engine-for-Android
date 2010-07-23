@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.vodafone360.people.Settings;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.transport.IQueueListener;
 import com.vodafone360.people.service.transport.http.HttpConnectionThread;
 import com.vodafone360.people.service.utils.TimeOutWatcher;
@@ -340,8 +341,8 @@ public class RequestQueue {
                     // is older than 15 minutes
                     mRequests.remove(i--);
 
-                    ResponseQueue.getInstance().addToResponseQueue(request.getRequestId(), null,
-                            request.mEngineId);
+                    ResponseQueue.getInstance().addToResponseQueue(new DecodedResponse(request.getRequestId(), null, request.mEngineId, 
+                    		DecodedResponse.ResponseType.TIMED_OUT_RESPONSE.ordinal()));
 
                     // remove the request from the watcher (the request not
                     // necessarily times out before)
@@ -400,13 +401,14 @@ public class RequestQueue {
                             mTimeOutWatcher.removeRequest(request);
                         }
                         i--;
-                        rQ.addToResponseQueue(request.getRequestId(), null, request.mEngineId);
+                        rQ.addToResponseQueue(new DecodedResponse(request.getRequestId(), null, 
+                        		request.mEngineId, DecodedResponse.ResponseType.TIMED_OUT_RESPONSE.ordinal()));
                     }
                 }
             }
         }
     }
-
+    
     /**
      * Clears all requests from the queue and puts null responses on the
      * response queue to tell the engines that they have been cleared. This
@@ -429,7 +431,8 @@ public class RequestQueue {
                     mTimeOutWatcher.removeRequest(request);
                 }
 
-                responseQueue.addToResponseQueue(request.getRequestId(), null, request.mEngineId);
+                responseQueue.addToResponseQueue(new DecodedResponse(request.getRequestId(), null, request.mEngineId, 
+                		DecodedResponse.ResponseType.TIMED_OUT_RESPONSE.ordinal()));
             }
         }
     }

@@ -72,7 +72,7 @@ public class Identities {
             LogUtils.logE("Identities.getAvailableIdentities() Invalid session, return -1");
             return -1;
         }
-        Request request = new Request(FUNCTION_GET_AVAILABLE_IDENTITIES, Request.Type.COMMON,
+        Request request = new Request(FUNCTION_GET_AVAILABLE_IDENTITIES, Request.Type.GET_AVAILABLE_IDENTITIES,
                 engine.engineId(), false, Settings.API_REQUESTS_TIMEOUT_IDENTITIES);
         if (filterlist != null) {
             request.addData("filterlist", ApiUtils.createHashTable(filterlist));
@@ -98,7 +98,7 @@ public class Identities {
             LogUtils.logE("Identities.getMyIdentities() Invalid session, return -1");
             return -1;
         }
-        Request request = new Request(FUNCTION_GET_MY_IDENTITIES, Request.Type.COMMON, engine
+        Request request = new Request(FUNCTION_GET_MY_IDENTITIES, Request.Type.GET_MY_IDENTITIES, engine
                 .engineId(), false, Settings.API_REQUESTS_TIMEOUT_IDENTITIES);
         if (filterlist != null) {
             request.addData("filterlist", ApiUtils.createHashTable(filterlist));

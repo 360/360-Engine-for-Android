@@ -27,7 +27,7 @@ package com.vodafone360.people.service.io;
 
 import java.util.List;
 
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.transport.IQueueListener;
 import com.vodafone360.people.service.utils.TimeOutWatcher;
 
@@ -74,10 +74,9 @@ public class QueueManager {
      * 
      * @param response The response to add to the queue.
      */
-    public void addResponse(Response response) {
+    public void addResponse(DecodedResponse response) {
         synchronized (lock) {
-            mResponseQueue.addToResponseQueue(response.mReqId, response.mDataTypes,
-                    response.mSource);
+            mResponseQueue.addToResponseQueue(response);
         }
     }
 

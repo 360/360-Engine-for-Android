@@ -33,7 +33,7 @@ import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.contactsync.SyncStatus.Task;
 import com.vodafone360.people.engine.contactsync.SyncStatus.TaskStatus;
 import com.vodafone360.people.service.ServiceStatus;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.utils.LogUtils;
 
 /**
@@ -78,7 +78,7 @@ public class FetchNativeContacts extends BaseSyncProcessor {
     }
 
     @Override
-    public void processCommsResponse(Response resp) {
+    public void processCommsResponse(DecodedResponse resp) {
         
         // not needed
     }

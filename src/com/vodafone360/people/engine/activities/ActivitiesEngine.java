@@ -50,7 +50,7 @@ import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.agent.UiAgent;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.io.api.Activities;
 import com.vodafone360.people.service.io.rpg.PushMessageTypes;
 import com.vodafone360.people.utils.LogUtils;
@@ -275,7 +275,7 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
      *            message or a response to a get activities request.
      */
     @Override
-    protected void processCommsResponse(Response resp) {
+    protected void processCommsResponse(DecodedResponse resp) {
         LogUtils.logD("ActivitiesEngine processCommsResponse");
         // handle push response
         if (resp.mReqId == 0 && resp.mDataTypes.size() > 0) {
