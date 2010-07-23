@@ -114,45 +114,45 @@ public class ContactChanges extends BaseDataType {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "ContactChanges";
+    public int getType() {
+        return CONTACT_CHANGES_DATA_TYPE;
     }
 
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        String ret = name() + ":";
+        final StringBuffer sb = new StringBuffer("Contact Changes:");
         if (mCurrentServerVersion != null) {
-            ret += "\n Version on server: " + mCurrentServerVersion.toString();
+            sb.append("\n Version on server: "); sb.append(mCurrentServerVersion.toString());
         }
         if (mServerRevisionBefore != null) {
-            ret += "\n Version on server before: " + mServerRevisionBefore.toString();
+            sb.append("\n Version on server before: "); sb.append(mServerRevisionBefore.toString());
         }
         if (mServerRevisionAfter != null) {
-            ret += "\n Version on server after: " + mServerRevisionAfter.toString();
+            sb.append("\n Version on server after: "); sb.append(mServerRevisionAfter.toString());
         }
         if (mVersionAnchor != null) {
-            ret += "\n Version anchor: " + mVersionAnchor;
+            sb.append("\n Version anchor: "); sb.append(mVersionAnchor);
         }
         if (mNumberOfPages != null) {
-            ret += "\n Number of pages: " + mNumberOfPages;
+            sb.append("\n Number of pages: "); sb.append(mNumberOfPages);
         }
         if (mHasGroupChanges != null) {
-            ret += "\n Has group changes: " + mHasGroupChanges;
+            sb.append("\n Has group changes: "); sb.append(mHasGroupChanges);
         }
         if (mContacts != null) {
-            ret += "\n Contacts (" + mContacts.size() + "):\n";
+            sb.append("\n Contacts ("); sb.append(mContacts.size()); sb.append("):\n");
             if (mContacts.size() > 0) {
-                ret += mContacts.get(0).toString();
+                sb.append(mContacts.get(0).toString());
             }
         } else {
-            ret += "\n Contacts (0).";
+            sb.append("\n Contacts (0).");
         }
         if (mUserProfile != null) {
-            ret += "\n User Profile:\n" + mUserProfile;
+            sb.append("\n User Profile:\n"); sb.append(mUserProfile);
         }
 
-        return ret;
+        return sb.toString();
     }
 
     /**

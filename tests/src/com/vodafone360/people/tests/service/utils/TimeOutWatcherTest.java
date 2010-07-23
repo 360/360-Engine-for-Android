@@ -225,7 +225,7 @@ public class TimeOutWatcherTest extends InstrumentationTestCase {
         BaseDataType error = response.mDataTypes.get(0);
         assertTrue(error instanceof ServerError);
         ServerError srvError = (ServerError)error;
-        assertEquals(ServerError.ErrorTypes.REQUEST_TIMEOUT, srvError.getType());
+        assertEquals(ServerError.ErrorType.REQUEST_TIMEOUT, srvError.getType());
         Log.i("testThrowingTimeout()", "-end");
     }
     

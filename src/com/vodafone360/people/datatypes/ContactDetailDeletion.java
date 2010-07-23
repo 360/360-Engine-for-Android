@@ -91,34 +91,36 @@ public class ContactDetailDeletion extends BaseDataType {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "ContactDetailDeletion";
+    public int getType() {
+        return CONTACT_DETAIL_DELETION_DATA_TYPE;
     }
 
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        StringBuffer ret = new StringBuffer();
-        ret.append(name() + ":");
+        final StringBuffer sb = 
+            new StringBuffer("Contact Detail Deletion: ");
         if (mServerVersionBefore != null) {
-            ret.append("\n Server version before: " + mServerVersionBefore);
+            sb.append("\n Server version before: "); 
+            sb.append(mServerVersionBefore);
         }
         if (mServerVersionAfter != null) {
-            ret.append("\n Server version after: " + mServerVersionAfter);
+            sb.append("\n Server version after: "); 
+            sb.append(mServerVersionAfter);
         }
         if (mContactId != null) {
-            ret.append("\n Contact ID: " + mContactId);
+            sb.append("\n Contact ID: " + mContactId);
         }
         if (mDetails != null) {
-            ret.append("\n Details (" + mDetails.size() + "):\n");
+            sb.append("\n Details ("); sb.append(mDetails.size()); sb.append("):\n");
             for (int i = 0; i < mDetails.size(); i++) {
-                ret.append(mDetails.get(i).toString());
+                sb.append(mDetails.get(i).toString());
             }
         } else {
-            ret.append("\n Contacts (0).");
+            sb.append("\n Contacts (0).");
         }
 
-        return ret.toString();
+        return sb.toString();
     }
 
     /**

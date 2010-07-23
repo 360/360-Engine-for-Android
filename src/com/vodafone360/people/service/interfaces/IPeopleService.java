@@ -25,13 +25,16 @@
 
 package com.vodafone360.people.service.interfaces;
 
-import java.util.Hashtable;
+import java.util.ArrayList;
 
 import android.os.Bundle;
 import android.os.Handler;
 
+import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.LoginDetails;
 import com.vodafone360.people.datatypes.RegistrationDetails;
+import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
+import com.vodafone360.people.engine.presence.NetworkPresence;
 import com.vodafone360.people.service.PersistSettings.InternetAvail;
 import com.vodafone360.people.service.agent.NetworkAgentState;
 
@@ -162,14 +165,39 @@ public interface IPeopleService {
      */
     void pingUserActivity();
 
-    /***
-     * Begins the process of retrieving Third party Accounts that the user is
-     * already registered with from the Vodafone 360 back end. The response is
-     * sent to any currently registered Activity handlers.
+    /**
      * 
-     * @param Bundle filter the kind of identities to return.
+     * Gets all third party identities and adds the mobile identity
+     * from 360 to them.
+     * 
+     * @return A list of all 3rd party identities the user is signed in to plus 
+     * the 360 identity mobile. If the retrieval failed the list will
+     * be empty.
+     * 
      */
-    void fetchMyIdentities(Bundle data);
+    public ArrayList<Identity> getAvailableThirdPartyIdentities();
+    
+    /**
+     * 
+     * Gets all third party identities the user is currently signed up for. 
+     * 
+     * @return A list of 3rd party identities the user is signed in to or an 
+     * empty list if something  went wrong retrieving the identities. 
+     * 
+     */
+    public ArrayList<Identity> getMyThirdPartyIdentities();
+    
+    /**
+     * 
+     * Takes all third party identities that have a chat capability set to true.
+     * It also includes the 360 identity mobile.
+     * 
+     * @return A list of chattable 3rd party identities the user is signed in to
+     * plus the mobile 360 identity. If the retrieval identities failed the 
+     * returned list will be empty.
+     * 
+     */
+    public ArrayList<Identity> getMy360AndThirdPartyChattableIdentities();
 
     /***
      * Begins the process of retrieving all Third party Accounts from the
@@ -178,7 +206,7 @@ public interface IPeopleService {
      * 
      * @param Bundle filter the kind of identities to return.
      */
-    void fetchAvailableIdentities(Bundle data);
+    //void fetchAvailableIdentities(Bundle data);
 
     /***
      * Calls the set identity capability status API
@@ -241,16 +269,18 @@ public interface IPeopleService {
      *            information but for every contact
      */
     void getPresenceList(long contactId);
-
-    /***
-     * Alter the current Social Network availability state and send it to the
-     * server.
-     * 
-     * @param myself is the wrapper for the own presence state, can be retrieved
-     *            from PresenceTable.getUserByLocalContactId(long
-     *            meProfileLocalContactId).
+    
+    /**
+     * Change current global (all identities) availability state.
+     * @param status Availability to set for all identities we have. 
      */
-    void setAvailability(Hashtable<String, String> myself);
+    void setAvailability(OnlineStatus status);
+    
+    /**
+     * Change current availability state for a single network.
+	 * @param presence Network-presence to set
+     */
+    void setAvailability(NetworkPresence presence);
 
     /***
      * Allows an Activity to indicate to the Service that it is ready and able

@@ -46,21 +46,37 @@ import junit.framework.TestCase;
 
 public class NativeImporterTest extends TestCase {
     
+
     /**
-     * The gmail account type.
+     * 360 client account type.
      */
-    private final static String GMAIL_ACCOUNT_TYPE = "com.google";
-    
+    protected static final int PEOPLE_ACCOUNT_TYPE = 1;
+
     /**
-     * A third party account type.
+     * Google account type.
      */
-    private final static String THIRD_PARTY_ACCOUNT_TYPE = "com.thirdparty";
-    
+    protected static final int GOOGLE_ACCOUNT_TYPE = 2;
+
     /**
-     * The 360 People account type.
+     * Vendor specific type.
      */
-    private final static String PEOPLE_ACCOUNT_TYPE = (String)getField("PEOPLE_ACCOUNT_TYPE", com.vodafone360.people.engine.contactsync.NativeContactsApi.class);
+    protected static final int PHONE_ACCOUNT_TYPE = 3;
+
+    /**
+     * Account type for 360 People in the Native Accounts. 
+     * MUST be a copy of type in 'res/xml/authenticator.xml' 
+     */
+    protected static final String PEOPLE_ACCOUNT_TYPE_STRING = "com.vodafone360.people.android.account";
+
+    /**
+     * Google account, there can be more than one of these
+     */
+    protected static final String GOOGLE_ACCOUNT_TYPE_STRING = "com.google";    
     
+    /*
+    * A third party account type.
+    */
+   private final static String THIRD_PARTY_ACCOUNT_TYPE_STRING = "com.thirdparty";
     /**
      * The internal max operation count of the NativeImporter.
      * @see NativeImporter#MAX_CONTACTS_OPERATION_COUNT
@@ -82,22 +98,22 @@ public class NativeImporterTest extends TestCase {
     /**
      * A test Gmail account.
      */
-    public final static Account GMAIL_ACCOUNT_1 = new Account("mylogin@gmail.com", GMAIL_ACCOUNT_TYPE);
+    public final static Account GMAIL_ACCOUNT_1 = new Account("mylogin@gmail.com", GOOGLE_ACCOUNT_TYPE_STRING);
     
     /**
      * A test Gmail account.
      */
-    public final static Account GMAIL_ACCOUNT_2 = new Account("mylogin2@googlemail.com", GMAIL_ACCOUNT_TYPE);
+    public final static Account GMAIL_ACCOUNT_2 = new Account("mylogin2@googlemail.com", GOOGLE_ACCOUNT_TYPE_STRING);
     
     /**
      * A test People account.
      */
-    public final static Account PEOPLE_ACCOUNT = new Account("mypeoplelogin", PEOPLE_ACCOUNT_TYPE);
+    public final static Account PEOPLE_ACCOUNT = new Account("mypeoplelogin", PEOPLE_ACCOUNT_TYPE_STRING);
     
     /**
      * A test third party account.
      */
-    public final static Account THIRD_PARTY_ACCOUNT = new Account("mythirdpartylogin", THIRD_PARTY_ACCOUNT_TYPE);
+    public final static Account THIRD_PARTY_ACCOUNT = new Account("mythirdpartylogin", THIRD_PARTY_ACCOUNT_TYPE_STRING);
     
     /**
      * Tests that the number of ticks needed to perform the native import is as expected when the count of contacts
@@ -952,9 +968,18 @@ public class NativeImporterTest extends TestCase {
         
 
         @Override
-		public Account[] getAccountsByType(String type) {
-			
-            return filterAccountsByType(getAccounts(), type);
+		public Account[] getAccountsByType(int type) {
+			switch (type){
+			    case GOOGLE_ACCOUNT_TYPE:
+			        return filterAccountsByType(getAccounts(), GOOGLE_ACCOUNT_TYPE_STRING);
+			        
+			    case PEOPLE_ACCOUNT_TYPE:
+                    return filterAccountsByType(getAccounts(), PEOPLE_ACCOUNT_TYPE_STRING);
+                    
+			    default:
+                    return null;
+			}
+            
 		}
 
 		@Override

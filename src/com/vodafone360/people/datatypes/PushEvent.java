@@ -34,16 +34,14 @@ import com.vodafone360.people.service.io.rpg.RpgPushMessage;
  */
 public class PushEvent extends BaseDataType {
 
-    public static final String NAME = "PushEvent";
-
     public PushMessageTypes mMessageType = null;
 
     public EngineId mEngineId = EngineId.UNDEFINED;
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return NAME;
+    public int getType() {
+        return PUSH_EVENT_DATA_TYPE;
     }
 
     /**
@@ -62,6 +60,9 @@ public class PushEvent extends BaseDataType {
 
     @Override
     public String toString() {
-        return "PushEvent [mEngineId=" + mEngineId + ", mMessageType=" + mMessageType + "]";
+        final StringBuilder sb = new StringBuilder("PushEvent [mEngineId=");
+        sb.append(mEngineId);
+        sb.append(", mMessageType="); sb.append(mMessageType); sb.append(")");
+        return sb.toString();
     }
 }

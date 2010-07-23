@@ -176,7 +176,7 @@ public class DownloadServerThumbnails_old extends BaseSyncProcessor {
         if (resp.mReqId == null || resp.mReqId == 0) {
             if (resp.mDataTypes.size() > 0) {
                 BaseDataType data = resp.mDataTypes.get(0);
-                if (data.name().equals(SystemNotification.class.getSimpleName())) {
+                if (data.getType() == BaseDataType.SYSTEM_NOTIFICATION_DATA_TYPE) {
                     if (((SystemNotification)data).getSysCode() == SystemNotification.SysNotificationCode.EXTERNAL_HTTP_ERROR) {
                         LogUtils
                                 .logE("DownloadServerThumbnails.processCommsResponse() - System Notification: External HTTP request failed");
@@ -187,7 +187,7 @@ public class DownloadServerThumbnails_old extends BaseSyncProcessor {
                 increaseCount();
                 return;
             }
-            ServiceStatus status = BaseEngine.getResponseStatus("PushEvent",
+            ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.PUSH_EVENT_DATA_TYPE,
                     resp.mDataTypes);
             if (ServiceStatus.SUCCESS != status) {
                 increaseCount();
@@ -204,7 +204,7 @@ public class DownloadServerThumbnails_old extends BaseSyncProcessor {
         }
         LogUtils.logI("DownloadServerthumbnails.processCommsResponse() - localContactId["
                 + localContactId + "]");
-        ServiceStatus status = BaseEngine.getResponseStatus("ExternalResponseObject",
+        ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.EXTERNAL_RESPONSE_OBJECT_DATA_TYPE,
                 resp.mDataTypes);
         if (status != ServiceStatus.SUCCESS) {
             increaseCount();

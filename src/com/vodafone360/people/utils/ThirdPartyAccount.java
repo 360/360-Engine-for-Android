@@ -94,9 +94,13 @@ public class ThirdPartyAccount {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        return "ThirdPartyAccount: \n\tmUsername = " + getIdentityID() + "\n\tmDisplayName      = "
-                + getDisplayName() + "\n\tmCheckedByDefault = " + isChecked() + "\n\tmIsVerified       = "
-                + isVerified() + "\n\tmShouldBeProcesed = " + isShouldBeProcessed();
+        final StringBuffer sb = new StringBuffer("ThirdPartyAccount: \n\tmUsername = ");
+        sb.append(getIdentityID());
+        sb.append("\n\tmDisplayName = "); sb.append(getDisplayName()); 
+        sb.append("\n\tmCheckedByDefault = "); sb.append(isChecked());
+        sb.append("\n\tmIsVerified = "); sb.append(isVerified()); 
+        sb.append("\n\tmShouldBeProcesed = "); sb.append(isShouldBeProcessed());
+        return sb.toString();
     }
 
     /*

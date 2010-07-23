@@ -31,13 +31,10 @@ import com.vodafone360.people.service.ServiceStatus;
  * BaseDataType representing an error returned from Server
  */
 public class ServerError extends BaseDataType {
-
-    public final static String NAME = "ServerError";
-
     /**
      * Enumeration of Server error types.
      */
-    public enum ErrorTypes {
+    public enum ErrorType {
         REQUEST_TIMEOUT,
         HTTP_TIMEOUT,
         AUTH_USER_NOT_FOUND,
@@ -72,36 +69,50 @@ public class ServerError extends BaseDataType {
         INVALID_KEY; // server again
     }
 
-    public String errorType = null;
+    /**
+     * Type of error
+     */
+    public ErrorType errorType;
 
-    public String errorValue = "";
+    /**
+     * Description of error
+     */
+    public String errorDescription;
+    
+    /**
+     * Constructor
+     * @param errorType The error type
+     */
+    public ServerError(ErrorType errorType) {
+        this.errorType = errorType;
+    }
+    
+    /**
+     * Constructor
+     * @param errorType The error Type in String form  
+     */
+    public ServerError(String errorType) {
+        try {
+            this.errorType = ErrorType.valueOf(errorType);
+        } catch (Exception ex) {
+            this.errorType = ErrorType.UNKNOWN;
+        }        
+    }
+    
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return NAME;
-    }
-
-    /**
-     * Get current Error type
-     * 
-     * @return CurrentErrorTpye, return UNKNOWN if current type is null.
-     */
-    public ErrorTypes getType() {
-        if (errorType == null) {
-            return ErrorTypes.UNKNOWN;
-        }
-        try {
-            return ErrorTypes.valueOf(errorType);
-        } catch (IllegalArgumentException e) {
-            return ErrorTypes.UNKNOWN;
-        }
+    public int getType() {
+        return SERVER_ERROR_DATA_TYPE;
     }
 
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        return "ServerError: \n\terrorType: " + errorType + "\n\terrorValue: " + errorValue;
+        final StringBuffer sb = new StringBuffer("Server Error: \n");
+        sb.append(errorType.name());
+        sb.append("("); sb.append(errorDescription); sb.append(")");
+        return sb.toString();
     }
 
     /**
@@ -111,7 +122,7 @@ public class ServerError extends BaseDataType {
      *         ServiceStatus.ERROR_UNKNOWN if current type is null.
      */
     public ServiceStatus toServiceStatus() {
-        switch (getType()) {
+        switch (errorType) {
             case REQUEST_TIMEOUT:
             case HTTP_TIMEOUT:
                 return ServiceStatus.ERROR_COMMS_TIMEOUT;
@@ -201,8 +212,6 @@ public class ServerError extends BaseDataType {
                  * When the public key changes on server, it has to be reloaded.
                  */
                 return ServiceStatus.ERROR_INVALID_PUBLIC_KEY;
-
-            default:
         }
         return ServiceStatus.ERROR_UNKNOWN;
     }

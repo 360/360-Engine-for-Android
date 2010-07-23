@@ -288,14 +288,13 @@ public class UploadServerContactsTest extends InstrumentationTestCase implements
                     fail("Unexpected request from processor");
             }
         } catch (Throwable err) {
-            ServerError serverError = new ServerError();
-            serverError.errorType = ServerError.ErrorTypes.INTERNALERROR.toString();
-            serverError.errorValue = err + "\n";
+            ServerError serverError = new ServerError(ServerError.ErrorType.INTERNALERROR);
+            serverError.errorDescription = err + "\n";
             for (int i = 0; i < err.getStackTrace().length; i++) {
                 StackTraceElement v = err.getStackTrace()[i];
-                serverError.errorValue += "\t" + v + "\n";
+                serverError.errorDescription += "\t" + v + "\n";
             }
-            Log.e(LOG_TAG, "Exception:\n" + serverError.errorValue);
+            Log.e(LOG_TAG, "Exception:\n" + serverError.errorDescription);
             data.clear();
             data.add(serverError);
         }

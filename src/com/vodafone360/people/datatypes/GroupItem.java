@@ -114,8 +114,8 @@ public class GroupItem extends BaseDataType implements Parcelable {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "GroupItem";
+    public int getType() {
+        return GROUP_ITEM_DATA_TYPE;
     }
 
     /**
@@ -190,17 +190,18 @@ public class GroupItem extends BaseDataType implements Parcelable {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        String ret = name() + ":";
-        ret += "\n\tGroup type:             " + mGroupType;
-        ret += "\n\tUser ID:                " + mUserId;
-        ret += "\n\tIs read only:           " + mIsReadOnly;
-        ret += "\n\tName:                   " + mName;
-        ret += "\n\tID:                     " + mId;
-        ret += "\n\tRequaries Localisation: " + mGroupType;
-        ret += "\n\tIs system group:        " + mIsSystemGroup;
-        ret += "\n\tIs smart group:         " + mIsSmartGroup;
-        ret += "\n\tColor:                  " + mColor;
-        return ret;
+        final StringBuffer sb = 
+            new StringBuffer("Group Item:\n\tGroup type:"); 
+        sb.append(mGroupType);
+        sb.append("\n\tUser ID:"); sb.append(mUserId);
+        sb.append("\n\tIs read only:"); sb.append(mIsReadOnly);
+        sb.append("\n\tName:"); sb.append(mName);
+        sb.append("\n\tID:"); sb.append(mId);
+        sb.append("\n\tRequaries Localisation:"); sb.append(mGroupType);
+        sb.append("\n\tIs system group:"); sb.append(mIsSystemGroup);
+        sb.append("\n\tIs smart group:"); sb.append(mIsSmartGroup);
+        sb.append("\n\tColor:"); sb.append(mColor);
+        return sb.toString();
     }
 
     /**

@@ -42,6 +42,8 @@ public enum ServiceUiRequest {
     UI_REQUEST_COMPLETE,
     DATABASE_CHANGED_EVENT,
     SETTING_CHANGED_EVENT,
+    /** Update in the terms and conditions or privacy text. **/
+    TERMS_CHANGED_EVENT,
     /***
      * Update the contact sync progress bar, currently used only in the
      * SyncingYourAddressBookActivity.
@@ -94,7 +96,7 @@ public enum ServiceUiRequest {
      * 
      * @see com.vodafone360.people.engine.identitys.IdentityEngine
      */
-    FETCH_IDENTITIES,
+    GET_AVAILABLE_IDENTITIES,
     /**
      * Validate credentials for specified 3rd party account, handled by
      * IdentitiesEngine.

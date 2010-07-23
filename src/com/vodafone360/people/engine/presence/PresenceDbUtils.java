@@ -40,6 +40,7 @@ import com.vodafone360.people.database.tables.PresenceTable;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactDetail;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
+import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.meprofile.SyncMeDbUtils;
 import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.ServiceStatus;
@@ -105,14 +106,9 @@ public class PresenceDbUtils {
             // empty, need to set
             // the status for the
             // 1st time
-            // TODO: this hard code needs change, must filter the identities
-            // info by VCARD.IMADRESS
-            Hashtable<String, String> status = new Hashtable<String, String>();
-            status.put("google", "online");
-            status.put("microsoft", "online");
-            status.put("mobile", "online");
-            status.put("facebook.com", "online");
-            status.put("hyves.nl", "online");
+            // Get presence list constructed from identities
+            Hashtable<String, String> status =             
+                EngineManager.getInstance().getPresenceEngine().getPresencesForStatus(OnlineStatus.ONLINE);
             user = new User(String.valueOf(getMeProfileUserId(databaseHelper)), status);
         }
         return user;
@@ -141,15 +137,15 @@ public class PresenceDbUtils {
      * the HandlerAgent receives the notification of presence states changes.
      *  
      * @param users List<User> - the list of user presence states
-     * @param users idListeningTo long - local contact id which this UI is watching, -1 is all contacts
+     * @param idListeningTo long - local contact id which this UI is watching, -1 is all contacts
      * @param dbHelper DatabaseHelper - the database.
-     * @return TRUE if database has changed in result of the modifications.
+     * @return TRUE if database has changed in result of the update.
      */
     protected static boolean updateDatabase(List<User> users, long idListeningTo,
             DatabaseHelper dbHelper) {
         boolean presenceChanged = false;
         boolean deleteNetworks = false;
-         // the list of networks presence information for me we ignore - the networks where user is offline.
+         // list of network presence information we ignore - the networks where the user is offline.
         ArrayList<Integer> ignoredNetworks = new ArrayList<Integer>();
         SQLiteDatabase writableDb = dbHelper.getWritableDatabase();
 
@@ -199,6 +195,7 @@ public class PresenceDbUtils {
                     }
                 } 
                 if (user.getLocalContactId() > -1) {
+                    // will not save infos from the ignored networks
                     updateUserRecord(user, ignoredNetworks, writableDb);
                     if (user.getLocalContactId() == idListeningTo) {
                         presenceChanged = true;    
@@ -281,8 +278,8 @@ public class PresenceDbUtils {
     
     protected static boolean updateMyPresence(User user, DatabaseHelper dbHelper) {
         boolean contactsChanged = false;
-        SQLiteDatabase writableDb = dbHelper.getWritableDatabase();
-        if (PresenceTable.updateUser(user, null, writableDb) != PresenceTable.USER_NOTADDED) {
+        if (PresenceTable.updateUser(
+        		user, null, dbHelper.getWritableDatabase()) != PresenceTable.USER_NOTADDED) {
             contactsChanged = (ContactSummaryTable.updateOnlineStatus(user) == ServiceStatus.SUCCESS);
         }
         return contactsChanged;
@@ -314,5 +311,4 @@ public class PresenceDbUtils {
             ContactSummaryTable.setOfflineStatusExceptForMe(localContactIdOfMe);
         }
     }
-
 }

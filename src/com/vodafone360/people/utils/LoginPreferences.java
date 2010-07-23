@@ -342,7 +342,14 @@ public class LoginPreferences {
       
         sDateOfBirth.set(year, month, day);
     }
-    
+
+    /**
+     * reset object of GregorianCalendar to be null when user input invalid
+     * birthday date in signup screen.
+     */
+    public static void resetSignupDateOfBirth() {
+        sDateOfBirth = null;
+    }
 
     /**
      * Clears all details stored in the preferences.

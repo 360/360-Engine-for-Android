@@ -191,8 +191,8 @@ public class ContentEngine extends BaseEngine {
         }
         
         List<BaseDataType> mDataTypes = resp.mDataTypes;
-        // Sometimes it is empty
-        if (mDataTypes == null) {
+        // Sometimes it is null or empty
+        if (mDataTypes == null || mDataTypes.size()==0) {
             co.setTransferStatus(ContentObject.TransferStatus.ERROR);
             RuntimeException exc = new RuntimeException("Empty response returned");
             co.getTransferListener().transferError(co, exc);
@@ -200,8 +200,8 @@ public class ContentEngine extends BaseEngine {
         }
 
         Object data = mDataTypes.get(0);
-        if (mDataTypes.get(0).name().equals(ServerError.class.getSimpleName())
-                || mDataTypes.get(0).name().equals(SystemNotification.class.getSimpleName())) {
+        if (mDataTypes.get(0).getType() == BaseDataType.SERVER_ERROR_DATA_TYPE
+                || mDataTypes.get(0).getType() == BaseDataType.SYSTEM_NOTIFICATION_DATA_TYPE) {
             co.setTransferStatus(ContentObject.TransferStatus.ERROR);
             RuntimeException exc = new RuntimeException(data.toString());
             co.getTransferListener().transferError(co, exc);

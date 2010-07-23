@@ -92,19 +92,19 @@ public class PublicKeyDetails extends BaseDataType implements Parcelable {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "PublicKeyDetails";
+    public int getType() {
+        return PUBLIC_KEY_DETAILS_DATA_TYPE;
     }
 
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        StringBuffer ret = new StringBuffer("--\nPublic Key data:");
-        ret.append("\n\tExponential: ").append(Arrays.toString(mExponential)).append(
+        StringBuffer sb = new StringBuffer("--\nPublic Key data:");
+        sb.append("\n\tExponential: ").append(Arrays.toString(mExponential)).append(
                 "\n\tModulus: " + Arrays.toString(mModulus)).append("\n\tBase64: ").append(
                 mKeyBase64).append("\n\t X509: ").append(Arrays.toString(mKeyX509)).append(
                 "\n--------------------------------------------------");
-        return ret.toString();
+        return sb.toString();
     }
 
     /**

@@ -117,7 +117,7 @@ public class ResponseQueue {
      */
     public void addToResponseQueue(Integer reqId, List<BaseDataType> data, EngineId source) {
         synchronized (QueueManager.getInstance().lock) {
-            ServiceStatus status = BaseEngine.getResponseStatus("", data);
+            ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.UNKNOWN_DATA_TYPE, data);
             if (status == ServiceStatus.ERROR_INVALID_SESSION) {
                 EngineManager em = EngineManager.getInstance();
                 if (em != null) {

@@ -25,13 +25,17 @@
 
 package com.vodafone360.people.service.io.api;
 
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
 import com.vodafone360.people.Settings;
+import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.engine.login.LoginEngine;
+import com.vodafone360.people.engine.presence.NetworkPresence;
+import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.io.QueueManager;
 import com.vodafone360.people.service.io.Request;
 import com.vodafone360.people.utils.LogUtils;
@@ -67,12 +71,6 @@ public class Presence {
         QueueManager.getInstance().fireQueueStateChanged();
     }
 
-    /**
-     * API to set my availability
-     * 
-     * @param engineId ID of presence engine.
-     * @param status Hash table containing status information.
-     */
     public static void setMyAvailability(Hashtable<String, String> status) {
         if (LoginEngine.getSession() == null) {
             LogUtils.logE("Presence.setAvailability() No session, so return");
@@ -81,6 +79,30 @@ public class Presence {
         Request request = new Request(EMPTY, Request.Type.AVAILABILITY, EngineId.UNDEFINED, true,
                 Settings.API_REQUESTS_TIMEOUT_PRESENCE_SET_AVAILABILITY);
         request.addData("availability", status);
+
+        QueueManager.getInstance().addRequest(request);
+        QueueManager.getInstance().fireQueueStateChanged();
+    }
+    
+    /**
+     * API to set my availability
+     * 
+     * @param engineId ID of presence engine.
+     * @param onlinestatus Availability to set
+     */
+    public static void setMyAvailability(String availability) {
+        if (LoginEngine.getSession() == null) {
+            LogUtils.logE("Presence.setMyAvailability() No session, so return");
+            return;
+        }
+        Request request = new Request(EMPTY, Request.Type.AVAILABILITY, EngineId.UNDEFINED, true,
+                Settings.API_REQUESTS_TIMEOUT_PRESENCE_SET_AVAILABILITY);
+        
+        // Construct identities hash map with the appropriate availability
+        Hashtable<String, String> availabilityMap = new Hashtable<String, String>();
+        //availabilityMap.put("mobile", availability);
+        // TODO: Get identities and add to map with availability set
+        request.addData("availability", availabilityMap);
 
         QueueManager.getInstance().addRequest(request);
         QueueManager.getInstance().fireQueueStateChanged();

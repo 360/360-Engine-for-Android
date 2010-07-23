@@ -190,8 +190,8 @@ public class SystemNotification extends PushEvent {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "SystemNotification";
+    public int getType() {
+        return SYSTEM_NOTIFICATION_DATA_TYPE;
     }
 
     /**
@@ -311,8 +311,12 @@ public class SystemNotification extends PushEvent {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        return "SystemNotification [code=" + code + ", mSysCode=" + mSysCode + ", message="
-                + message + "]";
+        final StringBuilder sb = new StringBuilder("System Notification [code=");
+        sb.append(code);
+        sb.append(", mSysCode="); sb.append(mSysCode);
+        sb.append(", message="); sb.append(message);
+        sb.append("]");
+        return sb.toString();
     }
     
     /**

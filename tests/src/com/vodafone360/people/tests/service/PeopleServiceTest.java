@@ -380,13 +380,13 @@ public class PeopleServiceTest extends ServiceTestCase<RemoteService> implements
 		l.add(IdentityCapability.CapabilityID.chat.name());
 		l.add(IdentityCapability.CapabilityID.get_own_status.name());
 		filter.putStringArrayList("capability", l);
-		mPeopleService.fetchAvailableIdentities(filter);
+		mPeopleService.getAvailableThirdPartyIdentities();
 		ServiceStatus status = waitForEvent(WAIT_EVENT_TIMEOUT_MS, TEST_RESPONSE);
 
         assertEquals("fetchAvailableIdentities() failed with status = "
 				+ status.name(), ServiceStatus.ERROR_INTERNAL_SERVER_ERROR, status);
         
-        mPeopleService.fetchMyIdentities(filter);
+        mPeopleService.getMyThirdPartyIdentities();
 		status = waitForEvent(WAIT_EVENT_TIMEOUT_MS, TEST_RESPONSE);
 		
         assertEquals("fetchMyIdentities() failed with status = "
@@ -574,9 +574,8 @@ public class PeopleServiceTest extends ServiceTestCase<RemoteService> implements
 		ResponseQueue respQueue = ResponseQueue.getInstance();
 		List<BaseDataType> data = new ArrayList<BaseDataType>();
 		
-		ServerError se1 = new ServerError();
-		se1.errorValue = "Test error produced by test framework, ignore it";
-		se1.errorType = "INTERNALERROR";
+		ServerError se1 = new ServerError(ServerError.ErrorType.INTERNALERROR);
+		se1.errorDescription = "Test error produced by test framework, ignore it";
 		data.add(se1);
 		respQueue.addToResponseQueue(reqId, data, engine);
 	}

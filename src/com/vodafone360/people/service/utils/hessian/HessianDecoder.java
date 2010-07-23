@@ -182,8 +182,8 @@ public class HessianDecoder {
         // check for fail
         // read reason string and throw exception
         if (tag == 'f') {
-            ServerError zybErr = new ServerError();
-            zybErr.errorType = mMicroHessianInput.readFault().errString();
+            ServerError zybErr = 
+                new ServerError(mMicroHessianInput.readFault().errString());
             mResultList.add(zybErr);
             return mResultList;
         }
@@ -244,15 +244,18 @@ public class HessianDecoder {
                 mResultList.add(UserProfile.createFromHashtable(userProfileHash));
             } else if ((map.containsKey(KEY_IDENTITY_LIST))
                     || (map.containsKey(KEY_AVAILABLE_IDENTITY_LIST))) {
+            	int identityType = 0;
                 Vector<Hashtable<String, Object>> idcap = null;
                 if (map.containsKey(KEY_IDENTITY_LIST)) {
                     idcap = (Vector<Hashtable<String, Object>>)map.get(KEY_IDENTITY_LIST);
+                    identityType = BaseDataType.MY_IDENTITY_DATA_TYPE;
                 } else {
                     idcap = (Vector<Hashtable<String, Object>>)map.get(KEY_AVAILABLE_IDENTITY_LIST);
+                    identityType = BaseDataType.AVAILABLE_IDENTITY_DATA_TYPE;
                 }
 
                 for (Hashtable<String, Object> obj : idcap) {
-                    Identity id = new Identity();
+                    Identity id = new Identity(identityType);
                     mResultList.add(id.createFromHashtable(obj));
                 }
 
@@ -474,15 +477,17 @@ public class HessianDecoder {
                     engineId = EngineId.ACTIVITIES_ENGINE;
                     break;
                 case FRIENDSHIP_REQUEST_RECEIVED:
+                    break;
                 case IDENTITY_CHANGE:
-                    engineId = EngineId.PRESENCE_ENGINE;
+                    engineId = EngineId.IDENTITIES_ENGINE;
+                    break;
+                case IDENTITY_NETWORK_CHANGE:
+                	engineId = EngineId.IDENTITIES_ENGINE;
                     break;
                 case SYSTEM_NOTIFICATION:
                     LogUtils.logE("SYSTEM_NOTIFICATION push msg:" + msg.mHash);
                     list.add(SystemNotification.createFromHashtable(msg.mHash, engineId));
                     return;
-                case IDENTITY_NETWORK_CHANGE:
-                    break;
                 default:
 
             }

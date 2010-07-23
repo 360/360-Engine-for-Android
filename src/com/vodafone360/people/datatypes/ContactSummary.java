@@ -141,14 +141,20 @@ public class ContactSummary implements Parcelable {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        String returnString = ("SummaryID: " + summaryID + "ContactID: " + localContactID
-                + "\n" + "Name: " + formattedName + "\n" + "Status: " + statusText + "\n"
-                + "Alt Field Type: " + altFieldType + "\n" + "Alt Detail Type: " + altDetailType
-                + "\n" + "Native Contact ID: " + nativeContactId + "\n" + "Online status: "
-                + onlineStatus + "\n" + "Friend of mine: " + friendOfMine + "\n"
-                + "Profile picture loaded: " + pictureLoaded + "\n" + "Social Networking Site: "
-                + sns + "\n" + "Synctophone: " + synctophone);
-        return returnString;
+        final StringBuilder sb = new StringBuilder("SummaryID: ");
+        sb.append(summaryID);
+        sb.append("ContactID: "); sb.append(localContactID);
+        sb.append("\nName: "); sb.append(formattedName); 
+        sb.append("\nStatus: "); sb.append(statusText); 
+        sb.append("\nAlt Field Type: "); sb.append(altFieldType); 
+        sb.append("\nAlt Detail Type: "); sb.append(altDetailType);
+        sb.append("\nNative Contact ID: "); sb.append(nativeContactId); 
+        sb.append("\nOnline status: "); sb.append(onlineStatus); 
+        sb.append("\nFriend of mine: "); sb.append(friendOfMine); 
+        sb.append("\nProfile picture loaded: "); sb.append(pictureLoaded); 
+        sb.append("\nSocial Networking Site: "); sb.append(sns); 
+        sb.append("\nSynctophone: "); sb.append(synctophone);
+        return sb.toString();
     }
 
     /**

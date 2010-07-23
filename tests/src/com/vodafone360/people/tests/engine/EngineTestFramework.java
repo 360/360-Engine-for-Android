@@ -202,8 +202,7 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
         final ResponseQueue respQ = ResponseQueue.getInstance();
         if (reqQ.getRequest(reqId) != null) {
             List<BaseDataType> dataTypeList = new ArrayList<BaseDataType>();
-            ServerError err = new ServerError();
-            err.errorType = ServerError.ErrorTypes.UNKNOWN.toString();
+            ServerError err = new ServerError(ServerError.ErrorType.UNKNOWN);
             dataTypeList.add(err);
             respQ.addToResponseQueue(reqId, dataTypeList, engine);
         }

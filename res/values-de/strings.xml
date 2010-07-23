@@ -459,5 +459,5 @@
 	<string name="UpdateServiceAgentActivity_CheckBox_NoWiFi">W-LAN ist aktiv</string>
 	<string name="UpdateServiceAgentActivity_Radio_wiFi">W-LAN</string>
 	<string name="TimelineHistoryActivity_contact_offline">Der Kontakt scheint offline zu sein</string>
-	<string name="contactprofile_no_connection">Keine Netzverbindung verfügbar!</string>
+	<string name="ContactProfile_no_connection">Keine Netzverbindung verfügbar!</string>
 </resources>

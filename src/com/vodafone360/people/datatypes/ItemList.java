@@ -61,19 +61,19 @@ public class ItemList extends BaseDataType {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "ItemList";
+    public int getType() {
+        return ITEM_LIST_DATA_TYPE;
     }
 
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        StringBuffer ret = new StringBuffer();
-        ret.append(name() + "(" + mItemsSize + ")");
+        final StringBuffer sb = new StringBuffer("ItemList(");
+        sb.append(mItemsSize); sb.append(")");
         for (int i = 0; i < mItemList.size(); i++) {
-            ret.append("\n  " + mItemList.get(i).toString());
+            sb.append("\n  "); sb.append(mItemList.get(i).toString());
         }
-        return ret.toString();
+        return sb.toString();
     }
 
     /**

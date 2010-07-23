@@ -253,14 +253,18 @@ public class Request {
      */
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Request [mEngineId=" + mEngineId + ", mIsActive=" + mIsActive + ", mTimeout="
-                + mTimeout + ", mReqId=" + mRequestId + ", mType=" + mType
-                + ", mNeedsUserAuthentication=" + mAuthenticationType + ", mExpired=" + expired
-                + ", mDate=" + mExpiryDate + "]\n");
-        stringBuilder.append(mParameters);
+        StringBuilder sb = new StringBuilder("Request [mEngineId=");
+        sb.append(mEngineId); 
+        sb.append(", mIsActive="); sb.append(mIsActive); 
+        sb.append(", mTimeout="); sb.append(mTimeout); 
+        sb.append(", mReqId="); sb.append(mRequestId); 
+        sb.append(", mType="); sb.append(mType);
+        sb.append(", mNeedsUserAuthentication="); sb.append(mAuthenticationType); 
+        sb.append(", mExpired="); sb.append(expired);
+        sb.append(", mDate="); sb.append(mExpiryDate); sb.append("]\n");
+        sb.append(mParameters);
         
-        return stringBuilder.toString();
+        return sb.toString();
     }
 
     /**

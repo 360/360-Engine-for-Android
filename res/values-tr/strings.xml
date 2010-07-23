@@ -24,7 +24,6 @@
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 	<string name="about_nowplus">Android için 360 People</string>
-	<string name="about_nowplus_info">People hakkında		\nPeople, telefonunuz, PC\'niz ve Mac(tm)\'iniz için arkadaşlarınızla		her zaman senkronize halde kalmanızı sağlayan bir hizmettir. Tek ve kolayca		erişilebilir bir yerden önem verdiğiniz insanlarla iletişim kurmanız için gereken		her şeyi bir araya getirir.\n		\nPeople herkese açıktır; topluluğa katılmak için bir Vodafone müşterisi olmanız gerekmemektedir.\n		\nTelif hakkı (c) 2010 Vodafone Limited.		\nhttp://www.vodafone.com/about\n		\nDestek E-postası: Support@360.com\n	\nBasın Soruları:\nGrup Basın İlişkileri ile görüşün:\n+44 (0) 1635 664 444</string>
 	<string name="about_nowplus2">Sürüm</string>
 	<string name="account">Hesap ...</string>
 	<string name="add_accounts_title">Kişileri al</string>
@@ -459,5 +458,6 @@
 	<string name="android_contact_profile_summary">360 People profili</string>
 	<string name="only_one_account_notice">Yalnızca bir 360 People hesabı desteklenmektedir</string>
 	<string name="TimelineHistoryActivity_contact_offline">Kişi çevrimdışı görünüyor</string>
-	<string name="contactprofile_no_connection">Hiçbir ağ bağlantısı yok!</string>
+	<string name="ContactProfile_no_connection">Hiçbir ağ bağlantısı yok!</string>
+	<string name="about_nowplus_info">People hakkında		\nPeople, telefonunuz, PC\'niz ve Mac(tm)\'iniz için arkadaşlarınızla		her zaman senkronize halde kalmanızı sağlayan bir hizmettir. Tek ve kolayca		erişilebilir bir yerden önem verdiğiniz insanlarla iletişim kurmanız için gereken		her şeyi bir araya getirir.\n		\nPeople herkese açıktır; topluluğa katılmak için bir Vodafone abonesi olmanız gerekmemektedir.\n		\nTelif hakkı (c) 2010 Vodafone Limited.		\nhttp://www.vodafone.com/about\n		\nDestek E-postası: Support@360.com\n	\nBasın Soruları:\nGrup Basın İlişkileri ile görüşün:\n+44 (0) 1635 664 444</string>
 </resources>

@@ -107,44 +107,46 @@ public class Identity extends BaseDataType implements Parcelable {
         }
     }
 
-    public String mPluginId = null;
+    public String mPluginId;
 
-    public String mNetwork = null;
+    public String mNetwork;
 
-    public URL mNetworkUrl = null;
+    public URL mNetworkUrl;
 
-    public URL mIconUrl = null;
+    public URL mIconUrl;
 
-    public URL mIcon2Url = null;
+    public URL mIcon2Url;
 
     public String mAuthType;
 
-    public String mIconMime = null;
+    public String mIconMime;
 
-    public Integer mOrder = null;
+    public int mOrder;
 
-    public String mName = null;
+    public String mName;
 
-    public List<IdentityCapability> mCapabilities = null;
+    public List<IdentityCapability> mCapabilities;
 
     /** Properties below are only present after GetMyIdentities. */
-    public Boolean mActive = null;
+    public boolean mActive;
 
-    public Long mCreated = null;
+    public long mCreated;
 
-    public Long mUpdated = null;
+    public long mUpdated;
 
-    public String mIdentityId = null;
+    public String mIdentityId;
 
-    public Integer mUserId = null;
+    public int mUserId;
 
-    public String mUserName = null;
+    public String mUserName;
 
-    public String mDisplayName = null;
+    public String mDisplayName;
 
-    public List<String> mCountryList = null;
+    public List<String> mCountryList;
 
-    public String mIdentityType = null;
+    public String mIdentityType;
+    
+    private int mType;
 
     /**
      * Comparator class used to compare Identities retrieved from server to
@@ -154,7 +156,7 @@ public class Identity extends BaseDataType implements Parcelable {
 
         @Override
         public int compare(Identity object1, Identity object2) {
-            return object1.mOrder.compareTo(object2.mOrder);
+            return new Integer(object1.mOrder).compareTo(new Integer(object2.mOrder));
         }
     }
 
@@ -230,6 +232,10 @@ public class Identity extends BaseDataType implements Parcelable {
     public Identity() {
         // Do nothing.
     }
+    
+    public Identity(int type) {
+    	mType = type;
+    }
 
     /**
      * Create Identity from Parcel.
@@ -242,8 +248,8 @@ public class Identity extends BaseDataType implements Parcelable {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "Identity";
+    public int getType() {
+        return mType;
     }
 
     /**
@@ -395,45 +401,48 @@ public class Identity extends BaseDataType implements Parcelable {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        StringBuffer ret = new StringBuffer();
-        ret.append("Name:         " + mName);
-        ret.append("\nPluginID:     " + mPluginId);
-        ret.append("\nNetwork:      " + mNetwork);
-        ret.append("\nNetworkURL:   " + mNetworkUrl);
-        ret.append("\nAuthType:     " + mAuthType);
-        ret.append("\nIcon mime:    " + mIconMime);
-        ret.append("\nIconURL:      " + mIconUrl);
-        ret.append("\nOrder:        " + mOrder);
-
-        ret.append("\nActive:       " + mActive);
-        ret.append("\nCreated:      " + mCreated);
-        ret.append("\nUpdated:      " + mUpdated);
-        ret.append("\nIdentityId:   " + mIdentityId);
-        ret.append("\nUserId:       " + mUserId);
-        ret.append("\nUserName:     " + mUserName);
-        ret.append("\nDisplayName:  " + mDisplayName);
-        ret.append("\nIdentityType: " + mIdentityType);
+        final StringBuffer sb = new StringBuffer("Name:");
+        sb.append(mName);
+        sb.append("\nPluginID:"); sb.append(mPluginId);
+        sb.append("\nNetwork:"); sb.append(mNetwork);
+        sb.append("\nNetworkURL:"); sb.append(mNetworkUrl);
+        sb.append("\nAuthType:"); sb.append(mAuthType);
+        sb.append("\nIcon mime:"); sb.append(mIconMime);
+        sb.append("\nIconURL:"); sb.append(mIconUrl);
+        sb.append("\nOrder:"); sb.append(mOrder);
+        sb.append("\nActive:"); sb.append(mActive);
+        sb.append("\nCreated:"); sb.append(mCreated);
+        sb.append("\nUpdated:"); sb.append(mUpdated);
+        sb.append("\nIdentityId:"); sb.append(mIdentityId);
+        sb.append("\nUserId:"); sb.append(mUserId);
+        sb.append("\nUserName:"); sb.append(mUserName);
+        sb.append("\nDisplayName:"); sb.append(mDisplayName);
+        sb.append("\nIdentityType:"); sb.append(mIdentityType);
 
         if (mCountryList != null) {
-            ret.append("\nCountry List: (" + mCountryList.size() + ") = [");
+            sb.append("\nCountry List: ("); 
+            sb.append(mCountryList.size());
+            sb.append(") = [");
             for (int i = 0; i < mCountryList.size(); i++) {
-                ret.append(mCountryList.get(i));
+                sb.append(mCountryList.get(i));
                 if (i < mCountryList.size() - 1)
-                    ret.append(", ");
+                    sb.append(", ");
             }
-            ret.append("]");
+            sb.append("]");
         }
 
         if (mCapabilities != null) {
-            ret.append("\nCapabilities (" + mCapabilities.size() + ")");
+            sb.append("\nCapabilities ("); 
+            sb.append(mCapabilities.size());
+            sb.append(")");
             for (int i = 0; i < mCapabilities.size(); i++) {
-                ret.append("\n" + mCapabilities.get(i).toString());
+                sb.append("\n" + mCapabilities.get(i).toString());
                 if (i < mCapabilities.size() - 1) {
-                    ret.append("\n\t---");
+                    sb.append("\n\t---");
                 }
             }
         }
-        return ret.toString();
+        return sb.toString();
     }
 
     /** {@inheritDoc} */
@@ -468,7 +477,7 @@ public class Identity extends BaseDataType implements Parcelable {
         mIconUrl = null;
         mAuthType = null;
         mIconMime = null;
-        mOrder = null;
+        mOrder = -1;
         mName = null;
         mCapabilities = null;
 
@@ -565,7 +574,7 @@ public class Identity extends BaseDataType implements Parcelable {
             dest.writeString(mIconMime);
         }
 
-        if (mOrder != null) {
+        if (mOrder != -1) {
             validDataList[MemberData.ORDER.ordinal()] = true;
             dest.writeInt(mOrder);
         }

@@ -275,7 +275,7 @@ public class UiAgent {
      * Activity of updates.
      *
      * @param contactId Update an Activity that shows this contact ID only, or
-     *        set this to -1 to send updates relevant to all contacts.
+     *        set this to ALL_USERS to send updates relevant to all contacts.
      */
     public final void updatePresence(final long contactId) {
         WidgetUtils.kickWidgetUpdateNow(mMainApplication);

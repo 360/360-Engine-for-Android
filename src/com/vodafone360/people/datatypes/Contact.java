@@ -200,8 +200,8 @@ public class Contact extends BaseDataType implements Parcelable, Persistable {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "Contact";
+    public int getType() {
+        return CONTACT_DATA_TYPE;
     }
 
     /** {@inheritDoc} */
@@ -213,39 +213,47 @@ public class Contact extends BaseDataType implements Parcelable, Persistable {
         } else {
             time = new Date(0);
         }
-        StringBuffer ret = new StringBuffer();
-        ret.append("--\nContact data:" + "\n\tLocal Contact ID: " + localContactID
-                + "\n\tContact ID: " + contactID + "\n\tUser ID: " + userID + "\n\tAbout me: "
-                + aboutMe + "\n\tFriend of mine: " + friendOfMine + "\n\tDeleted: " + deleted
-                + "\n\tGender: " + gender + "\n\tSynctophone: " + synctophone
-                + "\n\tNative Contact ID: " + nativeContactId + "\n\tupdated: " + updated
-                + " Date: " + time.toGMTString() + "\n");
-        StringBuffer s = new StringBuffer();
+        StringBuffer sb = new StringBuffer("--\nContact data:");
+        sb.append("\n\tLocal Contact ID: "); sb.append(localContactID);
+        sb.append("\n\tContact ID: "); sb.append(contactID); 
+        sb.append("\n\tUser ID: "); sb.append(userID); 
+        sb.append("\n\tAbout me: "); sb.append(aboutMe); 
+        sb.append("\n\tFriend of mine: "); sb.append(friendOfMine); 
+        sb.append("\n\tDeleted: ");  sb.append(deleted);
+        sb.append("\n\tGender: ");  sb.append(gender); 
+        sb.append("\n\tSynctophone: "); 
+        sb.append(synctophone);
+        sb.append("\n\tNative Contact ID: "); sb.append(nativeContactId); 
+        sb.append("\n\tupdated: "); sb.append(updated);
+        sb.append(" Date: "); sb.append(time.toGMTString()); sb.append("\n");
+
         if (sources != null) {
-            s.append("Sources (" + sources.size() + "): ");
+            sb.append("Sources ("); sb.append(sources.size()); sb.append("): ");
             for (int i = 0; i < sources.size(); i++) {
-                s.append(sources.get(i) + ",");
+                sb.append(sources.get(i)); sb.append(",");
             }
-            s.append("\n");
+            sb.append("\n");
         }
 
         if (groupList != null) {
-            ret.append("Group id list = [");
+            sb.append("Group id list = [");
             for (int i = 0; i < groupList.size(); i++) {
-                ret.append(groupList.get(i));
+                sb.append(groupList.get(i));
                 if (i < groupList.size() - 1) {
-                    ret.append(",");
+                    sb.append(",");
                 }
             }
-            ret.append("\n");
+            sb.append("\n");
         }
-        ret.append(s);
-        ret.append("Contact details (" + details.size() + "):\n");
+
+        sb.append("Contact details ("); 
+        sb.append(details.size()); sb.append("):\n");
         for (int i = 0; i < details.size(); i++) {
-            ret.append(details.get(i).toString() + "\n");
+            sb.append(details.get(i).toString()); 
+            sb.append("\n");
         }
-        ret.append("\n--------------------------------------------------");
-        return ret.toString();
+        sb.append("\n--------------------------------------------------");
+        return sb.toString();
     }
 
     /**

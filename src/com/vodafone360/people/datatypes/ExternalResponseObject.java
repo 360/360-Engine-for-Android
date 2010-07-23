@@ -40,7 +40,7 @@ public class ExternalResponseObject extends BaseDataType {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "ExternalResponseObject";
+    public int getType() {
+        return EXTERNAL_RESPONSE_OBJECT_DATA_TYPE;
     }
 }

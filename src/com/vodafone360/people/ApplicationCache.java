@@ -51,6 +51,19 @@ import com.vodafone360.people.utils.LogUtils;
  */
 public class ApplicationCache {
 
+    /** Text key for Terms of Service content. **/
+    private final static String TERMS_OF_SERVICE = "TERMS_OF_SERVICE";
+    /** Text key for Terms of Service last updated time. **/
+    private final static String TERMS_OF_SERVICE_TIME = "TERMS_OF_SERVICE_TIME";
+    /** Text key for Privacy content. **/
+    private final static String PRIVACY = "PRIVACY";
+    /** Text key for Privacy last updated time. **/
+    private final static String PRIVACY_TIME = "PRIVACY_TIME";
+    /**
+     * Refresh any cached terms of service or privacy content after 10 minutes.
+     */
+    private final static long REFRESH_TIME = 10 * 60 * 1000;
+
     private static final String TRUE = "true";
 
     private static final String FALSE = "false";
@@ -159,6 +172,8 @@ public class ApplicationCache {
     private ServiceStatus mServiceStatus = ServiceStatus.ERROR_UNKNOWN;
     
     private TimelineSummaryItem mCurrentTimelineSummary;
+
+    private long mCurrentContactFilter;
 
     /**
      * Whether this is a first time login (on this device) for current account.
@@ -525,5 +540,103 @@ public class ApplicationCache {
      */
     public void setCurrentTimelineSummary(TimelineSummaryItem timelineSummary) {
         mCurrentTimelineSummary = timelineSummary;
+    }
+
+    /***
+     * Set the Terms of Service content into the cache.
+     * 
+     * @param value Terms of Service content.
+     * @param context Android context.
+     */
+    public static void setTermsOfService(final String value,
+            final Context context) {
+        SharedPreferences.Editor editor = context.getSharedPreferences(
+                ApplicationCache.PREFS_FILE, 0).edit();
+        editor.putString(TERMS_OF_SERVICE, value);
+        editor.putLong(TERMS_OF_SERVICE_TIME, System.currentTimeMillis());
+        if (!editor.commit()) {
+            throw new NullPointerException(
+                    "MainApplication.setTermsOfService() Failed to set Terms "
+                            + "of Service with value[" + value + "]");
+        }
+    }
+
+    /***
+     * Set the Privacy content into the cache.
+     * 
+     * @param value Privacy content.
+     * @param context Android context.
+     */
+    public static void setPrivacyStatemet(final String value,
+            final Context context) {
+        SharedPreferences.Editor editor = context.getSharedPreferences(
+                ApplicationCache.PREFS_FILE, 0).edit();
+        editor.putString(PRIVACY, value);
+        editor.putLong(PRIVACY_TIME, System.currentTimeMillis());
+        if (!editor.commit()) {
+            throw new NullPointerException(
+                    "MainApplication.setPrivacyStatemet() Failed to set Terms "
+                            + "of Service with value[" + value + "]");
+        }
+    }
+
+    /***
+     * Get the Terms of Service content from the cache. Will return NULL if
+     * there is no content, or it is over REFRESH_TIME ms old.
+     * 
+     * @param context Android context.
+     * @return Terms of Service content
+     */
+    public static String getTermsOfService(final Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(
+                ApplicationCache.PREFS_FILE, 0);
+        long time = sharedPreferences.getLong(TERMS_OF_SERVICE_TIME, -1);
+        if (time == -1 || time < System.currentTimeMillis() - REFRESH_TIME) {
+            return null;
+        } else {
+            return sharedPreferences.getString(TERMS_OF_SERVICE, null);
+        }
+    }
+
+    /***
+     * Get the Privacy content from the cache. Will return NULL if there is no
+     * content, or it is over REFRESH_TIME ms old.
+     * 
+     * @param context Android context.
+     * @return Privacy content
+     */
+    public static String getPrivacyStatement(final Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(
+                ApplicationCache.PREFS_FILE, 0);
+        long time = sharedPreferences.getLong(PRIVACY_TIME, -1);
+        if (time == -1 || time < System.currentTimeMillis() - REFRESH_TIME) {
+            return null;
+        } else {
+            return sharedPreferences.getString(PRIVACY, null);
+        }
+    }
+
+    private static ServiceStatus sStatus = ServiceStatus.SUCCESS;
+
+    public static void setTermsStatus(final ServiceStatus status) {
+        sStatus = status;
+    }
+
+    public static ServiceStatus getTermsStatus() {
+        return sStatus;
+    }
+
+    /**
+     * @param currentContactFilter the mCurrentContactFilter to set
+     */
+    public final void setCurrentContactFilter(final long currentContactFilter) {
+        mCurrentContactFilter = currentContactFilter;
+    }
+
+    /**
+     * @return the mCurrentContactFilter
+     */
+    public final long getCurrentContactFilter() {
+        return mCurrentContactFilter;
     }
 }

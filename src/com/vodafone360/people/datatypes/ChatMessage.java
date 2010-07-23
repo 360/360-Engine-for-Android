@@ -35,8 +35,6 @@ import com.vodafone360.people.service.io.rpg.RpgPushMessage;
 import com.vodafone360.people.utils.LogUtils;
 
 public class ChatMessage extends BaseDataType {
-    private final static String NAME = "ChatMessage";
-
     /** Unique server-supplied conversation id */
     private String mConversationId;
 
@@ -137,8 +135,8 @@ public class ChatMessage extends BaseDataType {
     }
 
     @Override
-    public String name() {
-        return NAME;
+    public int getType() {
+        return CHAT_MSG_DATA_TYPE;
     }
 
     public String getConversationId() {
@@ -191,9 +189,14 @@ public class ChatMessage extends BaseDataType {
 
     @Override
     public String toString() {
-        return "ChatMessage [mBody=" + mBody + ", mConversationId=" + mConversationId
-                + ", mLocalContactId=" + mLocalContactId + ", mNetworkId=" + mNetworkId
-                + ", mUserId=" + mUserId + ", mTos=" + mTos + "]";
+        final StringBuilder sb = new StringBuilder("Chat Message [mBody=");
+        sb.append(mBody); 
+        sb.append(", mConversationId="); sb.append(mConversationId);
+        sb.append(", mLocalContactId="); sb.append(mLocalContactId); 
+        sb.append(", mNetworkId=");  sb.append(mNetworkId);
+        sb.append(", mUserId="); sb.append(mUserId); 
+        sb.append(", mTos="); sb.append(mTos); sb.append("]");
+        return sb.toString();
     }
     
     /**

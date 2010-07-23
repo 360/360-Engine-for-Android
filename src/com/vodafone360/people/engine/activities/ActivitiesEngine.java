@@ -99,8 +99,6 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
 
     private final static long WEEK_OLD_MILLIS = 7 * 24 * 60 * 60 * 1000;
 
-    private static final String ACTIVITY_ITEM = "ActivityItem";
-
     /** Timestamp for most recent Status event update */
     private long mLastStatusUpdated;
 
@@ -486,17 +484,17 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
     private void handleGetActivitiesResponse(List<BaseDataType> data) {
         /** Array of Activities retrieved from Server. */
         ArrayList<ActivityItem> activityList = new ArrayList<ActivityItem>();
-        ServiceStatus errorStatus = getResponseStatus(ACTIVITY_ITEM, data);
+        ServiceStatus errorStatus = getResponseStatus(BaseDataType.ACTIVITY_ITEM_DATA_TYPE, data);
         LogUtils.logE("ActivityEngine.handleGetActivitiesResponse status from generic = "
                 + errorStatus);
         if (ServiceStatus.SUCCESS == errorStatus) {
             for (BaseDataType item : data) {
-                if (ACTIVITY_ITEM.equals(item.name())) {
+                if (item.getType() == BaseDataType.ACTIVITY_ITEM_DATA_TYPE) {
                     activityList.add((ActivityItem)item);
                 } else {
                     LogUtils
                             .logE("ActivityEngine.handleGetActivitiesResponse will not handle strange type = "
-                                    + item.name());
+                                    + item.getType());
                 }
             }
             errorStatus = updateDatabase(activityList);

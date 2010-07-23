@@ -130,12 +130,6 @@ public class SyncMeEngine extends BaseEngine {
     }
 
     /**
-     * The type of datatype we are expecting back from the server for
-     * upload/download me profile requests.
-     */
-    private static final String CONTACT_CHANGES = "ContactChanges";
-
-    /**
      * Percentage used to show progress when the me sync is half complete.
      */
     private static final int PROGRESS_50 = 50;
@@ -379,8 +373,7 @@ public class SyncMeEngine extends BaseEngine {
         if (status == ServiceStatus.SUCCESS) {
             if (resp.mReqId == null || resp.mReqId == 0) {
                 if (resp.mDataTypes.size() > 0
-                        && resp.mDataTypes.get(0).name().equals(
-                                SystemNotification.class.getSimpleName())
+                        && resp.mDataTypes.get(0).getType() == BaseDataType.SYSTEM_NOTIFICATION_DATA_TYPE
                         && ((SystemNotification)resp.mDataTypes.get(0)).getSysCode() == SystemNotification.SysNotificationCode.EXTERNAL_HTTP_ERROR) {
                     LogUtils.logE("SyncMeProfile processMeProfileThumbnailResponse():"
                             + SystemNotification.SysNotificationCode.EXTERNAL_HTTP_ERROR);
@@ -388,8 +381,7 @@ public class SyncMeEngine extends BaseEngine {
                 }
                 completeUiRequest(status);
                 return;
-            } else if (resp.mDataTypes.get(0).name().equals(
-                    SystemNotification.class.getSimpleName())) {
+            } else if (resp.mDataTypes.get(0).getType() == BaseDataType.SYSTEM_NOTIFICATION_DATA_TYPE) {
                 if (((SystemNotification)resp.mDataTypes.get(0)).getSysCode() == SystemNotification.SysNotificationCode.EXTERNAL_HTTP_ERROR) {
                     LogUtils.logE("SyncMeProfile processMeProfileThumbnailResponse():"
                             + SystemNotification.SysNotificationCode.EXTERNAL_HTTP_ERROR);
@@ -399,7 +391,7 @@ public class SyncMeEngine extends BaseEngine {
 
             }
             status = BaseEngine
-                    .getResponseStatus("ExternalResponseObject", resp.mDataTypes);
+                    .getResponseStatus(BaseDataType.EXTERNAL_RESPONSE_OBJECT_DATA_TYPE, resp.mDataTypes);
             if (status != ServiceStatus.SUCCESS) {
                 completeUiRequest(ServiceStatus.ERROR_COMMS_BAD_RESPONSE);
                 LogUtils
@@ -444,7 +436,7 @@ public class SyncMeEngine extends BaseEngine {
      */
     private void processGetMyChangesResponse(final Response resp) {
         LogUtils.logD("SyncMeEngine processGetMyChangesResponse()");
-        ServiceStatus status = BaseEngine.getResponseStatus(CONTACT_CHANGES,
+        ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.CONTACT_CHANGES_DATA_TYPE,
                 resp.mDataTypes);
         if (status == ServiceStatus.SUCCESS) {
             ContactChanges changes = (ContactChanges)resp.mDataTypes.get(0);
@@ -486,7 +478,7 @@ public class SyncMeEngine extends BaseEngine {
     private void processSetMeResponse(final Response resp) {
         LogUtils.logD("SyncMeProfile.processMeProfileUpdateResponse()");
 
-        ServiceStatus status = BaseEngine.getResponseStatus(CONTACT_CHANGES,
+        ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.CONTACT_CHANGES_DATA_TYPE,
                 resp.mDataTypes);
         if (status == ServiceStatus.SUCCESS) {
             ContactChanges result = (ContactChanges) resp.mDataTypes.get(0);
@@ -507,7 +499,7 @@ public class SyncMeEngine extends BaseEngine {
     private void processUpdateStatusResponse(final Response resp) {
         LogUtils.logD("SyncMeDbUtils processUpdateStatusResponse()");
 
-        ServiceStatus status = BaseEngine.getResponseStatus(CONTACT_CHANGES,
+        ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.CONTACT_CHANGES_DATA_TYPE,
                 resp.mDataTypes);
         if (status == ServiceStatus.SUCCESS) {
             ContactChanges result = (ContactChanges) resp.mDataTypes.get(0);
@@ -604,7 +596,7 @@ public class SyncMeEngine extends BaseEngine {
             return false;
         }
         BaseDataType dataType = resp.mDataTypes.get(0);
-        if ((dataType == null) || !dataType.name().equals("PushEvent")) {
+        if ((dataType == null) || dataType.getType() != BaseDataType.PUSH_EVENT_DATA_TYPE) {
             return false;
         }
         PushEvent pushEvent = (PushEvent) dataType;

@@ -30,9 +30,111 @@ package com.vodafone360.people.datatypes;
  */
 abstract public class BaseDataType {
     /**
-     * Return name of the current Data-type.
-     * 
-     * @return String containing name of the data-type.
+     * Get the data type
+     * @return The data-type.
      */
-    abstract public String name();
+    abstract public int getType();
+    
+    /**
+     * Unknown data type
+     */
+    public static final int UNKNOWN_DATA_TYPE = 0;
+    /**
+     * Activity Contact data type
+     */
+    public static final int ACTIVITY_CONTACT_DATA_TYPE = 1;
+    /**
+     * Activity item data type
+     */
+    public static final int ACTIVITY_ITEM_DATA_TYPE = 2;
+    /**
+     * Auth Session Holder data type
+     */
+    public static final int AUTH_SESSION_HOLDER_TYPE = 3;
+    /**
+     * Chat Msg data type
+     */
+    public static final int CHAT_MSG_DATA_TYPE = 4;
+    /**
+     * Contact data type
+     */
+    public static final int CONTACT_DATA_TYPE = 5;
+    /**
+     * Contact Changes data type
+     */
+    public static final int CONTACT_CHANGES_DATA_TYPE = 6;
+    /**
+     * Contact Detail data type
+     */
+    public static final int CONTACT_DETAIL_DATA_TYPE = 7;
+    /**
+     * Contact Detail Deletion data type
+     */
+    public static final int CONTACT_DETAIL_DELETION_DATA_TYPE = 8;
+    /**
+     * Contact List Reponse data type
+     */
+    public static final int CONTACT_LIST_RESPONSE_DATA_TYPE = 9;
+    /**
+     * Conversation data type
+     */
+    public static final int CONVERSATION_DATA_TYPE = 10;
+    /**
+     * External Response Object data type
+     */
+    public static final int EXTERNAL_RESPONSE_OBJECT_DATA_TYPE = 11;
+    /**
+     * Group Item data type
+     */
+    public static final int GROUP_ITEM_DATA_TYPE = 12;
+    /**
+     * My Identity data type
+     */
+    public static final int MY_IDENTITY_DATA_TYPE = 13;
+    /**
+     * Available Identity data type
+     */
+    public static final int AVAILABLE_IDENTITY_DATA_TYPE = 14;
+    /**
+     * Identity Capability data type
+     */
+    public static final int IDENTITY_CAPABILITY_DATA_TYPE = 15;
+    /**
+     * Item List data type
+     */
+    public static final int ITEM_LIST_DATA_TYPE = 16;
+    /**
+     * Presence List data type
+     */
+    public static final int PRESENCE_LIST_DATA_TYPE = 17;
+    /**
+     * Public Key Details data type
+     */
+    public static final int PUBLIC_KEY_DETAILS_DATA_TYPE = 18;
+    /**
+     * Push Event data type
+     */
+    public static final int PUSH_EVENT_DATA_TYPE = 19;
+    /**
+     * Server Error data type
+     */
+    public static final int SERVER_ERROR_DATA_TYPE = 20;
+    
+    /**
+     * Simple Text data type
+     */
+    public static final int SIMPLE_TEXT_DATA_TYPE = 21;
+    /**
+     * Status Msg data type
+     */
+    public static final int STATUS_MSG_DATA_TYPE = 22;
+    /**
+     * User Profile data type
+     */
+    public static final int USER_PROFILE_DATA_TYPE = 23;
+    /**
+     * System Notification data type
+     */    
+    public static final int SYSTEM_NOTIFICATION_DATA_TYPE = 24;
+    
 }

@@ -36,6 +36,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.telephony.TelephonyManager;
 
+import com.vodafone360.people.ApplicationCache;
 import com.vodafone360.people.Intents;
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.SettingsManager;
@@ -89,6 +90,17 @@ public class LoginEngine extends BaseEngine {
     }
 
     /**
+     * Text coming from the server contains these carriage return characters,
+     * which need to be exchanged with space characters to improve layout.
+     */
+    private static final char CARRIAGE_RETURN_CHARACTER = (char) 13;
+
+    /**
+     * Text coming from the server contains carriage return characters, which
+     * need to be exchanged with these space characters to improve layout.
+     */
+    private static final char SPACE_CHARACTER = (char) 32;
+    /**
      * used for sending unsolicited ui events
      */
     private final UiAgent mUiAgent = mEventCallback.getUiAgent();
@@ -97,19 +109,6 @@ public class LoginEngine extends BaseEngine {
      * mutex for thread synchronization
      */
     private final Object mMutex = new Object();
-
-    /**
-     * Used to verify datatype of server response to request activation code and
-     * activation account.
-     */
-    private static final String STATUS_MSG = "StatusMsg";
-
-    /**
-     * Used to verify datatype of server response for
-     * {@link Auth#getSessionByCredentials} request.
-     */
-    private static final String AUTH_SESSION_HOLDER = "AuthSessionHolder";
-
     /**
      * To convert between seconds and milliseconds
      */
@@ -313,6 +312,7 @@ public class LoginEngine extends BaseEngine {
      * queue and kicks the worker thread.
      * 
      * @param username Username to fetch the state of
+     * TODO: Not currently used by UI.
      */
     public void addUiGetUsernameStateRequest(String username) {
         LogUtils.logD("LoginEngine.addUiGetUsernameStateRequest()");
@@ -529,7 +529,7 @@ public class LoginEngine extends BaseEngine {
             case FETCHING_TERMS_OF_SERVICE:
             case FETCHING_PRIVACY_STATEMENT:
             case FETCHING_USERNAME_STATE:
-                handleServerSimpleTextResponse(resp.mDataTypes);
+                handleServerSimpleTextResponse(resp.mDataTypes, mState);
                 break;
             default: // do nothing.
                 break;
@@ -766,14 +766,14 @@ public class LoginEngine extends BaseEngine {
      * Sends a fetch terms of service request to the server.
      */
     private void startFetchTermsOfService() {
-        LogUtils.logD("LoginEngine.startSignUp()");
+        LogUtils.logD("LoginEngine.startFetchTermsOfService()");
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            completeUiRequest(ServiceStatus.ERROR_COMMS, null);
+            updateTermsState(ServiceStatus.ERROR_COMMS, null);
             return;
         }
         newState(State.FETCHING_TERMS_OF_SERVICE);
         if (!setReqId(Auth.getTermsAndConditions(this))) {
-            completeUiRequest(ServiceStatus.ERROR_COMMS, null);
+            updateTermsState(ServiceStatus.ERROR_COMMS, null);
             return;
         }
     }
@@ -784,12 +784,12 @@ public class LoginEngine extends BaseEngine {
     private void startFetchPrivacyStatement() {
         LogUtils.logD("LoginEngine.startFetchPrivacyStatement()");
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            completeUiRequest(ServiceStatus.ERROR_COMMS, null);
+            updateTermsState(ServiceStatus.ERROR_COMMS, null);
             return;
         }
         newState(State.FETCHING_PRIVACY_STATEMENT);
         if (!setReqId(Auth.getPrivacyStatement(this))) {
-            completeUiRequest(ServiceStatus.ERROR_COMMS, null);
+            updateTermsState(ServiceStatus.ERROR_COMMS, null);
             return;
         }
     }
@@ -1134,7 +1134,7 @@ public class LoginEngine extends BaseEngine {
      * @param data The received data
      */
     private void handleSignUpResponse(List<BaseDataType> data) {
-        ServiceStatus errorStatus = getResponseStatus("Contact", data);
+        ServiceStatus errorStatus = getResponseStatus(BaseDataType.CONTACT_DATA_TYPE, data);
         LogUtils.logD("LoginEngine.handleSignUpResponse() errorStatus[" + errorStatus.name() + "]");
         if (errorStatus == ServiceStatus.SUCCESS) {
             LogUtils.logD("LoginEngine.handleSignUpResponse() - Registration successful");
@@ -1162,7 +1162,7 @@ public class LoginEngine extends BaseEngine {
      */
     private void handleNewPublicKeyResponse(List<BaseDataType> mDataTypes) {
         LogUtils.logD("LoginEngine.handleNewPublicKeyResponse()");
-        ServiceStatus errorStatus = getResponseStatus("PublicKeyDetails", mDataTypes);
+        ServiceStatus errorStatus = getResponseStatus(BaseDataType.PUBLIC_KEY_DETAILS_DATA_TYPE, mDataTypes);
         if (errorStatus == ServiceStatus.SUCCESS) {
             LogUtils.logD("LoginEngine.handleNewPublicKeyResponse() - Succesfully retrieved");
             // AA
@@ -1187,7 +1187,7 @@ public class LoginEngine extends BaseEngine {
      */
     private void handleCreateSessionManualResponse(List<BaseDataType> data) {
         LogUtils.logD("LoginEngine.handleCreateSessionManualResponse()");
-        ServiceStatus errorStatus = getResponseStatus(AUTH_SESSION_HOLDER, data);
+        ServiceStatus errorStatus = getResponseStatus(BaseDataType.AUTH_SESSION_HOLDER_TYPE, data);
         if (errorStatus == ServiceStatus.SUCCESS && (data.size() > 0)) {
             setActivatedSession((AuthSessionHolder)data.get(0));
             startActivateAccount();
@@ -1204,7 +1204,7 @@ public class LoginEngine extends BaseEngine {
      */
     private void handleCreateSessionAutoResponse(List<BaseDataType> data) {
         LogUtils.logD("LoginEngine.handleCreateSessionResponse()");
-        ServiceStatus errorStatus = getResponseStatus(AUTH_SESSION_HOLDER, data);
+        ServiceStatus errorStatus = getResponseStatus(BaseDataType.AUTH_SESSION_HOLDER_TYPE, data);
         if (errorStatus == ServiceStatus.SUCCESS) {
             clearTimeout();
             setActivatedSession((AuthSessionHolder)data.get(0));
@@ -1238,7 +1238,7 @@ public class LoginEngine extends BaseEngine {
      */
     private void handleRequestingActivationResponse(List<BaseDataType> data) {
         LogUtils.logD("LoginEngine.handleRequestingActivationResponse()");
-        ServiceStatus errorStatus = getResponseStatus(STATUS_MSG, data);
+        ServiceStatus errorStatus = getResponseStatus(BaseDataType.STATUS_MSG_DATA_TYPE, data);
         if (errorStatus == ServiceStatus.SUCCESS) {
             // Now waiting for SMS...
             setTimeout(ACTIVATE_LOGIN_TIMEOUT);
@@ -1256,7 +1256,7 @@ public class LoginEngine extends BaseEngine {
      */
     private void handleActivateAccountResponse(List<BaseDataType> data) {
         LogUtils.logD("LoginEngine.handleActivateAccountResponse()");
-        ServiceStatus errorStatus = getResponseStatus(STATUS_MSG, data);
+        ServiceStatus errorStatus = getResponseStatus(BaseDataType.STATUS_MSG_DATA_TYPE, data);
         if (errorStatus == ServiceStatus.SUCCESS) {
             LogUtils
                     .logD("LoginEngine.handleActivateAccountResponse: ** Mobile number activated **");
@@ -1275,15 +1275,50 @@ public class LoginEngine extends BaseEngine {
      * 
      * @param data The received data
      */
-    private void handleServerSimpleTextResponse(List<BaseDataType> data) {
-        LogUtils.logD("LoginEngine.handleServerSimpleTextResponse()");
-        ServiceStatus errorStatus = getResponseStatus("SimpleText", data);
-        if (errorStatus == ServiceStatus.SUCCESS) {
-            SimpleText simpleText = (SimpleText)data.get(0);
-            completeUiRequest(ServiceStatus.SUCCESS, simpleText.mValue.toString());
-            return;
+    private void handleServerSimpleTextResponse(List<BaseDataType> data, State type) {
+        LogUtils.logV("LoginEngine.handleServerSimpleTextResponse()");
+        ServiceStatus serviceStatus = getResponseStatus(BaseDataType.SIMPLE_TEXT_DATA_TYPE, data);
+
+        String result = null;
+        if (serviceStatus == ServiceStatus.SUCCESS) {
+            result = ((SimpleText) data.get(0)).mValue.toString().replace(
+                    CARRIAGE_RETURN_CHARACTER, SPACE_CHARACTER);
+
+            switch (type) {
+                case FETCHING_TERMS_OF_SERVICE:
+                    LogUtils.logD("LoginEngine.handleServerSimpleTextResponse() Terms of Service");
+                    ApplicationCache.setTermsOfService(result, mContext);
+                    break;
+                case FETCHING_PRIVACY_STATEMENT:
+                    LogUtils.logD("LoginEngine.handleServerSimpleTextResponse() Privacy Statemet");
+                    ApplicationCache.setPrivacyStatemet(result, mContext);
+                    break;
+                case FETCHING_USERNAME_STATE:
+                    // TODO: Unused by UI.
+                    break;
+            }
         }
-        completeUiRequest(errorStatus, null);
+
+        updateTermsState(serviceStatus, result);
+    }
+
+    /***
+     * Informs the UI to update any terms which are being shown on screen.
+     *
+     * @param serviceStatus Current ServiceStatus.
+     * @param messageText Legacy call for old UI (TODO: remove after UI-Refresh
+     *          merge).  NULL when combined with a ServiceStatus of
+     *          ERROR_COMMS, or contains the Privacy or Terms and Conditions
+     *          text to be displayed in the UI.
+     */
+    private void updateTermsState(ServiceStatus serviceStatus, String messageText) {
+        ApplicationCache.setTermsStatus(serviceStatus);
+
+        /** Trigger UiAgent. **/
+        mUiAgent.sendUnsolicitedUiEvent(ServiceUiRequest.TERMS_CHANGED_EVENT, null);
+
+        /** Clear this request from the UI queue. **/
+        completeUiRequest(serviceStatus, messageText);
     }
 
     /**

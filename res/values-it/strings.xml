@@ -459,5 +459,5 @@
 	<string name="android_contact_profile_summary">Profilo di 360 People</string>
 	<string name="only_one_account_notice">È supportato un solo account 360 People</string>
 	<string name="TimelineHistoryActivity_contact_offline">Il contatto sembra non in linea</string>
-	<string name="contactprofile_no_connection">Nessuna connessione di rete disponibile.</string>
+	<string name="ContactProfile_no_connection">Nessuna connessione di rete disponibile.</string>
 </resources>

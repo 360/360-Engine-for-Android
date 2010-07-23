@@ -242,23 +242,26 @@ public abstract class ActivitiesTable {
          */
         @Override
         public final String toString() {
-            return "TimeLineSummaryItem [mLocalActivityId[" + mLocalActivityId
-                + "], mTimestamp[" + mTimestamp
-                + "], mContactName[" + mContactName
-                + "], mHasAvatar[" + mHasAvatar
-                + "], mType[" + mType
-                + "], mLocalContactId[" + mLocalContactId
-                + "], mContactNetwork[" + mContactNetwork
-                + "], mTitle[" + mTitle
-                + "], mDescription[" + mDescription
-                + "], mNativeItemType[" + mNativeItemType
-                + "], mNativeItemId[" + mNativeItemId
-                + "], mContactId[" + mContactId
-                + "], mUserId[" + mUserId
-                + "], mNativeThreadId[" + mNativeThreadId
-                + "], mContactAddress[" + mContactAddress
-                + "], mIncoming[" + mIncoming
-                + "]]";
+            final StringBuilder sb = 
+                new StringBuilder("TimeLineSummaryItem [mLocalActivityId[");
+            sb.append(mLocalActivityId);
+            sb.append("], mTimestamp["); sb.append(mTimestamp);
+            sb.append("], mContactName["); sb.append(mContactName);
+            sb.append("], mHasAvatar["); sb.append(mHasAvatar);
+            sb.append("], mType["); sb.append(mType);
+            sb.append("], mLocalContactId["); sb.append(mLocalContactId);
+            sb.append("], mContactNetwork["); sb.append(mContactNetwork);
+            sb.append("], mTitle["); sb.append(mTitle);
+            sb.append("], mDescription["); sb.append(mDescription);
+            sb.append("], mNativeItemType["); sb.append(mNativeItemType);
+            sb.append("], mNativeItemId["); sb.append(mNativeItemId);
+            sb.append("], mContactId["); sb.append(mContactId);
+            sb.append("], mUserId["); sb.append(mUserId);
+            sb.append("], mNativeThreadId["); sb.append(mNativeThreadId);
+            sb.append("], mContactAddress["); sb.append(mContactAddress);
+            sb.append("], mIncoming["); sb.append(mIncoming);
+            sb.append("]]");;
+            return sb.toString();
         }
 
         @Override
@@ -1242,8 +1245,9 @@ public abstract class ActivitiesTable {
         }
         final String searchName = DatabaseUtils.sqlEscapeString(name);
         if (PhoneNumberUtils.isWellFormedSmsAddress(name)) {
-            return "PHONE_NUMBERS_EQUAL(" + Field.CONTACT_NAME + ","
-                + searchName + ")";
+            return "(PHONE_NUMBERS_EQUAL(" + Field.CONTACT_NAME + ","
+                + searchName + ") OR "+ Field.CONTACT_NAME + "="
+                + searchName+")";
         } else {
             return Field.CONTACT_NAME + "=" + searchName;
         }

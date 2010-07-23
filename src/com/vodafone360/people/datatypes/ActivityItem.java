@@ -467,8 +467,8 @@ public class ActivityItem extends BaseDataType {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "ActivityItem";
+    public int getType() {
+        return ACTIVITY_ITEM_DATA_TYPE;
     }
 
     /**
@@ -658,55 +658,55 @@ public class ActivityItem extends BaseDataType {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        StringBuffer ret = new StringBuffer();
-        ret.append(name());
-        ret.append("\n\tActivity Id = " + mActivityId);
-        ret.append("\n\tTime = " + mTime);
+        final StringBuffer sb = 
+            new StringBuffer("ActivityItem:\n\tActivity Id = ");
+        sb.append(mActivityId);
+        sb.append("\n\tTime = "); sb.append(mTime);
         if (mType != null) {
-            ret.append("\n\tType = " + mType.getTypeCode());
+            sb.append("\n\tType = "); sb.append(mType.getTypeCode());
         }
-        ret.append("\n\tUri = " + mUri);
-        ret.append("\n\tTitle = " + mTitle);
-        ret.append("\n\tDescription = " + mDescription);
+        sb.append("\n\tUri = "); sb.append(mUri);
+        sb.append("\n\tTitle = "); sb.append(mTitle);
+        sb.append("\n\tDescription = "); sb.append(mDescription);
         if (mPreview != null) {
-            ret.append("\n\tPreview = " + String.valueOf(mPreview));
+            sb.append("\n\tPreview = "); sb.append(String.valueOf(mPreview));
         }
-        ret.append("\n\tPreview Mime =" + mPreviewMime);
-        ret.append("\n\tPreview URL = " + mPreviewUrl);
-        ret.append("\n\tStore = " + mStore);
+        sb.append("\n\tPreview Mime ="); sb.append(mPreviewMime);
+        sb.append("\n\tPreview URL = "); sb.append(mPreviewUrl);
+        sb.append("\n\tStore = " + mStore);
         if (mFlagList != null) {
-            ret.append("\n\tFlag list: [");
+            sb.append("\n\tFlag list: [");
             for (int i = 0; i < mFlagList.size(); i++) {
-                ret.append(mFlagList.get(i).getFlagCode());
+                sb.append(mFlagList.get(i).getFlagCode());
                 if (i < mFlagList.size() - 1) {
-                    ret.append(", ");
+                    sb.append(", ");
                 }
             }
-            ret.append("]");
+            sb.append("]");
         }
-        ret.append("\n\tParent activity = " + mParentActivity);
-        ret.append("\n\tHas children = " + mHasChildren);
+        sb.append("\n\tParent activity = "); sb.append(mParentActivity);
+        sb.append("\n\tHas children = "); sb.append(mHasChildren);
         if (mVisibility != null) {
-            ret.append("\n\tVisibility: [");
+            sb.append("\n\tVisibility: [");
             for (int i = 0; i < mVisibility.size(); i++) {
-                ret.append(mVisibility.get(i).getVisibilityCode());
+                sb.append(mVisibility.get(i).getVisibilityCode());
                 if (i < mVisibility.size() - 1) {
-                    ret.append(", ");
+                    sb.append(", ");
                 }
             }
-            ret.append("]");
+            sb.append("]");
         }
 
         if (mContactList != null) {
-            ret.append("\n\tContact list: [");
+            sb.append("\n\tContact list: [");
             for (int i = 0; i < mContactList.size(); i++) {
-                ret.append(mContactList.get(i).toString());
+                sb.append(mContactList.get(i).toString());
                 if (i < mContactList.size() - 1) {
-                    ret.append(", ");
+                    sb.append(", ");
                 }
             }
-            ret.append("]");
+            sb.append("]");
         }
-        return ret.toString();
+        return sb.toString();
     }
 }

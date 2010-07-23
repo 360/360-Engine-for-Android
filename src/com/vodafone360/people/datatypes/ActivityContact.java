@@ -145,8 +145,8 @@ public class ActivityContact extends BaseDataType {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "ActivityContact";
+    public int getType() {
+        return ACTIVITY_CONTACT_DATA_TYPE;
     }
 
     /**
@@ -225,19 +225,20 @@ public class ActivityContact extends BaseDataType {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        String ret = name();
-        ret += "\n\t\tContact Id = " + mContactId;
-        ret += "\n\t\tLocal contact Id = " + mLocalContactId;
-        ret += "\n\t\tUser Id = " + mUserId;
-        ret += "\n\t\tName = " + mName;
-        ret += "\n\t\tAddress = " + mAddress;
-        ret += "\n\t\tType = " + mType;
-        ret += "\n\t\tNetwork = " + mNetwork;
+        final StringBuffer sb = 
+            new StringBuffer("ActivityContact:\n\t\tContact Id = ");
+        sb.append(mContactId);
+        sb.append("\n\t\tLocal contact Id = "); sb.append(mLocalContactId);
+        sb.append("\n\t\tUser Id = "); sb.append(mUserId);
+        sb.append("\n\t\tName = "); sb.append(mName);
+        sb.append("\n\t\tAddress = "); sb.append(mAddress);
+        sb.append("\n\t\tType = "); sb.append(mType);
+        sb.append("\n\t\tNetwork = "); sb.append(mNetwork);
         if (mAvatar != null) {
-            ret += "\n\t\tAvatar = " + String.valueOf(mAvatar);
+            sb.append("\n\t\tAvatar = "); sb.append(String.valueOf(mAvatar));
         }
-        ret += "\n\t\tAvatar mime = " + mAvatarMime;
-        ret += "\n\t\tAvatar URL = " + mAvatarUrl;
-        return ret;
+        sb.append("\n\t\tAvatar mime = "); sb.append(mAvatarMime);
+        sb.append("\n\t\tAvatar URL = "); sb.append(mAvatarUrl);
+        return sb.toString();
     }
 }

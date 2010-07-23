@@ -140,8 +140,8 @@ public class IdentityCapability extends BaseDataType implements Parcelable {
 
     /** {@inheritDoc} */
     @Override
-    public String name() {
-        return "IdentityCapability";
+    public int getType() {
+        return IDENTITY_CAPABILITY_DATA_TYPE;
     }
 
     /**
@@ -200,16 +200,19 @@ public class IdentityCapability extends BaseDataType implements Parcelable {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        String ret = "\tName:         " + mName;
-        ret += "\n\tCapabilityID: ";
+        final StringBuilder sb = new StringBuilder("\tName:");
+        sb.append(mName);
+        sb.append("\n\tCapabilityID:");
+
         if (mCapability != null) {
-            ret += mCapability.name();
+            sb.append(mCapability.name());
         } else {
-            ret += "null";
+            sb.append(mCapability);
         }
-        ret += "\n\tValue:        " + mValue;
-        ret += "\n\tDescription:  " + mDescription;
-        return ret;
+        
+        sb.append("\n\tValue:"); sb.append(mValue);
+        sb.append("\n\tDescription:"); sb.append(mDescription);
+        return sb.toString();
     }
 
     /**
