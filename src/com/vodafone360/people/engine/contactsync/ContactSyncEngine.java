@@ -49,7 +49,7 @@ import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.agent.UiAgent;
 import com.vodafone360.people.service.agent.NetworkAgent.AgentState;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.utils.LogUtils;
 
 /**
@@ -816,7 +816,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * @param resp Response or push message received
      */
     @Override
-    protected void processCommsResponse(Response resp) {
+    protected void processCommsResponse(DecodedResponse resp) {
         if (processPushEvent(resp)) {
             return;
         }
@@ -839,7 +839,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * @param resp Response to check and process
      * @return true if the response was processed
      */
-    private boolean processPushEvent(Response resp) {
+    private boolean processPushEvent(DecodedResponse resp) {
         if (resp.mDataTypes == null || resp.mDataTypes.size() == 0) {
             return false;
         }

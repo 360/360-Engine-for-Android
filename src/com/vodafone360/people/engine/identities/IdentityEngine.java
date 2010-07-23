@@ -44,10 +44,11 @@ import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.UiAgent;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.io.api.Identities;
 import com.vodafone360.people.service.io.rpg.PushMessageTypes;
 import com.vodafone360.people.service.transport.ConnectionManager;
+import com.vodafone360.people.service.transport.http.HttpConnectionThread;
 import com.vodafone360.people.service.transport.tcp.ITcpConnectionListener;
 import com.vodafone360.people.utils.LogUtils;
 
@@ -394,7 +395,9 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * @param resp The decoded response.
      */
     @Override
-    protected void processCommsResponse(Response resp) {
+    protected void processCommsResponse(DecodedResponse resp) {
+    	HttpConnectionThread.logE("GOT RESPONSE!!!!!!!!!!!!!!", "Got response: " + resp.mReqId, null);
+    	    	
         LogUtils.logD("IdentityEngine.processCommsResponse() - resp = " + resp);
         
         if (resp.mReqId == 0 && resp.mDataTypes.size() > 0) {	// push msg

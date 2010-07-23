@@ -39,7 +39,7 @@ import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.NetworkAgent;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.io.api.GroupPrivacy;
 import com.vodafone360.people.utils.LogUtils;
 
@@ -102,7 +102,7 @@ public class GroupsEngine extends BaseEngine {
     }
 
     @Override
-    protected void processCommsResponse(Response resp) {
+    protected void processCommsResponse(DecodedResponse resp) {
         LogUtils.logD("DownloadGroups.processCommsResponse()");
         ServiceStatus status = 
             BaseEngine.getResponseStatus(BaseDataType.ITEM_LIST_DATA_TYPE, resp.mDataTypes);

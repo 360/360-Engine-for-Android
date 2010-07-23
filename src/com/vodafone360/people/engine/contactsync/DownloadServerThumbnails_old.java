@@ -41,7 +41,7 @@ import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.io.QueueManager;
 import com.vodafone360.people.service.io.Request;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.ThumbnailUtils;
 
@@ -172,7 +172,7 @@ public class DownloadServerThumbnails_old extends BaseSyncProcessor {
      * database updated to indicate that the thumbnail has been sync'ed.
      */
     @Override
-    public void processCommsResponse(Response resp) {
+    public void processCommsResponse(DecodedResponse resp) {
         if (resp.mReqId == null || resp.mReqId == 0) {
             if (resp.mDataTypes.size() > 0) {
                 BaseDataType data = resp.mDataTypes.get(0);

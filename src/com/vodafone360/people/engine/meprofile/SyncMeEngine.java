@@ -53,7 +53,7 @@ import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.agent.UiAgent;
 import com.vodafone360.people.service.io.QueueManager;
 import com.vodafone360.people.service.io.Request;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.io.api.Contacts;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.ThumbnailUtils;
@@ -340,7 +340,7 @@ public class SyncMeEngine extends BaseEngine {
      * Called by framework when a response to a server request is received.
      * @param resp The response received
      */
-    public final void processCommsResponse(final Response resp) {
+    public final void processCommsResponse(final DecodedResponse resp) {
         if (!processPushEvent(resp)) {
             switch (mState) {
                 case FETCHING_ME_PROFILE_CHANGES:
@@ -367,7 +367,7 @@ public class SyncMeEngine extends BaseEngine {
      * @param resp Response - normally contains ExternalResponseObject for the
      *            picture
      */
-    private void processMeProfileThumbnailResponse(final Response resp) {
+    private void processMeProfileThumbnailResponse(final DecodedResponse resp) {
         Contact currentMeProfile = new Contact();
         ServiceStatus status = SyncMeDbUtils.fetchMeProfile(mDbHelper, currentMeProfile);
         if (status == ServiceStatus.SUCCESS) {
@@ -434,7 +434,7 @@ public class SyncMeEngine extends BaseEngine {
      * Otherwise the processor will complete with a suitable error.
      * @param resp Response from server.
      */
-    private void processGetMyChangesResponse(final Response resp) {
+    private void processGetMyChangesResponse(final DecodedResponse resp) {
         LogUtils.logD("SyncMeEngine processGetMyChangesResponse()");
         ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.CONTACT_CHANGES_DATA_TYPE,
                 resp.mDataTypes);
@@ -475,7 +475,7 @@ public class SyncMeEngine extends BaseEngine {
      * the processor will complete with a suitable error.
      * @param resp Response from server.
      */
-    private void processSetMeResponse(final Response resp) {
+    private void processSetMeResponse(final DecodedResponse resp) {
         LogUtils.logD("SyncMeProfile.processMeProfileUpdateResponse()");
 
         ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.CONTACT_CHANGES_DATA_TYPE,
@@ -496,7 +496,7 @@ public class SyncMeEngine extends BaseEngine {
      * This method processes the response to status update by setMe() method
      * @param resp Response - the expected response datatype is ContactChanges
      */
-    private void processUpdateStatusResponse(final Response resp) {
+    private void processUpdateStatusResponse(final DecodedResponse resp) {
         LogUtils.logD("SyncMeDbUtils processUpdateStatusResponse()");
 
         ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.CONTACT_CHANGES_DATA_TYPE,
@@ -591,7 +591,7 @@ public class SyncMeEngine extends BaseEngine {
      *            PushEvent data type
      * @return boolean - TRUE if a push event was found in the response
      */
-    private boolean processPushEvent(final Response resp) {
+    private boolean processPushEvent(final DecodedResponse resp) {
         if (resp.mDataTypes == null || resp.mDataTypes.size() == 0) {
             return false;
         }

@@ -42,7 +42,7 @@ import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.agent.NetworkAgent.AgentState;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.utils.CloseUtils;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.VersionUtils;
@@ -287,7 +287,7 @@ public class UpgradeEngine extends BaseEngine {
     }
 
     @Override
-    protected void processCommsResponse(Response resp) {
+    protected void processCommsResponse(DecodedResponse resp) {
         // Do nothing
     }
 
