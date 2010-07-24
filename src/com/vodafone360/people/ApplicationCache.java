@@ -174,7 +174,28 @@ public class ApplicationCache {
     private TimelineSummaryItem mCurrentTimelineSummary;
 
     private long mCurrentContactFilter;
+    
+    /** Cached whether ThirdPartyAccountsActivity is opened. */
+    private boolean mIsAddAccountActivityOpened;
 
+    /***
+     * GETTER Whether "add Account" activity is opened
+     * 
+     * @return True if "add Account" activity is opened
+     */
+    public boolean addAccountActivityOpened() {
+        return mIsAddAccountActivityOpened;
+    }
+
+    /***
+     * SETTER Whether "add Account" activity is opened.
+     * 
+     * @param flag if "add Account" activity is opened
+     */
+    public void setAddAccountActivityOpened(final boolean flag) {
+        mIsAddAccountActivityOpened = flag;
+    }
+    
     /**
      * Whether this is a first time login (on this device) for current account.
      * 
@@ -268,6 +289,8 @@ public class ApplicationCache {
         mServiceStatus = ServiceStatus.ERROR_UNKNOWN;
         mThirdPartyAccountsCache = null;
         mSyncStatus = null;
+        
+        mIsAddAccountActivityOpened = false;
     }
 
     /**

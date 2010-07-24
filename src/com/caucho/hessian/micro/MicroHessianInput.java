@@ -492,7 +492,7 @@ public class MicroHessianInput {
      */
     private String readStringImpl(int length) throws IOException {
 
-        // reset the stringbuilder. Recycling is better then making allways a
+        // reset the StringBuilder. Recycling is better than making always a
         // new one.
         mStringBuilder.setLength(0);
 
@@ -523,7 +523,7 @@ public class MicroHessianInput {
                 throw new IOException("bad utf-8 encoding");
         }
 
-        return mStringBuilder.toString();
+        return mStringBuilder.substring(0, mStringBuilder.length());
     }
 
     public Hashtable<String, Object> readHashMap() throws IOException {
