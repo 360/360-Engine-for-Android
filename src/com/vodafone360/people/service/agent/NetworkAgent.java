@@ -87,8 +87,6 @@ public class NetworkAgent {
 
     private boolean mIsInBackground;
 
-    private boolean mWifiActive;
-
     private boolean mNetworkWorking = true;
 
     // dateTime value in milliseconds
@@ -105,6 +103,9 @@ public class NetworkAgent {
         DISCONNECTED,
         UNKNOWN
     };
+    
+    private boolean mWifiNetworkAvailable;
+    private boolean mMobileNetworkAvailable;
 
     /**
      * Reasons for Service Agent changing state to disconnected
@@ -244,7 +245,7 @@ public class NetworkAgent {
         NetworkInfo info = mConnectivityManager.getActiveNetworkInfo();
         if (info != null) {
             mInternetConnected = (info.getState() == NetworkInfo.State.CONNECTED);
-            mWifiActive = (info.getType() == TYPE_WIFI);
+            mWifiNetworkAvailable = (info.getType() == TYPE_WIFI);
             mIsRoaming = info.isRoaming();
         }
         mBackgroundData = mConnectivityManager.getBackgroundDataSetting();
@@ -297,15 +298,30 @@ public class NetworkAgent {
         public void onReceive(Context context, Intent intent) {
             LogUtils.logV("NetworkAgent.broadcastReceiver.onReceive() CONNECTIVITY_ACTION");
             synchronized (NetworkAgent.this) {
-                mInternetConnected = false;
-                NetworkInfo info = (NetworkInfo)intent
-                        .getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
-                if (!intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, false)) {
-                    if (info != null) {
-                        mInternetConnected = (info.getState() == NetworkInfo.State.CONNECTED);
-                        mWifiActive = (info.getType() == TYPE_WIFI);
-                    }
+                NetworkInfo info = (NetworkInfo) intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
+                boolean noConnectivity = intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, false);
+                
+                if (info == null) {
+                	LogUtils.logW("NetworkAgent.broadcastReceiver.onReceive() EXTRA_NETWORK_INFO not found.");
+                } else {
+                	if (info.getType() == TYPE_WIFI) {
+                		mWifiNetworkAvailable = (info.getState() == NetworkInfo.State.CONNECTED);
+                	} else {
+                		mMobileNetworkAvailable = (info.getState() == NetworkInfo.State.CONNECTED);
+                	}
                 }
+                
+                if (noConnectivity) {
+                	LogUtils.logV("NetworkAgent.broadcastReceiver.onReceive() EXTRA_NO_CONNECTIVITY found!");
+                	mInternetConnected = false;
+                } else {
+                	mInternetConnected = mWifiNetworkAvailable || mMobileNetworkAvailable;
+                }
+                
+                LogUtils.logV("NetworkAgent.broadcastReceiver.onReceive() mInternetConnected = " + mInternetConnected +
+                								", mWifiNetworkAvailable = " + mWifiNetworkAvailable +
+                								", mMobileNetworkAvailable = " + mMobileNetworkAvailable);
+                
                 onConnectionStateChanged();
             }
         }
@@ -337,7 +353,7 @@ public class NetworkAgent {
                 LogUtils.logV("NetworkAgent.broadcastReceiver.onReceive() Network Roaming = "
                         + mIsRoaming);
                 LogUtils.logV("NetworkAgent.broadcastReceiver.onReceive() WiFi active	   = "
-                        + mWifiActive);
+                        + mWifiNetworkAvailable);
             }
             processRoaming(null);
         }
@@ -464,7 +480,7 @@ public class NetworkAgent {
             setNewState(AgentState.DISCONNECTED);
             return;
         } else {
-            if (mWifiActive) {
+            if (mWifiNetworkAvailable) {
                 LogUtils.logV("NetworkAgent.onConnectionStateChanged() WIFI connected");
             } else {
                 LogUtils.logV("NetworkAgent.onConnectionStateChanged() Cellular connected");
@@ -478,7 +494,7 @@ public class NetworkAgent {
                                                                          * it -
                                                                          * TBD
                                                                          * &&!
-                                                                         * mWifiActive
+                                                                         * mWifiNetworkAvailable
                                                                          */) {
                 LogUtils.logV("NetworkAgent.onConnectionStateChanged()"
                         + " Internet allowed only in manual mode");
@@ -623,7 +639,7 @@ public class NetworkAgent {
         if (changes[StatesOfService.IS_BG_CONNECTION_ALLOWED.ordinal()])
             mBackgroundData = state.isBackDataAllowed();
         if (changes[StatesOfService.IS_WIFI_ACTIVE.ordinal()])
-            mWifiActive = state.isWifiActive();
+            mWifiNetworkAvailable = state.isWifiActive();
         if (changes[StatesOfService.IS_ROAMING.ordinal()]) {// special case for
                                                             // roaming
             mIsRoaming = state.isRoaming();
@@ -648,7 +664,7 @@ public class NetworkAgent {
 
         state.setInternetConnected(mInternetConnected);
         state.setNetworkWorking(mNetworkWorking);
-        state.setWifiActive(mWifiActive);
+        state.setWifiActive(mWifiNetworkAvailable);
 
         state.setDisconnectReason(mDisconnectReason);
         state.setAgentState(mAgentState);
