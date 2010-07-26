@@ -740,4 +740,24 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         return returnFilter;
     }
     
+    /**
+     * This method needs to be called as part of removeAllData()/changeUser()
+     * routine.
+     */
+    public final void onReset() {
+        clearCachedIdentities();
+        super.onReset();
+    }
+
+    /**
+     * 
+     * Clears all cached identities that belong to a user (my identities). Available identities will stay untouched as they do not raise any privacy
+     * concerns and can stay cached.
+     * 
+     */
+    public void clearCachedIdentities() {
+        if (null != mMyIdentityList) {
+            mMyIdentityList.clear();
+        }
+    }
 }
