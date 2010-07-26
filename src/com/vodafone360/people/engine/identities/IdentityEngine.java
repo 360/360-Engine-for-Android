@@ -395,11 +395,10 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * @param resp The decoded response.
      */
     @Override
-    protected void processCommsResponse(DecodedResponse resp) {
-    	HttpConnectionThread.logE("GOT RESPONSE!!!!!!!!!!!!!!", "Got response: " + resp.mReqId, null);
-    	    	
-        LogUtils.logD("IdentityEngine.processCommsResponse() - resp = " + resp);
+    protected void processCommsResponse(DecodedResponse resp) {  	    	
+    	LogUtils.logD("IdentityEngine.processCommsResponse() - resp = " + resp);
         
+        // TODO replace this whole block with the response type in the DecodedResponse class in the future!
         if (resp.mReqId == 0 && resp.mDataTypes.size() > 0) {	// push msg
             PushEvent evt = (PushEvent)resp.mDataTypes.get(0);
             handlePushResponse(evt.mMessageType);
@@ -421,9 +420,15 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 	                LogUtils.logW("IdentityEngine.processCommsResponse DEFAULT should never happened.");
 	                break;
 	        }
-        } else {
+        } else {		// responses data list is 0, that means e.g. no identities in an identities response
         	LogUtils.logW("IdentityEngine.processCommsResponse List was empty!");
-        }
+        	
+        	if (resp.getResponseType() == DecodedResponse.ResponseType.GET_MY_IDENTITIES_RESPONSE.ordinal()) {
+        		pushIdentitiesToUi(ServiceUiRequest.GET_MY_IDENTITIES);
+        	} else if (resp.getResponseType() == DecodedResponse.ResponseType.GET_AVAILABLE_IDENTITIES_RESPONSE.ordinal()) {
+        		pushIdentitiesToUi(ServiceUiRequest.GET_AVAILABLE_IDENTITIES);
+        	}        	
+        } // end: replace this whole block with the response type in the DecodedResponse class in the future!
     }
 
     /**
@@ -743,4 +748,16 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         return returnFilter;
     }
     
+    
+    /**
+     * 
+     * Clears all cached identities that belong to a user (my identities). Available identities will stay untouched as they do not raise any privacy
+     * concerns and can stay cached.
+     * 
+     */
+    public void clearCachedIdentities() {
+    	if (null != mMyIdentityList) {
+    		mMyIdentityList.clear();
+    	}
+    }
 }

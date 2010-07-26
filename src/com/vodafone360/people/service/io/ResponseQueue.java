@@ -87,10 +87,6 @@ public class ResponseQueue {
     		GET_CONTACTCHANGES_RESPONSE,
     		/** The response type for get get me calls. */
     		GETME_RESPONSE,
-    		/** The response type for get my identities calls. */
-    		GET_MY_IDENTITY_RESPONSE,
-    		/** The response type for get available identities calls. */
-    		GET_AVAILABLE_IDENTITY_RESPONSE, 
     		/** The response type for get contact group relation calls. */
     		GET_CONTACT_GROUP_RELATIONS_RESPONSE, 
     		/** The response type for get groups calls. */

@@ -229,14 +229,8 @@ public class HessianDecoder {
                     .logE("HessianDecoder.decodeResponse() tag!='M' Unexpected Hessian type:" + tag);
             throw new IOException("Unexpected Hessian type");
 
-        } else if ((type != Request.Type.COMMON) && (type != Request.Type.SIGN_IN)) {
-            // get initial hash table
-            // TODO: we cast every response to a Map, losing e.g. push event
-            // "c0" which only contains a string - to fix
-            Hashtable<String, Object> hash = (Hashtable<String, Object>)mMicroHessianInput
-                    .decodeType(tag);
-            responseType = decodeResponseByRequestType(resultList, hash, type);
-        } else { // if we have a common request
+        } else if ((type == Request.Type.COMMON) || (type == Request.Type.SIGN_IN) ||	// if we have a common request or sign in request
+        			(type == Request.Type.GET_MY_IDENTITIES) || (type == Request.Type.GET_AVAILABLE_IDENTITIES)) {
             Hashtable<String, Object> map = (Hashtable<String, Object>)mMicroHessianInput
                     .readHashMap(tag);
 
@@ -268,25 +262,28 @@ public class HessianDecoder {
                         .get(KEY_USER_PROFILE);
                 resultList.add(UserProfile.createFromHashtable(userProfileHash));
                 responseType = DecodedResponse.ResponseType.GETME_RESPONSE.ordinal();
-            } else if ((map.containsKey(KEY_IDENTITY_LIST))
+            } else if ((map.containsKey(KEY_IDENTITY_LIST))	// we have identity items in the map which we can parse 
                     || (map.containsKey(KEY_AVAILABLE_IDENTITY_LIST))) {
             	int identityType = 0;
                 Vector<Hashtable<String, Object>> idcap = null;
                 if (map.containsKey(KEY_IDENTITY_LIST)) {
                     idcap = (Vector<Hashtable<String, Object>>)map.get(KEY_IDENTITY_LIST);
                     identityType = BaseDataType.MY_IDENTITY_DATA_TYPE;
-                    responseType = DecodedResponse.ResponseType.GET_MY_IDENTITY_RESPONSE.ordinal();
+                    responseType = DecodedResponse.ResponseType.GET_MY_IDENTITIES_RESPONSE.ordinal();
                 } else {
                     idcap = (Vector<Hashtable<String, Object>>)map.get(KEY_AVAILABLE_IDENTITY_LIST);
                     identityType = BaseDataType.AVAILABLE_IDENTITY_DATA_TYPE;
-                    responseType = DecodedResponse.ResponseType.GET_AVAILABLE_IDENTITY_RESPONSE.ordinal();
+                    responseType = DecodedResponse.ResponseType.GET_AVAILABLE_IDENTITIES_RESPONSE.ordinal();
                 }
 
                 for (Hashtable<String, Object> obj : idcap) {
                     Identity id = new Identity(identityType);
                     resultList.add(id.createFromHashtable(obj));
                 }
-
+            } else if (type == Request.Type.GET_AVAILABLE_IDENTITIES) {	// we have an available identities response, but it is empty
+                responseType = DecodedResponse.ResponseType.GET_AVAILABLE_IDENTITIES_RESPONSE.ordinal();
+            } else if (type == Request.Type.GET_MY_IDENTITIES) {	// we have a my identities response, but it is empty 
+                responseType = DecodedResponse.ResponseType.GET_MY_IDENTITIES_RESPONSE.ordinal();
             } else if (map.containsKey(KEY_ACTIVITY_LIST)) {
                 Vector<Hashtable<String, Object>> activityList = (Vector<Hashtable<String, Object>>)map
                         .get(KEY_ACTIVITY_LIST);
@@ -297,6 +294,13 @@ public class HessianDecoder {
                 
                 responseType = DecodedResponse.ResponseType.GET_ACTIVITY_RESPONSE.ordinal();
             }
+        } else if ((type != Request.Type.COMMON) && (type != Request.Type.SIGN_IN)) {
+            // get initial hash table
+            // TODO: we cast every response to a Map, losing e.g. push event
+            // "c0" which only contains a string - to fix
+            Hashtable<String, Object> hash = (Hashtable<String, Object>)mMicroHessianInput
+                    .decodeType(tag);
+            responseType = decodeResponseByRequestType(resultList, hash, type);
         }
 
         if (usesReplyTag) {
@@ -424,10 +428,16 @@ public class HessianDecoder {
                 responseType = DecodedResponse.ResponseType.UNKNOWN.ordinal();	// TODO
                 break;
 
-            case STATUS_LIST:
+            case STATUS_LIST:	// TODO status and status list are used by many requests as a type. each request should have its own type however!
                 ItemList zybstatlist = new ItemList(ItemList.Type.status_msg);
                 zybstatlist.populateFromHashtable(hash);
                 clist.add(zybstatlist);
+                responseType = DecodedResponse.ResponseType.UNKNOWN.ordinal();	// TODO
+                break;
+            case STATUS:
+                StatusMsg s = new StatusMsg();
+                s.mStatus = true;
+                clist.add(s);
                 responseType = DecodedResponse.ResponseType.UNKNOWN.ordinal();	// TODO
                 break;
             case TEXT_RESPONSE_ONLY:
@@ -446,14 +456,6 @@ public class HessianDecoder {
                 clist.add(statMsg.createFromHashtable(hash));
                 responseType = DecodedResponse.ResponseType.UNKNOWN.ordinal();	// TODO
                 break;
-
-            case STATUS:
-                StatusMsg s = new StatusMsg();
-                s.mStatus = true;
-                clist.add(s);
-                responseType = DecodedResponse.ResponseType.UNKNOWN.ordinal();	// TODO
-                break;
-
             case PRESENCE_LIST:
                 PresenceList mPresenceList = new PresenceList();
                 mPresenceList.createFromHashtable(hash);
