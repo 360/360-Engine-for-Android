@@ -45,7 +45,7 @@ import com.vodafone360.people.engine.contactsync.SyncStatus.TaskStatus;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.io.QueueManager;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.io.api.Contacts;
 import com.vodafone360.people.utils.LogUtils;
 
@@ -351,7 +351,7 @@ public class DownloadServerContacts extends BaseSyncProcessor {
      * @param response from server
      */
     @Override
-    public void processCommsResponse(Response resp) {
+    public void processCommsResponse(DecodedResponse resp) {
         Integer pageNo = 0;
         if (mInternalState == InternalState.FETCHING_NEXT_BATCH) {
             pageNo = mPageReqIds.remove(resp.mReqId);

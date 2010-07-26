@@ -44,10 +44,11 @@ import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.UiAgent;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.io.api.Identities;
 import com.vodafone360.people.service.io.rpg.PushMessageTypes;
 import com.vodafone360.people.service.transport.ConnectionManager;
+import com.vodafone360.people.service.transport.http.HttpConnectionThread;
 import com.vodafone360.people.service.transport.tcp.ITcpConnectionListener;
 import com.vodafone360.people.utils.LogUtils;
 
@@ -394,9 +395,10 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * @param resp The decoded response.
      */
     @Override
-    protected void processCommsResponse(Response resp) {
-        LogUtils.logD("IdentityEngine.processCommsResponse() - resp = " + resp);
+    protected void processCommsResponse(DecodedResponse resp) {  	    	
+    	LogUtils.logD("IdentityEngine.processCommsResponse() - resp = " + resp);
         
+        // TODO replace this whole block with the response type in the DecodedResponse class in the future!
         if (resp.mReqId == 0 && resp.mDataTypes.size() > 0) {	// push msg
             PushEvent evt = (PushEvent)resp.mDataTypes.get(0);
             handlePushResponse(evt.mMessageType);
@@ -418,9 +420,15 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 	                LogUtils.logW("IdentityEngine.processCommsResponse DEFAULT should never happened.");
 	                break;
 	        }
-        } else {
+        } else {		// responses data list is 0, that means e.g. no identities in an identities response
         	LogUtils.logW("IdentityEngine.processCommsResponse List was empty!");
-        }
+        	
+        	if (resp.getResponseType() == DecodedResponse.ResponseType.GET_MY_IDENTITIES_RESPONSE.ordinal()) {
+        		pushIdentitiesToUi(ServiceUiRequest.GET_MY_IDENTITIES);
+        	} else if (resp.getResponseType() == DecodedResponse.ResponseType.GET_AVAILABLE_IDENTITIES_RESPONSE.ordinal()) {
+        		pushIdentitiesToUi(ServiceUiRequest.GET_AVAILABLE_IDENTITIES);
+        	}        	
+        } // end: replace this whole block with the response type in the DecodedResponse class in the future!
     }
 
     /**
