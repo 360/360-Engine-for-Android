@@ -665,6 +665,8 @@ public class SyncMeEngine extends BaseEngine {
      * This method needs to be called as part of removeAllData()/changeUser()
      * routine.
      */
+    /** {@inheritDoc} */
+    @Override
     public final void onReset() {
         mFirstTimeMeSyncComplete = false;
         mFirstTimeSyncStarted = false;
