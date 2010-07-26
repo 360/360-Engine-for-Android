@@ -30,7 +30,7 @@ import java.security.InvalidParameterException;
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.engine.BaseEngine;
 import com.vodafone360.people.service.ServiceStatus;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 
 /**
  * Base-class for processor handling for the various stages of Contact sync.
@@ -111,7 +111,7 @@ public abstract class BaseSyncProcessor {
      * 
      * @param resp The response data
      */
-    public abstract void processCommsResponse(Response resp);
+    public abstract void processCommsResponse(DecodedResponse resp);
 
     /**
      * Helper method to complete the processor.

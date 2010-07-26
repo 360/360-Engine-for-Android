@@ -46,7 +46,7 @@ public class ResponseQueue {
     /**
      * The list of responses held by this queue. An array-list of Responses.
      */
-    private final List<Response> mResponses = new ArrayList<Response>();
+    private final List<DecodedResponse> mResponses = new ArrayList<DecodedResponse>();
 
     /**
      * The engine manager holding the various engines to cross check where
@@ -63,11 +63,58 @@ public class ResponseQueue {
      * engine id informing the framework which engine the response should be
      * routed to.
      */
-    public static class Response {
+    public static class DecodedResponse {
+    	public static enum ResponseType {
+    		/** An unknown response in case anything went wrong. */
+    		UNKNOWN,
+    		/** A response for a request that timed out. */
+    		SERVER_ERROR,
+    		/** A response that timed out before it arrived from the server. */
+    		TIMED_OUT_RESPONSE,
+    		
+    		/** Represents a push message that was pushed by the server */
+    		PUSH_MESSAGE,
+    		
+    		/** The response type for available identities. */
+    		GET_AVAILABLE_IDENTITIES_RESPONSE,
+    		/** The response type for my identities. */
+    		GET_MY_IDENTITIES_RESPONSE,
+    		/** The response type for get activities calls. */
+    		GET_ACTIVITY_RESPONSE,
+    		/** The response type for get session by credentials calls. */
+    		LOGIN_RESPONSE,
+    		/** The response type for get contacts changes calls. */
+    		GET_CONTACTCHANGES_RESPONSE,
+    		/** The response type for get get me calls. */
+    		GETME_RESPONSE,
+    		/** The response type for get contact group relation calls. */
+    		GET_CONTACT_GROUP_RELATIONS_RESPONSE, 
+    		/** The response type for get groups calls. */
+    		GET_GROUPS_RESPONSE, 
+    		/** The response type for add contact calls. */
+    		ADD_CONTACT_RESPONSE, 
+    		/** The response type for signup user crypted calls. */
+    		SIGNUP_RESPONSE, 
+    		/** The response type for get public key calls. */
+    		RETRIEVE_PUBLIC_KEY_RESPONSE, 
+    		/** The response type for delete contacts calls. */
+    		DELETE_CONTACT_RESPONSE, 
+    		/** The response type for delete contact details calls. */
+    		DELETE_CONTACT_DETAIL_RESPONSE, 
+    		/** The response type for get presence calls. */
+    		GET_PRESENCE_RESPONSE, 
+    		/** The response type for create conversation calls. */
+    		CREATE_CONVERSATION_RESPONSE;
+    		// TODO add more types here and remove them from the BaseDataType. Having them in ONE location is better than in dozens!!!
+    	}
+    	
+    	/** The type of the response (e.g. GET_AVAILABLE_IDENTITIES_RESPONSE). */
+    	private int mResponseType;
+    	/** The request ID the response came in for. */
         public Integer mReqId;
-
+        /** The response items (e.g. identities of a getAvailableIdentities call) to store for the response. */
         public List<BaseDataType> mDataTypes = new ArrayList<BaseDataType>();
-
+        /** The ID of the engine the response should be worked off in. */
         public EngineId mSource;
 
         /**
@@ -77,11 +124,23 @@ public class ResponseQueue {
          * @param reqId The corresponding request ID for the response.
          * @param data The data of the response.
          * @param source The originating engine ID.
+         * @param responseType The response type. Values can be found in Response.ResponseType.
+         * 
          */
-        public Response(Integer reqId, List<BaseDataType> data, EngineId source) {
+        public DecodedResponse(Integer reqId, List<BaseDataType> data, EngineId source, final int responseType) {
             mReqId = reqId;
             mDataTypes = data;
             mSource = source;
+            mResponseType = responseType;
+        }
+        
+        /**
+         * The response type for this response. The types are defined in Response.ResponseType.
+         * 
+         * @return The response type of this response (e.g. GET_AVAILABLE_IDENTITIES_RESPONSE).
+         */
+        public int getResponseType() {
+        	return mResponseType;
         }
     }
 
@@ -115,9 +174,9 @@ public class ResponseQueue {
      * @param source The corresponding engine that fired off the request for the
      *            response.
      */
-    public void addToResponseQueue(Integer reqId, List<BaseDataType> data, EngineId source) {
+    public void addToResponseQueue(final DecodedResponse response) {
         synchronized (QueueManager.getInstance().lock) {
-            ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.UNKNOWN_DATA_TYPE, data);
+            ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.UNKNOWN_DATA_TYPE, response.mDataTypes);
             if (status == ServiceStatus.ERROR_INVALID_SESSION) {
                 EngineManager em = EngineManager.getInstance();
                 if (em != null) {
@@ -126,12 +185,12 @@ public class ResponseQueue {
                     return;
                 }
             }
-            mResponses.add(new Response(reqId, data, source));
+            mResponses.add(response);
             final RequestQueue rQ = RequestQueue.getInstance();
-            rQ.removeRequest(reqId);
+            rQ.removeRequest(response.mReqId);
             mEngMgr = EngineManager.getInstance();
             if (mEngMgr != null) {
-                mEngMgr.onCommsInMessage(source);
+                mEngMgr.onCommsInMessage(response.mSource);
             }
         }
     }
@@ -143,9 +202,9 @@ public class ResponseQueue {
      * @return Response The first response that matches the given engine or null
      *         if no response was found.
      */
-    public Response getNextResponse(EngineId source) {
+    public DecodedResponse getNextResponse(EngineId source) {
 
-        Response resp = null;
+        DecodedResponse resp = null;
         for (int i = 0; i < mResponses.size(); i++) {
             resp = mResponses.get(i);
             if (resp.mSource == source) {
