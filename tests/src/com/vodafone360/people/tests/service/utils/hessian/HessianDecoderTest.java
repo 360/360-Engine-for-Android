@@ -41,7 +41,9 @@ import com.vodafone360.people.datatypes.PushEvent;
 import com.vodafone360.people.datatypes.ServerError;
 import com.vodafone360.people.datatypes.SystemNotification;
 import com.vodafone360.people.datatypes.UserProfile;
+import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.service.io.Request.Type;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.utils.hessian.HessianDecoder;
 
 public class HessianDecoderTest extends AndroidTestCase {
@@ -164,7 +166,8 @@ public class HessianDecoderTest extends AndroidTestCase {
 
 		HessianDecoder hess = new HessianDecoder();
 		try {
-			slist = hess.decodeHessianByteArray(testSessionData, Type.COMMON, false);
+			DecodedResponse resp = hess.decodeHessianByteArray(1, testSessionData, Type.COMMON, false, EngineId.UNDEFINED);
+			slist = resp.mDataTypes;
 		} catch (IOException e) {
 			e.printStackTrace();
 			assertTrue("IOException thrown", false);
@@ -182,7 +185,8 @@ public class HessianDecoderTest extends AndroidTestCase {
 
 		HessianDecoder hess = new HessianDecoder();
 		try {
-			ulist = hess.decodeHessianByteArray(testUserProfileData, Type.COMMON, false);
+			DecodedResponse resp = hess.decodeHessianByteArray(2, testUserProfileData, Type.COMMON, false, EngineId.UNDEFINED);
+			ulist = resp.mDataTypes;
 		} catch (IOException e) {
 			e.printStackTrace();
 			assertTrue("IOException thrown", false);
@@ -202,7 +206,8 @@ public class HessianDecoderTest extends AndroidTestCase {
 
 		HessianDecoder hess = new HessianDecoder();
 		try {
-			clist = hess.decodeHessianByteArray(testContactListData, Type.COMMON, false);
+			DecodedResponse resp = hess.decodeHessianByteArray(3, testContactListData, Type.COMMON, false, EngineId.UNDEFINED);
+			clist = resp.mDataTypes;
 		} catch (IOException e) {
 			e.printStackTrace();
 			assertTrue("IOException thrown", false);
@@ -220,7 +225,8 @@ public class HessianDecoderTest extends AndroidTestCase {
 
 		HessianDecoder hess = new HessianDecoder();
 		try {
-			clist = hess.decodeHessianByteArray(testIdentityListData, Type.COMMON, false);
+			DecodedResponse resp = hess.decodeHessianByteArray(4, testIdentityListData, Type.COMMON, false, EngineId.UNDEFINED);
+			clist = resp.mDataTypes;
 		} catch (IOException e) {
 			e.printStackTrace();
 			assertTrue("IOException thrown", false);
@@ -239,7 +245,8 @@ public class HessianDecoderTest extends AndroidTestCase {
 
 		HessianDecoder hess = new HessianDecoder();
 		try {
-			clist = hess.decodeHessianByteArray(testActivityList, Type.COMMON, false);
+			DecodedResponse resp = hess.decodeHessianByteArray(5, testActivityList, Type.COMMON, false, EngineId.UNDEFINED);
+			clist = resp.mDataTypes;
 		} catch (IOException e) {
 			e.printStackTrace();
 			assertTrue("IOException thrown", false);
@@ -257,7 +264,8 @@ public class HessianDecoderTest extends AndroidTestCase {
 
 		HessianDecoder hess = new HessianDecoder();
 		try {
-			clist = hess.decodeHessianByteArray(testErrorResponse, Type.COMMON, false);
+			DecodedResponse resp = hess.decodeHessianByteArray(6, testErrorResponse, Type.COMMON, false, EngineId.UNDEFINED);
+			clist = resp.mDataTypes;
 		} catch (IOException e) {
 			e.printStackTrace();
 			assertTrue("IOException thrown", false);
@@ -279,7 +287,8 @@ public class HessianDecoderTest extends AndroidTestCase {
 		
 		HessianDecoder hess = new HessianDecoder();
 		try{
-			clist = hess.decodeHessianByteArray(testPcPushMsgData, Type.PUSH_MSG, false);
+			DecodedResponse resp = hess.decodeHessianByteArray(7, testPcPushMsgData, Type.PUSH_MSG, false, EngineId.UNDEFINED);
+			clist = resp.mDataTypes;
 		}
 		catch(IOException e){
 			e.printStackTrace();
@@ -291,7 +300,8 @@ public class HessianDecoderTest extends AndroidTestCase {
 		assertTrue(clist.get(0) instanceof PushEvent);
 		
 		try{
-			clist = hess.decodeHessianByteArray(testCcPushMsgData, Type.PUSH_MSG, false);
+			DecodedResponse resp = hess.decodeHessianByteArray(8, testCcPushMsgData, Type.PUSH_MSG, false, EngineId.UNDEFINED);
+			clist = resp.mDataTypes;
 		}
 		catch(IOException e){
 			e.printStackTrace();
@@ -303,7 +313,8 @@ public class HessianDecoderTest extends AndroidTestCase {
 		assertTrue(clist.get(0) instanceof PushEvent);
 		
 		try{
-			clist = hess.decodeHessianByteArray(testSnPushMsgData, Type.PUSH_MSG, false);
+			DecodedResponse resp = hess.decodeHessianByteArray(9, testSnPushMsgData, Type.PUSH_MSG, false, EngineId.UNDEFINED);
+			clist = resp.mDataTypes;
 		}
 		catch(IOException e){
 			e.printStackTrace();
@@ -315,7 +326,8 @@ public class HessianDecoderTest extends AndroidTestCase {
 		assertTrue(clist.get(0) instanceof SystemNotification);
 		
 		try{
-			clist = hess.decodeHessianByteArray(testSnPushMsgData2, Type.PUSH_MSG, false);
+			DecodedResponse resp = hess.decodeHessianByteArray(10, testSnPushMsgData2, Type.PUSH_MSG, false, EngineId.UNDEFINED);
+			clist = resp.mDataTypes;
 		}
 		catch(IOException e){
 			e.printStackTrace();
@@ -327,7 +339,8 @@ public class HessianDecoderTest extends AndroidTestCase {
 		assertTrue(clist.get(0) instanceof SystemNotification);
 		
 		try{
-			clist = hess.decodeHessianByteArray(testUnknownPushMsgData, Type.PUSH_MSG, false);
+			DecodedResponse resp = hess.decodeHessianByteArray(11, testUnknownPushMsgData, Type.PUSH_MSG, false, EngineId.UNDEFINED);
+			clist = resp.mDataTypes;
 		}
 		catch(IOException e){
 			e.printStackTrace();

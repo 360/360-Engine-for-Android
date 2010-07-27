@@ -79,10 +79,16 @@ public class ResponseQueue {
     		GET_AVAILABLE_IDENTITIES_RESPONSE,
     		/** The response type for my identities. */
     		GET_MY_IDENTITIES_RESPONSE,
+    		/** The response type for set identity capability */
+    		SET_IDENTITY_CAPABILITY_RESPONSE,
+    		/** The response type for validate identity credentials */
+    		VALIDATE_IDENTITY_CREDENTIALS_RESPONSE,
     		/** The response type for get activities calls. */
     		GET_ACTIVITY_RESPONSE,
     		/** The response type for get session by credentials calls. */
     		LOGIN_RESPONSE,
+    		/** The response type for bulkupdate contacts calls. */
+    		BULKUPDATE_CONTACTS_RESPONSE,
     		/** The response type for get contacts changes calls. */
     		GET_CONTACTCHANGES_RESPONSE,
     		/** The response type for get get me calls. */
@@ -104,7 +110,12 @@ public class ResponseQueue {
     		/** The response type for get presence calls. */
     		GET_PRESENCE_RESPONSE, 
     		/** The response type for create conversation calls. */
-    		CREATE_CONVERSATION_RESPONSE;
+    		CREATE_CONVERSATION_RESPONSE,
+    		/** The response type for get t&cs. */
+    		GET_T_AND_C_RESPONSE,
+    		/** The response type for get privacy statement. */
+    		GET_PRIVACY_STATEMENT_RESPONSE; 
+    		
     		// TODO add more types here and remove them from the BaseDataType. Having them in ONE location is better than in dozens!!!
     	}
     	
