@@ -168,7 +168,10 @@ public class DecoderThread implements Runnable {
 
                     // if we have a push message let's try to find out to which engine it should be routed
                     if ((response.getResponseType() == DecodedResponse.ResponseType.PUSH_MESSAGE.ordinal()) && (response.mDataTypes.get(0) != null)) {
-                        engineId = ((PushEvent) response.mDataTypes.get(0)).mEngineId;
+                    	// for push messages we have to override the engine id as it is parsed inside the hessian decoder 
+                    	engineId = ((PushEvent) response.mDataTypes.get(0)).mEngineId;
+                        response.mSource = engineId;
+                        // TODO mSource should get the engineId inside the decoder once types for mDataTypes is out. see PAND-1805.
                     }
 
                     // This is usually the case for SYSTEM_NOTIFICATION messages
