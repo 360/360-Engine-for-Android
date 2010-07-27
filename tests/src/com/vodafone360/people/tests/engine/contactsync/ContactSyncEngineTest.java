@@ -58,7 +58,7 @@ import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.agent.NetworkAgent.AgentState;
 import com.vodafone360.people.service.io.ResponseQueue;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.tests.engine.EngineTestFramework;
 import com.vodafone360.people.tests.engine.IEngineTestFrameworkObserver;
 
@@ -1157,7 +1157,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
                     }
 
                     @Override
-                    public void processCommsResponse(Response resp) {
+                    public void processCommsResponse(DecodedResponse resp) {
                         // we don't need this case in this test
                         processorLog.type = 4;
                     }
@@ -1306,7 +1306,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
                     contactChanges.mNumberOfPages = 0;
                     contactChanges.mVersionAnchor = 0;
                     data.add(contactChanges);
-                    respQueue.addToResponseQueue(reqId, data, engine);
+                    respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_CONTACTCHANGES_RESPONSE.ordinal()));
                     mEngine.onCommsInMessage();
                     break;
                 case FETCHING_NATIVE_CONTACTS:
@@ -1319,7 +1319,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
                     serverContactChanges.mNumberOfPages = 0;
                     serverContactChanges.mVersionAnchor = 0;
                     data.add(serverContactChanges);
-                    respQueue.addToResponseQueue(reqId, data, engine);
+                    respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.BULKUPDATE_CONTACTS_RESPONSE.ordinal()));
                     mEngine.onCommsInMessage();
                     Log.d(LOG_TAG, "reportBackToEngine(): state=UPDATING_SERVER_CONTACTS");
                     break;
@@ -1362,7 +1362,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
         }
 
         @Override
-        public void processCommsResponse(Response resp) {
+        public void processCommsResponse(DecodedResponse resp) {
 
             Log.d(LOG_TAG, "processCommsResponse");
             complete(ServiceStatus.SUCCESS);

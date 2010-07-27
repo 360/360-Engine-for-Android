@@ -60,6 +60,7 @@ import com.vodafone360.people.datatypes.SystemNotification;
 import com.vodafone360.people.datatypes.UserProfile;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.service.io.Request;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.io.rpg.PushMessageTypes;
 import com.vodafone360.people.service.io.rpg.RpgPushMessage;
 import com.vodafone360.people.utils.CloseUtils;
@@ -102,18 +103,25 @@ public class HessianDecoder {
     private MicroHessianInput mMicroHessianInput = new MicroHessianInput();
 
     /**
+     * 
      * Parse Hessian encoded byte array placing parsed contents into List.
      * 
+     * @param requestId The request ID that the response was received for.
      * @param data byte array containing Hessian encoded data
-     * @param type Event type
-     * @return List of BaseDataType items parsed from Hessian data
-     * @throws IOException
+     * @param type Event type Shows whether we have a push or common message type.
+     * @param isZipped True if the response is gzipped, otherwise false.
+     * @param engineId The engine ID the response should be reported back to.
+     * 
+     * @return The response containing the decoded objects.
+     * 
+     * @throws IOException Thrown if there is something wrong with reading the (gzipped) hessian encoded input stream.
+     * 
      */
-    public List<BaseDataType> decodeHessianByteArray(byte[] data, Request.Type type,
-            boolean isZipped) throws IOException {
+    public DecodedResponse decodeHessianByteArray(int requestId, byte[] data, Request.Type type,
+            boolean isZipped, EngineId engineId) throws IOException {
         InputStream is = null;
         InputStream bis = null;
-
+        
         if (isZipped == true) {
             LogUtils.logV("HessianDecoder.decodeHessianByteArray() Handle zipped data");
             bis = new ByteArrayInputStream(data);
@@ -124,12 +132,12 @@ public class HessianDecoder {
             is = new ByteArrayInputStream(data);
         }
 
-        List<BaseDataType> mBaseDataTypeList = null;
+        DecodedResponse response = null;
         mMicroHessianInput.init(is);
 
         LogUtils.logV("HessianDecoder.decodeHessianByteArray() Begin Hessian decode");
         try {
-            mBaseDataTypeList = decodeResponse(is, type);
+            response = decodeResponse(is, requestId, type, isZipped, engineId);
         } catch (IOException e) {
             LogUtils.logE("HessianDecoder.decodeHessianByteArray() "
                     + "IOException during decodeResponse", e);
@@ -137,7 +145,8 @@ public class HessianDecoder {
 
         CloseUtils.close(bis);
         CloseUtils.close(is);
-        return mBaseDataTypeList;
+                
+        return response;
     }
 
     @SuppressWarnings("unchecked")
@@ -157,18 +166,27 @@ public class HessianDecoder {
     }
 
     /**
-     * TODO: we cast every response to a Map, losing e.g. push event "c0" which
-     * only contains a string - to fix
+     * 
+     * 
      * 
      * @param is
+     * @param requestId
      * @param type
+     * @param isZipped
+     * @param engineId
+     * 
      * @return
+     * 
      * @throws IOException
      */
     @SuppressWarnings("unchecked")
-    private List<BaseDataType> decodeResponse(InputStream is, Request.Type type) throws IOException {
+    private DecodedResponse decodeResponse(InputStream is, int requestId, Request.Type type,
+            boolean isZipped, EngineId engineId) throws IOException {
         boolean usesReplyTag = false;
-        List<BaseDataType> mResultList = new ArrayList<BaseDataType>();
+        int responseType = DecodedResponse.ResponseType.UNKNOWN.ordinal();
+        
+        
+        List<BaseDataType> resultList = new ArrayList<BaseDataType>();
         mMicroHessianInput.init(is);
 
         // skip start
@@ -191,8 +209,10 @@ public class HessianDecoder {
         if (tag == 'f') {
             ServerError zybErr = 
                 new ServerError(mMicroHessianInput.readFault().errString());
-            mResultList.add(zybErr);
-            return mResultList;
+            resultList.add(zybErr);
+            DecodedResponse decodedResponse = new DecodedResponse(requestId, resultList, engineId, 
+            		DecodedResponse.ResponseType.SERVER_ERROR.ordinal());
+            return decodedResponse;
         }
 
         // handle external response
@@ -204,8 +224,10 @@ public class HessianDecoder {
                         + "tag!='I' Unexpected Hessian type:" + tag);
             }
 
-            parseExternalResponse(mResultList, is, tag);
-            return mResultList;
+            parseExternalResponse(resultList, is, tag);
+            DecodedResponse decodedResponse = new DecodedResponse(requestId, resultList, engineId, 
+            		DecodedResponse.ResponseType.SERVER_ERROR.ordinal());
+            return decodedResponse;
         }
 
         // internal response: should contain a Map type - i.e. Hashtable
@@ -214,14 +236,8 @@ public class HessianDecoder {
                     .logE("HessianDecoder.decodeResponse() tag!='M' Unexpected Hessian type:" + tag);
             throw new IOException("Unexpected Hessian type");
 
-        } else if ((type != Request.Type.COMMON) && (type != Request.Type.SIGN_IN)) {
-            // get initial hash table
-            // TODO: we cast every response to a Map, losing e.g. push event
-            // "c0" which only contains a string - to fix
-            Hashtable<String, Object> hash = (Hashtable<String, Object>)mMicroHessianInput
-                    .decodeType(tag);
-            decodeResponseByRequestType(mResultList, hash, type);
-        } else { // if we have a common request
+        } else if ((type == Request.Type.COMMON) || (type == Request.Type.SIGN_IN) ||	// if we have a common request or sign in request
+        			(type == Request.Type.GET_MY_IDENTITIES) || (type == Request.Type.GET_AVAILABLE_IDENTITIES)) {
             Hashtable<String, Object> map = (Hashtable<String, Object>)mMicroHessianInput
                     .readHashMap(tag);
 
@@ -234,53 +250,73 @@ public class HessianDecoder {
                 Hashtable<String, Object> authHash = (Hashtable<String, Object>)map
                         .get(KEY_SESSION);
 
-                mResultList.add(auth.createFromHashtable(authHash));
+                resultList.add(auth.createFromHashtable(authHash));
+                responseType = DecodedResponse.ResponseType.LOGIN_RESPONSE.ordinal();
             } else if (map.containsKey(KEY_CONTACT_LIST)) {
                 // contact list
-                getContacts(mResultList, ((Vector<?>)map.get(KEY_CONTACT_LIST)));
+                getContacts(resultList, ((Vector<?>)map.get(KEY_CONTACT_LIST)));
+                responseType = DecodedResponse.ResponseType.GET_CONTACTCHANGES_RESPONSE.ordinal();
             } else if (map.containsKey(KEY_USER_PROFILE_LIST)) {
                 Vector<Hashtable<String, Object>> upVect = (Vector<Hashtable<String, Object>>)map
                         .get(KEY_USER_PROFILE_LIST);
 
                 for (Hashtable<String, Object> obj : upVect) {
-                    mResultList.add(UserProfile.createFromHashtable(obj));
+                    resultList.add(UserProfile.createFromHashtable(obj));
                 }
+                responseType = DecodedResponse.ResponseType.GETME_RESPONSE.ordinal();
             } else if (map.containsKey(KEY_USER_PROFILE)) {
                 Hashtable<String, Object> userProfileHash = (Hashtable<String, Object>)map
                         .get(KEY_USER_PROFILE);
-                mResultList.add(UserProfile.createFromHashtable(userProfileHash));
-            } else if ((map.containsKey(KEY_IDENTITY_LIST))
+                resultList.add(UserProfile.createFromHashtable(userProfileHash));
+                responseType = DecodedResponse.ResponseType.GETME_RESPONSE.ordinal();
+            } else if ((map.containsKey(KEY_IDENTITY_LIST))	// we have identity items in the map which we can parse 
                     || (map.containsKey(KEY_AVAILABLE_IDENTITY_LIST))) {
             	int identityType = 0;
                 Vector<Hashtable<String, Object>> idcap = null;
                 if (map.containsKey(KEY_IDENTITY_LIST)) {
                     idcap = (Vector<Hashtable<String, Object>>)map.get(KEY_IDENTITY_LIST);
                     identityType = BaseDataType.MY_IDENTITY_DATA_TYPE;
+                    responseType = DecodedResponse.ResponseType.GET_MY_IDENTITIES_RESPONSE.ordinal();
                 } else {
                     idcap = (Vector<Hashtable<String, Object>>)map.get(KEY_AVAILABLE_IDENTITY_LIST);
                     identityType = BaseDataType.AVAILABLE_IDENTITY_DATA_TYPE;
+                    responseType = DecodedResponse.ResponseType.GET_AVAILABLE_IDENTITIES_RESPONSE.ordinal();
                 }
 
                 for (Hashtable<String, Object> obj : idcap) {
                     Identity id = new Identity(identityType);
-                    mResultList.add(id.createFromHashtable(obj));
+                    resultList.add(id.createFromHashtable(obj));
                 }
-
+            } else if (type == Request.Type.GET_AVAILABLE_IDENTITIES) {	// we have an available identities response, but it is empty
+                responseType = DecodedResponse.ResponseType.GET_AVAILABLE_IDENTITIES_RESPONSE.ordinal();
+            } else if (type == Request.Type.GET_MY_IDENTITIES) {	// we have a my identities response, but it is empty 
+                responseType = DecodedResponse.ResponseType.GET_MY_IDENTITIES_RESPONSE.ordinal();
             } else if (map.containsKey(KEY_ACTIVITY_LIST)) {
                 Vector<Hashtable<String, Object>> activityList = (Vector<Hashtable<String, Object>>)map
                         .get(KEY_ACTIVITY_LIST);
 
                 for (Hashtable<String, Object> obj : activityList) {
-                    mResultList.add(ActivityItem.createFromHashtable(obj));
+                    resultList.add(ActivityItem.createFromHashtable(obj));
                 }
+                
+                responseType = DecodedResponse.ResponseType.GET_ACTIVITY_RESPONSE.ordinal();
             }
+        } else if ((type != Request.Type.COMMON) && (type != Request.Type.SIGN_IN)) {
+            // get initial hash table
+            // TODO: we cast every response to a Map, losing e.g. push event
+            // "c0" which only contains a string - to fix
+            Hashtable<String, Object> hash = (Hashtable<String, Object>)mMicroHessianInput
+                    .decodeType(tag);
+            responseType = decodeResponseByRequestType(resultList, hash, type);
         }
 
         if (usesReplyTag) {
             is.read(); // read the last 'z'
         }
+        
+        DecodedResponse decodedResponse = new DecodedResponse(requestId, resultList, engineId, responseType);
 
-        return mResultList;
+        return decodedResponse;
     }
 
     private void parseExternalResponse(List<BaseDataType> clist, InputStream is, int tag)
@@ -313,29 +349,45 @@ public class HessianDecoder {
         clist.add(resp);
     }
 
-    private void decodeResponseByRequestType(List<BaseDataType> clist,
+    /**
+     * 
+     * Parses the hashtables retrieved from the hessian payload that came from the server and
+     * returns a type for it.
+     * 
+     * @param clist The list that will be populated with the data types.
+     * @param hash The hash table that contains the parsed date returned by the backend.
+     * @param type The type of the request that was sent, e.g. get contacts changes.
+     * 
+     * @return The type of the response that was parsed (to be found in DecodedResponse.ResponseType).
+     * 
+     */
+    private int decodeResponseByRequestType(List<BaseDataType> clist,
             Hashtable<String, Object> hash, Request.Type type) {
+    	int responseType = DecodedResponse.ResponseType.UNKNOWN.ordinal();
+    	
         switch (type) {
             case CONTACT_CHANGES_OR_UPDATES:
-
+            	responseType = DecodedResponse.ResponseType.GET_CONTACTCHANGES_RESPONSE.ordinal();
                 // create ContactChanges
                 ContactChanges contChanges = new ContactChanges();
                 contChanges = contChanges.createFromHashtable(hash);
                 clist.add(contChanges);
+                
                 break;
 
             case ADD_CONTACT:
+            	clist.add(Contact.createFromHashtable(hash));
+            	responseType = DecodedResponse.ResponseType.ADD_CONTACT_RESPONSE.ordinal();
+            	break;
             case SIGN_UP:
                 clist.add(Contact.createFromHashtable(hash));
+                responseType = DecodedResponse.ResponseType.SIGNUP_RESPONSE.ordinal();
                 break;
             case RETRIEVE_PUBLIC_KEY:
                 // AA define new object type
                 clist.add(PublicKeyDetails.createFromHashtable(hash));
+                responseType = DecodedResponse.ResponseType.RETRIEVE_PUBLIC_KEY_RESPONSE.ordinal();
                 break;
-
-            case FRIENDSHIP_REQUEST:
-                break;
-
             case CONTACT_DELETE:
                 ContactListResponse cresp = new ContactListResponse();
                 cresp.createFromHashTable(hash);
@@ -348,46 +400,53 @@ public class HessianDecoder {
                     }
                 }
                 clist.add(cresp);
+                responseType = DecodedResponse.ResponseType.DELETE_CONTACT_RESPONSE.ordinal();
                 break;
             case CONTACT_DETAIL_DELETE:
                 ContactDetailDeletion cdel = new ContactDetailDeletion();
                 clist.add(cdel.createFromHashtable(hash));
+                responseType = DecodedResponse.ResponseType.DELETE_CONTACT_DETAIL_RESPONSE.ordinal();
                 break;
-
-            case USER_INVITATION:
-                // Not currently supported.
-                break;
-
             case CONTACT_GROUP_RELATION_LIST:
                 ItemList groupRelationList = new ItemList(ItemList.Type.contact_group_relation);
                 groupRelationList.populateFromHashtable(hash);
                 clist.add(groupRelationList);
+                responseType = DecodedResponse.ResponseType.GET_CONTACT_GROUP_RELATIONS_RESPONSE.ordinal();
                 break;
 
             case CONTACT_GROUP_RELATIONS:
                 ItemList groupRelationsList = new ItemList(ItemList.Type.contact_group_relations);
                 groupRelationsList.populateFromHashtable(hash);
                 clist.add(groupRelationsList);
+                responseType = DecodedResponse.ResponseType.GET_CONTACT_GROUP_RELATIONS_RESPONSE.ordinal();
                 break;
 
             case GROUP_LIST:
                 ItemList zyblist = new ItemList(ItemList.Type.group_privacy);
                 zyblist.populateFromHashtable(hash);
                 clist.add(zyblist);
+                responseType = DecodedResponse.ResponseType.GET_GROUPS_RESPONSE.ordinal();
                 break;
 
             case ITEM_LIST_OF_LONGS:
                 ItemList listOfLongs = new ItemList(ItemList.Type.long_value);
                 listOfLongs.populateFromHashtable(hash);
                 clist.add(listOfLongs);
+                responseType = DecodedResponse.ResponseType.UNKNOWN.ordinal();	// TODO
                 break;
 
-            case STATUS_LIST:
+            case STATUS_LIST:	// TODO status and status list are used by many requests as a type. each request should have its own type however!
                 ItemList zybstatlist = new ItemList(ItemList.Type.status_msg);
                 zybstatlist.populateFromHashtable(hash);
                 clist.add(zybstatlist);
+                responseType = DecodedResponse.ResponseType.UNKNOWN.ordinal();	// TODO
                 break;
-
+            case STATUS:
+                StatusMsg s = new StatusMsg();
+                s.mStatus = true;
+                clist.add(s);
+                responseType = DecodedResponse.ResponseType.UNKNOWN.ordinal();	// TODO
+                break;
             case TEXT_RESPONSE_ONLY:
 
                 Object val = hash.get("result");
@@ -396,34 +455,31 @@ public class HessianDecoder {
                     txt.addText((String)val);
                     clist.add(txt);
                 }
+                responseType = DecodedResponse.ResponseType.UNKNOWN.ordinal();	// TODO
                 break;
 
             case EXPECTING_STATUS_ONLY:
                 StatusMsg statMsg = new StatusMsg();
                 clist.add(statMsg.createFromHashtable(hash));
-
+                responseType = DecodedResponse.ResponseType.UNKNOWN.ordinal();	// TODO
                 break;
-
-            case STATUS:
-                StatusMsg s = new StatusMsg();
-                s.mStatus = true;
-                clist.add(s);
-                break;
-
             case PRESENCE_LIST:
                 PresenceList mPresenceList = new PresenceList();
                 mPresenceList.createFromHashtable(hash);
                 clist.add(mPresenceList);
+                responseType = DecodedResponse.ResponseType.GET_PRESENCE_RESPONSE.ordinal();
                 break;
 
             case PUSH_MSG:
                 // parse content of RPG Push msg
                 parsePushMessage(clist, hash);
+                responseType = DecodedResponse.ResponseType.PUSH_MESSAGE.ordinal();
                 break;
             case CREATE_CONVERSATION:
                 Conversation mConversation = new Conversation();
                 mConversation.createFromHashtable(hash);
                 clist.add(mConversation);
+                responseType = DecodedResponse.ResponseType.CREATE_CONVERSATION_RESPONSE.ordinal();
                 break;
             case  UPLOAD_PHOTO:
             	AddContentResult addcontentresult = new AddContentResult();
@@ -458,6 +514,8 @@ public class HessianDecoder {
                                 	+ " Unhandled type["
                         + type.name() + "]");
         }
+        
+        return responseType;
     }
 
     private void getContacts(List<BaseDataType> clist, Vector<?> cont) {

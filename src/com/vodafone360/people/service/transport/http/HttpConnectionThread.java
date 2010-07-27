@@ -54,6 +54,7 @@ import com.vodafone360.people.engine.login.LoginEngine;
 import com.vodafone360.people.service.io.QueueManager;
 import com.vodafone360.people.service.io.Request;
 import com.vodafone360.people.service.io.ResponseQueue;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.transport.DecoderThread;
 import com.vodafone360.people.service.transport.DecoderThread.RawResponse;
 import com.vodafone360.people.service.transport.IConnection;
@@ -469,7 +470,7 @@ public class HttpConnectionThread implements Runnable, IConnection {
             Request req = requestQueue.getRequest(reqId);
             if (req != null)
                 source = req.mEngineId;
-            responseQueue.addToResponseQueue(reqId, null, source);
+            responseQueue.addToResponseQueue(new DecodedResponse(reqId, null, source, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
         }
     }
 

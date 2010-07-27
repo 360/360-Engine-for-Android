@@ -426,6 +426,7 @@ public class EngineManager {
      */
     private synchronized void createIdentityEngine() {
         mIdentityEngine = new IdentityEngine(mUiEventCallback);
+        ConnectionManager.getInstance().addConnectionListener(mIdentityEngine);
         addEngine(mIdentityEngine);
     }
 

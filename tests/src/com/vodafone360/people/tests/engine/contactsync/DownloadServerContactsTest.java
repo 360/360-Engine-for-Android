@@ -54,6 +54,7 @@ import com.vodafone360.people.engine.contactsync.IContactSyncCallback;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.io.ResponseQueue;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.tests.TestModule;
 import com.vodafone360.people.tests.engine.EngineTestFramework;
 import com.vodafone360.people.tests.engine.IEngineTestFrameworkObserver;
@@ -267,7 +268,7 @@ public class DownloadServerContactsTest extends InstrumentationTestCase implemen
             data.clear();
             data.add(serverError);
         }
-        respQueue.addToResponseQueue(reqId, data, engine);
+        respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
         mEng.onCommsInMessage();
         Log.d(LOG_TAG, "reportBackToEngine - message added to response queue");
     }

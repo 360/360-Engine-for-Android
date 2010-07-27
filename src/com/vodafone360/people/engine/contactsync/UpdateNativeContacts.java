@@ -29,7 +29,7 @@ import android.content.ContentResolver;
 
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.service.ServiceStatus;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.utils.LogUtils;
 
 
@@ -81,10 +81,10 @@ public class UpdateNativeContacts extends BaseSyncProcessor {
     }
 
     /**
-     * @see BaseSyncProcessor#processCommsResponse(Response)
+     * @see BaseSyncProcessor#processCommsResponse(DecodedResponse)
      */
     @Override
-    public void processCommsResponse(Response resp) {
+    public void processCommsResponse(DecodedResponse resp) {
         // TODO Auto-generated method stub
         
     }

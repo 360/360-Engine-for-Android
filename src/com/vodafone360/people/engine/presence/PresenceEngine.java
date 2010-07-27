@@ -55,7 +55,7 @@ import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.UiAgent;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.io.api.Chat;
 import com.vodafone360.people.service.io.api.Presence;
 import com.vodafone360.people.service.transport.ConnectionManager;
@@ -283,7 +283,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     }
 
     @Override
-    protected void processCommsResponse(Response resp) {
+    protected void processCommsResponse(DecodedResponse resp) {
         handleServerResponse(resp.mDataTypes);
     }
 

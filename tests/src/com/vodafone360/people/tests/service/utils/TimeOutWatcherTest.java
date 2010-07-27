@@ -38,7 +38,7 @@ import com.vodafone360.people.service.io.QueueManager;
 import com.vodafone360.people.service.io.Request;
 import com.vodafone360.people.service.io.ResponseQueue;
 import com.vodafone360.people.service.io.Request.Type;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.utils.TimeOutWatcher;
 
 /**
@@ -192,7 +192,7 @@ public class TimeOutWatcherTest extends InstrumentationTestCase {
         final Request request = createRequestWithTimeout(TIMEOUT_2000_MS);
         
         // check that the response queue is empty for the engine with EngineId.UNDEFINED id (we use this one for the test)
-        Response response = ResponseQueue.getInstance().getNextResponse(EngineId.UNDEFINED);
+        DecodedResponse response = ResponseQueue.getInstance().getNextResponse(EngineId.UNDEFINED);
         assertNull(response);
         
         // adding the request to the queue should add it to the TimeOutWatcher

@@ -505,7 +505,7 @@ public class LoginEngine extends BaseEngine {
      * @param resp Response data from server
      */
     @Override
-    protected void processCommsResponse(ResponseQueue.Response resp) {
+    protected void processCommsResponse(ResponseQueue.DecodedResponse resp) {
         LogUtils.logD("LoginEngine.processCommsResponse() - resp = " + resp);
         switch (mState) {
             case SIGNING_UP:

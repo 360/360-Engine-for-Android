@@ -38,7 +38,7 @@ import com.vodafone360.people.engine.contactsync.SyncStatus;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.UiAgent;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 
 public class HelperClasses {
 
@@ -103,7 +103,7 @@ public class HelperClasses {
         }
 
         @Override
-        protected void processCommsResponse(Response resp) {
+        protected void processCommsResponse(DecodedResponse resp) {
 
         }
 

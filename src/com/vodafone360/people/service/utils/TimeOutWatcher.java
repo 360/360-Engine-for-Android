@@ -33,7 +33,7 @@ import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.ServerError;
 import com.vodafone360.people.service.io.QueueManager;
 import com.vodafone360.people.service.io.Request;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.utils.LogUtils;
 
 /**
@@ -234,7 +234,7 @@ public class TimeOutWatcher implements Runnable {
                 + "adding a timeout error to the response queue for reqId=["
                 + request.getRequestId() + "]");
         QueueManager.getInstance().addResponse(
-                new Response(request.getRequestId(), data, request.mEngineId));
+                new DecodedResponse(request.getRequestId(), data, request.mEngineId, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
     }
 
     /**

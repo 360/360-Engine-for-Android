@@ -273,7 +273,7 @@ public abstract class BaseEngine {
      * 
      * @param resp The comms response
      */
-    protected abstract void processCommsResponse(ResponseQueue.Response resp);
+    protected abstract void processCommsResponse(ResponseQueue.DecodedResponse resp);
 
     /**
      * The derived engine implementation must call the processUiQueue() function
@@ -333,7 +333,7 @@ public abstract class BaseEngine {
     protected boolean processCommsInQueue() {
         final ResponseQueue queue = ResponseQueue.getInstance();
         if (queue != null) {
-            final ResponseQueue.Response resp = queue.getNextResponse(mEngineId);
+            final ResponseQueue.DecodedResponse resp = queue.getNextResponse(mEngineId);
             if (resp == null) {
                 synchronized (mMutex) {
                     mCommsResponseOutstanding = false;

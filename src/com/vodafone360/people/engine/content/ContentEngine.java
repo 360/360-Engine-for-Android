@@ -38,7 +38,7 @@ import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.io.QueueManager;
 import com.vodafone360.people.service.io.Request;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 
 /**
  * Content engine for downloading and uploading all kind of content (pictures,
@@ -184,7 +184,7 @@ public class ContentEngine extends BaseEngine {
      * @param resp Response object that has been processed
      */
     @Override
-    protected final void processCommsResponse(final Response resp) {
+    protected final void processCommsResponse(final DecodedResponse resp) {
         ContentObject co = requestContentObjectMatchTable.remove(resp.mReqId);
 
         if (co == null) { // check if we have an invalid response
