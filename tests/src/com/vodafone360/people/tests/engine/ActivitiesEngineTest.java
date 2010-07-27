@@ -52,6 +52,7 @@ import com.vodafone360.people.engine.meprofile.SyncMeDbUtils;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.io.ResponseQueue;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.io.rpg.PushMessageTypes;
 import com.vodafone360.people.tests.TestModule;
 
@@ -295,7 +296,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
         data.add(evt);
 
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
-        ResponseQueue.getInstance().addToResponseQueue(0, data, mEng.engineId());
+        ResponseQueue.getInstance().addToResponseQueue(new DecodedResponse(0, data, mEng.engineId(), DecodedResponse.ResponseType.PUSH_MESSAGE.ordinal()));
         mEng.onCommsInMessage();
 
         // see if anything happens
@@ -398,7 +399,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
             case GET_ACTIVITIES_SUCCESS:
                 ActivityItem item = new ActivityItem();
                 data.add(item);
-                respQueue.addToResponseQueue(reqId, data, engine);
+                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_ACTIVITY_RESPONSE.ordinal()));
                 mEng.onCommsInMessage();
                 break;
             case GET_TIMELINE_EVENT_FROM_SERVER:
@@ -413,7 +414,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
                 item2.mType = ActivityItem.Type.CONTACT_JOINED;
                 item2.mTime = System.currentTimeMillis();
                 data.add(item2);
-                respQueue.addToResponseQueue(reqId, data, engine);
+                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_ACTIVITY_RESPONSE.ordinal()));
                 mEng.onCommsInMessage();
                 break;
             case GET_POPULATED_ACTIVITIES:
@@ -454,14 +455,14 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
                 item4.mVisibilityFlags = 0;
                 data.add(item4);
 
-                respQueue.addToResponseQueue(reqId, data, engine);
+                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_ACTIVITY_RESPONSE.ordinal()));
                 mEng.onCommsInMessage();
                 break;
             case GET_ACTIVITIES_SERVER_ERR:
                 ServerError err = new ServerError("Catastrophe");
                 err.errorDescription = "Fail";
                 data.add(err);
-                respQueue.addToResponseQueue(reqId, data, engine);
+                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
                 mEng.onCommsInMessage();
                 break;
             case GET_ACTIVITIES_UNEXPECTED_RESPONSE:
@@ -470,20 +471,20 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
                 msg.mDryRun = false;
                 msg.mStatus = true;
                 data.add(msg);
-                respQueue.addToResponseQueue(reqId, data, engine);
+                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.LOGIN_RESPONSE.ordinal()));
                 mEng.onCommsInMessage();
                 break;
             case SET_STATUS:
                 Identity id3 = new Identity();
                 data.add(id3);
-                respQueue.addToResponseQueue(reqId, data, engine);
+                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_AVAILABLE_IDENTITIES_RESPONSE.ordinal()));
                 mEng.onCommsInMessage();
                 break;
             case ON_SYNC_COMPLETE:
                 ServerError err2 = new ServerError("Catastrophe");
                 err2.errorDescription = "Fail";
                 data.add(err2);
-                respQueue.addToResponseQueue(reqId, data, engine);
+                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
                 mEng.onCommsInMessage();
                 break;
             case GET_NEXT_RUNTIME:

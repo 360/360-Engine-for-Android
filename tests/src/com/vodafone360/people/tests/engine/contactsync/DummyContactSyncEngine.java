@@ -32,7 +32,7 @@ import com.vodafone360.people.engine.contactsync.IContactSyncCallback;
 import com.vodafone360.people.engine.contactsync.SyncStatus;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 
 public class DummyContactSyncEngine extends BaseEngine implements IContactSyncCallback {
 
@@ -82,7 +82,7 @@ public class DummyContactSyncEngine extends BaseEngine implements IContactSyncCa
 	}
 
 	@Override
-	protected void processCommsResponse(Response resp) {
+	protected void processCommsResponse(DecodedResponse resp) {
 		if (mProcessor != null) {
 			mProcessor.processCommsResponse(resp);
 		}

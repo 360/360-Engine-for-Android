@@ -44,6 +44,7 @@ import com.vodafone360.people.engine.meprofile.SyncMeEngine;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.io.ResponseQueue;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.io.rpg.PushMessageTypes;
 import com.vodafone360.people.tests.TestModule;
 import com.vodafone360.people.tests.engine.contactsync.HelperClasses;
@@ -183,7 +184,7 @@ public class SyncMeEngineTest extends InstrumentationTestCase implements  IEngin
         data.add(evt);
 
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
-        ResponseQueue.getInstance().addToResponseQueue(0, data, mEngine.engineId());
+        ResponseQueue.getInstance().addToResponseQueue(new DecodedResponse(0, data, mEngine.engineId(), DecodedResponse.ResponseType.PUSH_MESSAGE.ordinal()));
         mEngine.onCommsInMessage();
 
         // see if anything happens

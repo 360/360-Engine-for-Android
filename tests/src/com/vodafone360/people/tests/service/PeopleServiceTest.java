@@ -58,6 +58,7 @@ import com.vodafone360.people.service.agent.NetworkAgentState;
 import com.vodafone360.people.service.agent.NetworkAgent.AgentState;
 import com.vodafone360.people.service.interfaces.IPeopleService;
 import com.vodafone360.people.service.io.ResponseQueue;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.transport.ConnectionManager;
 import com.vodafone360.people.service.transport.IConnection;
 import com.vodafone360.people.tests.IPeopleTestFramework;
@@ -577,6 +578,6 @@ public class PeopleServiceTest extends ServiceTestCase<RemoteService> implements
 		ServerError se1 = new ServerError(ServerError.ErrorType.INTERNALERROR);
 		se1.errorDescription = "Test error produced by test framework, ignore it";
 		data.add(se1);
-		respQueue.addToResponseQueue(reqId, data, engine);
+		respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
 	}
 }

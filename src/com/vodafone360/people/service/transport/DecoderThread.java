@@ -39,6 +39,7 @@ import com.vodafone360.people.service.io.QueueManager;
 import com.vodafone360.people.service.io.Request;
 import com.vodafone360.people.service.io.ResponseQueue;
 import com.vodafone360.people.service.io.Request.Type;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.io.rpg.RpgHeader;
 import com.vodafone360.people.service.io.rpg.RpgHelper;
 import com.vodafone360.people.service.io.rpg.RpgMessage;
@@ -140,7 +141,7 @@ public class DecoderThread implements Runnable {
     public void run() {
         LogUtils.logI("DecoderThread.run() [Start thread]");
         while (mRunning) {
-            EngineId engine = EngineId.UNDEFINED;
+            EngineId engineId = EngineId.UNDEFINED;
             Type type = Type.PUSH_MSG;
             int reqId = -1;
             try {
@@ -157,20 +158,20 @@ public class DecoderThread implements Runnable {
                         Request request = QueueManager.getInstance().getRequest(reqId);
                         if (request != null) {
                             type = request.mType;
-                            engine = request.mEngineId;
+                            engineId = request.mEngineId;
                         } else {
                             type = Type.COMMON;
                         }
                     }
+                    
+                    DecodedResponse response = mHessianDecoder.decodeHessianByteArray(reqId, decode.mData, type, decode.mIsCompressed, engineId);
 
-                    // Set an engine id via Hessian decoder
-
-                    List<BaseDataType> data = mHessianDecoder.decodeHessianByteArray(decode.mData,
-                            type, decode.mIsCompressed);
-
-                    if (type == Type.PUSH_MSG && data.size() != 0
-                            && data.get(0) instanceof PushEvent) {
-                        engine = ((PushEvent)data.get(0)).mEngineId;
+                    // if we have a push message let's try to find out to which engine it should be routed
+                    if ((response.getResponseType() == DecodedResponse.ResponseType.PUSH_MESSAGE.ordinal()) && (response.mDataTypes.get(0) != null)) {
+                    	// for push messages we have to override the engine id as it is parsed inside the hessian decoder 
+                    	engineId = ((PushEvent) response.mDataTypes.get(0)).mEngineId;
+                        response.mSource = engineId;
+                        // TODO mSource should get the engineId inside the decoder once types for mDataTypes is out. see PAND-1805.
                     }
 
                     // This is usually the case for SYSTEM_NOTIFICATION messages
@@ -178,14 +179,14 @@ public class DecoderThread implements Runnable {
                     // sent by the engines. IN this case, if there is no special
                     // handling for the engine, we get the engine ID based on
                     // the request ID.
-                    if (type == Type.PUSH_MSG && reqId != 0 && engine == EngineId.UNDEFINED) {
+                    if (type == Type.PUSH_MSG && reqId != 0 && engineId == EngineId.UNDEFINED) {
                         Request request = QueueManager.getInstance().getRequest(reqId);
                         if (request != null) {
-                            engine = request.mEngineId;
+                            engineId = request.mEngineId;
                         }
                     }
 
-                    if (engine == EngineId.UNDEFINED) {
+                    if (engineId == EngineId.UNDEFINED) {
                         LogUtils.logE("DecoderThread.run() Unknown engine for message with type["
                                 + type.name() + "]");
                         // TODO: Throw Exception for undefined messages, as
@@ -194,9 +195,9 @@ public class DecoderThread implements Runnable {
 
                     // Add data to response queue
                     HttpConnectionThread.logV("DecoderThread.run()", "Add message[" + decode.mReqId
-                            + "] to ResponseQueue for engine[" + engine + "] with data [" + data
+                            + "] to ResponseQueue for engine[" + engineId + "] with data [" + response.mDataTypes
                             + "]");
-                    mRespQueue.addToResponseQueue(decode.mReqId, data, engine);
+                    mRespQueue.addToResponseQueue(response);
 
                     // Remove item from our list of responses.
                     mResponses.remove(0);
@@ -223,7 +224,7 @@ public class DecoderThread implements Runnable {
                 if (mResponses.size() > 0) {
                     mResponses.remove(0);
                 }
-                if (type != Type.PUSH_MSG && engine != EngineId.UNDEFINED) {
+                if (type != Type.PUSH_MSG && engineId != EngineId.UNDEFINED) {
                     List<BaseDataType> list = new ArrayList<BaseDataType>();
                     // this error type was chosen to make engines remove request
                     // or retry
@@ -231,7 +232,7 @@ public class DecoderThread implements Runnable {
                     ServerError error = new ServerError(ServerError.ErrorType.INTERNALERROR);
                     error.errorDescription = "Decoder thread was unable to decode server message";
                     list.add(error);
-                    mRespQueue.addToResponseQueue(reqId, list, engine);
+                    mRespQueue.addToResponseQueue(new DecodedResponse(reqId, list, engineId, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
                 }
                 LogUtils.logE("DecoderThread.run() Throwable on reqId[" + reqId + "]", t);
             }

@@ -44,6 +44,7 @@ import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.agent.UiAgent;
 import com.vodafone360.people.service.io.QueueManager;
 import com.vodafone360.people.service.io.ResponseQueue;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.transport.IConnection;
 import com.vodafone360.people.tests.IPeopleTestFramework;
 import com.vodafone360.people.tests.PeopleTestConnectionThread;
@@ -204,7 +205,7 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
             List<BaseDataType> dataTypeList = new ArrayList<BaseDataType>();
             ServerError err = new ServerError(ServerError.ErrorType.UNKNOWN);
             dataTypeList.add(err);
-            respQ.addToResponseQueue(reqId, dataTypeList, engine);
+            respQ.addToResponseQueue(new DecodedResponse(reqId, dataTypeList, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
         }
     }
 
@@ -215,7 +216,7 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
     }
 
     public void callRun(int reqId, List<BaseDataType> data) {
-        ResponseQueue.getInstance().addToResponseQueue(reqId, data, mEngine.engineId());
+        ResponseQueue.getInstance().addToResponseQueue(new DecodedResponse(reqId, data, mEngine.engineId(), DecodedResponse.ResponseType.UNKNOWN.ordinal()));
         try {
             mEngine.onCommsInMessage();
             mEngine.run();

@@ -49,6 +49,7 @@ import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.io.ResponseQueue;
+import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.tests.TestModule;
 
 @Suppress
@@ -544,7 +545,7 @@ public class LoginEngineTest extends InstrumentationTestCase implements
                 Log.d("TAG", "IdentityEngineTest.reportBackToEngine FETCH ids");
                 StatusMsg msg = new StatusMsg();
                 data.add(msg);
-                respQueue.addToResponseQueue(reqId, data, engine);
+                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.LOGIN_RESPONSE.ordinal()));
                 mEng.onCommsInMessage();
                 mState = LoginTestState.LOGIN_REQUEST_VALID;
                 break;
@@ -552,19 +553,19 @@ public class LoginEngineTest extends InstrumentationTestCase implements
                 Log.d("TAG", "IdentityEngineTest.reportBackToEngine FETCH ids");
                 AuthSessionHolder sesh = new AuthSessionHolder();
                 data.add(sesh);
-                respQueue.addToResponseQueue(reqId, data, engine);
+                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.LOGIN_RESPONSE.ordinal()));
                 mEng.onCommsInMessage();
                 mState = LoginTestState.SMS_RESPONSE_SIGNIN;
                 break;
             case REGISTRATION:
                 Log.d("TAG", "IdentityEngineTest.reportBackToEngine Registration");
                 data.add(mTestModule.createDummyContactData());
-                respQueue.addToResponseQueue(reqId, data, engine);
+                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SIGNUP_RESPONSE.ordinal()));
                 mEng.onCommsInMessage();
                 break;
             case REGISTRATION_ERROR:
                 data.add(new ServerError(ServerError.ErrorType.UNKNOWN));
-                respQueue.addToResponseQueue(reqId, data, engine);
+                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
                 mEng.onCommsInMessage();
                 break;
             case GET_T_AND_C:
@@ -573,12 +574,12 @@ public class LoginEngineTest extends InstrumentationTestCase implements
                 SimpleText txt = new SimpleText();
                 txt.addText("Simple text");
                 data.add(txt);
-                respQueue.addToResponseQueue(reqId, data, engine);
+                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_T_AND_C_RESPONSE.ordinal()));
                 mEng.onCommsInMessage();
                 break;
             case SERVER_ERROR:
                 data.add(new ServerError(ServerError.ErrorType.UNKNOWN));
-                respQueue.addToResponseQueue(reqId, data, engine);
+                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
                 mEng.onCommsInMessage();
                 break;
             default:
