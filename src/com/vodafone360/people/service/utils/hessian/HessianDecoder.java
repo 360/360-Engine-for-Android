@@ -64,6 +64,13 @@ import com.vodafone360.people.service.io.rpg.PushMessageTypes;
 import com.vodafone360.people.service.io.rpg.RpgPushMessage;
 import com.vodafone360.people.utils.CloseUtils;
 import com.vodafone360.people.utils.LogUtils;
+import com.vodafone360.people.datatypes.AddContentResult;
+import com.vodafone360.people.datatypes.AlbumList;
+import com.vodafone360.people.datatypes.ListEntityKeyResultShareAlbums;
+import com.vodafone360.people.datatypes.ResultAddAlbums;
+
+import com.vodafone360.people.datatypes.ServerError;
+import com.vodafone360.people.datatypes.SharePhotoResult;
 
 /**
  * Hessian decoding . TODO: Currently casting every response to a Map, losing
@@ -418,8 +425,37 @@ public class HessianDecoder {
                 mConversation.createFromHashtable(hash);
                 clist.add(mConversation);
                 break;
+            case  UPLOAD_PHOTO:
+            	AddContentResult addcontentresult = new AddContentResult();
+            	addcontentresult.createFromHashtable(hash);
+            	clist.add(addcontentresult);
+                break;
+            case GET_DEFAULT_ALBUM360:
+            	AlbumList getalbum = new AlbumList();
+            	getalbum.createFromHashtable(hash);
+            	clist.add(getalbum);
+            	break;
+            case SHARE_PHOTO_WITH_ALBUM:
+            	SharePhotoResult result = new SharePhotoResult();
+            	result.createFromHashtable(hash);
+            	clist.add(result);
+            	break;
+            case ADD_ALBUMS:
+                ResultAddAlbums getalbumlist = new ResultAddAlbums();
+                getalbumlist.createFromHashtable(hash);
+                clist.add(getalbumlist);
+                break;
+            case SHARE_ALBUMS:
+               ListEntityKeyResultShareAlbums obj =
+                               new  ListEntityKeyResultShareAlbums();
+               obj.createFromHashtable(hash);
+               clist.add(obj);
+               break;
+
             default:
-                LogUtils.logE("HessianDecoder.decodeResponseByRequestType() Unhandled type["
+                LogUtils.logE("HessianDecoder."
+                                + "decodeResponseByRequestType()"
+                                	+ " Unhandled type["
                         + type.name() + "]");
         }
     }

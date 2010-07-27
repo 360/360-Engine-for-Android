@@ -27,6 +27,7 @@ package com.vodafone360.people.service.interfaces;
 
 import java.util.ArrayList;
 
+
 import android.os.Bundle;
 import android.os.Handler;
 
@@ -37,6 +38,11 @@ import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.presence.NetworkPresence;
 import com.vodafone360.people.service.PersistSettings.InternetAvail;
 import com.vodafone360.people.service.agent.NetworkAgentState;
+import com.vodafone360.people.utils.AlbumUtilsIn;
+import com.vodafone360.people.utils.PhotoUtilsIn;
+import java.util.List;
+
+
 
 /***
  * Interface to expose service functionality to the UI classes.
@@ -175,7 +181,7 @@ public interface IPeopleService {
      * be empty.
      * 
      */
-    public ArrayList<Identity> getAvailableThirdPartyIdentities();
+    ArrayList<Identity> getAvailableThirdPartyIdentities();
     
     /**
      * 
@@ -185,7 +191,7 @@ public interface IPeopleService {
      * empty list if something  went wrong retrieving the identities. 
      * 
      */
-    public ArrayList<Identity> getMyThirdPartyIdentities();
+    ArrayList<Identity> getMyThirdPartyIdentities();
     
     /**
      * 
@@ -197,7 +203,7 @@ public interface IPeopleService {
      * returned list will be empty.
      * 
      */
-    public ArrayList<Identity> getMy360AndThirdPartyChattableIdentities();
+    ArrayList<Identity> getMy360AndThirdPartyChattableIdentities();
 
     /***
      * Begins the process of retrieving all Third party Accounts from the
@@ -357,5 +363,45 @@ public interface IPeopleService {
      * This method should be called to update the Chat Notifications.
      */
     void updateChatNotification(long localContactId);
+
+     /**
+      * Uploads the content file supporting various mime.
+      * type(jpeg,png,gif etc) to the server.
+      * @param fileNames The photo to be uploaded.
+      * mime type and file path is must.
+     */
+    void startPhotoUpload(List<PhotoUtilsIn> fileNames);
+
+     /**
+     * Cancel content upload request the PNG file to the server.
+     */
+    void cancelPhotoUploadEngineRequest();
+
+    /**
+     * Share the content id with connected album.
+     * @param contentid Contains contentid to be shared with default 360.
+     */
+    void shareContentWith360Album(Long contentid);
+
+    /**
+     * Add Albums to the server.
+     * @param list of albums to be added.
+     */
+
+    void addAlbums(List<AlbumUtilsIn> list);
+
+    /**
+     * Share the contents.
+     * @param albumid album with which sharing needs to be done.
+     * @param contentid the contents to be shared.
+     */
+    void shareContents(Long albumid, Long contentid);
+
+    /**
+     * Share the album.
+     * @param groupid Groupid group with which album to be shared.
+     * @param albumid Album top be shared.
+     */
+    void shareAlbum(Long groupid, Long albumid);
 
 }

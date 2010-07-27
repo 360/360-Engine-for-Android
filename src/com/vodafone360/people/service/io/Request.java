@@ -41,6 +41,10 @@ import com.vodafone360.people.service.io.rpg.RpgMessageTypes;
 import com.vodafone360.people.service.transport.http.HttpConnectionThread;
 import com.vodafone360.people.service.utils.AuthUtils;
 import com.vodafone360.people.service.utils.hessian.HessianEncoder;
+import com.vodafone360.people.utils.CloseUtils;
+import java.io.ByteArrayOutputStream;
+import android.util.Log;
+import com.caucho.hessian.micro.MicroHessianOutput;
 
 /**
  * Container class for Requests issued from client to People server via the
@@ -79,8 +83,29 @@ public class Request {
         CREATE_CONVERSATION,
         SEND_CHAT_MESSAGE,
         PUSH_MSG,
-        EXTERNAL_RPG_RESPONSE
+        EXTERNAL_RPG_RESPONSE,
         // response to external RPG request
+        /**
+         * For uploading the photo.
+         */
+          UPLOAD_PHOTO, //UPLOADFILE,
+          /**
+           * For getting the group id of shared album.
+           */
+          GET_DEFAULT_ALBUM360,
+          /**
+           * For sharing of photo with album.
+           */
+          SHARE_PHOTO_WITH_ALBUM,
+          /**
+           * For sharing albums with groups.
+           */
+          SHARE_ALBUMS,
+          /**
+           * For adding albums on server.
+           */
+          ADD_ALBUMS
+
     }
 
     /*
@@ -162,6 +187,63 @@ public class Request {
     private int mRequestId;
 
     /**
+     * Customised for file Upload-content-upload.
+     * filled directly from contents.java.
+     */
+    public Long mfileSize = null;
+
+    /**
+     * Customised for file Upload-content-upload.
+     * filled directly from contents.java
+     */
+    public String mfileName = null;
+
+     /**
+     * Customised for file Upload-content-upload.
+     * Chunk Size in which file will be uploaded.
+     */
+   // public Integer chunkSize = 24576;
+    public Integer chunkSize = 30720;
+    /**
+     * Function for uploading file in chunks.
+     * Startupload.
+     */
+    static final String FUNCTION_STARTUPLOAD = "upload/uploadstart";
+    /**
+     * Function for uploading file in chunks.
+     */
+     static final String FUNCTION_UPLOADCHUNK = "upload/uploadchunk";
+
+    /**
+     *Function for ending the chunking.
+     */
+
+     static final String FUNCTION_ENDCHUNK = "upload/uploadend";
+    /**
+     *data used in upload chunks.
+     */
+     
+	static final String DATA = "data";
+	/**
+	 * Chunk Number used for uploading the chunk.
+	 */
+    static final String CHUNKNUMB =  "chunknum";
+    /**
+     * Uploadid for each chunk.
+     */
+    static final String UPLOADID = "uploadid";
+    /**
+     * CHunk Size to be uplaoded.
+     */
+    static final String CHUNKSIZE = "chunksize";
+    /**
+     * Total size of file.
+     */
+    static final String TOTALSIZE = "totalsize";
+    //mParameters.put("chunksize",chunkSize);
+    //mParameters.put("totalsize",mfileSize);
+    
+    /**
      * Constructor used for constructing internal (RPG/API) requests.
      * 
      * @param apiMethodName The method name of the call, e.g.
@@ -185,8 +267,10 @@ public class Request {
         mCreationTimestamp = System.currentTimeMillis();
         mTimeout = timeout;
 
-        if ((type == Type.RETRIEVE_PUBLIC_KEY) || (type == Type.SIGN_UP) || (type == Type.STATUS)
-                || (type == Type.SIGN_IN)) {
+        if ((type == Type.RETRIEVE_PUBLIC_KEY) || (type == Type.SIGN_UP)
+        		|| (type == Type.STATUS)
+                || (type == Type.SIGN_IN)
+                || type == Type.UPLOAD_PHOTO) {
             // we need to register, sign in, get t&c's etc. so the request needs
             // to happen without
             // user auth
@@ -581,8 +665,120 @@ public class Request {
          */
     }
 
+
     /**
-     * Calculates the expiry date based on the timeout. TODO: should have
+     * Called as first payload sent to server by direct -http.
+     * httpContentupload directly uses function to get the initial payload.
+     * @return first byte load.
+     */
+
+    public final  byte[] getEncodedUploadStartPayload() {
+
+        mParameters.clear();
+         byte[] payload = null;
+         try {
+	         mApiMethodName = FUNCTION_STARTUPLOAD;
+	         mParameters.put(CHUNKSIZE, chunkSize);
+	         mParameters.put(TOTALSIZE, mfileSize);
+	         calculateAuth();
+	         ByteArrayOutputStream bos = new ByteArrayOutputStream();
+	         MicroHessianOutput mho = new MicroHessianOutput(bos);
+	         mho.startCall(mApiMethodName);
+	         HessianEncoder.writeHashtable(mParameters, mho);
+	         mho.completeCall();
+	         CloseUtils.close(bos);
+	         payload = bos.toByteArray();
+	         payload[1] = (byte) 1;
+	         // TODO we need to change this if we want to use a
+	         // baos
+	         payload[2] = (byte) 0;
+          } catch (IOException e) {
+             Log.v("Request-getUploadStart-exception", "error" + e);
+         }
+         return payload;
+    }
+
+    /**
+     * Used to hessian encode byte array to hessian encoded array.
+     * httpcontentupload directly read file.
+     * and uses this function to convert array.
+     * of bytes to hessian encoded byte array.
+     * @param ar input array
+     * @param uploadid uploadid for each upload.
+     * @param chunkNumber chunknumber to be uploaded.
+     * @return byte array for uploading hessian encoded.
+     *
+     */
+
+      public final   byte[] getEncodedUploadChunkPayload(final byte[] ar,
+    		        final Long uploadid,
+                    final Integer chunkNumber) {
+
+        mParameters.clear();
+        mApiMethodName = FUNCTION_UPLOADCHUNK;
+        byte[] payload = null;
+        Long muploadID = uploadid;
+        Integer muploadChunk = chunkNumber;
+        mParameters.put(DATA, ar);
+        mParameters.put(CHUNKNUMB, muploadChunk);
+        mParameters.put(UPLOADID, muploadID);
+        calculateAuth();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        MicroHessianOutput mho = new MicroHessianOutput(bos);
+        try {
+	        mho.startCall(mApiMethodName);
+	        HessianEncoder.writeHashtable(mParameters, mho);
+	        mho.completeCall();
+        } catch (IOException e) {
+            Log.v("Request-Exception-request-getUploadChunk", "error" + e);
+        }
+        CloseUtils.close(bos);
+        payload = bos.toByteArray();
+        payload[1] = (byte) 1;
+        // TODO we need to change this if we want to use a
+        // baos
+        payload[2] = (byte) 0;
+        return payload;
+    }
+
+    /**
+     * Ends the payload-This last chunk is sent to .
+     * server to indicate that upload has ended.
+     *
+     * @param uploadid uploadid to be sent to server.
+     * @return byte load last payload.
+     *
+     */
+
+       public final byte[] getEncodedUploadEndPayload(final Long uploadid) {
+        mParameters.clear();
+        mApiMethodName = FUNCTION_ENDCHUNK;
+        byte[] payload = null;
+        Long muploadID = uploadid;
+        mParameters.put(UPLOADID, muploadID);
+        calculateAuth();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        MicroHessianOutput mho = new MicroHessianOutput(bos);
+        try {
+            mho.startCall(mApiMethodName);
+            HessianEncoder.writeHashtable(mParameters, mho);
+            mho.completeCall();
+        } catch (IOException e) {
+            Log.v("Request Exception-request-getUploadEnd", "error" + e);
+        }
+        CloseUtils.close(bos);
+        payload = bos.toByteArray();
+        payload[1] = (byte) 1;
+        // TODO we need to change this if we want to use a
+        // baos
+        payload[2] = (byte) 0;
+        return payload;
+     }
+
+
+    /**
+     * Calculates the expiry date based on the timeout.
+     *  TODO: should have
      * instead an execute() method to call when performing the request. it would
      * set the request to active, calculates the expiry date, etc...
      */

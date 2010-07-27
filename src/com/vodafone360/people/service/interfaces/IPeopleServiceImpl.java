@@ -50,6 +50,8 @@ import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.agent.NetworkAgentState;
 import com.vodafone360.people.service.agent.UiAgent;
 import com.vodafone360.people.utils.LogUtils;
+import com.vodafone360.people.utils.PhotoUtilsIn;
+import com.vodafone360.people.utils.AlbumUtilsIn;
 
 /***
  * @see com.vodafone360.people.engine.BaseEngine.IEngineEventCallback
@@ -76,7 +78,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @param service Provides access to remote service functions (mainly used
      *            to retrieve context).
      */
-    public IPeopleServiceImpl(IWorkerThreadControl workerThreadControl, RemoteService service) {
+    public IPeopleServiceImpl(final IWorkerThreadControl workerThreadControl, final RemoteService service) {
         mWorkerThreadControl = workerThreadControl;
         mService = service;
         mHandlerAgent = new UiAgent((MainApplication)service.getApplication(), service);
@@ -88,7 +90,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * 
      * @param agent Handle to ServiceAgent.
      */
-    public void setNetworkAgent(NetworkAgent agent) {
+    public final void setNetworkAgent(final NetworkAgent agent) {
         mNetworkAgent = agent;
     }
 
@@ -97,7 +99,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      *      int, int, Object)
      */
     @Override
-    public void onUiEvent(ServiceUiRequest event, int arg1, int arg2, Object data) {
+	public final void onUiEvent(final ServiceUiRequest event, final int arg1, final int arg2, final Object data) {
         synchronized (mUiEventCallbackList) {
             for (Handler handler : mUiEventCallbackList) {
                 Message msg = handler.obtainMessage(event.ordinal(), data);
@@ -114,7 +116,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.engine.BaseEngine.IEngineEventCallback#kickWorkerThread()
      */
     @Override
-    public void kickWorkerThread() {
+	public final void kickWorkerThread() {
         mWorkerThreadControl.kickWorkerThread();
     }
 
@@ -122,7 +124,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#addEventCallback(Handler)
      */
     @Override
-    public void addEventCallback(Handler uiHandler) {
+	public final void addEventCallback(final Handler uiHandler) {
         synchronized (mUiEventCallbackList) {
             if (!mUiEventCallbackList.contains(uiHandler)) {
                 mUiEventCallbackList.add(uiHandler);
@@ -134,7 +136,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#removeEventCallback(Handler)
      */
     @Override
-    public void removeEventCallback(Handler uiHandler) {
+	public final void removeEventCallback(final Handler uiHandler) {
         synchronized (mUiEventCallbackList) {
             mUiEventCallbackList.remove(uiHandler);
         }
@@ -144,28 +146,28 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#checkForUpdates()
      */
     @Override
-    public void checkForUpdates() {
+	public final void checkForUpdates() {
         EngineManager.getInstance().getUpgradeEngine().checkForUpdates();
     }
 
     /**
      * @see com.vodafone360.people.service.interfaces.IPeopleService#getMyThirdPartyIdentities()
      */
-    public ArrayList<Identity> getMyThirdPartyIdentities() {
+    public final ArrayList<Identity> getMyThirdPartyIdentities() {
     	return EngineManager.getInstance().getIdentityEngine().getMyThirdPartyIdentities();
     }
 
     /**
      * @see com.vodafone360.people.service.interfaces.IPeopleService#getMy360AndThirdPartyIdentities()
      */
-    public ArrayList<Identity> getAvailableThirdPartyIdentities() {
+    public final ArrayList<Identity> getAvailableThirdPartyIdentities() {
     	return EngineManager.getInstance().getIdentityEngine().getAvailableThirdPartyIdentities();
     }
     
     /**
      * @see com.vodafone360.people.service.interfaces.IPeopleService#getMy360AndThirdPartyChattableIdentities()
      */
-    public ArrayList<Identity> getMy360AndThirdPartyChattableIdentities() {
+    public final ArrayList<Identity> getMy360AndThirdPartyChattableIdentities() {
     	return EngineManager.getInstance().getIdentityEngine().getMy360AndThirdPartyChattableIdentities();
     }
 
@@ -173,7 +175,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#fetchPrivacyStatement()
      */
     @Override
-    public void fetchPrivacyStatement() {
+	public final void fetchPrivacyStatement() {
         EngineManager.getInstance().getLoginEngine().addUiFetchPrivacyStatementRequest();
     }
 
@@ -181,7 +183,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#fetchTermsOfService()
      */
     @Override
-    public void fetchTermsOfService() {
+	public final void fetchTermsOfService() {
         EngineManager.getInstance().getLoginEngine().addUiFetchTermsOfServiceRequest();
     }
 
@@ -189,7 +191,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#fetchUsernameState(String)
      */
     @Override
-    public void fetchUsernameState(String userName) {
+	public final void fetchUsernameState(final String userName) {
         EngineManager.getInstance().getLoginEngine().addUiGetUsernameStateRequest(userName);
     }
 
@@ -197,7 +199,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#getLoginRequired()
      */
     @Override
-    public boolean getLoginRequired() {
+	public final boolean getLoginRequired() {
         EngineManager manager = EngineManager.getInstance();
         return manager.getLoginEngine().getLoginRequired();
     }
@@ -206,7 +208,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#getRoamingNotificationType()
      */
     @Override
-    public int getRoamingNotificationType() {
+	public final int getRoamingNotificationType() {
         return mService.getNetworkAgent().getRoamingNotificationType();
     }
 
@@ -214,7 +216,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#getRoamingDeviceSetting()
      */
     @Override
-    public boolean getRoamingDeviceSetting() {
+	public final boolean getRoamingDeviceSetting() {
         return mService.getNetworkAgent().getRoamingDeviceSetting();
     }
 
@@ -222,7 +224,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#notifyDataSettingChanged(InternetAvail)
      */
     @Override
-    public void notifyDataSettingChanged(InternetAvail val) {
+	public final void notifyDataSettingChanged(final InternetAvail val) {
         mService.getNetworkAgent().notifyDataSettingChanged(val);
     }
 
@@ -230,7 +232,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#logon(LoginDetails)
      */
     @Override
-    public void logon(LoginDetails loginDetails) {
+	public final void logon(final LoginDetails loginDetails) {
         EngineManager manager = EngineManager.getInstance();
         manager.getLoginEngine().addUiLoginRequest(loginDetails);
     }
@@ -239,7 +241,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#register(RegistrationDetails)
      */
     @Override
-    public void register(RegistrationDetails details) {
+	public final void register(final RegistrationDetails details) {
         EngineManager.getInstance().getLoginEngine().addUiRegistrationRequest(details);
     }
 
@@ -247,7 +249,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#setNewUpdateFrequency()
      */
     @Override
-    public void setNewUpdateFrequency() {
+	public final void setNewUpdateFrequency() {
         EngineManager.getInstance().getUpgradeEngine().setNewUpdateFrequency();
     }
 
@@ -255,7 +257,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#setShowRoamingNotificationAgain(boolean)
      */
     @Override
-    public void setShowRoamingNotificationAgain(boolean showAgain) {
+	public final void setShowRoamingNotificationAgain(final boolean showAgain) {
         mService.getNetworkAgent().setShowRoamingNotificationAgain(showAgain);
     }
 
@@ -263,7 +265,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#startContactSync()
      */
     @Override
-    public void startContactSync() {
+	public final void startContactSync() {
         EngineManager.getInstance().getGroupsEngine().addUiGetGroupsRequest();
         EngineManager.getInstance().getContactSyncEngine().addUiStartFullSync();
     }
@@ -272,7 +274,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#startBackgroundContactSync(long)
      */
     @Override
-    public void startBackgroundContactSync(long delay) {
+	public final void startBackgroundContactSync(final long delay) {
         EngineManager.getInstance().getGroupsEngine().addUiGetGroupsRequest();
         EngineManager.getInstance().getContactSyncEngine().addUiStartServerSync(delay);
     }
@@ -281,7 +283,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#pingUserActivity()
      */
     @Override
-    public void pingUserActivity() {
+	public final void pingUserActivity() {
         EngineManager.getInstance().getContactSyncEngine().pingUserActivity();
     }
 
@@ -290,8 +292,8 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      *      String, String, String, Bundle)
      */
     @Override
-    public void validateIdentityCredentials(boolean dryRun, String network, String username,
-            String password, Bundle identityCapabilityStatus) {
+	public final void validateIdentityCredentials(final boolean dryRun, final String network, final String username,
+            final String password, final Bundle identityCapabilityStatus) {
         EngineManager.getInstance().getIdentityEngine().addUiValidateIdentityCredentials(dryRun,
                 network, username, password, identityCapabilityStatus);
     }
@@ -300,7 +302,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#startStatusesSync()
      */
     @Override
-    public void startStatusesSync() {
+	public final void startStatusesSync() {
         EngineManager.getInstance().getActivitiesEngine().addStatusesSyncRequest();
     }
 
@@ -308,7 +310,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#getNetworkAgentState()
      */
     @Override
-    public NetworkAgentState getNetworkAgentState() {
+	public final NetworkAgentState getNetworkAgentState() {
         return mNetworkAgent.getNetworkAgentState();
     }
 
@@ -316,7 +318,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#setNetowrkAgentState(NetworkAgentState)
      */
     @Override
-    public void setNetworkAgentState(NetworkAgentState state) {
+	public final void setNetworkAgentState(final NetworkAgentState state) {
         mNetworkAgent.setNetworkAgentState(state);
     }
 
@@ -324,7 +326,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#getPresenceList(long)
      */
     @Override
-    public void getPresenceList(long contactId) {
+	public final void getPresenceList(final long contactId) {
         EngineManager.getInstance().getPresenceEngine().getPresenceList();
     }
 
@@ -332,7 +334,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#setAvailability(OnlineStatus)
      */    
     @Override
-    public void setAvailability(OnlineStatus status) {
+	public final void setAvailability(final OnlineStatus status) {
         EngineManager.getInstance().getPresenceEngine().setMyAvailability(status);
     }
 
@@ -340,7 +342,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#setAvailability(NetworkPresence)
      */    
     @Override
-    public void setAvailability(NetworkPresence presence) {
+	public final void setAvailability(final NetworkPresence presence) {
         EngineManager.getInstance().getPresenceEngine().setMyAvailability(presence);
     }
     
@@ -350,7 +352,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      *      long, boolean)
      */
     @Override
-    public void subscribe(Handler handler, Long contactId, boolean chat) {
+	public final void subscribe(final Handler handler, final Long contactId, final boolean chat) {
         mHandlerAgent.subscribe(handler, contactId, chat);
     }
 
@@ -358,7 +360,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#unsubscribe(Handler)
      */
     @Override
-    public void unsubscribe(Handler handler) {
+	public final void unsubscribe(final Handler handler) {
         mHandlerAgent.unsubscribe(handler);
     }
 
@@ -366,7 +368,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.engine.BaseEngine.IEngineEventCallback#getUiAgent()
      */
     @Override
-    public UiAgent getUiAgent() {
+	public final UiAgent getUiAgent() {
         return mHandlerAgent;
     }
 
@@ -374,7 +376,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.engine.BaseEngine.IEngineEventCallback#getApplicationCache()
      */
     @Override
-    public ApplicationCache getApplicationCache() {
+	public final ApplicationCache getApplicationCache() {
         return mApplicationCache;
     }
 
@@ -383,51 +385,108 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      *      String, int)
      */
     @Override
-    public void sendMessage(long localContactId, String body, int networkId) {
+	public final void sendMessage(final long localContactId, final String body, final int networkId) {
         EngineManager.getInstance().getPresenceEngine()
                 .sendMessage(localContactId, body, networkId);
     }
 
     @Override
-    public void setIdentityStatus(String network, String identityId, boolean identityStatus) {
+	public final void setIdentityStatus(final String network, final String identityId, final boolean identityStatus) {
         EngineManager.getInstance().getIdentityEngine().addUiSetIdentityStatus(network, identityId,
                 identityStatus);
     }
 
     @Override
-    public void getStatuses() {
+	public final void getStatuses() {
         EngineManager.getInstance().getActivitiesEngine().addStatusesSyncRequest();
     }
 
     @Override
-    public void getMoreTimelines() {
+	public final void getMoreTimelines() {
         EngineManager.getInstance().getActivitiesEngine().addOlderTimelinesRequest();
     }
 
     @Override
-    public void getOlderStatuses() {
+	public final void getOlderStatuses() {
         EngineManager.getInstance().getActivitiesEngine().addGetOlderStatusesRequest();
     }
 
     @Override
-    public void uploadMeProfile() {
+	public final void uploadMeProfile() {
         EngineManager.getInstance().getSyncMeEngine().addUpdateMeProfileContactRequest();
     }
 
     @Override
-    public void uploadMyStatus(String statusText) {
+	public final void uploadMyStatus(final String statusText) {
         EngineManager.getInstance().getSyncMeEngine().addUpdateMyStatusRequest(statusText);
     }
 
     @Override
-    public void downloadMeProfileFirstTime() {
+	public final void downloadMeProfileFirstTime() {
         EngineManager.getInstance().getSyncMeEngine().addGetMeProfileContactFirstTimeRequest();
     }
 
     @Override
-    public void updateChatNotification(long localContactId) {
+	public final void updateChatNotification(final long localContactId) {
         mHandlerAgent.updateChat(localContactId, false);
         
     }
+    
+    /**
+     *com.vodafone360.people.service.interfaces.
+     *IPeopleService#StartContentUpload.
+     *uploads files.
+     */
+
+      public final void startPhotoUpload(final List<PhotoUtilsIn> listfilecontent)
+      {
+         EngineManager.getInstance().getPhotoUploadEngine().loadPhoto(listfilecontent);
+      }
+
+       /**
+       *com.vodafone360.people.service.interfaces.
+       *IPeopleService#cancelContentEngineUploadRequest files.
+       */
+      public final void cancelPhotoUploadEngineRequest() {
+          EngineManager.getInstance().getPhotoUploadEngine().cancelRequests();
+      }
+      /**
+       * com.vodafone360.people.service.interfaces.
+       * IPeopleService#Shares content with connected group(default 360).
+       * @param contentid for contents.
+       */
+
+      public final void shareContentWith360Album(final Long contentid) {
+        EngineManager.getInstance().getPhotoUploadEngine().shareContentWith360Album(contentid);
+      }
+      /**
+       * Add Albums to the server.
+       * @param list of albums to be added.
+       */
+
+     public final void addAlbums(final List<AlbumUtilsIn> list) {
+
+          EngineManager.getInstance().getPhotoUploadEngine().addAlbum(list);
+      }
+     /**
+      * Share the contents.
+      * @param albumid album with which sharing needs to be done.
+      * @param contentid the contents to be shared.
+      */
+      public final void shareContents(final Long albumid,
+    		               final Long contentid) {
+         EngineManager.getInstance().getPhotoUploadEngine().
+                    sharePhotoWithAlbum(albumid, contentid);
+      }
+      /**
+       * Share the album.
+       * @param groupid Groupid group with which album to be shared.
+       * @param albumid Album top be shared.
+       */
+      public final void shareAlbum(final Long groupid,
+    		                       final Long albumid) {
+         EngineManager.getInstance().
+             getPhotoUploadEngine().shareAlbum(groupid, albumid);
+      }
 
 }

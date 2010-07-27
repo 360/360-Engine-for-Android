@@ -34,7 +34,9 @@ import java.util.Vector;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactDetail;
 import com.vodafone360.people.datatypes.GroupItem;
-
+import com.vodafone360.people.datatypes.Album;
+import com.vodafone360.people.datatypes.Content;
+import com.vodafone360.people.datatypes.EntityKey;
 /**
  * Class which provides helper functions for assembling Vectors of data prior to
  * Hessian encoding.
@@ -93,7 +95,7 @@ public class ApiUtils {
      * Create Vector of of Hash table items from a list of GroupItems (each
      * GroupItems being represented by a Hash table). This is supplied to
      * Hessian encoder.
-     * 
+     *
      * @param list List-array of Contacts.
      * @return Vector of Hash-tables representing GroupItems list.
      */
@@ -104,4 +106,54 @@ public class ApiUtils {
         }
         return vector;
     }
+
+    /**
+     * Create Vector of of Hash table items from.
+     *  a list of ContentIPDataType (each.
+     * ContentIP being represented by a Hash table). This is supplied to Hessian
+     * encoder.
+     *
+     * @param list List-array of ContentIPDatatype.
+     * @return Vector of Hash-tables representing Contact list.
+     */
+    protected static Vector<Object> createVectorOfContentIPDataType(
+                                         final List<Content> list) {
+        Vector<Object> vector = new Vector<Object>();
+        for (int i = 0; i < list.size(); i++) {
+            vector.add(list.get(i).createHashtable());
+        }
+        return vector;
+    }
+    /**
+     * Create Vector of of Hash table items from a list of GroupItems (each
+     * GroupItems being represented by a Hash table). This is supplied to
+     * Hessian encoder.
+     *
+     * @param list List-array of albums.
+     * @return Vector of Hash-tables representing GroupItems list.
+     */
+    public static Vector<Object> createVectorOfAlbumType(
+                               final List<Album> list) {
+        Vector<Object> vector = new Vector<Object>();
+        for (int i = 0; i < list.size(); i++) {
+            vector.add(list.get(i).createHashtable());
+        }
+        return vector;
+
+    }
+
+    /**
+     *
+     * @param list list of entity keys to be converted into hashtable.
+     * @return Vector of objects
+     */
+    public static Vector<Object>
+             createVectorOfEntity(final List<EntityKey> list) {
+        Vector<Object> vector = new Vector<Object>();
+        for (int i = 0; i < list.size(); i++) {
+            vector.add(list.get(i).createHashtable());
+        }
+        return vector;
+    }
+
 }

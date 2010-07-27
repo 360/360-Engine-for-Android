@@ -40,7 +40,7 @@ import com.vodafone360.people.service.transport.http.HttpConnectionThread;
 import com.vodafone360.people.service.transport.http.authentication.AuthenticationManager;
 import com.vodafone360.people.service.transport.tcp.ITcpConnectionListener;
 import com.vodafone360.people.service.transport.tcp.TcpConnectionThread;
-
+import com.vodafone360.people.service.transport.http.photouploadmanager.PhotoUploadManager;
 /**
  * ConnectionManager - responsible for controlling the current connection
  * Connects and disconnects based on network availability etc and start or stops
@@ -58,10 +58,13 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
     private DecoderThread mDecoder;
 
     /**
-     * ApplicationContext
+     * Instance of photoupload manager.
      */
-    private Context mContext;
 
+    private static PhotoUploadManager mhttpPhotoUpload = null;
+
+    private Context mContext = null;
+  
     /**
      * the class member variable to keep the connection state.
      * 
@@ -128,6 +131,14 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
 
         HttpConnectionThread.logI("ConnectionManager.connect()",
                 (isCurrentlyLoggedIn) ? "We are logged in!" : "We are not logged in!");
+        
+        if (mhttpPhotoUpload == null) {
+            mhttpPhotoUpload =
+            PhotoUploadManager.getInstanceContentUpload(mDecoder);
+            QueueManager.getInstance()
+            .addQueueListener(mhttpPhotoUpload);
+            mhttpPhotoUpload.startThread();
+        }
     }
 
     /**
@@ -149,6 +160,10 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
         if (null != mDecoder) {
             mDecoder.stopThread();
         }
+        if (null != mhttpPhotoUpload) {
+           mhttpPhotoUpload.stopThread();
+        }
+
 
         if (null != mConnection) {
             mConnection.stopThread();

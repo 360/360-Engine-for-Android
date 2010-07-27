@@ -48,7 +48,7 @@ import com.vodafone360.people.service.WorkerThread;
 import com.vodafone360.people.service.io.ResponseQueue;
 import com.vodafone360.people.service.transport.ConnectionManager;
 import com.vodafone360.people.utils.LogUtils;
-
+import com.vodafone360.people.engine.photoupload.PhotoUploadEngine;
 /**
  * EngineManager class is responsible for creating, handling and deletion of
  * engines in the People client. The EngineManager determine when each engine
@@ -71,8 +71,13 @@ public class EngineManager {
         UPGRADE_ENGINE,
         CONTENT_ENGINE,
         SYNCME_ENGINE,
+        /**
+         * Used for uploading photo.
+         */
+        PHOTO_UPLOAD_SHARING,
         UNDEFINED
         // add ids as we progress
+        
 
     }
 
@@ -145,6 +150,11 @@ public class EngineManager {
      */
     private ContentEngine mContentEngine;
 
+    /**
+     * @see PhotoUploadEngine.
+     */
+    private PhotoUploadEngine mPhotoUploadEngine;
+    
     /**
      * Maximum time the run function for an engine is allowed to run before a
      * warning message will be displayed (debug only)
@@ -248,6 +258,7 @@ public class EngineManager {
         createActivitiesEngine();
         createPresenceEngine();
         createContentEngine();
+        createPhotoUploadEngine();
     }
 
     /**
@@ -268,6 +279,7 @@ public class EngineManager {
         mContactSyncEngine = null;
         mGroupsEngine = null;
         mContentEngine = null;
+        mPhotoUploadEngine = null;
     }
 
     /**
@@ -435,6 +447,23 @@ public class EngineManager {
         ConnectionManager.getInstance().addConnectionListener(mPresenceEngine);
         getLoginEngine().addListener(mPresenceEngine);
         addEngine(mPresenceEngine);
+    }
+
+    /**
+     * Creates photoupload engine.
+     */
+    private void createPhotoUploadEngine() {
+            mPhotoUploadEngine = new PhotoUploadEngine(mUiEventCallback);
+            addEngine(mPhotoUploadEngine);
+
+    }
+
+    /**
+     * gets the photo uplaod engine.
+     * @return mPhotoUploadEngine.Instance of the engine.
+     */
+    public PhotoUploadEngine getPhotoUploadEngine() {
+          return mPhotoUploadEngine;
     }
 
     /**

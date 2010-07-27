@@ -242,8 +242,29 @@ public enum ServiceUiRequest {
      * Gets the groups for the contacts that are retrieved from the backend.
      */
     GET_GROUPS,
-    /*
-     * Do not handle this message.
+
+/**
+*Gets the default 360 album.
+*/
+    GET_DEFAULT_ALBUM_360,
+/**
+*Shares the contents with albumid.
+*/
+    SHARE_PHOTO_WITH_ALBUM, //SHARE_CONTENT,
+/**
+ * For uploading the photo.
+ */
+    UPLOAD_PHOTO, //START_UPLOADFILE,
+/**
+ * For adding the albums.
+ */
+    ADD_ALBUMS,
+    /**
+     * For sharing the album.
+     */
+
+    SHARE_ALBUM,
+     /* Do not handle this message.
      */
     UNKNOWN;
 

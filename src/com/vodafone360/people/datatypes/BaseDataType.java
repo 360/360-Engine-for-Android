@@ -28,16 +28,17 @@ package com.vodafone360.people.datatypes;
 /**
  * BaseDataType - all specific data types derive from this.
  */
-abstract public class BaseDataType {
-    /**
-     * Get the data type
-     * @return The data-type.
-     */
-    abstract public int getType();
-    
-    /**
-     * Unknown data type
-     */
+public abstract class BaseDataType {
+
+/**
+* Get the data type.
+* @return The data-type.
+*/
+public abstract int getType();
+
+/**
+* Unknown data type
+*/
     public static final int UNKNOWN_DATA_TYPE = 0;
     /**
      * Activity Contact data type
@@ -136,5 +137,62 @@ abstract public class BaseDataType {
      * System Notification data type
      */    
     public static final int SYSTEM_NOTIFICATION_DATA_TYPE = 24;
-    
+
+
+/**
+* Result for adding the content on server.
+*/
+
+   public static final int RESULT_ADD_CONTENT = 25;
+
+    /**
+     * Used for adding albums to the vodafone server.
+     */
+    public static final int ALBUM = 26;
+
+    /**
+     * Returns from server the list of albums id.
+    */
+    public static final int ALBUM_LIST = 27;
+
+    /**
+     * Returns from server the contents.
+    */
+    public static final int CONTENT = 28;
+
+    /**
+     * Returns from server content item.
+     */
+    public static final int CONTENT_ITEM = 29;
+
+    /**
+     *Returns from server entity key.
+     */
+    public static final int ENTITY_KEY = 30;
+
+    /**
+     *Returns from server results for shared content.
+     */
+    public static final int GET_SHARED_CONTENT_RESULT = 31;
+
+    /**
+     * Server returns list of entity keyd.
+     */
+    public static final int RESULT_LIST_ENTITY_KEY_SHARE_ALBUM = 32;
+
+    /**
+     *Result of adding albums.
+     */
+    public static final int RESULT_ADD_ALBUM = 33;
+
+    /**
+     * Result of getting groups.
+     */
+    public static final int RESULT_GET_GROUPS = 34;
+
+    /**
+     * Result of sharing photo.
+     */
+
+    public static final int RESULT_SHARE_PHOTO = 35;
 }
