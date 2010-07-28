@@ -62,7 +62,7 @@ import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.io.QueueManager;
-import com.vodafone360.people.service.io.ResponseQueue.Response;
+import com.vodafone360.people.service.io.ResponseQueue;
 import com.vodafone360.people.service.io.api.Contents;
 import com.vodafone360.people.utils.PhotoUtilsOut;
 import com.vodafone360.people.utils.AlbumUtilsIn;
@@ -380,7 +380,7 @@ public class PhotoUploadEngine extends BaseEngine {
      *            Response data from server
      */
     @Override
-    public final void processCommsResponse(final Response resp) {
+    public final void processCommsResponse(final ResponseQueue.DecodedResponse resp) {
         // Complete the request
         if (mPendingRequestId == resp.mReqId) {
             handleServerResponse(resp.mDataTypes);
