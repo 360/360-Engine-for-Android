@@ -604,7 +604,7 @@ public class NativeImporter {
                 if (id1 < id2) {
 
                     return -1;
-                } else if (key1 > key2) {
+                } else if (id1 > id2) {
 
                     return 1;
                 } else {
