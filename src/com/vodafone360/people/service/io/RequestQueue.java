@@ -301,87 +301,17 @@ public class RequestQueue {
         }
         return req;
     }
-
-    /**
-     * Removes the request for the ID of the given DecodedResponse from the queue,
-     * assigns the source in the response object according to the engineId of 
-     * the request and searches the queue for requests older than
-     * Settings.REMOVE_REQUEST_FROM_QUEUE_MILLIS and removes them as well.
-     * 
-     * This method should be only called by the QueueManager.
-     * 
-     * @param response The decoded response object.
-     * @return True if the request was found and removed.
-     */
-    boolean removeRequest(DecodedResponse response) {
-        synchronized (QueueManager.getInstance().lock) {
-            boolean didRemoveSearchedRequest = false;
-
-            for (int i = 0; i < requestCount(); i++) {
-                Request request = mRequests.get(i);
-                // the request we were looking for
-                if (request.getRequestId() == response.mReqId) {
-                    // reassure the engine id is set (important for SystemNotifications) 
-                    response.mSource = request.mEngineId;
-                    mRequests.remove(i--);
-
-                    // remove the request from the watcher (the request not
-                    // necessarily times out before)
-                    if (request.getExpiryDate() > 0) {
-                        mTimeOutWatcher.removeRequest(request);
-                        LogUtils
-                                .logV("RequestQueue.removeRequest() Request expired after ["
-                                        + (System.currentTimeMillis() - request.getAuthTimestamp())
-                                        + "ms]");
-                    } else {
-                        LogUtils
-                                .logV("RequestQueue.removeRequest() Request took ["
-                                        + (System.currentTimeMillis() - request.getAuthTimestamp())
-                                        + "ms]");
-                    }
-
-                    didRemoveSearchedRequest = true;
-                } else if ((System.currentTimeMillis() - request.getCreationTimestamp()) > Settings.REMOVE_REQUEST_FROM_QUEUE_MILLIS) { // request
-                    // is older than 15 minutes
-                    mRequests.remove(i--);
-
-                    ResponseQueue.getInstance().addToResponseQueue(new DecodedResponse(request.getRequestId(), null, request.mEngineId, 
-                    		DecodedResponse.ResponseType.TIMED_OUT_RESPONSE.ordinal()));
-
-                    // remove the request from the watcher (the request not
-                    // necessarily times out before)
-                    if (request.getExpiryDate() > 0) {
-                        mTimeOutWatcher.removeRequest(request);
-                        LogUtils
-                                .logV("RequestQueue.removeRequest() Request expired after ["
-                                        + (System.currentTimeMillis() - request.getAuthTimestamp())
-                                        + "ms]");
-                    } else {
-                        LogUtils
-                                .logV("RequestQueue.removeRequest() Request took ["
-                                        + (System.currentTimeMillis() - request.getAuthTimestamp())
-                                        + "ms]");
-                    }
-                }
-
-            }
-
-            return didRemoveSearchedRequest;
-        }
-    }
-
     
     /**
-     * Removes the request for the given request ID from the queue and searches
+     * Removes the request for the given response (request) ID from the queue and searches
      * the queue for requests older than
      * Settings.REMOVE_REQUEST_FROM_QUEUE_MILLIS and removes them as well.
      * 
-     * @param response The decoded response object.
-     * @return True if the request was found and removed.
+     * @param responseId The response object id.
+     * @return Returns the removed request, can be null if the request was not found.
      */
-    protected boolean removeRequest(int responseId) {
+    protected Request removeRequest(int responseId) {
         synchronized (QueueManager.getInstance().lock) {
-            boolean didRemoveSearchedRequest = false;
 
             for (int i = 0; i < requestCount(); i++) {
                 Request request = mRequests.get(i);
@@ -405,7 +335,7 @@ public class RequestQueue {
                                         + "ms]");
                     }
 
-                    didRemoveSearchedRequest = true;
+                    return request;
                 } else if ((System.currentTimeMillis() - request.getCreationTimestamp()) > Settings.REMOVE_REQUEST_FROM_QUEUE_MILLIS) { // request
                     // is older than 15 minutes
                     mRequests.remove(i--);
@@ -431,7 +361,7 @@ public class RequestQueue {
 
             }
 
-            return didRemoveSearchedRequest;
+            return null;
         }
     }
 
