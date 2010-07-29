@@ -134,11 +134,26 @@ public class QueueManager {
     }
 
     /**
+     * Removes the request for the ID of the given DecodedResponse from the queue,
+     * assigns the source in the response object according to the engineId of 
+     * the request and searches the queue for requests older than
+     * Settings.REMOVE_REQUEST_FROM_QUEUE_MILLIS and removes them as well.
+     * 
+     * @param response The response object.
+     * @return True if the request was found and removed.
+     */
+    public boolean removeRequest(DecodedResponse response) {
+        synchronized (lock) {
+            return mRequestQueue.removeRequest(response);
+        }
+    }
+    
+    /**
      * Removes the request for the given request ID from the queue and searches
      * the queue for requests older than
      * Settings.REMOVE_REQUEST_FROM_QUEUE_MILLIS and removes them as well.
      * 
-     * @param requestId The ID of the request to remove.
+     * @param requestId - the id of the request in he queue.
      * @return True if the request was found and removed.
      */
     public boolean removeRequest(int requestId) {

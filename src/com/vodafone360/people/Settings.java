@@ -289,6 +289,5 @@ public final class Settings {
      * Private constructor to prevent instantiation.
      */
     private Settings() {
-        // Do nothing.
     }
 }

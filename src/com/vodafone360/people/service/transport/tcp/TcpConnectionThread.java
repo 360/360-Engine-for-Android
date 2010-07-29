@@ -126,7 +126,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
     }
 
     public void run() {
-        QueueManager requestQueue = QueueManager.getInstance();
+//        QueueManager requestQueue = QueueManager.getInstance();
         mDidCriticalErrorOccur = false;
 
         try { // start the initial connection
@@ -187,7 +187,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
                                 // remove from queue
                                 HttpConnectionThread.logD("TcpConnectionThread.run()",
                                         "Removed F&F-Request: " + req.getRequestId());
-                                requestQueue.removeRequest(req.getRequestId());
+                                QueueManager.getInstance().removeRequest(req.getRequestId());
                             }
 
                             if (Settings.ENABLED_TRANSPORT_TRACE) {
