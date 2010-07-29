@@ -49,7 +49,8 @@ import com.vodafone360.people.service.transport.IConnection;
 import com.vodafone360.people.tests.IPeopleTestFramework;
 import com.vodafone360.people.tests.PeopleTestConnectionThread;
 
-public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFramework {
+public class EngineTestFramework implements IEngineEventCallback,
+        IPeopleTestFramework {
 
     private Thread mEngineWorkerThread = null;
 
@@ -57,15 +58,15 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
 
     private boolean mActive = false;
 
-    private IEngineTestFrameworkObserver mObserver;
+    private final IEngineTestFrameworkObserver mObserver;
 
     private PeopleTestConnectionThread mConnThread = null;
 
-    private Object mEngReqLock = new Object();
+    private final Object mEngReqLock = new Object();
 
-    private Object mObjectLock = new Object();
+    private final Object mObjectLock = new Object();
 
-    private AuthSessionHolder mSession = new AuthSessionHolder();
+    private final AuthSessionHolder mSession = new AuthSessionHolder();
 
     private int mStatus;
 
@@ -153,7 +154,7 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
         kickWorkerThread();
 
-        long endTime = System.nanoTime() + (((long)ts) * 1000000);
+        long endTime = System.nanoTime() + (((long) ts) * 1000000);
         ServiceStatus returnStatus = ServiceStatus.ERROR_UNEXPECTED_RESPONSE;
         mStatus = 5; // ERROR_COMMS_TIMEOUT
         synchronized (mEngReqLock) {
@@ -179,7 +180,8 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
     }
 
     @Override
-    public void onUiEvent(ServiceUiRequest event, int request, int status, Object data) {
+    public void onUiEvent(ServiceUiRequest event, int request, int status,
+            Object data) {
         mRequestCompleted = true;
         // mActive = false;
         mStatus = status;
@@ -205,7 +207,9 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
             List<BaseDataType> dataTypeList = new ArrayList<BaseDataType>();
             ServerError err = new ServerError(ServerError.ErrorType.UNKNOWN);
             dataTypeList.add(err);
-            respQ.addToResponseQueue(new DecodedResponse(reqId, dataTypeList, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
+            reqQ.removeRequest(reqId);
+            // respQ.addToResponseQueue(new DecodedResponse(reqId, dataTypeList,
+            // engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
         }
     }
 
@@ -216,7 +220,9 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
     }
 
     public void callRun(int reqId, List<BaseDataType> data) {
-        ResponseQueue.getInstance().addToResponseQueue(new DecodedResponse(reqId, data, mEngine.engineId(), DecodedResponse.ResponseType.UNKNOWN.ordinal()));
+        ResponseQueue.getInstance().addToResponseQueue(
+                new DecodedResponse(reqId, data, mEngine.engineId(),
+                        DecodedResponse.ResponseType.UNKNOWN.ordinal()));
         try {
             mEngine.onCommsInMessage();
             mEngine.run();
