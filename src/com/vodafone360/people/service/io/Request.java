@@ -563,7 +563,8 @@ public class Request {
         }
 
         if (null == ts) {
-            ts = "" + (System.currentTimeMillis() / 1000);
+        	mAuthTimestamp = System.currentTimeMillis();
+            ts = "" + (mAuthTimestamp / 1000);
         }
 
         AuthSessionHolder session = LoginEngine.getSession();
