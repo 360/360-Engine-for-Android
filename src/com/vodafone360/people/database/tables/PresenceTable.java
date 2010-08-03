@@ -35,6 +35,7 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.database.SQLKeys;
+import com.vodafone360.people.database.utils.SqlUtils;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.presence.NetworkPresence;
 import com.vodafone360.people.engine.presence.User;
@@ -151,11 +152,6 @@ public abstract class PresenceTable {
      */
     private static final String DEFAULT_ERROR_MESSAGE = "PresenceTable: the passed in database is null!";
     
-    /**
-     * Constant for ","
-     */
-    private final static String COMMA = ",";
-
     /**
      * This method creates the PresenceTable.
      * 
@@ -413,10 +409,10 @@ public abstract class PresenceTable {
         }
         StringBuffer networks = StringBufferPool.getStringBuffer();
         for (Integer network : networksToDelete) {
-            networks.append(network).append(COMMA);
+            networks.append(network).append(SqlUtils.COMMA);
         }
         if (networks.length() > 0) {
-            networks.deleteCharAt(networks.lastIndexOf(COMMA));
+            networks.deleteCharAt(networks.lastIndexOf(SqlUtils.COMMA));
         }
         final StringBuilder where = new StringBuilder(Field.NETWORK_ID.toString());
         where.append(" IN  (").append(StringBufferPool.toStringThenRelease(networks)).append(")");

@@ -548,8 +548,8 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
     private Long findLastStatusUpdateTime(ArrayList<ActivityItem> activityList) {
         Long ret = Long.MIN_VALUE;
         for (ActivityItem ai : activityList) {
-            if (ai.mTime != null && (ai.mTime.compareTo(ret) > 0)) {
-                ret = ai.mTime;
+            if (ai.time != null && (ai.time.compareTo(ret) > 0)) {
+                ret = ai.time;
             }
         }
         return ret;
@@ -563,8 +563,8 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
     private Long findFirstStatusUpdateTime(ArrayList<ActivityItem> activityList) {
         Long ret = Long.MAX_VALUE;
         for (ActivityItem ai : activityList) {
-            if (ai.mTime != null && ai.mTime.compareTo(ret) < 0) {
-                ret = ai.mTime;
+            if (ai.time != null && ai.time.compareTo(ret) < 0) {
+                ret = ai.time;
             }
         }
         return ret;
@@ -584,7 +584,7 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
         mDb.fetchActivitiesIds(actIdList, findFirstStatusUpdateTime(activityList));
         for (int i = 0; i < activityList.size();) {
             boolean inc = true;
-            Long id = activityList.get(i).mActivityId;
+            Long id = activityList.get(i).activityId;
             if (id != null) {
                 for (Long l : actIdList) {
                     if (l.compareTo(id) == 0) {

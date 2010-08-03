@@ -34,6 +34,7 @@ import java.util.Properties;
 
 import android.content.Context;
 
+import com.vodafone360.people.R;
 import com.vodafone360.people.utils.CloseUtils;
 import com.vodafone360.people.utils.LogUtils;
 

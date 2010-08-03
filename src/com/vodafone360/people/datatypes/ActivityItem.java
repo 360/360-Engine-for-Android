@@ -372,22 +372,22 @@ public class ActivityItem extends BaseDataType {
     }
 
     /** local id for db */
-    public Long mLocalActivityId = null;
+    public Long localActivityId = null;
 
     /*
      * Unique identifier for the activity. This can be empty when setting a new
      * activity (the id is generated on the server side)
      */
-    public Long mActivityId = null;
+    public Long activityId = null;
 
     /*
      * Timestamp representing the time of the activity. This may not be related
      * to creation/updated time.
      */
-    public Long mTime = null;
+    public Long time = null;
 
     /** Defines the type of the activity. */
-    public Type mType = null;
+    public Type type = null;
 
     /*
      * Defines an internal reference (if any) to the source of the activity. The
@@ -399,41 +399,41 @@ public class ActivityItem extends BaseDataType {
      * message:9efd255359074dd9bd04cc1c8c4743e5 The activity is linked to a
      * message identified by id=9efd255359074dd9bd04cc1c8c4743e5
      */
-    public String mUri = null;
+    public String uri = null;
 
     /** Short text description of the activity. */
-    public String mTitle = null;
+    public String title = null;
 
     /** Long text description of the activity. */
-    public String mDescription = null;
+    public String description = null;
 
     /**
      * Defines a binary preview for the activity. The preview can be a small
      * thumbnail of the activity. The type of the binary data is defined into
      * the previewmime field.
      */
-    public ByteBuffer mPreview = null;
+    public ByteBuffer preview = null;
 
     /** Defines the MIME type of the preview binary data. */
-    public String mPreviewMime = null;
+    public String previewMime = null;
 
     /**
      * Defines an http url that the client can use to retrieve preview binary
      * data. Can be used to embed the url into an IMG HTML tag.
      */
-    public String mPreviewUrl = null;
+    public String previewUrl = null;
 
     /**
      * Name of the store type for this message. This field contains information
      * about the originator network (local or external community activity). By
      * default, should be set to local
      */
-    public String mStore = null;
+    public String store = null;
 
     /** Miscellaneous flags. */
-    public List<Flag> mFlagList = null;
+    public List<Flag> flagList = null;
 
-    public Integer mActivityFlags = 0;
+    public Integer activityFlags = 0;
 
     /**
      * The parent activity for 'grouped' or aggregated activities. This must be
@@ -442,7 +442,7 @@ public class ActivityItem extends BaseDataType {
      * activities. To get activities that have a mParentActivity set, the
      * 'children' filter must be used with a value of the parent Activity's id.
      */
-    public Long mParentActivity = null;
+    public Long parentActivity = null;
 
     /**
      * Indicates wether this activity 'groups' several child activities. When
@@ -451,19 +451,19 @@ public class ActivityItem extends BaseDataType {
      * 'child' activities. To get activities that have a parentactivity set, the
      * 'children' filter must be used with a value of the parent Activity's id.
      */
-    public Boolean mHasChildren = null;
+    public Boolean hasChildren = null;
 
     /** Defines the visibility of the activity. */
-    public List<Visibility> mVisibility = null;
+    public List<Visibility> visibility = null;
 
-    public Integer mVisibilityFlags = 0;
+    public Integer visibilityFlags = 0;
 
     /**
      * Defines the contact information of the counter-parties in the activity.
      * This field is not mandatory, because some activity types are not related
      * to contacts, but required if known..
      */
-    public List<ActivityContact> mContactList = null;
+    public List<ActivityContact> contactList = null;
 
     /** {@inheritDoc} */
     @Override
@@ -499,7 +499,7 @@ public class ActivityItem extends BaseDataType {
         if (tag != null) {
             switch (tag) {
                 case ACTIVITY_ID:
-                    mActivityId = (Long)value;
+                    activityId = (Long)value;
                     break;
 
                 case CONTACT:
@@ -507,21 +507,21 @@ public class ActivityItem extends BaseDataType {
                     break;
 
                 case CONTACT_LIST:
-                    mContactList = new ArrayList<ActivityContact>();
+                    contactList = new ArrayList<ActivityContact>();
                     @SuppressWarnings("unchecked")
                     Vector<Hashtable<String, Object>> v = (Vector<Hashtable<String, Object>>)value;
 
                     for (Hashtable<String, Object> hash : v) {
-                        mContactList.add(ActivityContact.createFromHashTable(hash));
+                        contactList.add(ActivityContact.createFromHashTable(hash));
                     }
                     break;
 
                 case DESCRIPTION:
-                    mDescription = (String)value;
+                    description = (String)value;
                     break;
 
                 case FLAG_LIST:
-                    mFlagList = new ArrayList<Flag>();
+                    flagList = new ArrayList<Flag>();
                     if (value instanceof Vector<?>) {
                         @SuppressWarnings("unchecked")
                         Vector<String> flags = (Vector<String>)value;
@@ -533,7 +533,7 @@ public class ActivityItem extends BaseDataType {
                     break;
 
                 case HAS_CHILDREN:
-                    mHasChildren = (Boolean)value;
+                    hasChildren = (Boolean)value;
                     break;
 
                 case MORE_INFO:
@@ -541,46 +541,46 @@ public class ActivityItem extends BaseDataType {
                     break;
 
                 case PARENT_ACTIVITY:
-                    mParentActivity = (Long)value;
+                    parentActivity = (Long)value;
                     break;
 
                 case PREVIEW:
                     byte[] bytes = (byte[])value;
-                    mPreview = ByteBuffer.allocate(bytes.length);
-                    mPreview.put(bytes);
+                    preview = ByteBuffer.allocate(bytes.length);
+                    preview.put(bytes);
                     break;
 
                 case PREVIEW_MIME:
-                    mPreviewMime = (String)value;
+                    previewMime = (String)value;
                     break;
 
                 case PREVIEW_URL:
-                    mPreviewUrl = (String)value;
+                    previewUrl = (String)value;
                     break;
 
                 case STORE:
-                    mStore = (String)value;
+                    store = (String)value;
                     break;
 
                 case TIME:
-                    mTime = (Long)value * 1000; // mTime on server is given in
+                    time = (Long)value * 1000; // mTime on server is given in
                                                 // seconds.
                     break;
 
                 case TITLE:
-                    mTitle = (String)value;
+                    title = (String)value;
                     break;
 
                 case TYPE:
-                    mType = Type.findType((String) value);
+                    type = Type.findType((String) value);
                     break;
 
                 case URI:
-                    mUri = (String)value;
+                    uri = (String)value;
                     break;
 
                 case VISIBILITY:
-                    mVisibility.add(Visibility.findVisibility((String) value));
+                    visibility.add(Visibility.findVisibility((String) value));
                     updateVisibilityFlags(Visibility.findVisibility((String) value));
                     break;
                     
@@ -600,15 +600,15 @@ public class ActivityItem extends BaseDataType {
     private void updateMiscFlags(Flag flagValue) {
         switch (flagValue) {
             case ALREADY_READ:
-                mActivityFlags = mActivityFlags | ALREADY_READ;
+                activityFlags = activityFlags | ALREADY_READ;
                 break;
 
             case TIMELINE:
-                mActivityFlags = mActivityFlags | TIMELINE_ITEM;
+                activityFlags = activityFlags | TIMELINE_ITEM;
                 break;
 
             case STATUS:
-                mActivityFlags = mActivityFlags | STATUS_ITEM;
+                activityFlags = activityFlags | STATUS_ITEM;
                 break;
 
             default:
@@ -626,27 +626,27 @@ public class ActivityItem extends BaseDataType {
     private void updateVisibilityFlags(Visibility flagValue) {
         switch (flagValue) {
             case ORIGINATOR:
-                mVisibilityFlags = mVisibilityFlags | ORIGINATOR;
+                visibilityFlags = visibilityFlags | ORIGINATOR;
                 break;
 
             case RECIPIENT:
-                mVisibilityFlags = mVisibilityFlags | RECIPIENT;
+                visibilityFlags = visibilityFlags | RECIPIENT;
                 break;
 
             case ADDRESS_BOOK:
-                mVisibilityFlags = mVisibilityFlags | ADDRESSBOOK;
+                visibilityFlags = visibilityFlags | ADDRESSBOOK;
                 break;
 
             case BUSINESS_CONTACTS:
-                mVisibilityFlags = mVisibilityFlags | BUSINESSCONTACTS;
+                visibilityFlags = visibilityFlags | BUSINESSCONTACTS;
                 break;
 
             case KNOW_USER:
-                mVisibilityFlags = mVisibilityFlags | KNOWUSER;
+                visibilityFlags = visibilityFlags | KNOWUSER;
                 break;
 
             case CONNECTED_FRIENDS:
-                mVisibilityFlags = mVisibilityFlags | CONNECTED_FRIENDS;
+                visibilityFlags = visibilityFlags | CONNECTED_FRIENDS;
                 break;
 
             default:
@@ -660,48 +660,48 @@ public class ActivityItem extends BaseDataType {
     public String toString() {
         final StringBuffer sb = 
             new StringBuffer("ActivityItem:\n\tActivity Id = ");
-        sb.append(mActivityId);
-        sb.append("\n\tTime = "); sb.append(mTime);
-        if (mType != null) {
-            sb.append("\n\tType = "); sb.append(mType.getTypeCode());
+        sb.append(activityId);
+        sb.append("\n\tTime = "); sb.append(time);
+        if (type != null) {
+            sb.append("\n\tType = "); sb.append(type.getTypeCode());
         }
-        sb.append("\n\tUri = "); sb.append(mUri);
-        sb.append("\n\tTitle = "); sb.append(mTitle);
-        sb.append("\n\tDescription = "); sb.append(mDescription);
-        if (mPreview != null) {
-            sb.append("\n\tPreview = "); sb.append(String.valueOf(mPreview));
+        sb.append("\n\tUri = "); sb.append(uri);
+        sb.append("\n\tTitle = "); sb.append(title);
+        sb.append("\n\tDescription = "); sb.append(description);
+        if (preview != null) {
+            sb.append("\n\tPreview = "); sb.append(String.valueOf(preview));
         }
-        sb.append("\n\tPreview Mime ="); sb.append(mPreviewMime);
-        sb.append("\n\tPreview URL = "); sb.append(mPreviewUrl);
-        sb.append("\n\tStore = " + mStore);
-        if (mFlagList != null) {
+        sb.append("\n\tPreview Mime ="); sb.append(previewMime);
+        sb.append("\n\tPreview URL = "); sb.append(previewUrl);
+        sb.append("\n\tStore = " + store);
+        if (flagList != null) {
             sb.append("\n\tFlag list: [");
-            for (int i = 0; i < mFlagList.size(); i++) {
-                sb.append(mFlagList.get(i).getFlagCode());
-                if (i < mFlagList.size() - 1) {
+            for (int i = 0; i < flagList.size(); i++) {
+                sb.append(flagList.get(i).getFlagCode());
+                if (i < flagList.size() - 1) {
                     sb.append(", ");
                 }
             }
             sb.append("]");
         }
-        sb.append("\n\tParent activity = "); sb.append(mParentActivity);
-        sb.append("\n\tHas children = "); sb.append(mHasChildren);
-        if (mVisibility != null) {
+        sb.append("\n\tParent activity = "); sb.append(parentActivity);
+        sb.append("\n\tHas children = "); sb.append(hasChildren);
+        if (visibility != null) {
             sb.append("\n\tVisibility: [");
-            for (int i = 0; i < mVisibility.size(); i++) {
-                sb.append(mVisibility.get(i).getVisibilityCode());
-                if (i < mVisibility.size() - 1) {
+            for (int i = 0; i < visibility.size(); i++) {
+                sb.append(visibility.get(i).getVisibilityCode());
+                if (i < visibility.size() - 1) {
                     sb.append(", ");
                 }
             }
             sb.append("]");
         }
 
-        if (mContactList != null) {
+        if (contactList != null) {
             sb.append("\n\tContact list: [");
-            for (int i = 0; i < mContactList.size(); i++) {
-                sb.append(mContactList.get(i).toString());
-                if (i < mContactList.size() - 1) {
+            for (int i = 0; i < contactList.size(); i++) {
+                sb.append(contactList.get(i).toString());
+                if (i < contactList.size() - 1) {
                     sb.append(", ");
                 }
             }
