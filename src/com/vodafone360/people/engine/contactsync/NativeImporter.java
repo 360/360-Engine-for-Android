@@ -70,11 +70,22 @@ public class NativeImporter {
     public final static int RESULT_ERROR = 1;
 
     /**
-     * Number of contacts to be processed "per tick".
+     * Number of contacts to be processed "per tick". This is the start value
+     * and is adapted to get as close as possible to TARGET_TIME_PER_TICK
      * 
      * @see #tick()
      */
-    private final static int MAX_CONTACTS_OPERATION_COUNT = 2;
+    private final static float CONTACTS_PER_TICK_START = 2.0F;
+    
+    /**
+     * Ideal processing time per tick in ms
+     */
+    private final static float TARGET_TIME_PER_TICK = 1000.0F;
+    
+    /**
+     * Contacts to process in one tick. This float will be rounded.
+     */
+    private float mContactsPerTick = CONTACTS_PER_TICK_START;
 
     /**
      * Handler to the People Contacts API.
@@ -265,6 +276,8 @@ public class NativeImporter {
      * @return true when the import task is finished, false if not
      */
     public boolean tick() {
+    	
+    	long startTime = System.currentTimeMillis();
 
         switch (mState) {
             case STATE_GET_IDS_LISTS:
@@ -277,6 +290,13 @@ public class NativeImporter {
                 processDeleted();
                 break;
         }
+        
+        long processingTime = System.currentTimeMillis() - startTime;
+        float factor = TARGET_TIME_PER_TICK / processingTime;
+        
+        mContactsPerTick = mContactsPerTick * factor;
+        
+        LogUtils.logD("NativeImporter.tick(): Tick took " + processingTime + "ms, applying factor "+ factor + ". Contacts per tick: " + mContactsPerTick);
 
         return isDone();
     }
@@ -399,7 +419,7 @@ public class NativeImporter {
         LogUtils.logD("NativeImporter.iterateThroughNativeIds()");
 
         final int limit = Math.min(mNativeContactsIds.length, mCurrentNativeId
-                + MAX_CONTACTS_OPERATION_COUNT);
+                + Math.round(mContactsPerTick));
 
         // TODO: remove the deleted state / queuing to deleted ids array and
         // loop with while (mProcessedIds < limit)
@@ -473,7 +493,7 @@ public class NativeImporter {
         LogUtils.logD("NativeImporter.processDeleted()");
 
         final int limit = Math.min(mDeletedIds.size(), mCurrentDeletedId
-                + MAX_CONTACTS_OPERATION_COUNT);
+                + Math.round(mContactsPerTick));
 
         while (mCurrentDeletedId < limit) {
 
