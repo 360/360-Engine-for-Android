@@ -930,8 +930,7 @@ public abstract class ActivitiesTable {
             try {   
                 writableDb.beginTransaction();
                 
-                if (findNativeActivity(item.mNativeItemId,
-                        item.mNativeItemType, writableDb)) {
+                if (findNativeActivity(item, writableDb)) {
                     continue;
                 }
                 int latestStatusVal = 0;
@@ -1188,25 +1187,22 @@ public abstract class ActivitiesTable {
     /**
      * Checks if an activity exists in the database.
      *
-     * @param nativeId The native ID which links the activity with the record in
-     *            the native table.
-     * @param type The native type (An ordinal from the #TimelineNativeTypes
-     *            enumeration)
-     * @param readableDb Readable SQLite database
+     * @param item The native SMS item to check against our client activities DB table.
+     * 
      * @return true if the activity was found, false otherwise
+     * 
      */
-    private static boolean findNativeActivity(final int nativeId,
-            final int type, final SQLiteDatabase readableDb) {
+    private static boolean findNativeActivity(TimelineSummaryItem item, final SQLiteDatabase readableDb) {
         DatabaseHelper.trace(false, "DatabaseHelper.findNativeActivity()");
         Cursor cursor = null;
         boolean result = false;
         try {
             final String[] args = {
-                    Integer.toString(nativeId), Integer.toString(type)
+                    Integer.toString(item.mNativeItemId), Integer.toString(item.mNativeItemType), Long.toString(item.mTimestamp)
             };
-            cursor = readableDb.rawQuery("SELECT " + Field.ACTIVITY_ID
-                    + " FROM " + TABLE_NAME + " WHERE " + Field.NATIVE_ITEM_ID
-                    + "=? AND " + Field.NATIVE_ITEM_TYPE + "=?", args);
+            cursor = readableDb.rawQuery("SELECT " + Field.ACTIVITY_ID + " FROM " + TABLE_NAME + 
+            								" WHERE " + Field.NATIVE_ITEM_ID + "=? AND " + Field.NATIVE_ITEM_TYPE + "=?" +
+            										" AND " + Field.TIMESTAMP + "=?", args);
             if (cursor.moveToFirst()) {
                 result = true;
             }
