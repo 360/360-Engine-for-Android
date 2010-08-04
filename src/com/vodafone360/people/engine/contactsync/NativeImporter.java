@@ -80,7 +80,7 @@ public class NativeImporter {
     /**
      * Ideal processing time per tick in ms
      */
-    private final static float TARGET_TIME_PER_TICK = 1000.0F;
+    private final static float TARGET_TIME_PER_TICK = 200.0F;
     
     /**
      * Contacts to process in one tick. This float will be rounded.
@@ -293,8 +293,7 @@ public class NativeImporter {
         
         long processingTime = System.currentTimeMillis() - startTime;
         float factor = TARGET_TIME_PER_TICK / processingTime;
-        
-        mContactsPerTick = mContactsPerTick * factor;
+        mContactsPerTick = Math.max(1.0F, mContactsPerTick * factor);
         
         LogUtils.logD("NativeImporter.tick(): Tick took " + processingTime + "ms, applying factor "+ factor + ". Contacts per tick: " + mContactsPerTick);
 
