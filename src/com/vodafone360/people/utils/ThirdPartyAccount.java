@@ -91,6 +91,25 @@ public class ThirdPartyAccount {
         mDisplayName = identity.mName;
     }
 
+    /**
+     * Create a new third party account object.
+     *
+     * @param userName - the username for the account.
+     * @param identity - Identity details retrieved from server.
+     * @param isVerified -
+     */
+    public ThirdPartyAccount(final String userName, final Identity identity,
+            final boolean isVerified) {
+
+        /**In ui-refresh will not have flag status of mChecked==false.
+         * Because ui-refresh remove checkBox UI of this flag.
+         * */
+        this(userName, identity, /*checkedByDefault*/true, isVerified);
+
+        /** Always TRUE for UI-Refresh. */
+        mShouldBeProcessed = true;
+    }
+
     /** {@inheritDoc} */
     @Override
     public String toString() {
