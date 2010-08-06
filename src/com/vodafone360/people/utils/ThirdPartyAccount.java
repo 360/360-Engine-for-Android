@@ -72,6 +72,8 @@ public class ThirdPartyAccount {
     public static final String SNS_TYPE_TWITTER = "twitter";
 
     public static final String SNS_TYPE_HYVES = "hyves";
+    
+    public static final String SNS_TYPE_STUDIVZ = "studivz";
 
 
     /**
@@ -163,6 +165,8 @@ public class ThirdPartyAccount {
             return context.getString(R.string.Utils_sns_name_twitter);
         } else if (sns.startsWith(SNS_TYPE_HYVES)) {
             return context.getString(R.string.Utils_sns_name_hyves);
+        } else if (sns.startsWith(SNS_TYPE_STUDIVZ)) {
+            return context.getString(R.string.Utils_sns_name_studivz);
         } else {
             LogUtils.logE("SNSIconUtils.getSNSStringResId() SNS String[" + sns + "] is not of a "
                     + "known type, so returning empty string value");
