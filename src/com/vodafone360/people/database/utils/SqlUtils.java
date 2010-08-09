@@ -36,6 +36,15 @@ import com.vodafone360.people.datatypes.ActivityItem.Type;
  */
 public final class SqlUtils {
 
+    /**
+     * Constant for ","
+     */
+    public final static String COMMA = ",";
+    /**
+     * Empty string ("") constant.
+     */
+    public static final String EMPTY = "";
+
     /***
      * Private constructor to prevent instantiation.
      */

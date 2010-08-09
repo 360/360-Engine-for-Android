@@ -33,6 +33,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.vodafone360.people.R;
 import com.vodafone360.people.database.tables.ActivitiesTable.TimelineSummaryItem;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactSummary;

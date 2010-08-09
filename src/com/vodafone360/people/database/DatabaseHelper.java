@@ -2408,7 +2408,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             return status;
         }
 
-        return ContactSummaryTable.updateNameAndStatus(contact, writableDatabase);
+        return ContactSummaryTable.updateContactDisplayName(contact, writableDatabase);
     }
 
     public List<Contact> fetchContactList() {

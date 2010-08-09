@@ -72,6 +72,8 @@ public class ThirdPartyAccount {
     public static final String SNS_TYPE_TWITTER = "twitter";
 
     public static final String SNS_TYPE_HYVES = "hyves";
+    
+    public static final String SNS_TYPE_STUDIVZ = "studivz";
 
 
     /**
@@ -89,6 +91,25 @@ public class ThirdPartyAccount {
         mIdentity = identity;
         mIsVerified = isVerified;
         mDisplayName = identity.mName;
+    }
+
+    /**
+     * Create a new third party account object.
+     *
+     * @param userName - the username for the account.
+     * @param identity - Identity details retrieved from server.
+     * @param isVerified -
+     */
+    public ThirdPartyAccount(final String userName, final Identity identity,
+            final boolean isVerified) {
+
+        /**In ui-refresh will not have flag status of mChecked==false.
+         * Because ui-refresh remove checkBox UI of this flag.
+         * */
+        this(userName, identity, /*checkedByDefault*/true, isVerified);
+
+        /** Always TRUE for UI-Refresh. */
+        mShouldBeProcessed = true;
     }
 
     /** {@inheritDoc} */
@@ -144,6 +165,8 @@ public class ThirdPartyAccount {
             return context.getString(R.string.Utils_sns_name_twitter);
         } else if (sns.startsWith(SNS_TYPE_HYVES)) {
             return context.getString(R.string.Utils_sns_name_hyves);
+        } else if (sns.startsWith(SNS_TYPE_STUDIVZ)) {
+            return context.getString(R.string.Utils_sns_name_studivz);
         } else {
             LogUtils.logE("SNSIconUtils.getSNSStringResId() SNS String[" + sns + "] is not of a "
                     + "known type, so returning empty string value");

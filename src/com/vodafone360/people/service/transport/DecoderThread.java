@@ -85,12 +85,15 @@ public class DecoderThread implements Runnable {
         public boolean mIsCompressed = false;
 
         public boolean mIsPushMessage = false;
+        
+        public long mTimeStamp = 0;
 
         public RawResponse(int reqId, byte[] data, boolean isCompressed, boolean isPushMessage) {
             mReqId = reqId;
             mData = data;
             mIsCompressed = isCompressed;
             mIsPushMessage = isPushMessage;
+            mTimeStamp = System.currentTimeMillis();
         }
     }
 
@@ -159,6 +162,10 @@ public class DecoderThread implements Runnable {
                         if (request != null) {
                             type = request.mType;
                             engineId = request.mEngineId;
+                            
+                            long backendResponseTime = decode.mTimeStamp - request.getAuthTimestamp();
+                            
+                            LogUtils.logD("Backend response time was " + backendResponseTime + "ms");
                         } else {
                             type = Type.COMMON;
                         }

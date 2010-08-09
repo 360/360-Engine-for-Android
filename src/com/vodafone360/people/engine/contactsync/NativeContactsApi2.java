@@ -634,6 +634,7 @@ public class NativeContactsApi2 extends NativeContactsApi {
                 .withValues(mValues);
         mBatch.add(builder.build());
 
+         // according to the calling method ccList here has at least 1 element, ccList[0] is not null
         final int ccListSize = ccList.length;
         for (int i = 0; i < ccListSize; i++) {
             final ContactChange cc = ccList[i];
@@ -660,7 +661,7 @@ public class NativeContactsApi2 extends NativeContactsApi {
         addValuesToBatch(ContactChange.INVALID_ID);
 
         // Add 360 profile detail
-        addProfileAction(ccList[0].getInternalContactId());
+         addProfileAction(ccList[0].getInternalContactId());
 
         // Execute the batch and Generate ID changes from it
         return executeNewContactBatch(ccList);

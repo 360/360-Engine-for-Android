@@ -638,5 +638,6 @@
 	<string name="Utils_sns_name_msn">Windows Live Messenger</string>
 	<string name="Utils_sns_name_hyves">Hyves</string>
 	<string name="Utils_sns_name_vodafone">Vodafone</string>
+	<string name="Utils_sns_name_studivz">StudiVZ</string>
 	
 </resources>
