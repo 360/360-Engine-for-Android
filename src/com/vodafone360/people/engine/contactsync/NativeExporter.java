@@ -267,10 +267,14 @@ public class NativeExporter {
             
             case ContactChange.TYPE_ADD_CONTACT:
                 // add the contact on Native side
-                nativeResponse = mNativeContactsApi.addContact(mAccount, changes);
-                // sync back the native IDs on People side
-                if (!mPeopleContactsApi.syncBackNewNativeContact(changes, nativeResponse)) {
-                    LogUtils.logE("NativeExporter.exportContactChanges() - Add Contact failed!");
+                
+                //the account can be null (theoretically)
+                if (mAccount != null) {
+                    nativeResponse = mNativeContactsApi.addContact(mAccount, changes);
+                    // sync back the native IDs on People side
+                    if (!mPeopleContactsApi.syncBackNewNativeContact(changes, nativeResponse)) {
+                        LogUtils.logE("NativeExporter.exportContactChanges() - Add Contact failed!");
+                    }    
                 }
                 break;
             case ContactChange.TYPE_DELETE_CONTACT:
