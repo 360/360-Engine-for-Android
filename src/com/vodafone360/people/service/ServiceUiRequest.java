@@ -243,28 +243,30 @@ public enum ServiceUiRequest {
      */
     GET_GROUPS,
 
-/**
-*Gets the default 360 album.
-*/
+    /**
+     *	Gets the default 360 album.
+     */
     GET_DEFAULT_ALBUM_360,
-/**
-*Shares the contents with albumid.
-*/
-    SHARE_PHOTO_WITH_ALBUM, //SHARE_CONTENT,
-/**
- * For uploading the photo.
- */
-    UPLOAD_PHOTO, //START_UPLOADFILE,
-/**
- * For adding the albums.
- */
+    /**
+     *	Shares the contents with albumid.
+     */
+    SHARE_PHOTO_WITH_ALBUM, 
+    /**
+     * For uploading the photo.
+     */
+    UPLOAD_PHOTO, 
+    /**
+     * For adding the albums.
+     */
     ADD_ALBUMS,
     /**
      * For sharing the album.
      */
 
     SHARE_ALBUM,
-     /* Do not handle this message.
+
+    /**
+     * Do not handle this message.
      */
     UNKNOWN;
 

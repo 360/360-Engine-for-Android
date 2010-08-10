@@ -181,7 +181,7 @@ public interface IPeopleService {
      * be empty.
      * 
      */
-    ArrayList<Identity> getAvailableThirdPartyIdentities();
+    public ArrayList<Identity> getAvailableThirdPartyIdentities();
     
     /**
      * 
@@ -191,7 +191,7 @@ public interface IPeopleService {
      * empty list if something  went wrong retrieving the identities. 
      * 
      */
-    ArrayList<Identity> getMyThirdPartyIdentities();
+    public ArrayList<Identity> getMyThirdPartyIdentities();
     
     /**
      * 
@@ -203,7 +203,7 @@ public interface IPeopleService {
      * returned list will be empty.
      * 
      */
-    ArrayList<Identity> getMy360AndThirdPartyChattableIdentities();
+    public ArrayList<Identity> getMy360AndThirdPartyChattableIdentities();
 
     /***
      * Begins the process of retrieving all Third party Accounts from the
@@ -364,24 +364,25 @@ public interface IPeopleService {
      */
     void updateChatNotification(long localContactId);
 
-     /**
-      * Uploads the content file supporting various mime.
-      * type(jpeg,png,gif etc) to the server.
-      * @param fileNames The photo to be uploaded.
-      * mime type and file path is must.
+	/**
+      * This method Uploads the image files supporting various mime
+      * types such as png, jpeg, gif etc. to the server.
+      * @param fileNames The list of  photos to be uploaded.
+      * For each photo, mime-type and file path is must.
      */
     void startPhotoUpload(List<PhotoUtilsIn> fileNames);
 
      /**
-     * Cancel content upload request the PNG file to the server.
+     * Cancel content upload request sent to the server.
      */
     void cancelPhotoUploadEngineRequest();
 
     /**
      * Share the content id with connected album.
-     * @param contentid Contains contentid to be shared with default 360.
+     * @param contentId Contains contentId to be shared with default 360.
+     *                  Does nothing and returns if contentId is NULL
      */
-    void shareContentWith360Album(Long contentid);
+    void shareContentWith360Album(Long contentId);
 
     /**
      * Add Albums to the server.
@@ -392,16 +393,20 @@ public interface IPeopleService {
 
     /**
      * Share the contents.
-     * @param albumid album with which sharing needs to be done.
-     * @param contentid the contents to be shared.
+     * @param albumId album with which sharing needs to be done.
+     *                Does nothing and returns if albumId is NULL
+     * @param contentId the contents to be shared.
+     *                  Does nothing and returns if contentId is NULL
      */
-    void shareContents(Long albumid, Long contentid);
+    void shareContents(Long albumId, Long contentId);
 
     /**
      * Share the album.
-     * @param groupid Groupid group with which album to be shared.
-     * @param albumid Album top be shared.
+     * @param groupId Groupid of the group with which album to be shared.
+     *                Does nothing and returns if groupId is NULL
+     * @param albumId Album to be shared.
+     *                Does nothing and returns if albumId is NULL
      */
-    void shareAlbum(Long groupid, Long albumid);
+    void shareAlbum(Long groupId, Long albumId);
 
 }

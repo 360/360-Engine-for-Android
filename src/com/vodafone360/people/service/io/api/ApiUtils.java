@@ -107,9 +107,8 @@ public class ApiUtils {
         return vector;
     }
 
-    /**
-     * Create Vector of of Hash table items from.
-     *  a list of ContentIPDataType (each.
+     /**
+     * Create Vector of Hash table items from a list of ContentIPDataType (each.
      * ContentIP being represented by a Hash table). This is supplied to Hessian
      * encoder.
      *
@@ -125,7 +124,7 @@ public class ApiUtils {
         return vector;
     }
     /**
-     * Create Vector of of Hash table items from a list of GroupItems (each
+     * Create Vector of Hash table items from a list of GroupItems (each
      * GroupItems being represented by a Hash table). This is supplied to
      * Hessian encoder.
      *
@@ -143,6 +142,10 @@ public class ApiUtils {
     }
 
     /**
+     * Create Vector of Hash table items from a list of Entity (each
+     * entity being represented by a Hash table). This is supplied to
+     * Hessian encoder.
+     *
      *
      * @param list list of entity keys to be converted into hashtable.
      * @return Vector of objects

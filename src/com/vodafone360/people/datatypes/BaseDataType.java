@@ -28,17 +28,16 @@ package com.vodafone360.people.datatypes;
 /**
  * BaseDataType - all specific data types derive from this.
  */
-public abstract class BaseDataType {
-
-/**
-* Get the data type.
-* @return The data-type.
-*/
-public abstract int getType();
-
-/**
-* Unknown data type
-*/
+abstract public class BaseDataType {
+    /**
+     * Get the data type
+     * @return The data-type.
+     */
+    abstract public int getType();
+    
+    /**
+     * Unknown data type
+     */
     public static final int UNKNOWN_DATA_TYPE = 0;
     /**
      * Activity Contact data type
@@ -137,11 +136,10 @@ public abstract int getType();
      * System Notification data type
      */    
     public static final int SYSTEM_NOTIFICATION_DATA_TYPE = 24;
-
-
-/**
-* Result for adding the content on server.
-*/
+    
+   /**
+    * Result for adding the content on server.
+    */
 
    public static final int RESULT_ADD_CONTENT = 25;
 

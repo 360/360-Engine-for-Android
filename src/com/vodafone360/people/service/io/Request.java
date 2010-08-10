@@ -30,6 +30,7 @@ import java.io.OutputStream;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
+import android.util.Log;
 
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.SettingsManager;
@@ -41,10 +42,6 @@ import com.vodafone360.people.service.io.rpg.RpgMessageTypes;
 import com.vodafone360.people.service.transport.http.HttpConnectionThread;
 import com.vodafone360.people.service.utils.AuthUtils;
 import com.vodafone360.people.service.utils.hessian.HessianEncoder;
-import com.vodafone360.people.utils.CloseUtils;
-import java.io.ByteArrayOutputStream;
-import android.util.Log;
-import com.caucho.hessian.micro.MicroHessianOutput;
 
 /**
  * Container class for Requests issued from client to People server via the
@@ -90,23 +87,23 @@ public class Request {
         /**
          * For uploading the photo.
          */
-          UPLOAD_PHOTO, //UPLOADFILE,
-          /**
-           * For getting the group id of shared album.
-           */
-          GET_DEFAULT_ALBUM360,
-          /**
-           * For sharing of photo with album.
-           */
-          SHARE_PHOTO_WITH_ALBUM,
-          /**
-           * For sharing albums with groups.
-           */
-          SHARE_ALBUMS,
-          /**
-           * For adding albums on server.
-           */
-          ADD_ALBUMS
+        UPLOAD_PHOTO, //UPLOADFILE,
+        /**
+         * For getting the group id of shared album.
+         */
+        GET_DEFAULT_ALBUM360,
+        /**
+         * For sharing of photo with album.
+         */
+        SHARE_PHOTO_WITH_ALBUM,
+        /**
+         * For sharing albums with groups.
+         */
+        SHARE_ALBUMS,
+        /**
+         * For adding albums on server.
+         */
+        ADD_ALBUMS
 
     }
 
@@ -667,7 +664,18 @@ public class Request {
          */
     }
 
+    /**
+     * Calculates the expiry date based on the timeout. TODO: should have
+     * instead an execute() method to call when performing the request. it would
+     * set the request to active, calculates the expiry date, etc...
+     */
+    public void calculateExpiryDate() {
+        if (mTimeout > 0) {
+            mExpiryDate = System.currentTimeMillis() + mTimeout;
+        }
+    }
 
+    
     /**
      * Called as first payload sent to server by direct -http.
      * httpContentupload directly uses function to get the initial payload.
@@ -683,13 +691,7 @@ public class Request {
 	         mParameters.put(CHUNKSIZE, chunkSize);
 	         mParameters.put(TOTALSIZE, mfileSize);
 	         calculateAuth();
-	         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-	         MicroHessianOutput mho = new MicroHessianOutput(bos);
-	         mho.startCall(mApiMethodName);
-	         HessianEncoder.writeHashtable(mParameters, mho);
-	         mho.completeCall();
-	         CloseUtils.close(bos);
-	         payload = bos.toByteArray();
+	         payload = HessianEncoder.createHessianByteArray(mApiMethodName,mParameters);
 	         payload[1] = (byte) 1;
 	         // TODO we need to change this if we want to use a
 	         // baos
@@ -725,21 +727,16 @@ public class Request {
         mParameters.put(CHUNKNUMB, muploadChunk);
         mParameters.put(UPLOADID, muploadID);
         calculateAuth();
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        MicroHessianOutput mho = new MicroHessianOutput(bos);
+
         try {
-	        mho.startCall(mApiMethodName);
-	        HessianEncoder.writeHashtable(mParameters, mho);
-	        mho.completeCall();
+            payload = HessianEncoder.createHessianByteArray(mApiMethodName,mParameters);
+            payload[1] = (byte) 1;
+            // TODO we need to change this if we want to use a
+            // baos
+            payload[2] = (byte) 0;
         } catch (IOException e) {
             Log.v("Request-Exception-request-getUploadChunk", "error" + e);
         }
-        CloseUtils.close(bos);
-        payload = bos.toByteArray();
-        payload[1] = (byte) 1;
-        // TODO we need to change this if we want to use a
-        // baos
-        payload[2] = (byte) 0;
         return payload;
     }
 
@@ -758,35 +755,18 @@ public class Request {
         byte[] payload = null;
         Long muploadID = uploadid;
         mParameters.put(UPLOADID, muploadID);
-        calculateAuth();
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        MicroHessianOutput mho = new MicroHessianOutput(bos);
+        calculateAuth();        
         try {
-            mho.startCall(mApiMethodName);
-            HessianEncoder.writeHashtable(mParameters, mho);
-            mho.completeCall();
+            payload = HessianEncoder.createHessianByteArray(mApiMethodName,mParameters);
+            payload[1] = (byte) 1;
+            // TODO we need to change this if we want to use a
+            // baos
+            payload[2] = (byte) 0;
         } catch (IOException e) {
-            Log.v("Request Exception-request-getUploadEnd", "error" + e);
+            Log.v("Request-Exception-request-getUploadChunk", "error" + e);
         }
-        CloseUtils.close(bos);
-        payload = bos.toByteArray();
-        payload[1] = (byte) 1;
-        // TODO we need to change this if we want to use a
-        // baos
-        payload[2] = (byte) 0;
+
         return payload;
      }
 
-
-    /**
-     * Calculates the expiry date based on the timeout.
-     *  TODO: should have
-     * instead an execute() method to call when performing the request. it would
-     * set the request to active, calculates the expiry date, etc...
-     */
-    public void calculateExpiryDate() {
-        if (mTimeout > 0) {
-            mExpiryDate = System.currentTimeMillis() + mTimeout;
-        }
-    }
 }

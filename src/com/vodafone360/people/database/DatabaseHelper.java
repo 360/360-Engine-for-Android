@@ -383,12 +383,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             trace(false, "DatabaseHelper.deleteContact() localContactID[" + localContactID + "]");
         }
 
- /*       if (SyncMeDbUtils.getMeProfileLocalContactId(this) != null
+        if (SyncMeDbUtils.getMeProfileLocalContactId(this) != null
                 && SyncMeDbUtils.getMeProfileLocalContactId(this).longValue() == localContactID) {
             LogUtils.logW("DatabaseHelper.deleteContact() Can not delete the Me profile contact");
             return ServiceStatus.ERROR_NOT_FOUND;
         }
-*/
+
         ContactsTable.ContactIdInfo mContactIdInfo = ContactsTable.validateContactId(
                 localContactID, getWritableDatabase());
         List<ContactsTable.ContactIdInfo> mIdList = new ArrayList<ContactsTable.ContactIdInfo>();
@@ -423,7 +423,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             throw new NullPointerException(
                     "DatabaseHelper.addContactDetail() detail should not be NULL");
         }
- /*       boolean isMeProfile = (SyncMeDbUtils.getMeProfileLocalContactId(this) != null
+        boolean isMeProfile = (SyncMeDbUtils.getMeProfileLocalContactId(this) != null
                 && detail.localContactID != null && detail.localContactID.equals(SyncMeDbUtils
                 .getMeProfileLocalContactId(this)));
 
@@ -436,9 +436,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 WidgetUtils.kickWidgetUpdateNow(mContext);
             }
         }
-        return mStatus;
-        */
-        ServiceStatus mStatus = null;
         return mStatus;
     }
 
@@ -499,10 +496,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             return ServiceStatus.ERROR_NOT_FOUND;
         }
         boolean isMeProfile = false;
- /*       if (mDetail.localContactID.equals(SyncMeDbUtils.getMeProfileLocalContactId(this))) {
+        if (mDetail.localContactID.equals(SyncMeDbUtils.getMeProfileLocalContactId(this))) {
             isMeProfile = true;
         }
-        */
         List<ContactDetail> mDetailList = new ArrayList<ContactDetail>();
         mDetailList.add(mDetail);
         ServiceStatus mStatus = syncDeleteContactDetailList(mDetailList, true, !isMeProfile);
@@ -938,9 +934,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @return The cursor result
      */
     public synchronized Cursor openContactSummaryCursor(Long groupFilterId, CharSequence constraint) {
-        return null;
-        /*ContactSummaryTable.openContactSummaryCursor(groupFilterId, constraint,
-                SyncMeDbUtils.getMeProfileLocalContactId(this), getReadableDatabase());*/
+        return ContactSummaryTable.openContactSummaryCursor(groupFilterId, constraint,
+                SyncMeDbUtils.getMeProfileLocalContactId(this), getReadableDatabase());
     }
 
     public synchronized Cursor openContactsCursor() {
@@ -1050,12 +1045,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         boolean syncToServer = true;
         boolean mIsMeProfile = false;
-        /*
+
         if (SyncMeDbUtils.getMeProfileLocalContactId(this) != null
                 && SyncMeDbUtils.getMeProfileLocalContactId(this).longValue() == localContactId) {
             mIsMeProfile = true;
             syncToServer = false;
-        }*/
+        }
         
         Contact mContact = new Contact();
         ServiceStatus mStatus = fetchContact(localContactId, mContact);
@@ -1100,11 +1095,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + "] groupId[" + groupId + "]");
         boolean syncToServer = true;
         boolean meProfile = false;
-  /*      if (SyncMeDbUtils.getMeProfileLocalContactId(this) != null
+      if (SyncMeDbUtils.getMeProfileLocalContactId(this) != null
                 && SyncMeDbUtils.getMeProfileLocalContactId(this).longValue() == localContactId) {
             meProfile = true;
             syncToServer = false;
-        }*/
+        }
         
         Contact mContact = new Contact();
         ServiceStatus mStatus = fetchContact(localContactId, mContact);
@@ -1622,8 +1617,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 if (!ContactGroupsTable.deleteContact(mInfo.localId, mDb)) {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
-                
-         /*       if (SyncMeDbUtils.getMeProfileLocalContactId(this) != null
+                if (SyncMeDbUtils.getMeProfileLocalContactId(this) != null
                         && SyncMeDbUtils.getMeProfileLocalContactId(this).longValue() == mInfo.localId) {
                     ServiceStatus status = StateTable.modifyMeProfileID(null, mDb);
                     if (ServiceStatus.SUCCESS != status) {
@@ -1631,8 +1625,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     }
                     SyncMeDbUtils.setMeProfileId(null);
                     PresenceDbUtils.resetMeProfileIds();
-                }*/
-                
+                }
                 ServiceStatus mStatus = ContactSummaryTable.deleteContact(mInfo.localId, mDb);
                 if (ServiceStatus.SUCCESS != mStatus) {
                     return mStatus;

@@ -60,7 +60,7 @@ public class HessianEncoder {
         return bos.toByteArray();
     }
 
-    public static void writeHashtable(Hashtable<String, Object> ht, MicroHessianOutput mho)
+    private static void writeHashtable(Hashtable<String, Object> ht, MicroHessianOutput mho)
             throws IOException {
         mho.writeMapBegin(null);
         Enumeration<String> e = ht.keys();

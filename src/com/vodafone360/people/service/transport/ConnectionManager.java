@@ -61,10 +61,13 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
      * Instance of photoupload manager.
      */
 
-    private static PhotoUploadManager mhttpPhotoUpload = null;
+    private static PhotoUploadManager mHttpPhotoUpload = null;
 
-    private Context mContext = null;
-  
+    /**
+     * ApplicationContext
+     */
+    private Context mContext;
+
     /**
      * the class member variable to keep the connection state.
      * 
@@ -131,13 +134,13 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
 
         HttpConnectionThread.logI("ConnectionManager.connect()",
                 (isCurrentlyLoggedIn) ? "We are logged in!" : "We are not logged in!");
-        
-        if (mhttpPhotoUpload == null) {
-            mhttpPhotoUpload =
-            PhotoUploadManager.getInstanceContentUpload(mDecoder);
+
+        if (mHttpPhotoUpload == null) {
+            mHttpPhotoUpload =
+            PhotoUploadManager.getInstance(mDecoder);
             QueueManager.getInstance()
-            .addQueueListener(mhttpPhotoUpload);
-            mhttpPhotoUpload.startThread();
+            .addQueueListener(mHttpPhotoUpload);
+            mHttpPhotoUpload.startThread();
         }
     }
 
@@ -160,8 +163,8 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
         if (null != mDecoder) {
             mDecoder.stopThread();
         }
-        if (null != mhttpPhotoUpload) {
-           mhttpPhotoUpload.stopThread();
+        if (null != mHttpPhotoUpload) {
+           mHttpPhotoUpload.stopThread();
         }
 
 

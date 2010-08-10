@@ -89,7 +89,7 @@ public class Contents {
      */
     static final String SYSTEM = "system";
     /**
-     * quickpost.
+     * To extract the 360 Album id
      */
     static final String QUICKPOST = "quickpost";
 

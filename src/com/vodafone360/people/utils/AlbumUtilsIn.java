@@ -41,9 +41,5 @@ public class AlbumUtilsIn {
      * Title of the album.
      */
     public String title = null;
-    /**
-     * when its created.
-     */
-    public Long created = null;
 
 }

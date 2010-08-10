@@ -36,6 +36,8 @@ import java.util.zip.GZIPInputStream;
 
 import com.caucho.hessian.micro.MicroHessianInput;
 import com.vodafone360.people.datatypes.ActivityItem;
+import com.vodafone360.people.datatypes.AddContentResult;
+import com.vodafone360.people.datatypes.AlbumList;
 import com.vodafone360.people.datatypes.AuthSessionHolder;
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.Contact;
@@ -46,6 +48,7 @@ import com.vodafone360.people.datatypes.Conversation;
 import com.vodafone360.people.datatypes.ExternalResponseObject;
 import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.ItemList;
+import com.vodafone360.people.datatypes.ListEntityKeyResultShareAlbums;
 import com.vodafone360.people.datatypes.PresenceList;
 import com.vodafone360.people.datatypes.PublicKeyDetails;
 import com.vodafone360.people.datatypes.PushAvailabilityEvent;
@@ -53,7 +56,9 @@ import com.vodafone360.people.datatypes.PushChatConversationEvent;
 import com.vodafone360.people.datatypes.PushChatMessageEvent;
 import com.vodafone360.people.datatypes.PushClosedConversationEvent;
 import com.vodafone360.people.datatypes.PushEvent;
+import com.vodafone360.people.datatypes.ResultAddAlbums;
 import com.vodafone360.people.datatypes.ServerError;
+import com.vodafone360.people.datatypes.SharePhotoResult;
 import com.vodafone360.people.datatypes.SimpleText;
 import com.vodafone360.people.datatypes.StatusMsg;
 import com.vodafone360.people.datatypes.SystemNotification;
@@ -65,13 +70,6 @@ import com.vodafone360.people.service.io.rpg.PushMessageTypes;
 import com.vodafone360.people.service.io.rpg.RpgPushMessage;
 import com.vodafone360.people.utils.CloseUtils;
 import com.vodafone360.people.utils.LogUtils;
-import com.vodafone360.people.datatypes.AddContentResult;
-import com.vodafone360.people.datatypes.AlbumList;
-import com.vodafone360.people.datatypes.ListEntityKeyResultShareAlbums;
-import com.vodafone360.people.datatypes.ResultAddAlbums;
-
-import com.vodafone360.people.datatypes.ServerError;
-import com.vodafone360.people.datatypes.SharePhotoResult;
 
 /**
  * Hessian decoding . TODO: Currently casting every response to a Map, losing
@@ -509,9 +507,7 @@ public class HessianDecoder {
                break;
 
             default:
-                LogUtils.logE("HessianDecoder."
-                                + "decodeResponseByRequestType()"
-                                	+ " Unhandled type["
+                LogUtils.logE("HessianDecoder.decodeResponseByRequestType() Unhandled type["
                         + type.name() + "]");
         }
         

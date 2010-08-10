@@ -34,9 +34,24 @@ package com.vodafone360.people.utils;
 
 public class PhotoUtilsOut
 {
-	public String filename;
-	public long contentid;
+    /**
+     * fileName.
+     */
+	public String fileName;
+	
+	/**
+	 * contentId
+	 */
+	public long contentId;
+	
+	/**
+	 * bytes
+	 */
 	public byte bytes[];
+	
+	/**
+	 * filePathOnDevice
+	 */
 	public String filePathOnDevice;
 	
 }

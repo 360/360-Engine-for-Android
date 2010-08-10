@@ -30,8 +30,8 @@
  */
 
 /**
- * Class objects are recieved from UI and passed to engine from the interface.
- * General use of this class is to pass data from UI to contentengine inetrface.
+ * Class objects are received from UI and passed to engine from the interface.
+ * General use of this class is to pass data from UI to contentEngine interface.
  */
 package com.vodafone360.people.utils;
 
@@ -44,31 +44,31 @@ import java.util.List;
  */
 public class PhotoUtilsIn {
     /**
-     * contentid.
+     * contentId.
      */
-    public Long contentid = null;
+    public Long contentId = null;
     /**
-     * remoteid.
+     * remoteId.
      */
-    public String remoteid = null;
+    public String remoteId = null;
     /**
-     * bytesmime.
+     * bytesMime.
      */
-    public String bytesmime = null;
+    public String bytesMime = null;
     /**
-     * extfd.
+     * extFid.
      */
-    public String extfid = null;
+    public String extFid = null;
     /**
      * title.
      */
     public String title = null;
     /**
-     * filename.
+     * fileName.
     */
-    public String filename = null;
+    public String fileName = null;
     /**
-     * filepath.
+     * filePath.
      */
     public String filePath = null;
     /**
@@ -88,15 +88,15 @@ public class PhotoUtilsIn {
      */
     public Long time = null;
     /**
-     * previewurl.
+     * previewUrl.
      */
-    public String previewurl = null;
+    public String previewUrl = null;
     /**
-     * taglist.
+     * tagList.
      */
-    public List<String> taglist = null;
+    public List<String> tagList = null;
     /**
-     * maxage.
+     * maxAge.
      */
     public Long maxage = null;
     /**
@@ -108,28 +108,28 @@ public class PhotoUtilsIn {
      */
     public List<String> albums = null;
     /**
-     * tagscount.
+     * tagsCount.
      */
-    public Integer tagscount = null;
+    public Integer tagsCount = null;
     /**
-     * commentscount.
+     * commentsCount.
      */
-    public Integer commentscount = null;
+    public Integer commentsCount = null;
     /**
-     * uploadedvisppid.
+     * uploadedViaAppid.
      */
-    public String uploadedviaappid = null;
+    public String uploadedViaAppid = null;
     /**
-     * uplaodedviapptype.
+     * uplaodedViaApptype.
      */
-    public String uploadedviaapptype = null;
+    public String uploadedViaApptype = null;
     /**
-     * albumidlist.
+     * albumIdList.
      */
-    public List<Long> albumidlist = null;
+    public List<Long> albumIdList = null;
 
     /**
-     * Identifues the class.
+     * Identifies the class.
      * @return string
      */
     public final String name() {
@@ -140,8 +140,8 @@ public class PhotoUtilsIn {
      */
     public final String toString() {
         String string = name() + "=[";
-        string += "filename :" + filename;
-        string += ", bytesmime : " + bytesmime;
+        string += "filename :" + fileName;
+        string += ", bytesmime : " + bytesMime;
 
         return string;
     }

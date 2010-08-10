@@ -57,65 +57,75 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
-import com.caucho.hessian.micro.MicroHessianInput;
 
 import android.util.Log;
 
 import com.caucho.hessian.micro.MicroHessianInput;
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.SettingsManager;
-import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.service.io.QueueManager;
 import com.vodafone360.people.service.io.Request;
 import com.vodafone360.people.service.io.ResponseQueue;
-import com.vodafone360.people.service.io.Request.Type;
 import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.transport.DecoderThread;
 import com.vodafone360.people.service.transport.IConnection;
 import com.vodafone360.people.service.transport.DecoderThread.RawResponse;
-import com.vodafone360.people.service.transport.http.HttpConnectionThread;
-import com.vodafone360.people.service.utils.hessian.HessianDecoder;
 import com.vodafone360.people.service.utils.hessian.HessianUtils;
 import com.vodafone360.people.utils.LogUtils;
 
 /*
  * PhotoUploadManager uploads the file to the server.
- * There are 2 usecases
- * a)File size is less than 600k 
+ * There are 2 use cases
+ * a)File Size< 600k
+ *  Payload is made and sent to server using direct http client. 
  * b) file size > 600k.
- * For file size less than 600k,directly payload is made and sent to server using direct httpclient.
- * For file size greater than 600k,chunking is bieng done .
+ * File is  broken into chunks 
  * The request is sent to server in following three steps.
- * 1)Tell the server that file is to be uplaoded in chunks-using FUNCTION-StartUpload
- * .(Server return uploadid,which is used in subsequent uploading of chunks
+ * 1)Tell the server that file is to be uploaded in chunks-using FUNCTION-StartUpload
+ *   (Server return uploadId,which is used in subsequent uploading of chunks
  * 2)Read chunks from file and send chunks to server in size of 30k,
- * as mentioned by vodaphone,using function UploadChunk.
- * 3)End the chunking,telling the server that chunking is finished and this is last chunk-using function-UploadEnd.
- *Server return fileuuid.
- *The total request in case of chunking would be like
- * |----StartUpload----|--ReadFromFileInChunks--send chunksto server---|---EndChunking---uploadend--|
- * In the second and third step,uploadid is used,which is returned by server,
- * when startupload request is sent to server as firstpayload.
+ *   using function UploadChunk.
+ * 3)Stop breaking into chunks. Notify the server that chunk breaking is 
+ *   finished and this is last chunk. This is done using function-UploadEnd.
+ * Server return fileUuid.
+ *The total request in case of breaking into chunks would be like
+ * |----StartUpload----|--ReadFromFileInChunks--send chunks to server---|---EndChunking---uploadEnd--|
+ * In the second and third step,uploadId is used,which is returned by server,
+ * when startUpload request is sent to server as firstPayload.
  *     
  */
 
 public class PhotoUploadManager extends Thread implements IConnection {
     
+    /**
+     * Max size to be sent in one go.600k.
+     */
+    private final static Long MAX_FILE_SEND_IN_ONE_CHUNK = new Long(614400);
+
+    /**
+     * Failure status case of the print for Server upload
+     */
+    private final static int PRINT_STATUS_FAILURE = 0;
     
     /**
-     * Clinet for execution of the httppost
+     * Success status case of the print for Server upload
+     */
+    private final static int PRINT_STATUS_SUCCESS = 1;
+    
+    /**
+     * Client for execution of the httppost
      */
     private volatile HttpClient mHttpClient;
 
     /**
      * Decoder thread thats going to be same
      */
-    private DecoderThread mdecoder = null;
+    private DecoderThread mDecoder = null;
     /**
      * Chunk Number of the payload to be send
      */
-    Integer mchunkNumber = 0;
+    private Integer mChunkNumber = 0;
     /**
      * URL to add the content
      */
@@ -123,54 +133,45 @@ public class PhotoUploadManager extends Thread implements IConnection {
     /**
      * singleton instance.
      */
-    private static PhotoUploadManager m_instance = null;
+    private static PhotoUploadManager sInstance = null;
+
     /**
-     * ref counting for singleton.
+     * Checks whether its running.
      */
-    private static int refCount = 0;
-    /**
-     * Checks whether its runnig.
-     */
-    Boolean mRunning = true;
-    /**
-     * Max size to be sent in one go.600k.
-     */
-    Long MAX_FILE_SEND_IN_ONE_CHUNK = new Long(614400);
+    private Boolean mRunning = true;
+
     /**
      * Singleton pattern.
      * @param decode
      * @return Instance singleton
      */
 
-    public static PhotoUploadManager getInstanceContentUpload(
+    public static PhotoUploadManager getInstance(
             final DecoderThread decode) {
 
-        if (m_instance != null) {
-            refCount++;
-
-        } else {
-            m_instance = new PhotoUploadManager(decode);
+        if (sInstance == null) {
+            sInstance = new PhotoUploadManager(decode);
         }
-        return m_instance;
+        return sInstance;
     }
 
     /**
      * Constructor.
      * @param decode decoder thread.
      */
-    PhotoUploadManager(final DecoderThread decode) {
+    private PhotoUploadManager(final DecoderThread decode) {
         super();
-        mdecoder = decode;
+        mDecoder = decode;
         try {
             mApiUrl = (new URL(SettingsManager
                     .getProperty(Settings.SERVER_URL_HESSIAN_KEY))).toURI();
-            int connectionTimeout = Settings.HTTP_CONNECTION_TIMEOUT;
+           
             HttpParams myHttpParams = new BasicHttpParams();
             HttpConnectionParams.setConnectionTimeout(myHttpParams,
-                    connectionTimeout);
+            		Settings.HTTP_CONNECTION_TIMEOUT);
 
-            HttpConnectionParams.setSoTimeout(myHttpParams, connectionTimeout);
-            mHttpClient = new DefaultHttpClient(myHttpParams); // get http
+            HttpConnectionParams.setSoTimeout(myHttpParams, Settings.HTTP_CONNECTION_TIMEOUT);
+            mHttpClient = new DefaultHttpClient(myHttpParams);
         } catch (MalformedURLException e) {
             LogUtils.logE("HttpContentUpload-Error defining URL");
         } catch (URISyntaxException e) {
@@ -179,14 +180,25 @@ public class PhotoUploadManager extends Thread implements IConnection {
 
     }
 
+    
+    /**
+     * Getting the server response.
+     * @param response input.
+     * @return integer
+     */
+    private final int getServerResponse(final HttpResponse response)
+    {
+    	return response.getStatusLine().getStatusCode();
+    }
+    
     /**
      * Printing the response.
-     * @param response inoput.
+     * @param response input.
      * @return integer.
      */
-    final int  print(final HttpResponse response) {
+    private final int  print(final HttpResponse response) {
         byte[] ret = null;
-        int respCode = response.getStatusLine().getStatusCode();
+        int printStatus = PRINT_STATUS_SUCCESS;
         try {
             HttpEntity entity = response.getEntity();
             if (null != entity) {
@@ -203,7 +215,15 @@ public class PhotoUploadManager extends Thread implements IConnection {
                     baos.close();
                     baos = null;
                 }
+                else
+                {
+                	Log.v("HttpContentUpload-handleApiResponse()","InputStream is NULL");
+                }
                 entity.consumeContent();
+            }
+            else
+            {
+            	Log.v("HttpContentUpload-handleApiResponse()","Entity is NULL");
             }
             if (Settings.ENABLED_TRANSPORT_TRACE) {
                 int length = 0;
@@ -220,33 +240,31 @@ public class PhotoUploadManager extends Thread implements IConnection {
 
             }
         } catch (IOException e) {
+        	printStatus = PRINT_STATUS_FAILURE;
             Log.v("HttpContentUpload Exception", "e" + e);
         }
 
-        return respCode;
+        return printStatus;
     }
 
     /**
-     * first chunk.
+     * Function gets the upload Id from the response of first payload
      * @param resp
      * @return long 
      */
-    Long getUploadIDFromUploadStart(HttpResponse resp) {
+    private Long getUploadIDFromUploadStart(HttpResponse resp) {
 
-        byte[] ret = null;
         HttpEntity entity = resp.getEntity();
         Long uploadid = null;
         InputStream is = null;
         try {
             if (null != entity) {
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 is = entity.getContent();
             }
             MicroHessianInput mhi = null;
             if (is != null) {
                 mhi = new MicroHessianInput(is);
             }
-            HessianDecoder hessianDecoder = new HessianDecoder();
             int tag = is.read(); // initial map tag or fail
 
             if (tag == 'r') { // reply / response
@@ -254,7 +272,6 @@ public class PhotoUploadManager extends Thread implements IConnection {
                 is.read();
 
                 tag = is.read(); // read next tag
-                // usesReplyTag = true;
             }
             Hashtable<String, Object> map = (Hashtable<String, Object>) mhi
                     .decodeType(tag);
@@ -270,34 +287,31 @@ public class PhotoUploadManager extends Thread implements IConnection {
                 }
                 String numOfChunk = new String("numofchunks");
                 if (numOfChunk.compareTo(keyObj) == 0) {
-                    mchunkNumber = (Integer) value;
+                    mChunkNumber = (Integer) value;
 
                 }
             }
             entity.consumeContent();
         } catch (IOException e) {
+        	
 
         }
         return uploadid;
     }
 
     /**
-     * second chunk.
+     * First payload to be sent to server. 
      * @param request Input.
      * @param reqIds INput.
-     * @return hhresponse.
+     * @return HttpResponse.
      */
-    private HttpResponse UploadFirstPayload(final Request request, final List<Integer> reqIds) {
+    private HttpResponse uploadFirstPayload(final Request request, final List<Integer> reqIds) {
         byte[] payload1 = request.getEncodedUploadStartPayload();
         HttpResponse resp = null;
-        Boolean merror = false;
         try {
             resp = postHTTPRequest(payload1, mApiUrl,
                     Settings.HTTP_HEADER_CONTENT_TYPE);
-            if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                // handleApiResponse(resp, reqIds);
-            } else {
-                merror = true;
+            if (resp.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 addErrorToResponseQueue(reqIds);
                 resp = null;
             }
@@ -308,73 +322,74 @@ public class PhotoUploadManager extends Thread implements IConnection {
         return resp;
     }
     /**
-     * Uploadfile in chnks.
+     * Upload file in chunks.
      * @param request Input.
      * @param reqIds Input.
      * @param uploadid Input.
      * @return boolean for success.
      */
-    Boolean UploadFileInChunks(final Request request, final List<Integer> reqIds,
+    private Boolean uploadFileInChunks(final Request request, final List<Integer> reqIds,
             final Long uploadid) {
         HttpResponse resp = null;
-        File mfilname = new File(request.mfileName);
-        Boolean merror = false;
+        File fileName = new File(request.mfileName);
+        Boolean error = false;
         try {
-            FileInputStream fin = new FileInputStream(mfilname);
+            FileInputStream fin = new FileInputStream(fileName);
             byte[] arrayBuff = new byte[request.chunkSize];
-            Long num = request.mfileSize / new Long(request.chunkSize);
+
             int offset = 0;
             Integer mchunkNumberToUpload = 1;
 
-            while (mchunkNumber > 1) {
+            while (mChunkNumber > 1) {
                 int sizeread = fin.read(arrayBuff);
-                mchunkNumber--;
+                mChunkNumber--;
                 offset = offset + sizeread;
                 byte[] payload2 = request.getEncodedUploadChunkPayload(
                         arrayBuff, uploadid, mchunkNumberToUpload);
                 resp = postHTTPRequest(payload2, mApiUrl,
                         Settings.HTTP_HEADER_CONTENT_TYPE);
-                if (print(resp) == HttpStatus.SC_OK) {
+                if((getServerResponse(resp) == HttpStatus.SC_OK) 
+                		&& (print(resp) == PRINT_STATUS_SUCCESS )) {
                     Log.v("http-contentuplaod", "Response-SC_OK");
                 } else {
                     addErrorToResponseQueue(reqIds);
-                    merror = true;
+                    error = true;
                     break;
                 }
                 mchunkNumberToUpload++;
             }
-            if (merror == false) {
+            if (error == false) {
                 Long left = request.mfileSize - offset;
                 byte[] lastOfFile = new byte[left.intValue()];
-                int sizeread = fin.read(lastOfFile);
                 fin.close();
                 byte[] payload3 = request.getEncodedUploadChunkPayload(
                         lastOfFile, uploadid, mchunkNumberToUpload);
                 resp = postHTTPRequest(payload3, mApiUrl,
                         Settings.HTTP_HEADER_CONTENT_TYPE);
-                if (print(resp) == HttpStatus.SC_OK) {
+                if((getServerResponse(resp) == HttpStatus.SC_OK) 
+                		&& (print(resp) == PRINT_STATUS_SUCCESS )) {
                     Log.v("HttpContentUpload", "Correct-Http-Response");
                 } else {
                     addErrorToResponseQueue(reqIds);
-                    merror = true;
+                    error = true;
                 }
             }
         } catch (Exception e) {
-            merror = true;
+            error = true;
             addErrorToResponseQueue(reqIds);
         }
-        return merror;
+        return error;
     }
     /**
-     * Uploadfile end.
+     * Uploads the last chunk for the file
      * @param request input
      * @param reqIds  input.
      * @param uploadid input.
      * @return boolean.
      */
-    private Boolean UploadFileEnd(final Request request, final List<Integer> reqIds, Long uploadid) {
+    private Boolean uploadFileEnd(final Request request, final List<Integer> reqIds, Long uploadid) {
         HttpResponse resp = null;
-        Boolean merror = false;
+        Boolean error = false;
         try {
             byte[] payload4 = request.getEncodedUploadEndPayload(uploadid);
             resp = postHTTPRequest(payload4, mApiUrl,
@@ -382,23 +397,23 @@ public class PhotoUploadManager extends Thread implements IConnection {
             if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 handleApiResponse(resp, reqIds);
             } else {
-                merror = true;
+                error = true;
                 addErrorToResponseQueue(reqIds);
             }
         } catch (Exception e) {
-            merror = true;
+            error = true;
             addErrorToResponseQueue(reqIds);
         }
-        return merror;
+        return error;
     }
    /**
-    * Upload file in 1 chunk.
+    * Upload file in 1 chunk. This is used when the file is less than 600k
     * @param request input
     * @param reqIds input.
     * @return boolean.
     */
-    private Boolean UploadFileInOneChunk(final Request request, final List<Integer> reqIds) {
-        Boolean merror = false;
+    private Boolean uploadFileInOneChunk(final Request request, final List<Integer> reqIds) {
+        Boolean error = false;
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             request.writeToOutputStream(baos, false);
@@ -415,15 +430,15 @@ public class PhotoUploadManager extends Thread implements IConnection {
             if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 handleApiResponse(resp, reqIds);
             } else {
-                merror = true;
+                error = true;
                 addErrorToResponseQueue(reqIds);
             }
 
         } catch (Exception e) {
-            merror = true;
+            error = true;
             addErrorToResponseQueue(reqIds);
         }
-        return merror;
+        return error;
     }
 
     /**
@@ -437,7 +452,7 @@ public class PhotoUploadManager extends Thread implements IConnection {
             List<Request> requests = QueueManager.getInstance()
                     .getApiRequests();
             List<Integer> reqIds = null;
-            Boolean error = false;
+
             if (null == requests) {
                 return;
             }
@@ -449,17 +464,16 @@ public class PhotoUploadManager extends Thread implements IConnection {
                     if (request.mType == Request.Type.UPLOAD_PHOTO) {
                         if (request.mfileSize == null
                                 || request.mfileSize < MAX_FILE_SEND_IN_ONE_CHUNK) {
-                            UploadFileInOneChunk(request, reqIds);
+                            uploadFileInOneChunk(request, reqIds);
                         } else {
-                            Long uploadid = null;
-                            HttpResponse resp = null;
-                            resp = UploadFirstPayload(request, reqIds);
+                            
+                            HttpResponse resp = uploadFirstPayload(request, reqIds);
                             if (resp != null
                                     && resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                                uploadid = getUploadIDFromUploadStart(resp);
-                                if (!UploadFileInChunks(request, reqIds,
+                                Long uploadid = getUploadIDFromUploadStart(resp);
+                                if (!uploadFileInChunks(request, reqIds,
                                         uploadid)) {
-                                    if (!UploadFileEnd(request, reqIds,
+                                    if (!uploadFileEnd(request, reqIds,
                                             uploadid)) {
                                         Log.i("Photomanager", "Success Upload");
                                     }
@@ -481,6 +495,11 @@ public class PhotoUploadManager extends Thread implements IConnection {
 
     /**
      * Used to post the response to server.Its synchronous API.
+     * @param postData Data to be posted
+     * @param uri 
+     * @param contentType Type of content
+     * @return HttpResponse
+     * @throws Exception
      */
     final public HttpResponse postHTTPRequest(final byte[] postData,final URI uri,
             final String contentType) throws Exception {
@@ -507,34 +526,55 @@ public class PhotoUploadManager extends Thread implements IConnection {
     }
 
     @Override
+    /**
+     * Check if current connection thread is connected
+     */
     public final boolean getIsConnected() {
         return true;
     }
 
     @Override
+    /**
+     * Check if any open RPG connection
+     */
     public final boolean getIsRpgConnectionActive() {
         return true;
     }
 
     @Override
+    /**
+     * Check whether network coverage is reestablished.
+     */
     public void notifyOfRegainedNetworkCoverage() {
     }
 
     @Override
+    /**
+     * Check if UI is currently used
+     */
     public void notifyOfUiActivity() {
     }
 
     @Override
+    /**
+     * Login engine has detected a change
+     */
     public void onLoginStateChanged(final boolean isLoggedIn) {
     }
 
     @Override
+    /**
+     * Starts the main connection thread.
+     */
     public final void startThread() {
         mRunning = true;
         start();
     }
 
     @Override
+    /**
+     * Stops the current connection thread
+     */
     public final void stopThread() {
         synchronized (this) {
             mRunning = false;
@@ -543,10 +583,12 @@ public class PhotoUploadManager extends Thread implements IConnection {
     }
 
     @Override
+    /**
+     * Notifies the new request in queue 
+     */
     public final void notifyOfItemInRequestQueue() {
         synchronized (this) {
             notify();
-            // handleRequests();
         }
     }
     /**
@@ -582,9 +624,10 @@ public class PhotoUploadManager extends Thread implements IConnection {
      *             Thrown if the status line could not be read or the response
      *             is null.
      */
+    
     final public void handleApiResponse(final HttpResponse response,final List<Integer> reqIds)
             throws Exception {
-        byte[] ret = null;
+        
         if (null != response) {
             if (null != response.getStatusLine()) {
                 int respCode = response.getStatusLine().getStatusCode();
@@ -600,6 +643,7 @@ public class PhotoUploadManager extends Thread implements IConnection {
                 case HttpStatus.SC_PARTIAL_CONTENT:
                 case HttpStatus.SC_MULTI_STATUS:
                     HttpEntity entity = response.getEntity();
+                    byte[] ret = null;
                     if (null != entity) {
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
@@ -622,20 +666,11 @@ public class PhotoUploadManager extends Thread implements IConnection {
                         if (ret != null) {
                             length = ret.length;
                         }
-                        PhotoUploadManager
-                                .logI(
-                                        "ResponseReader.handleApiResponse()",
-                                        "\n \n \n"
-                                                + "Response with length "
-                                                + length
+                        PhotoUploadManager.logI("ResponseReader.handleApiResponse()",
+                                                 "\n \n \n" + "Response with length " + length
                                                 + " bytes received "
                                                 + "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-                                                + (length == 0 ? ""
-                                                        : HessianUtils
-                                                                .getInHessian(
-                                                                        new ByteArrayInputStream(
-                                                                                ret),
-                                                                        false)));
+                                                + (length == 0 ? "": HessianUtils.getInHessian(new ByteArrayInputStream(ret),false)));
 
                     }
                     addToDecoder(ret, reqIds);
@@ -657,12 +692,12 @@ public class PhotoUploadManager extends Thread implements IConnection {
      * @param input
      *            The data of the response.
      * @param reqIds
-     *            The request IDs that a response was received for.
+     *            The request IDs of recevied response.
      */
     private void addToDecoder(final byte[] input, final List<Integer> reqIds) {
-        if (input != null && mdecoder != null) {
+        if (input != null && mDecoder != null) {
             int reqId = reqIds.size() > 0 ? reqIds.get(0) : 0;
-            mdecoder.addToDecode(new RawResponse(reqId, input, false, false));
+            mDecoder.addToDecode(new RawResponse(reqId, input, false, false));
 
         }
     }
@@ -674,9 +709,7 @@ public class PhotoUploadManager extends Thread implements IConnection {
     public static void logI(final String tag, final String message) {
         if (Settings.ENABLED_TRANSPORT_TRACE) {
             Thread t = Thread.currentThread();
-            Log
-                    .i("(PROTOCOL)", tag + "[" + t.getName() + "]" + " : "
-                            + message);
+            Log.i("(PROTOCOL)", tag + "[" + t.getName() + "]" + " : " + message);
         }
     }
 
