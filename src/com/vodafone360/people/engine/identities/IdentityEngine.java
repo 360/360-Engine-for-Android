@@ -397,6 +397,11 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     @Override
     protected void processCommsResponse(DecodedResponse resp) {  	    	
     	LogUtils.logD("IdentityEngine.processCommsResponse() - resp = " + resp);
+    	
+    	if ((null == resp) || (null == resp.mDataTypes)) {
+    		LogUtils.logWithName("IdentityEngine.processCommsResponse()", "Response objects or its contents were null. Aborting...");
+    		return;
+    	}
         
         // TODO replace this whole block with the response type in the DecodedResponse class in the future!
         if (resp.mReqId == 0 && resp.mDataTypes.size() > 0) {	// push msg

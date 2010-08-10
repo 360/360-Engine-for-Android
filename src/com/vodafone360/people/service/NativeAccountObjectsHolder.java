@@ -27,6 +27,7 @@ package com.vodafone360.people.service;
 
 import android.content.Context;
 import android.os.IBinder;
+
 import com.vodafone360.people.MainApplication;
 
 /**

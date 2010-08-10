@@ -271,7 +271,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             ActivitiesTable.create(db);
 
             ConversationsTable.create(db);
-		} catch (SQLException e) {
+
+        } catch (SQLException e) {
             LogUtils.logE("DatabaseHelper.onCreate() SQLException: Unable to create DB table", e);
         }
     }
@@ -1095,12 +1096,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + "] groupId[" + groupId + "]");
         boolean syncToServer = true;
         boolean meProfile = false;
-      if (SyncMeDbUtils.getMeProfileLocalContactId(this) != null
+        if (SyncMeDbUtils.getMeProfileLocalContactId(this) != null
                 && SyncMeDbUtils.getMeProfileLocalContactId(this).longValue() == localContactId) {
             meProfile = true;
             syncToServer = false;
         }
-        
         Contact mContact = new Contact();
         ServiceStatus mStatus = fetchContact(localContactId, mContact);
         if (ServiceStatus.SUCCESS != mStatus) {
@@ -2411,7 +2411,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             return status;
         }
 
-        return ContactSummaryTable.updateNameAndStatus(contact, writableDatabase);
+        return ContactSummaryTable.updateContactDisplayName(contact, writableDatabase);
     }
 
     public List<Contact> fetchContactList() {

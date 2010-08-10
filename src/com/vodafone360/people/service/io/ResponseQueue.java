@@ -197,8 +197,14 @@ public class ResponseQueue {
                 }
             }
             mResponses.add(response);
-            final RequestQueue rQ = RequestQueue.getInstance();
-            rQ.removeRequest(response.mReqId);
+
+            Request request = RequestQueue.getInstance().removeRequest(response.mReqId);
+            if (request != null) {
+                // we suppose the response being handled by the same engine 
+                // that issued the request with the given id
+                response.mSource = request.mEngineId;
+            }
+            
             mEngMgr = EngineManager.getInstance();
             if (mEngMgr != null) {
                 mEngMgr.onCommsInMessage(response.mSource);

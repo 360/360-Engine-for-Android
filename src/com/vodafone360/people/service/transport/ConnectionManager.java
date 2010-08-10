@@ -254,7 +254,7 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
      */
     public void onConnectionStateChanged(int state) {
         if (state == ITcpConnectionListener.STATE_DISCONNECTED) {
-            showToast(R.string.ContactProfile_no_connection);
+            // showToast(R.string.ContactProfile_no_connection);	// TODO show toast only if activity in foreground
         }
 
         mConnectionState = state;

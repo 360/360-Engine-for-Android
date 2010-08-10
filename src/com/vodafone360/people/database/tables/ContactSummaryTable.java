@@ -42,6 +42,7 @@ import android.database.sqlite.SQLiteStatement;
 
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.database.DatabaseHelper;
+import com.vodafone360.people.database.SQLKeys;
 import com.vodafone360.people.database.tables.ContactsTable.ContactIdInfo;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactDetail;
@@ -54,6 +55,7 @@ import com.vodafone360.people.engine.presence.User;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.utils.CloseUtils;
 import com.vodafone360.people.utils.LogUtils;
+import com.vodafone360.people.utils.StringBufferPool;
 
 /**
  * The ContactSummaryTable contains a summary of important contact details for
@@ -552,12 +554,12 @@ public abstract class ContactSummaryTable {
                     }
                 }
                 return true;
-            case PRESENCE_TEXT:
-                if (newDetail.value != null && newDetail.value.length() > 0) {
-                    contactValues.put(Field.STATUSTEXT.toString(), newDetail.value);
-                    contactValues.put(Field.SNS.toString(), newDetail.alt);
-                }
-                return true;
+//            case PRESENCE_TEXT:
+//                if (newDetail.value != null && newDetail.value.length() > 0) {
+//                    contactValues.put(Field.STATUSTEXT.toString(), newDetail.value);
+//                    contactValues.put(Field.SNS.toString(), newDetail.alt);
+//                }
+//                return true;
             case PHOTO:
                 if (newDetail.value == null) {
                     contactValues.put(Field.PICTURELOADED.toString(), (Boolean)null);
@@ -1116,19 +1118,14 @@ public abstract class ContactSummaryTable {
      * @param writeableDb Writable SQLite database
      * @return SUCCESS or a suitable error code
      */
-    public static ServiceStatus updateNameAndStatus(Contact contact, SQLiteDatabase writableDb) {
+    public static ServiceStatus updateContactDisplayName(Contact contact, SQLiteDatabase writableDb) {
         // These two Arrays contains the order in which the details are queried.
         // First valid (not empty or unknown) detail is taken
         ContactDetail.DetailKeys prefferredNameDetails[] = {
                 ContactDetail.DetailKeys.VCARD_NAME, ContactDetail.DetailKeys.VCARD_ORG,
                 ContactDetail.DetailKeys.VCARD_EMAIL, ContactDetail.DetailKeys.VCARD_PHONE
         };
-        ContactDetail.DetailKeys prefferredStatusDetails[] = {
-                ContactDetail.DetailKeys.PRESENCE_TEXT, ContactDetail.DetailKeys.VCARD_PHONE,
-                ContactDetail.DetailKeys.VCARD_EMAIL
-        };
         ContactDetail name = null;
-        ContactDetail status = null;
 
         // Query the details for the name field
         for (ContactDetail.DetailKeys key : prefferredNameDetails) {
@@ -1143,19 +1140,6 @@ public abstract class ContactSummaryTable {
             }
         }
 
-        // Query the details for status field
-        for (ContactDetail.DetailKeys key : prefferredStatusDetails) {
-            if ((status = contact.getContactDetail(key)) != null) {
-                // Some contacts have only email but the name detail!=null
-                // (gmail for example)
-                if (key == ContactDetail.DetailKeys.VCARD_NAME && status.getName() == null)
-                    continue;
-                if (key != ContactDetail.DetailKeys.VCARD_NAME && isEmpty(status.getValue()))
-                    continue;
-                break;
-            }
-        }
-
         // Build the name
         String nameString = name != null ? name.getValue() : null;
         if (nameString == null)
@@ -1163,72 +1147,34 @@ public abstract class ContactSummaryTable {
         if (name != null && name.key == ContactDetail.DetailKeys.VCARD_NAME)
             nameString = name.getName().toString();
 
-        // Build the status
-        String statusString = status != null ? status.getValue() : null;
-        if (statusString == null)
-            statusString = "";
-        if (status != null && status.key == ContactDetail.DetailKeys.VCARD_NAME)
-            statusString = status.getName().toString();
-
-        int altFieldType = AltFieldType.STATUS.ordinal();
-        int altDetailType = (status != null && status.keyType != null) ? status.keyType.ordinal()
-                : ContactDetail.DetailKeyTypes.UNKNOWN.ordinal();
-
-        // This has to be done in order to set presence text. altFieldType and
-        // altDetailType have to be 0, SNS has to be set
-        String sns = "";
-        if (status != null && status.key == ContactDetail.DetailKeys.PRESENCE_TEXT) {
-            altFieldType = AltFieldType.UNUSED.ordinal();
-            altDetailType = 0;
-            sns = status.alt;
-        }
-
-        // If no status is present, display nothing
-        if (isEmpty(statusString)) {
-            altFieldType = AltFieldType.UNUSED.ordinal();
-            altDetailType = 0;
-        }
-
         // Start updating the table
 
-        
         SQLiteStatement statement = null;
         try {
-            
-            statement = writableDb.compileStatement("UPDATE " + TABLE_NAME
-                    + " SET " + Field.DISPLAYNAME + "=?," + Field.STATUSTEXT + "=?,"
-                    + Field.ALTDETAILTYPE + "=?," + Field.ALTFIELDTYPE + "=?," + Field.SNS
-                    + "=? WHERE " + Field.LOCALCONTACTID + "=?");
+            final StringBuffer updateQuery = StringBufferPool.getStringBuffer(SQLKeys.UPDATE);
+            updateQuery.append(TABLE_NAME).append(SQLKeys.SET).append(Field.DISPLAYNAME).
+            append("=? WHERE ").append(Field.LOCALCONTACTID).append("=?");
+            statement = writableDb.compileStatement(StringBufferPool.toStringThenRelease(updateQuery));
             
             writableDb.beginTransaction();
-            
             statement.bindString(1, nameString);
-            statement.bindString(2, statusString);
-            statement.bindLong(3, altDetailType);
-            statement.bindLong(4, altFieldType);
-            statement.bindString(5, sns);
-            statement.bindLong(6, contact.localContactID);
-
             statement.execute();
             writableDb.setTransactionSuccessful();
             
         } catch (SQLException e) {
-            
             LogUtils.logE("ContactSummaryTable.updateNameAndStatus() "
                     + "SQLException - Unable to update contact native Ids", e);
             return ServiceStatus.ERROR_DATABASE_CORRUPT;
         } finally {
             writableDb.endTransaction();
-            if(statement != null) {
+            if (statement != null) {
                 statement.close();
                 statement = null;
             }
         }
-        
-        
+
         return ServiceStatus.SUCCESS;
     }
-    
     
     /**
      * LocalId = ?

@@ -301,24 +301,23 @@ public class RequestQueue {
         }
         return req;
     }
-
+    
     /**
-     * Removes the request for the given request ID from the queue and searches
+     * Removes the request for the given response (request) ID from the queue and searches
      * the queue for requests older than
      * Settings.REMOVE_REQUEST_FROM_QUEUE_MILLIS and removes them as well.
      * 
-     * @param requestId The ID of the request to remove.
-     * @return True if the request was found and removed.
+     * @param responseId The response object id.
+     * @return Returns the removed request, can be null if the request was not found.
      */
-    protected boolean removeRequest(int requestId) {
+    protected Request removeRequest(int responseId) {
         synchronized (QueueManager.getInstance().lock) {
-            boolean didRemoveSearchedRequest = false;
 
             for (int i = 0; i < requestCount(); i++) {
                 Request request = mRequests.get(i);
-
-                if (request.getRequestId() == requestId) { // the request we
-                    // were looking for
+                // the request we were looking for
+                if (request.getRequestId() == responseId) {
+                    // reassure the engine id is set (important for SystemNotifications) 
                     mRequests.remove(i--);
 
                     // remove the request from the watcher (the request not
@@ -336,13 +335,13 @@ public class RequestQueue {
                                         + "ms]");
                     }
 
-                    didRemoveSearchedRequest = true;
+                    return request;
                 } else if ((System.currentTimeMillis() - request.getCreationTimestamp()) > Settings.REMOVE_REQUEST_FROM_QUEUE_MILLIS) { // request
                     // is older than 15 minutes
                     mRequests.remove(i--);
 
                     ResponseQueue.getInstance().addToResponseQueue(new DecodedResponse(request.getRequestId(), null, request.mEngineId, 
-                    		DecodedResponse.ResponseType.TIMED_OUT_RESPONSE.ordinal()));
+                            DecodedResponse.ResponseType.TIMED_OUT_RESPONSE.ordinal()));
 
                     // remove the request from the watcher (the request not
                     // necessarily times out before)
@@ -362,10 +361,12 @@ public class RequestQueue {
 
             }
 
-            return didRemoveSearchedRequest;
+            return null;
         }
     }
 
+    
+    
     /**
      * Return the current (i.e. most recently generated) request id.
      * 

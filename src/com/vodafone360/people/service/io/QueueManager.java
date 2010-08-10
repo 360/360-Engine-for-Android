@@ -132,16 +132,16 @@ public class QueueManager {
             mRequestQueue.clearActiveRequests(rpgOnly);
         }
     }
-
+    
     /**
      * Removes the request for the given request ID from the queue and searches
      * the queue for requests older than
      * Settings.REMOVE_REQUEST_FROM_QUEUE_MILLIS and removes them as well.
      * 
-     * @param requestId The ID of the request to remove.
-     * @return True if the request was found and removed.
+     * @param requestId - the id of the request in he queue.
+     * @return Returns the removed request, can be null if the request with the given Id wasn't found.
      */
-    public boolean removeRequest(int requestId) {
+    public Request removeRequest(int requestId) {
         synchronized (lock) {
             return mRequestQueue.removeRequest(requestId);
         }

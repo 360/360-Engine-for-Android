@@ -42,6 +42,7 @@ import android.telephony.PhoneNumberUtils;
 
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.database.DatabaseHelper;
+import com.vodafone360.people.database.SQLKeys;
 import com.vodafone360.people.database.utils.SqlUtils;
 import com.vodafone360.people.datatypes.ActivityContact;
 import com.vodafone360.people.datatypes.ActivityItem;
@@ -349,18 +350,32 @@ public abstract class ActivitiesTable {
      */
     private static String getFullQueryList() {
         DatabaseHelper.trace(false, "DatabaseHelper.getFullQueryList()");
-        return Field.LOCAL_ACTIVITY_ID + ", "
-            + Field.ACTIVITY_ID + ", " + Field.TIMESTAMP + ", "
-            + Field.TYPE + ", " + Field.URI + ", "
-            + Field.TITLE + ", " + Field.DESCRIPTION + ", "
-            + Field.PREVIEW_URL + ", " + Field.STORE + ", "
-            + Field.FLAG + ", " + Field.PARENT_ACTIVITY + ", "
-            + Field.HAS_CHILDREN + ", " + Field.VISIBILITY + ", "
-            + Field.MORE_INFO + ", " + Field.CONTACT_ID + ", "
-            + Field.USER_ID + ", " + Field.CONTACT_NAME + ", "
-            + Field.LOCAL_CONTACT_ID + ", " + Field.CONTACT_NETWORK + ", "
-            + Field.CONTACT_ADDRESS + ", " + Field.CONTACT_AVATAR_URL + ", "
-            + Field.INCOMING;
+        
+        final StringBuffer fullQuery = StringBufferPool.getStringBuffer();
+        fullQuery.append(Field.LOCAL_ACTIVITY_ID).append(SqlUtils.COMMA).
+        append(Field.ACTIVITY_ID).append(SqlUtils.COMMA).
+        append(Field.TIMESTAMP).append(SqlUtils.COMMA).
+        append(Field.TYPE).append(SqlUtils.COMMA).
+        append(Field.URI).append(SqlUtils.COMMA).
+        append(Field.TITLE).append(SqlUtils.COMMA).
+        append(Field.DESCRIPTION).append(SqlUtils.COMMA).
+        append(Field.PREVIEW_URL).append(SqlUtils.COMMA).
+        append(Field.STORE).append(SqlUtils.COMMA).
+        append(Field.FLAG).append(SqlUtils.COMMA).
+        append(Field.PARENT_ACTIVITY).append(SqlUtils.COMMA).
+        append(Field.HAS_CHILDREN).append(SqlUtils.COMMA).
+        append(Field.VISIBILITY).append(SqlUtils.COMMA).
+        append(Field.MORE_INFO).append(SqlUtils.COMMA).
+        append(Field.CONTACT_ID).append(SqlUtils.COMMA).
+        append(Field.USER_ID).append(SqlUtils.COMMA).
+        append(Field.CONTACT_NAME).append(SqlUtils.COMMA).
+        append(Field.LOCAL_CONTACT_ID).append(SqlUtils.COMMA).
+        append(Field.CONTACT_NETWORK).append(SqlUtils.COMMA).
+        append(Field.CONTACT_ADDRESS).append(SqlUtils.COMMA).
+        append(Field.CONTACT_AVATAR_URL).append(SqlUtils.COMMA).
+        append(Field.INCOMING);
+        
+        return StringBufferPool.toStringThenRelease(fullQuery);
     }
 
     /**
@@ -379,31 +394,31 @@ public abstract class ActivitiesTable {
         DatabaseHelper.trace(false, "DatabaseHelper.getQueryData()");
 
         /** Populate ActivityItem. **/
-        activityItem.mLocalActivityId =
+        activityItem.localActivityId =
             SqlUtils.setLong(cursor, Field.LOCAL_ACTIVITY_ID.toString(), null);
-        activityItem.mActivityId =
+        activityItem.activityId =
             SqlUtils.setLong(cursor, Field.ACTIVITY_ID.toString(), null);
-        activityItem.mTime =
+        activityItem.time =
             SqlUtils.setLong(cursor, Field.TIMESTAMP.toString(), null);
-        activityItem.mType =
+        activityItem.type =
             SqlUtils.setActivityItemType(cursor, Field.TYPE.toString());
-        activityItem.mUri = SqlUtils.setString(cursor, Field.URI.toString());
-        activityItem.mTitle =
+        activityItem.uri = SqlUtils.setString(cursor, Field.URI.toString());
+        activityItem.title =
             SqlUtils.setString(cursor, Field.TITLE.toString());
-        activityItem.mDescription =
+        activityItem.description =
             SqlUtils.setString(cursor, Field.DESCRIPTION.toString());
-        activityItem.mPreviewUrl =
+        activityItem.previewUrl =
             SqlUtils.setString(cursor, Field.PREVIEW_URL.toString());
-        activityItem.mStore =
+        activityItem.store =
             SqlUtils.setString(cursor, Field.STORE.toString());
-        activityItem.mActivityFlags =
+        activityItem.activityFlags =
             SqlUtils.setInt(cursor, Field.FLAG.toString(), null);
-        activityItem.mParentActivity =
+        activityItem.parentActivity =
             SqlUtils.setLong(cursor, Field.PARENT_ACTIVITY.toString(), null);
-        activityItem.mHasChildren =
+        activityItem.hasChildren =
             SqlUtils.setBoolean(cursor, Field.HAS_CHILDREN.toString(),
-                    activityItem.mHasChildren);
-        activityItem.mVisibilityFlags =
+                    activityItem.hasChildren);
+        activityItem.visibilityFlags =
             SqlUtils.setInt(cursor, Field.VISIBILITY.toString(), null);
         // TODO: Field MORE_INFO is not used, consider deleting.
 
@@ -455,44 +470,44 @@ public abstract class ActivitiesTable {
         ContentValues activityItemValues = new ContentValues();
         ActivityContact ac = null;
         if (contactIdx != null) {
-            ac = item.mContactList.get(contactIdx);
+            ac = item.contactList.get(contactIdx);
         }
 
-        activityItemValues.put(Field.ACTIVITY_ID.toString(), item.mActivityId);
-        activityItemValues.put(Field.TIMESTAMP.toString(), item.mTime);
-        if (item.mType != null) {
+        activityItemValues.put(Field.ACTIVITY_ID.toString(), item.activityId);
+        activityItemValues.put(Field.TIMESTAMP.toString(), item.time);
+        if (item.type != null) {
             activityItemValues.put(Field.TYPE.toString(),
-                    item.mType.getTypeCode());
+                    item.type.getTypeCode());
         }
-        if (item.mUri != null) {
-            activityItemValues.put(Field.URI.toString(), item.mUri);
+        if (item.uri != null) {
+            activityItemValues.put(Field.URI.toString(), item.uri);
         }
         /** TODO: Not sure if we need this. **/
         // activityItemValues.put(Field.INCOMING.toString(), false);
         
-        activityItemValues.put(Field.TITLE.toString(), item.mTitle);
-        activityItemValues.put(Field.DESCRIPTION.toString(), item.mDescription);
-        if (item.mPreviewUrl != null) {
+        activityItemValues.put(Field.TITLE.toString(), item.title);
+        activityItemValues.put(Field.DESCRIPTION.toString(), item.description);
+        if (item.previewUrl != null) {
             activityItemValues.put(Field.PREVIEW_URL.toString(),
-                    item.mPreviewUrl);
+                    item.previewUrl);
         }
-        if (item.mStore != null) {
-            activityItemValues.put(Field.STORE.toString(), item.mStore);
+        if (item.store != null) {
+            activityItemValues.put(Field.STORE.toString(), item.store);
         }
-        if (item.mActivityFlags != null) {
-            activityItemValues.put(Field.FLAG.toString(), item.mActivityFlags);
+        if (item.activityFlags != null) {
+            activityItemValues.put(Field.FLAG.toString(), item.activityFlags);
         }
-        if (item.mParentActivity != null) {
+        if (item.parentActivity != null) {
             activityItemValues.put(Field.PARENT_ACTIVITY.toString(),
-                    item.mParentActivity);
+                    item.parentActivity);
         }
-        if (item.mHasChildren != null) {
+        if (item.hasChildren != null) {
             activityItemValues.put(Field.HAS_CHILDREN.toString(),
-                    item.mHasChildren);
+                    item.hasChildren);
         }
-        if (item.mVisibilityFlags != null) {
+        if (item.visibilityFlags != null) {
             activityItemValues.put(Field.VISIBILITY.toString(),
-                    item.mVisibilityFlags);
+                    item.visibilityFlags);
         }
         if (ac != null) {
             activityItemValues.put(Field.CONTACT_ID.toString(), ac.mContactId);
@@ -596,30 +611,31 @@ public abstract class ActivitiesTable {
                 try {
                     writableDb.beginTransaction();
                 
-                    if (activity.mContactList != null) {
-                        int clistSize = activity.mContactList.size();
+                    if (activity.contactList != null) {
+                        int clistSize = activity.contactList.size();
                         for (int i = 0; i < clistSize; i++) {
-                            final ActivityContact activityContact = activity.mContactList.get(i);
+                            final ActivityContact activityContact = activity.contactList.get(i);
                             activityContact.mLocalContactId = 
                                 ContactsTable.fetchLocalFromServerId(
                                         activityContact.mContactId,
                                         statement);
+                            
                             int latestStatusVal = removeContactGroup(
                                     activityContact.mLocalContactId, 
-                                    activityContact.mName, activity.mTime,
-                                    activity.mActivityFlags, null, writableDb);
+                                    activityContact.mName, activity.time,
+                                    activity.activityFlags, null, writableDb);
     
                             ContentValues cv = fillUpdateData(activity, i);
                             cv.put(Field.LATEST_CONTACT_STATUS.toString(),
                                     latestStatusVal);
-                            activity.mLocalActivityId =
+                            activity.localActivityId =
                                 writableDb.insertOrThrow(TABLE_NAME, null, cv);
                         }
                     } else {
-                        activity.mLocalActivityId = writableDb.insertOrThrow(
+                        activity.localActivityId = writableDb.insertOrThrow(
                                 TABLE_NAME, null, fillUpdateData(activity, null));
                     }
-                    if (activity.mLocalActivityId < 0) {
+                    if (activity.localActivityId < 0) {
                         LogUtils.logE("ActivitiesTable.addActivities() "
                                 + "Unable to add activity");
                         return ServiceStatus.ERROR_DATABASE_CORRUPT;
@@ -930,8 +946,7 @@ public abstract class ActivitiesTable {
             try {   
                 writableDb.beginTransaction();
                 
-                if (findNativeActivity(item.mNativeItemId,
-                        item.mNativeItemType, writableDb)) {
+                if (findNativeActivity(item, writableDb)) {
                     continue;
                 }
                 int latestStatusVal = 0;
@@ -1188,25 +1203,22 @@ public abstract class ActivitiesTable {
     /**
      * Checks if an activity exists in the database.
      *
-     * @param nativeId The native ID which links the activity with the record in
-     *            the native table.
-     * @param type The native type (An ordinal from the #TimelineNativeTypes
-     *            enumeration)
-     * @param readableDb Readable SQLite database
+     * @param item The native SMS item to check against our client activities DB table.
+     * 
      * @return true if the activity was found, false otherwise
+     * 
      */
-    private static boolean findNativeActivity(final int nativeId,
-            final int type, final SQLiteDatabase readableDb) {
+    private static boolean findNativeActivity(TimelineSummaryItem item, final SQLiteDatabase readableDb) {
         DatabaseHelper.trace(false, "DatabaseHelper.findNativeActivity()");
         Cursor cursor = null;
         boolean result = false;
         try {
             final String[] args = {
-                    Integer.toString(nativeId), Integer.toString(type)
+                    Integer.toString(item.mNativeItemId), Integer.toString(item.mNativeItemType), Long.toString(item.mTimestamp)
             };
-            cursor = readableDb.rawQuery("SELECT " + Field.ACTIVITY_ID
-                    + " FROM " + TABLE_NAME + " WHERE " + Field.NATIVE_ITEM_ID
-                    + "=? AND " + Field.NATIVE_ITEM_TYPE + "=?", args);
+            cursor = readableDb.rawQuery("SELECT " + Field.ACTIVITY_ID + " FROM " + TABLE_NAME + 
+            								" WHERE " + Field.NATIVE_ITEM_ID + "=? AND " + Field.NATIVE_ITEM_TYPE + "=?" +
+            										" AND " + Field.TIMESTAMP + "=?", args);
             if (cursor.moveToFirst()) {
                 result = true;
             }
@@ -1428,36 +1440,40 @@ public abstract class ActivitiesTable {
 
         return writableDb.update(TABLE_NAME, values, where, null);
     }
-
+    
     /**
-     * Returns the timestamp for the newest status event for a given server
-     * contact.
+     * Returns the latest status event for a contact with the given local contact id.
      *
-     * @param local contact id Server contact ID
-     * @param readableDb Readable SQLite database
-     * @return The timestamp in milliseconds, or 0 if not found.
+     * @param local contact id Server contact ID.
+     * @param readableDb Readable SQLite database.
+     * @return The ActivityItem representing the latest status event for given local contact id,
+     * or null if nothing was found.
      */
-    public static long fetchLatestStatusTimestampForContact(final long localContactId,
+    public static ActivityItem getLatestStatusForContact(final long localContactId,
             final SQLiteDatabase readableDb) {
-        DatabaseHelper.trace(false, "DatabaseHelper."
-                + "fetchLatestStatusTimestampForContact()");
+        DatabaseHelper.trace(false, "DatabaseHelper getLatestStatusForContact");
         Cursor cursor = null;
         try {
-            String query = "SELECT MAX( " + ActivitiesTable.Field.TIMESTAMP
-            + ") FROM " + TABLE_NAME + " WHERE " + Field.LOCAL_CONTACT_ID
-            + " = " + localContactId + " AND " + Field.TYPE + "='" + ActivityItem.Type.CONTACT_SENT_STATUS_UPDATE.toString().toLowerCase() + "'";
-            cursor = readableDb.rawQuery(query, null);
-            if (cursor.moveToFirst() && !cursor.isNull(0)) {
-                return cursor.getLong(0);
-            } else {
-                return 0;
+            StringBuffer query = StringBufferPool.getStringBuffer(SQLKeys.SELECT);
+            query.append(getFullQueryList()).append(SQLKeys.FROM).append(TABLE_NAME).append(SQLKeys.WHERE).
+            append(Field.FLAG).append('&').append(ActivityItem.STATUS_ITEM).append(SQLKeys.AND).
+            append(Field.LOCAL_CONTACT_ID).append('=').append(localContactId).
+            append(" ORDER BY ").append(Field.TIMESTAMP).append(" DESC");
+            
+            cursor = readableDb.rawQuery(StringBufferPool.toStringThenRelease(query), null);
+            if (cursor.moveToFirst()) {
+                final ActivityItem activityItem = new ActivityItem();
+                final ActivityContact activityContact = new ActivityContact();
+                ActivitiesTable.getQueryData(cursor, activityItem, activityContact);
+                return activityItem;
             }
         } finally {
             CloseUtils.close(cursor);
+            cursor = null;
         }
+        return null;
     }
-
-
+    
     /**
      * Updates timeline when a new contact is added to the People database.
      * Updates all timeline events that are not associated with a contact and

@@ -53,6 +53,7 @@ import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.io.QueueManager;
 import com.vodafone360.people.service.io.ResponseQueue;
+import com.vodafone360.people.service.io.Request;
 import com.vodafone360.people.service.io.api.Contents;
 import com.vodafone360.people.utils.AlbumUtilsIn;
 import com.vodafone360.people.utils.FileUtils;
@@ -576,9 +577,9 @@ public class PhotoUploadEngine extends BaseEngine {
         QueueManager queue = QueueManager.getInstance();
 
         // Remove request from the Request queue
-        boolean status = queue.removeRequest(mPendingRequestId);
+        Request status = queue.removeRequest(mPendingRequestId);
 
-        if (status) {
+        if (status != null) {
             LogUtils.logV("ContentEngine.cancelRequests() Request Id = "
                     + mPendingRequestId + " is cancelled");
         } else {
@@ -586,7 +587,7 @@ public class PhotoUploadEngine extends BaseEngine {
                     + mPendingRequestId + " cancel failed");
         }
 
-        if (status) {
+        if (status != null) {
             emptyUiRequestQueue();
             mPendingRequestId = -1;
         }
