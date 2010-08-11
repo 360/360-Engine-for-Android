@@ -368,12 +368,19 @@ public class SyncMeEngine extends BaseEngine {
      *            picture
      */
     private void processMeProfileThumbnailResponse(final DecodedResponse resp) {
+        
+        if (resp.mDataTypes.size()==0){
+            LogUtils.logE("SyncMeProfile processMeProfileThumbnailResponse():"
+                    + SystemNotification.SysNotificationCode.EXTERNAL_HTTP_ERROR);
+            completeUiRequest(ServiceStatus.ERROR_COMMS_BAD_RESPONSE);
+            return;
+     
+        }
         Contact currentMeProfile = new Contact();
         ServiceStatus status = SyncMeDbUtils.fetchMeProfile(mDbHelper, currentMeProfile);
         if (status == ServiceStatus.SUCCESS) {
             if (resp.mReqId == null || resp.mReqId == 0) {
-                if (resp.mDataTypes.size() > 0
-                        && resp.mDataTypes.get(0).getType() == BaseDataType.SYSTEM_NOTIFICATION_DATA_TYPE
+                if (resp.mDataTypes.get(0).getType() == BaseDataType.SYSTEM_NOTIFICATION_DATA_TYPE
                         && ((SystemNotification)resp.mDataTypes.get(0)).getSysCode() == SystemNotification.SysNotificationCode.EXTERNAL_HTTP_ERROR) {
                     LogUtils.logE("SyncMeProfile processMeProfileThumbnailResponse():"
                             + SystemNotification.SysNotificationCode.EXTERNAL_HTTP_ERROR);
