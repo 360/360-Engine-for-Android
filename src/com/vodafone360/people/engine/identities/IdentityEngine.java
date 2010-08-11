@@ -269,7 +269,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     			}
     			
     			if ((capability.mCapability == IdentityCapability.CapabilityID.chat) &&
-    					(capability.mValue == true)) {
+    					(capability.mValue)) {
     				chattableIdentities.add(identity);
     				break;
     			}
