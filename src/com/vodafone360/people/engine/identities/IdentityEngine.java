@@ -219,7 +219,35 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * 
      */
     public ArrayList<Identity> getMy360AndThirdPartyChattableIdentities() {
-    	ArrayList<Identity> chatableIdentities = new ArrayList<Identity>();
+    	ArrayList<Identity> chattableIdentities = getMyThirdPartyChattableIdentities();
+    	
+    	// add mobile identity to support 360 chat
+    	IdentityCapability capability = new IdentityCapability();
+    	capability.mCapability = IdentityCapability.CapabilityID.chat;
+    	capability.mValue = new Boolean(true);
+    	ArrayList<IdentityCapability> mobileCapabilities = 
+    								new ArrayList<IdentityCapability>();
+    	mobileCapabilities.add(capability);
+    	
+    	Identity mobileIdentity = new Identity();
+    	mobileIdentity.mNetwork = SocialNetwork.MOBILE.toString();
+    	mobileIdentity.mName = "Vodafone";
+    	mobileIdentity.mCapabilities = mobileCapabilities;
+    	chattableIdentities.add(mobileIdentity);
+    	// end: add mobile identity to support 360 chat
+    	
+    	return chattableIdentities;
+    }
+    
+    /**
+     * 
+     * Takes all third party identities that have a chat capability set to true.
+     * 
+     * @return A list of chattable 3rd party identities the user is signed in to. If the retrieval identities failed the returned list will be empty.
+     * 
+     */
+    public ArrayList<Identity> getMyThirdPartyChattableIdentities() {
+    	ArrayList<Identity> chattableIdentities = new ArrayList<Identity>();
     	int identityListSize = mMyIdentityList.size(); 
     	
     	// checking each identity for its chat capability and adding it to the
@@ -242,28 +270,13 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     			
     			if ((capability.mCapability == IdentityCapability.CapabilityID.chat) &&
     					(capability.mValue == true)) {
-    				chatableIdentities.add(identity);
+    				chattableIdentities.add(identity);
     				break;
     			}
     		}
     	}
     	
-    	// add mobile identity to support 360 chat
-    	IdentityCapability capability = new IdentityCapability();
-    	capability.mCapability = IdentityCapability.CapabilityID.chat;
-    	capability.mValue = new Boolean(true);
-    	ArrayList<IdentityCapability> mobileCapabilities = 
-    								new ArrayList<IdentityCapability>();
-    	mobileCapabilities.add(capability);
-    	
-    	Identity mobileIdentity = new Identity();
-    	mobileIdentity.mNetwork = SocialNetwork.MOBILE.toString();
-    	mobileIdentity.mName = "Vodafone";
-    	mobileIdentity.mCapabilities = mobileCapabilities;
-    	chatableIdentities.add(mobileIdentity);
-    	// end: add mobile identity to support 360 chat
-    	
-    	return chatableIdentities;
+    	return chattableIdentities;
     }
     
     
