@@ -67,10 +67,10 @@ public abstract class ActivitiesTable {
     private static final String TABLE_INDEX_NAME = "ActivitiesIndex";
 
     /** Database cleanup will delete any activity older than X days. **/
-    private static final int CLEANUP_MAX_AGE_DAYS = 10;
+    private static final int CLEANUP_MAX_AGE_DAYS = 20;
 
     /** Database cleanup will delete older activities after the first X. **/
-    private static final int CLEANUP_MAX_QUANTITY = 200;
+    private static final int CLEANUP_MAX_QUANTITY = 400;
 
     /***
      * An enumeration of all the field names in the database.
@@ -1391,6 +1391,7 @@ public abstract class ActivitiesTable {
                 + Field.TITLE + "," + Field.DESCRIPTION + ","
                 + Field.CONTACT_NETWORK + "," + Field.NATIVE_ITEM_TYPE + ","
                 + Field.NATIVE_ITEM_ID + "," + Field.TYPE + ","
+
                 + Field.CONTACT_ID + "," + Field.USER_ID + ","
                 + Field.NATIVE_THREAD_ID + "," + Field.CONTACT_ADDRESS + ","
                 + Field.INCOMING + " FROM " + TABLE_NAME + " WHERE ("
