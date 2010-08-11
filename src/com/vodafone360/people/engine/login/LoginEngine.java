@@ -159,7 +159,7 @@ public class LoginEngine extends BaseEngine {
     /**
      * Contains user registration details such as name, username, password, etc.
      */
-    private final RegistrationDetails mRegistrationDetails = new RegistrationDetails();
+    private RegistrationDetails mRegistrationDetails = new RegistrationDetails();
 
     /**
      * Determines if current login information from database can be used to
@@ -1396,7 +1396,17 @@ public class LoginEngine extends BaseEngine {
      */
     @Override
     public void onReset() {
-        addUiRemoveUserDataRequest();
+        
+        // reset the engine as if it was just created
+        super.onReset();
+        setRegistrationComplete(false);
+        setActivatedSession(null);
+        mState = State.NOT_INITIALISED;
+        mRegistrationDetails = new RegistrationDetails();
+        mActivationCode = null;
+        mCurrentLoginState = false;
+        // Remove NAB Account at this point (does nothing on 1.X)
+        NativeContactsApi.getInstance().removePeopleAccount();
     }
 
     /**

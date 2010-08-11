@@ -336,19 +336,6 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     private boolean mThumbnailSyncRequired;
 
     /**
-     * True if the current contact sync is being cancelled. This can happen when
-     * the user performs a remove user data to prevent the database being
-     * updated by a contact sync during deletion.
-     */
-    private boolean mCancelSync = false;
-
-    /**
-     * The following flag is set when the user initiates a remove user data. The
-     * contact sync must be stopped.
-     */
-    private boolean mRemoveUserData = false;
-
-    /**
      * Maintains a list of contact sync observers
      */
     private final ArrayList<IContactSyncObserver> mEventCallbackList = new ArrayList<IContactSyncObserver>();
@@ -667,13 +654,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      */
     @Override
     public long getNextRunTime() {
-        // first check if sync was cancelled (e.g. in "Change User" situation)
-        // this needs to be done first to avoid deadlocks
-        synchronized (this) {
-            if (mCancelSync) {
-                return 0;
-            }
-        }
+
         if (mLastStatus != ServiceStatus.SUCCESS) {
             return getCurrentTimeout();
         }
@@ -710,20 +691,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      */
     @Override
     public void run() {
-        synchronized (this) {
-            if (mCancelSync) {
-                cancelSync();
-                mCancelSync = false;
-                if (mRemoveUserData) {
-                    mFirstTimeSyncStarted = false;
-                    mFirstTimeSyncComplete = false;
-                    mFirstTimeNativeSyncComplete = false;
-                    mRemoveUserData = false;
-                    super.onReset();
-                }
-                return;
-            }
-        }
+
         if (processTimeout()) {
             return;
         }
@@ -1706,11 +1674,34 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      */
     @Override
     public void onReset() {
+        
         synchronized (this) {
-            mCancelSync = true;
-            mRemoveUserData = true;
+            
+            mFullSyncRetryCount = 0;
+            mState = State.IDLE;
+            mMode = Mode.NONE;
+            mFailureList = null;
+            mDatabaseChanged = false;
+            mLastDbUpdateTime = 0L;
+            mActiveProcessor = null;
+            mServerSyncTimeout = null;
+            mFetchNativeSyncTimeout = null;
+            mUpdateNativeSyncTimeout = null;
+            mLastServerSyncTime = 0L;
+            mFirstTimeSyncComplete = false;
+            mFirstTimeSyncStarted = false;
+            mFirstTimeNativeSyncComplete = false;
+            mFullSyncRequired = false;
+            mServerSyncRequired = false;
+            mNativeFetchSyncRequired = false;
+            mNativeUpdateSyncRequired = false;
+            mThumbnailSyncRequired = false;
+            mCurrentProgressPercent = 0;
+            mDbChangedByProcessor = false;
+            mActiveUiRequestBackup = null;
         }
-        mEventCallback.kickWorkerThread();
+        super.onReset();
+        ThumbnailHandler.getInstance().reset();
     }
 
     /**

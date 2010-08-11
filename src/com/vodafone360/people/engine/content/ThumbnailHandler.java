@@ -263,4 +263,12 @@ public class ThumbnailHandler implements TransferListener {
 
     }
 
+    /**
+     * Performs a reset.
+     */
+    public void reset() {
+        
+        mContactsQueue.clear();
+        mContentObjects.clear();
+    }
 }

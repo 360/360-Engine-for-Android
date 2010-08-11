@@ -68,6 +68,7 @@ import com.vodafone360.people.utils.LogUtils;
  */
 public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         ITcpConnectionListener {
+
     /** Check every 24 hours **/
     private final static long CHECK_FREQUENCY = 24 * 60 * 60 * 1000;
 
@@ -78,7 +79,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
 
     private final Hashtable<String, ChatMessage> mSendMessagesHash; // (to, message)
 
-    private List<TimelineSummaryItem> mFailedMessagesList; // (to, network)
+    private final List<TimelineSummaryItem> mFailedMessagesList; // (to, network)
     
     /** The list of Users still to be processed. **/
     private List<User> mUsers = null;
@@ -789,4 +790,17 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         return presences;
     }
 
+    @Override
+    public void onReset() {
+        
+        // reset the engine as if it was just created
+        super.onReset();
+        firstRun = true;
+        mLoggedIn = false;
+        mIterations = 0;
+        mState = IDLE;
+        mUsers = null;
+        mFailedMessagesList.clear();
+        mSendMessagesHash.clear();
+    }
 }
