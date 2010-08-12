@@ -160,8 +160,9 @@ public class HeartbeatSenderThread implements Runnable, IWakeupListener {
         synchronized (this) {
             notify();
         }
-
-        mService.setAlarm(false, 0);
+        if (mService != null){
+        	mService.setAlarm(false, 0);
+        }
 
         if (null != mSocket) {
             try {

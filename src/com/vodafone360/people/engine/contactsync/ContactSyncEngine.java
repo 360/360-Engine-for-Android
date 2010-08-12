@@ -97,6 +97,8 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     /** The last known status of the contacts sync. */
     private ServiceStatus mLastStatus = ServiceStatus.SUCCESS;
 
+    public boolean mJUnitTestMode = false ;
+    
     /**
      * Observer interface allowing interested parties to receive notification of
      * changes in Contact sync state.
@@ -826,9 +828,11 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         if (!Settings.ENABLE_SERVER_CONTACT_SYNC) {
             return false;
         }
-        if (!EngineManager.getInstance().getSyncMeEngine().isFirstTimeMeSyncComplete()) {
+		if (!mJUnitTestMode){
+        	if (!EngineManager.getInstance().getSyncMeEngine().isFirstTimeMeSyncComplete()) {
             return false;
-        }
+        	}
+		}
         if (!mFirstTimeSyncStarted) {
             return false;
         }
@@ -1573,5 +1577,13 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         // changes detected on native side, start the timer for the
         // FetchNativeContacts processor.
         startFetchNativeContactSyncTimer();
+    }
+    
+    /**
+     * Sets the test mode flag.
+     * Used to bypass dependency with other modules while unit testing
+     */
+    public void setTestMode(boolean mode){
+    	mJUnitTestMode = mode;
     }
 }

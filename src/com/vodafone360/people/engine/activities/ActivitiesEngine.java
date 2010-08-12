@@ -145,6 +145,8 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
      * the animated buttons in timeline screen correctly.
      */
     private boolean mTimelinesUpdated;
+    
+    public boolean mJUnitTestMode = false ;
 
     /**
      * Definitions of Activities engines states; IDLE - engine is inactive
@@ -229,6 +231,24 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
         return getCurrentTimeout();
 
     }
+    /** Used only by JUnit
+     * Return next run time for ActivitiesEngine. Determined by whether we have
+     * a request we wish to issue, or there is a response that needs processing.
+     */    
+    public long getNextRunTimeForTest() {
+        
+         if (isCommsResponseOutstanding()) {
+             return 0;
+         }
+         if (isUiRequestOutstanding()) {
+             return 0;
+         }
+         if (mRequestActivitiesRequired && checkConnectivity()) {
+             return 0;
+         }
+         return getCurrentTimeout();
+
+     }
 
     /**
      * onCreate. Instruct the timeline event watcher to start watching for
@@ -414,11 +434,13 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
             return;
         }
         mRequestActivitiesRequired = false;
-        if (!isContactSyncReady()
-                || !EngineManager.getInstance().getContactSyncEngine().isFirstTimeSyncComplete()) {
-            // this method will then call completeUiRequest(status, null);
-            onSyncHelperComplete(ServiceStatus.ERROR_NOT_READY);
-            return;
+        if (!mJUnitTestMode){
+	        if (!isContactSyncReady()
+	                || !EngineManager.getInstance().getContactSyncEngine().isFirstTimeSyncComplete()) {
+	            // this method will then call completeUiRequest(status, null);
+	            onSyncHelperComplete(ServiceStatus.ERROR_NOT_READY);
+	            return;
+	        }
         }
         mLastStatusUpdated = StateTable.fetchLatestStatusUpdateTime(mDb.getReadableDatabase());
         mOldestStatusUpdated = StateTable.fetchOldestStatusUpdate(mDb.getReadableDatabase());
@@ -892,6 +914,14 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
      */
     public void setTimelinesUpdated(boolean timelinesUpdated) {
         this.mTimelinesUpdated = timelinesUpdated;
+    }
+    
+    /**
+     * Sets the test mode flag.
+     * Used to bypass dependency with other modules while unit testing
+     */
+    public void setTestMode(boolean mode){
+    	mJUnitTestMode = mode;
     }
 
     @Override

@@ -364,7 +364,7 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 	 *       and needs more development time to be completed.
 	 */
 	@SmallTest
-	@Suppress
+	
 	public void testContactsChangeObserver() {
 
 		//ObserverThread observerThread = new ObserverThread();
@@ -472,7 +472,7 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 		mNabApi.unregisterObserver();
 	}
 	
-	
+	@Suppress
 	@MediumTest
 	@Suppress
 	public void testAddGetRemoveContacts() {
@@ -484,7 +484,17 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 			threadWait(100);
 		}
 		
+		// Take care of the case when the Account have some Ids. 
 		long[] ids = getContactIdsForAllAccounts();
+		if(ids != null)
+		{
+		    final int idsCount = ids.length;
+		    for(int i = 0; i < idsCount; i++) {
+			    mNabApi.removeContact(ids[i]);
+		    }
+		    ids = getContactIdsForAllAccounts();
+		}
+		
 		assertNull(ids);
 		
 		final int numRandomContacts = 10;

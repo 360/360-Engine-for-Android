@@ -46,6 +46,7 @@ import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.PushEvent;
 import com.vodafone360.people.datatypes.ServerError;
 import com.vodafone360.people.datatypes.StatusMsg;
+import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.engine.activities.ActivitiesEngine;
 import com.vodafone360.people.engine.meprofile.SyncMeDbUtils;
@@ -88,6 +89,8 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     MainApplication mApplication = null;
 
     TestModule mTestModule = new TestModule();
+    
+    EngineManager mEngineManager = null;
 
     @Override
     protected void setUp() throws Exception {
@@ -102,8 +105,13 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
         mEngineTester = new EngineTestFramework(this);
         mEng = new ActivitiesEngine(getInstrumentation().getTargetContext(), mEngineTester,
                 mApplication.getDatabase());
+        mEng.setTestMode(true);
         mEngineTester.setEngine(mEng);
         mState = ActivityTestState.IDLE;
+        
+        mEngineManager = EngineManager.createEngineManagerForTest(null ,mEngineTester);
+        mEngineManager.addEngineForTest(mEng);
+        
     }
 
     @Override
@@ -165,7 +173,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress // Takes too long.
+    
     public void testGetActivitiesGoodNoMeProfile() {
         boolean testPass = true;
         mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
@@ -183,7 +191,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress // Takes too long.
+    
     public void testGetActivitiesGood() {
 
         boolean testPass = true;
@@ -191,11 +199,17 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
         // re-test with valid Me profile
         Contact meProfile = mTestModule.createDummyContactData();
         assertEquals("Could not access db", ServiceStatus.SUCCESS, SyncMeDbUtils.setMeProfile(mApplication.getDatabase(),meProfile));
-        
-
+      
+        NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
         mEng.addStatusesSyncRequest();
-        assertEquals("Expected SUCCESS, not timeout", ServiceStatus.SUCCESS, mEngineTester.waitForEvent());
 
+        ServiceStatus status = mEngineTester.waitForEvent();
+        if (status != ServiceStatus.SUCCESS &&
+        						status != ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE){
+        	fail("Expected SUCCESS");
+        }
+        //assertEquals("Expected SUCCESS, not timeout", ServiceStatus.SUCCESS, mEngineTester.waitForEvent());
+        
         Object data = mEngineTester.data();
         assertTrue(data == null);
 
@@ -204,13 +218,13 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress // Takes too long.
+    @Suppress
     public void testGetActivitiesServerErr() {
         boolean testPass = true;
         mState = ActivityTestState.GET_ACTIVITIES_SERVER_ERR;
-
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
         mEng.addStatusesSyncRequest();
+        
         ServiceStatus status = mEngineTester.waitForEvent();
         if (status == ServiceStatus.SUCCESS) {
             throw (new RuntimeException("Did not expect SUCCESS"));
@@ -224,7 +238,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress // Takes too long.
+    @Suppress
     public void testGetActivitiesUnexpectedResponse() {
         boolean testPass = true;
         mState = ActivityTestState.GET_ACTIVITIES_UNEXPECTED_RESPONSE;
@@ -274,7 +288,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     public void testGetNextRuntime() {
         boolean testPass = true;
         mState = ActivityTestState.GET_NEXT_RUNTIME;
-        long runtime = mEng.getNextRunTime();
+        long runtime = mEng.getNextRunTimeForTest();
         if (runtime != -1) {
             testPass = false;
         }
@@ -283,8 +297,9 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
         Log.i(LOG_TAG, "**** testGetNextRuntime (SUCCESS) ****\n");
     }
 
-    @Suppress
+
     @MediumTest
+    
     public void testPushMessage() {
         boolean testPass = true;
         mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
@@ -328,7 +343,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
      */
 
     @MediumTest
-    @Suppress // Takes too long.
+    
     public void testMessageLog() {
         final String ADDRESS = "address";
         // final String PERSON = "person";
@@ -349,7 +364,9 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
                 values);
 
         mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
+        NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
         // re-test with valid Me profile
+        SyncMeDbUtils.setMeProfileId(null);
         Contact meProfile = mTestModule.createDummyContactData();
         assertEquals("Could not access db", ServiceStatus.SUCCESS, SyncMeDbUtils.setMeProfile(mApplication.getDatabase(),meProfile));
 
@@ -371,12 +388,13 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
         Log.i(LOG_TAG, "**** testGetActivities (SUCCESS) ****\n");
     }
 
-    @Suppress
+    
     public void testPopulatedActivities() {
         boolean testPass = true;
         mState = ActivityTestState.GET_POPULATED_ACTIVITIES;
 
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
+        mEng.addStatusesSyncRequest();
 
         assertEquals("Expected SUCCESS, not timeout", ServiceStatus.SUCCESS, mEngineTester.waitForEvent());
 
@@ -386,7 +404,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
 
     @Override
     public void reportBackToEngine(int reqId, EngineId engine) {
-        Log.d("TAG", "IdentityEngineTest.reportBackToEngine");
+        Log.d("TAG", "ActivityEngineTest.reportBackToEngine");
         ResponseQueue respQueue = ResponseQueue.getInstance();
         List<BaseDataType> data = new ArrayList<BaseDataType>();
 
@@ -463,7 +481,10 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
                 err.errorDescription = "Fail";
                 data.add(err);
                 respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
-                mEng.onCommsInMessage();
+                if(mEng != null)
+                {
+                    mEng.onCommsInMessage();
+                }
                 break;
             case GET_ACTIVITIES_UNEXPECTED_RESPONSE:
                 StatusMsg msg = new StatusMsg();

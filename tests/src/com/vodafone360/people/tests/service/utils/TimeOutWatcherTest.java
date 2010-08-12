@@ -33,6 +33,7 @@ import android.util.Log;
 import com.vodafone360.people.MainApplication;
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.ServerError;
+import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.service.io.QueueManager;
 import com.vodafone360.people.service.io.Request;
@@ -51,12 +52,14 @@ public class TimeOutWatcherTest extends InstrumentationTestCase {
     
     private TimeOutWatcher mWatcher = null;
     private MainApplication mApplication;
-    
+    private EngineManager mEngineManager;
     protected void setUp() throws Exception {
         super.setUp();
         mApplication = (MainApplication)Instrumentation.newApplication(MainApplication.class, getInstrumentation().getTargetContext());
         mApplication.onCreate();
         mWatcher = new TimeOutWatcher();
+        EngineManager.createEngineManagerForTest(null, null);
+        
     }
 
     protected void tearDown() throws Exception {
@@ -130,7 +133,7 @@ public class TimeOutWatcherTest extends InstrumentationTestCase {
     /**
      * Tests the invalidateAllRequests() method.
      */
-    @Suppress
+    
     public void testTimingOutAllRequests() {
         Log.i("testTimingOutAllRequests()", "-begin");
         

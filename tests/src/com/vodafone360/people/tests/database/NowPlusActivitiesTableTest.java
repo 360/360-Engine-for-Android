@@ -168,7 +168,7 @@ public class NowPlusActivitiesTableTest extends	NowPlusTableTestCase {
 	 * This method checks that the added time line events are really present
 	 * in the table.
 	 */
-	@Suppress
+	
 	public void testAddTimelineEvents() {
 		SQLiteDatabase database = mTestDatabase.getWritableDatabase();
 		ActivitiesTable.create(database);
@@ -368,8 +368,10 @@ public class NowPlusActivitiesTableTest extends	NowPlusTableTestCase {
 		compareTimeLineIds(timeLines, actualDBTimeLines);
 		
 		for (TimelineSummaryItem timeLineSummary: actualDBTimeLines) {
-		    ActivityItem actualActivityItem = ActivitiesTable.getLatestStatusForContact(timeLineSummary.mContactId, readableDataBase);
-			assertEquals("the timestamps are not equal!", timeLineSummary.mTimestamp, actualActivityItem.time);
+			// Earlier the return type was Long and now modified to ActivityItem
+            // TODO check the AssertEqual and if needed modify appropriately.
+            ActivityItem actualDBTimeStamp = ActivitiesTable.getLatestStatusForContact(timeLineSummary.mContactId, readableDataBase);
+			assertEquals("the timestamps are not equal!", timeLineSummary.mTimestamp, actualDBTimeStamp);
 		}
 		Log.i(LOG_TAG, "***** restFetchLatestStatusTimestampForContact SUCCEEDED *****");
 	}
@@ -422,7 +424,7 @@ public class NowPlusActivitiesTableTest extends	NowPlusTableTestCase {
 	/**
 	 * this method checks the updated contacts are present in the database 
 	 */
-	@Suppress
+	
 	public void testUpdateTimelineContactNameAndId3() {
 		Log.i(LOG_TAG, "***** testUpdateTimelineContactNameAndId3: create table *****");
 		SQLiteDatabase writableDataBase = mTestDatabase.getWritableDatabase();

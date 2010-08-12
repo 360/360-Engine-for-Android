@@ -25,6 +25,7 @@
 
 package com.vodafone360.people.tests.service.transport.tcp.conn_less.hb_tests;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 
@@ -50,5 +51,13 @@ public class MockHeartbeatSenderThread extends HeartbeatSenderThread {
 	
 	public Thread getConnectionThread() {
 		return mThread;
+	}
+	
+	public void setCurrentTcpThread(){
+		mCurrentThread = this;
+	}
+	
+	public void closeOpStream() throws IOException {
+		mOs.close();
 	}
 }
