@@ -25,6 +25,7 @@
 
 package com.vodafone360.people.tests.service.transport.tcp.conn_less.respreader;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 
@@ -50,5 +51,13 @@ public class MockResponseReaderThread extends ResponseReaderThread {
 	
 	public boolean getIsConnectionRunning() {
 		return mIsConnectionRunning;
+	}
+	
+	public void setCurrentResponseThread(){
+		mCurrentThread = this;
+	}
+	
+	public void closeIpStream() throws IOException {
+		mIs.close();
 	}
 }

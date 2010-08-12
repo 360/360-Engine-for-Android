@@ -42,7 +42,9 @@ import com.vodafone360.people.datatypes.RegistrationDetails;
 import com.vodafone360.people.datatypes.ServerError;
 import com.vodafone360.people.datatypes.SimpleText;
 import com.vodafone360.people.datatypes.StatusMsg;
+import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.EngineManager.EngineId;
+import com.vodafone360.people.engine.contactsync.NativeContactsApi;
 import com.vodafone360.people.engine.login.LoginEngine;
 import com.vodafone360.people.engine.login.LoginEngine.ILoginEventsListener;
 import com.vodafone360.people.service.ServiceStatus;
@@ -52,7 +54,7 @@ import com.vodafone360.people.service.io.ResponseQueue;
 import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.tests.TestModule;
 
-@Suppress
+
 public class LoginEngineTest extends InstrumentationTestCase implements
         IEngineTestFrameworkObserver, ILoginEventsListener {
 
@@ -87,6 +89,9 @@ public class LoginEngineTest extends InstrumentationTestCase implements
     MainApplication mApplication = null;
 
     TestModule mTestModule = new TestModule();
+    
+    EngineManager mEngineManager = null;
+
 
     @Override
     protected void setUp() throws Exception {
@@ -103,6 +108,9 @@ public class LoginEngineTest extends InstrumentationTestCase implements
         mState = LoginTestState.IDLE;
 
         mEng.addListener(this);
+        mEngineManager = EngineManager.createEngineManagerForTest(null ,mEngineTester);
+        mEngineManager.addEngineForTest(mEng);
+        
     }
 
     @Override
@@ -159,7 +167,6 @@ public class LoginEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress // Breaks tests.
     public void testLoginNullDetails() {
         mState = LoginTestState.LOGIN_REQUEST;
 
@@ -204,7 +211,6 @@ public class LoginEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress // Breaks tests.
     public void testLoginValidDetails() {
         mState = LoginTestState.LOGIN_REQUEST;
         LoginDetails loginDetails = new LoginDetails();
@@ -217,7 +223,7 @@ public class LoginEngineTest extends InstrumentationTestCase implements
                 mEng.addUiLoginRequest(loginDetails);
 
                 ServiceStatus status = mEngineTester.waitForEvent(120000);
-                assertEquals(ServiceStatus.ERROR_SMS_CODE_NOT_RECEIVED, status);
+                assertEquals(ServiceStatus.ERROR_COMMS, status);
             }
 
             // test actually receiving the SMS
@@ -226,11 +232,12 @@ public class LoginEngineTest extends InstrumentationTestCase implements
             fail("testLoginValidDetails test 1 failed with exception");
         }
     }
-
+    @Suppress
     @MediumTest
     public void testRemoveUserData() {
         boolean testPassed = true;
         mState = LoginTestState.REMOVE_USER_DATA_REQ;
+        NativeContactsApi.createInstance(getInstrumentation().getTargetContext());
         try {
             synchronized (mEngineTester) {
                 mEng.addUiRemoveUserDataRequest();
@@ -259,7 +266,6 @@ public class LoginEngineTest extends InstrumentationTestCase implements
         } catch (Exception e) {
             testPassed = false;
         }
-
         assertTrue(testPassed == true);
     }
 
@@ -291,7 +297,6 @@ public class LoginEngineTest extends InstrumentationTestCase implements
      */
 
     @MediumTest
-    @Suppress // Breaks tests.
     public void testRegistration() {
         mState = LoginTestState.REGISTRATION;
 
@@ -365,7 +370,7 @@ public class LoginEngineTest extends InstrumentationTestCase implements
             synchronized (mEngineTester) {
                 mEng.addUiRegistrationRequest(details);
                 ServiceStatus status = mEngineTester.waitForEvent(120000);
-                assertEquals(ServiceStatus.ERROR_SMS_CODE_NOT_RECEIVED, status);
+                assertEquals(ServiceStatus.ERROR_COMMS, status);
             }
         } catch (Exception e) {
             displayException(e);
@@ -374,7 +379,6 @@ public class LoginEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress // Breaks tests.
     public void testGetTermsAndConditions() {
         boolean testPassed = true;
         mState = LoginTestState.GET_T_AND_C;
@@ -408,7 +412,6 @@ public class LoginEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress // Breaks tests.
     public void testFetchPrivacy() {
 
         boolean testPassed = true;
@@ -445,7 +448,6 @@ public class LoginEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress // Breaks tests.
     public void testFetchUserNameState() {
         mState = LoginTestState.USER_NAME_STATE;
 
@@ -546,7 +548,10 @@ public class LoginEngineTest extends InstrumentationTestCase implements
                 StatusMsg msg = new StatusMsg();
                 data.add(msg);
                 respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.LOGIN_RESPONSE.ordinal()));
-                mEng.onCommsInMessage();
+                if(mEng != null)
+                {
+                	mEng.onCommsInMessage();
+                }
                 mState = LoginTestState.LOGIN_REQUEST_VALID;
                 break;
             case LOGIN_REQUEST_VALID:
@@ -554,19 +559,28 @@ public class LoginEngineTest extends InstrumentationTestCase implements
                 AuthSessionHolder sesh = new AuthSessionHolder();
                 data.add(sesh);
                 respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.LOGIN_RESPONSE.ordinal()));
-                mEng.onCommsInMessage();
+                if(mEng != null)
+                {
+                	mEng.onCommsInMessage();
+                }
                 mState = LoginTestState.SMS_RESPONSE_SIGNIN;
                 break;
             case REGISTRATION:
                 Log.d("TAG", "IdentityEngineTest.reportBackToEngine Registration");
                 data.add(mTestModule.createDummyContactData());
                 respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SIGNUP_RESPONSE.ordinal()));
-                mEng.onCommsInMessage();
+                if(mEng != null)
+                {
+                	mEng.onCommsInMessage();
+                }
                 break;
             case REGISTRATION_ERROR:
                 data.add(new ServerError(ServerError.ErrorType.UNKNOWN));
                 respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
-                mEng.onCommsInMessage();
+                if(mEng != null)
+                {
+                	mEng.onCommsInMessage();
+                }
                 break;
             case GET_T_AND_C:
             case FETCH_PRIVACY:
@@ -575,12 +589,18 @@ public class LoginEngineTest extends InstrumentationTestCase implements
                 txt.addText("Simple text");
                 data.add(txt);
                 respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_T_AND_C_RESPONSE.ordinal()));
-                mEng.onCommsInMessage();
+                if(mEng != null)
+                {
+                	mEng.onCommsInMessage();
+                }
                 break;
             case SERVER_ERROR:
                 data.add(new ServerError(ServerError.ErrorType.UNKNOWN));
                 respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
-                mEng.onCommsInMessage();
+                if(mEng != null)
+                {
+                	mEng.onCommsInMessage();
+                }
                 break;
             default:
         }

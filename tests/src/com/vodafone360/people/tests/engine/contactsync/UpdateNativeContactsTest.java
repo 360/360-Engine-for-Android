@@ -29,7 +29,7 @@ import com.vodafone360.people.utils.VersionUtils;
 /**
  * JUnit tests for the UpdateNativeContacts processor.
  */
-@Suppress
+
 public class UpdateNativeContactsTest  extends AndroidTestCase {
     
     /**
@@ -115,6 +115,7 @@ public class UpdateNativeContactsTest  extends AndroidTestCase {
     /**
      * Tests running the processor with an empty database.
      */
+    @Suppress
     public void testRunWithEmptyDatabase() {
         
         UpdateNativeContacts processor = new UpdateNativeContacts(mContactSyncCallback, mDatabaseHelper, getContext().getContentResolver());
@@ -127,6 +128,7 @@ public class UpdateNativeContactsTest  extends AndroidTestCase {
     /**
      * Tests the export of new syncable contacts.
      */
+    @Suppress
     public void testExportingNewContacts() {
         
         final int CONTACTS_COUNT = 10;
@@ -236,6 +238,7 @@ public class UpdateNativeContactsTest  extends AndroidTestCase {
     /**
      * Tests the export of a new syncable contact with all the possible details combinations.
      */
+    @Suppress
     public void testExportingContactAllDetails() {
         
         UpdateNativeContacts processor = new UpdateNativeContacts(mContactSyncCallback, mDatabaseHelper, getContext().getContentResolver());

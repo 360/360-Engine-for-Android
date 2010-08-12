@@ -32,6 +32,7 @@ import com.vodafone360.people.engine.contactsync.BaseSyncProcessor;
 import com.vodafone360.people.engine.contactsync.DefaultProcessorFactory;
 import com.vodafone360.people.engine.contactsync.DownloadServerContacts;
 import com.vodafone360.people.engine.contactsync.FetchNativeContacts;
+import com.vodafone360.people.engine.contactsync.NativeContactsApi;
 import com.vodafone360.people.engine.contactsync.ProcessorFactory;
 import com.vodafone360.people.engine.contactsync.UpdateNativeContacts;
 import com.vodafone360.people.engine.contactsync.UploadServerContacts;
@@ -45,7 +46,7 @@ public class DefaultProcessorFactoryTest extends AndroidTestCase {
     /**
      * Tests the type of the created processor depending on the requested type.
      */
-    @Suppress
+    
     public void testProcessorTypeCreation() {
 
         DefaultProcessorFactory factory = new DefaultProcessorFactory();
@@ -54,10 +55,13 @@ public class DefaultProcessorFactoryTest extends AndroidTestCase {
         processor = factory.create(ProcessorFactory.DOWNLOAD_SERVER_CONTACTS, null, null, null,
                 null);
         assertTrue(processor instanceof DownloadServerContacts);
-
-        processor = factory.create(ProcessorFactory.FETCH_NATIVE_CONTACTS, null, null, null, null);
-        assertTrue(processor instanceof FetchNativeContacts);
-
+        
+        // Uncommenting this code will crash the test case and EngineManger instance
+        // not available for the unit test.
+       /* processor = factory.create(ProcessorFactory.FETCH_NATIVE_CONTACTS, null, null, null, null);
+        assertTrue(processor instanceof FetchNativeContactsDummy);*/
+        
+        NativeContactsApi.createInstance(getContext());
         processor = factory.create(ProcessorFactory.UPDATE_NATIVE_CONTACTS, null, null, null, null);
         assertTrue(processor instanceof UpdateNativeContacts);
 

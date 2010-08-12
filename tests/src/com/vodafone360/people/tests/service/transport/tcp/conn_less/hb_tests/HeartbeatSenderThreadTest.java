@@ -240,7 +240,7 @@ public class HeartbeatSenderThreadTest extends InstrumentationTestCase {
 				null //QUICKFIX: Not sure about this value
 				);
 		hbSender.setOutputStream(baos);
-		
+		hbSender.setCurrentTcpThread();
 		try {
 			baos.close();
 		} catch (IOException e) {}
@@ -260,6 +260,7 @@ public class HeartbeatSenderThreadTest extends InstrumentationTestCase {
 				null //QUICKFIX: Not sure about this value
 				);
 		hbSender.setOutputStream(null);
+		hbSender.setCurrentTcpThread();
 		
 		hbSender.startConnection();
 		try {

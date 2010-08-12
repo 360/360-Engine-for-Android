@@ -63,7 +63,8 @@ public class PeopleTestConnectionThread implements Runnable, IQueueListener, ICo
 		Log.d("TAG", "PeopleTestConnectionThread.run");
 		while (mIsConnectionRunning) {
 			Log.d("TAG", "PeopleTestConnectionThread.run running");
-			List<Request> requests = QueueManager.getInstance().getRpgRequests();
+                        // Getting both RPG and HTTP Request
+			List<Request> requests = QueueManager.getInstance().getAllRequests();
 			if (requests.size() > 0) {
 				// report back to test frame work
 				Log.d("TAG", "PeopleTestConnectionThread.run report back");

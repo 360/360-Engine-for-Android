@@ -4,3 +4,5 @@ bin
 gen
 .classpath
 .project
+output/*
+tests/coverage/*

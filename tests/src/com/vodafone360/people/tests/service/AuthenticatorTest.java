@@ -111,6 +111,7 @@ public class AuthenticatorTest extends AndroidTestCase  {
     /***
      * Test the getParcelable() method.
      */
+    @Suppress
     @SmallTest
     public final void testAddAccount() {
         Authenticator authenticator = new Authenticator(getContext(), mApplication);

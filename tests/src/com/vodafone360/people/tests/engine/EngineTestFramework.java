@@ -71,7 +71,7 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
 
     private Object mData = null;
 
-    private boolean mRequestCompleted;
+    private boolean mRequestCompleted = false;
 
     private static int K_REQ_TIMEOUT_MSA = 60000;
 
@@ -98,7 +98,11 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
                     long mCurrentTime = System.currentTimeMillis();
                     long nextRunTime = -1;
                     try {
-                        nextRunTime = mEngine.getNextRunTime();
+                    	if (mEngine.engineId() == EngineId.ACTIVITIES_ENGINE){
+                    		nextRunTime = mEngine.getNextRunTimeForTest();
+                    	}else {
+                    		nextRunTime = mEngine.getNextRunTime();
+                    	}
                     } catch (Exception e) {
                         onEngineException(e);
                     }
@@ -155,11 +159,12 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
 
         long endTime = System.nanoTime() + (((long)ts) * 1000000);
         ServiceStatus returnStatus = ServiceStatus.ERROR_UNEXPECTED_RESPONSE;
-        mStatus = 5; // ERROR_COMMS_TIMEOUT
+      
         synchronized (mEngReqLock) {
             while (!mRequestCompleted && System.nanoTime() < endTime) {
                 try {
-                    mEngReqLock.wait(ts);
+                	mStatus = 6; // ERROR_COMMS_TIMEOUT
+                	 mEngReqLock.wait(ts);
                 } catch (InterruptedException e) {
                 }
             }

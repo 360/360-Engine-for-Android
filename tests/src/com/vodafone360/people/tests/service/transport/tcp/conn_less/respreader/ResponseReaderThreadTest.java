@@ -43,7 +43,7 @@ public class ResponseReaderThreadTest extends InstrumentationTestCase {
 	public void setUp() throws Exception {}
 	public void tearDown() throws Exception {}
 	
-	@Suppress
+	
 	@MediumTest
 	public void testStartConnection() {
 		DecoderThread decoder = new DecoderThread();
@@ -51,6 +51,7 @@ public class ResponseReaderThreadTest extends InstrumentationTestCase {
 		MockResponseReaderThread respReader = new MockResponseReaderThread(mockThread, decoder, 
 				null // QUICKFIX: Not sure about this value 
 				);
+		respReader.setCurrentResponseThread();
 		MockOTAInputStream mIs = new MockOTAInputStream(
 				new ByteArrayInputStream(new byte[] {1, 2, 3, 4, 5}));
 		respReader.setInputStream(new BufferedInputStream(mIs));
@@ -69,7 +70,7 @@ public class ResponseReaderThreadTest extends InstrumentationTestCase {
 		assertTrue(respReader.getIsConnectionRunning());
 	}
 	
-	@Suppress
+	
 	@MediumTest
 	public void testStopConnection() {
 		DecoderThread decoder = new DecoderThread();
@@ -77,6 +78,7 @@ public class ResponseReaderThreadTest extends InstrumentationTestCase {
 		MockResponseReaderThread respReader = new MockResponseReaderThread(mockThread, decoder,
 				null // QUICKFIX: Not sure about this value
 				);
+		respReader.setCurrentResponseThread();
 		MockOTAInputStream mIs = new MockOTAInputStream(
 				new ByteArrayInputStream(new byte[] {1, 2, 3, 4, 5}));
 		respReader.setInputStream(new BufferedInputStream(mIs));
@@ -100,7 +102,7 @@ public class ResponseReaderThreadTest extends InstrumentationTestCase {
 		} catch (InterruptedException e) {}
 		
 		assertNull(respReader.getInputStream());
-		assertNull(respReader.getConnectionThread());
+		assertFalse(respReader.getConnectionThread().isAlive());
 		assertFalse(respReader.getIsConnectionRunning());
 	}
 	
@@ -141,7 +143,7 @@ public class ResponseReaderThreadTest extends InstrumentationTestCase {
 		assertNull(respReader.getInputStream());
 	}
 	
-	@Suppress
+	
 	@MediumTest
 	public void testRun_exception() {
 		DecoderThread decoder = new DecoderThread();
@@ -149,16 +151,21 @@ public class ResponseReaderThreadTest extends InstrumentationTestCase {
 		MockResponseReaderThread respReader = new MockResponseReaderThread(mockThread, decoder,
 				null // QUICKFIX: Not sure about this value
 				);
+		respReader.setCurrentResponseThread();
 		MockOTAInputStream mIs = new MockOTAInputStream(
 				new ByteArrayInputStream(new byte[] {1, 2, 3, 4, 5}));
 		respReader.setInputStream(new BufferedInputStream(mIs));
 		
 		// IO Exception test
 		try {
-			mIs.close();
-		} catch (IOException e) {}
+			//mIs.close();
+			respReader.closeIpStream();
+		}
+		catch (IOException e) {}
 		
+		respReader.setCurrentResponseThread();
 		respReader.startConnection();
+		
 		try {
 			Thread.sleep(1000);
 		} catch (Exception e) {}
@@ -174,6 +181,7 @@ public class ResponseReaderThreadTest extends InstrumentationTestCase {
 				);
 		respReader.setInputStream(null);
 		
+		respReader.setCurrentResponseThread();
 		respReader.startConnection();
 		try {
 			Thread.sleep(1000);
@@ -191,6 +199,7 @@ public class ResponseReaderThreadTest extends InstrumentationTestCase {
 		ByteArrayInputStream bais = new ByteArrayInputStream(new byte[] {1});
 		respReader.setInputStream(new BufferedInputStream(bais));
 		
+		respReader.setCurrentResponseThread();
 		respReader.startConnection();
 		try {
 			Thread.sleep(1000);
@@ -204,7 +213,7 @@ public class ResponseReaderThreadTest extends InstrumentationTestCase {
 	/***
 	 * Test DecoderThread.getResponse() call.
 	 */
-	@Suppress
+	
 	@MediumTest
 	public void testReadNextResponse() {
 	    
@@ -214,6 +223,9 @@ public class ResponseReaderThreadTest extends InstrumentationTestCase {
 		MockResponseReaderThread respReader = new MockResponseReaderThread(mockThread, decoder,
 				null // QUICKFIX: Not sure about this value
 				);
+		
+		respReader.setCurrentResponseThread();
+		
 		byte[] payload = new byte[] {
 		        /*** RPG header. **/
 				((byte) 0xFF), ((byte) 0xFF), 0x04, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 5, 0,

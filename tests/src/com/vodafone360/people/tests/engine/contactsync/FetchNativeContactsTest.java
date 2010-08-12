@@ -59,7 +59,6 @@ import com.vodafone360.people.datatypes.ContactDetail;
 import com.vodafone360.people.datatypes.ContactSummary;
 import com.vodafone360.people.datatypes.VCardHelper;
 import com.vodafone360.people.engine.EngineManager.EngineId;
-import com.vodafone360.people.engine.contactsync.FetchNativeContacts;
 import com.vodafone360.people.engine.contactsync.IContactSyncCallback;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.tests.TestModule;
@@ -67,7 +66,6 @@ import com.vodafone360.people.tests.TestModule.NativeContactDetails;
 import com.vodafone360.people.tests.TestModule.NativeDetail;
 import com.vodafone360.people.tests.engine.EngineTestFramework;
 import com.vodafone360.people.tests.engine.IEngineTestFrameworkObserver;
-import com.vodafone360.people.tests.engine.contactsync.DummyContactSyncEngine;
 import com.vodafone360.people.utils.LogUtils;
 
 @SuppressWarnings("deprecation")
@@ -185,7 +183,8 @@ public class FetchNativeContactsTest extends InstrumentationTestCase implements
 
     DatabaseHelper mDb = null;
 
-    class FetchNativeContactsProcessorTest extends FetchNativeContacts {
+    class FetchNativeContactsProcessorTest extends FetchNativeContactsDummy {
+    
         FetchNativeContactsProcessorTest(IContactSyncCallback callback, DatabaseHelper db,
                 Context context, ContentResolver cr) {
             super(callback, db, context, cr);
@@ -284,7 +283,7 @@ public class FetchNativeContactsTest extends InstrumentationTestCase implements
     }
 
     @SmallTest
-    @Suppress
+    
     // Breaks tests
     public void testRunWithNoContactChanges() {
         final String fnName = "testRunWithNoContactChanges";
@@ -1220,8 +1219,9 @@ public class FetchNativeContactsTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress
+    
     // Breaks tests.
+    @Suppress
     public void testRunConflictTests() {
         final String fnName = "testRunConflictTests";
         Log.i(LOG_TAG, "***** EXECUTING " + fnName + " *****");
