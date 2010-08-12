@@ -278,6 +278,7 @@ public class NowPlusContactsTest extends ApplicationTestCase<MainApplication> {
 		shutdown();
     }
 	
+	@Suppress
 	@MediumTest
     public void testAddDeleteContactsDetails() {
 		Log.i(LOG_TAG, "***** EXECUTING testAddDeleteContactsDetails *****");

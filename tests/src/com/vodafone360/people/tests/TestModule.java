@@ -398,7 +398,7 @@ public class TestModule {
 			 * originator network (local or external community activity). 
 			 * By default, should be set to local*/		
 			activityItem.store = "local";
-			
+
 			activityItem.title = generateRandomString(); 
 			
 			activityItem.description = activityItem.description + activityItem.store;

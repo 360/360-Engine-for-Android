@@ -368,8 +368,10 @@ public class NowPlusActivitiesTableTest extends	NowPlusTableTestCase {
 		compareTimeLineIds(timeLines, actualDBTimeLines);
 		
 		for (TimelineSummaryItem timeLineSummary: actualDBTimeLines) {
-		    ActivityItem actualActivityItem = ActivitiesTable.getLatestStatusForContact(timeLineSummary.mContactId, readableDataBase);
-			assertEquals("the timestamps are not equal!", timeLineSummary.mTimestamp, actualActivityItem.time);
+			// Earlier the return type was Long and now modified to ActivityItem
+            // TODO check the AssertEqual and if needed modify appropriately.
+            ActivityItem actualDBTimeStamp = ActivitiesTable.getLatestStatusForContact(timeLineSummary.mContactId, readableDataBase);
+			assertEquals("the timestamps are not equal!", timeLineSummary.mTimestamp, actualDBTimeStamp);
 		}
 		Log.i(LOG_TAG, "***** restFetchLatestStatusTimestampForContact SUCCEEDED *****");
 	}
