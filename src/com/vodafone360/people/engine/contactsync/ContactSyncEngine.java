@@ -51,6 +51,7 @@ import com.vodafone360.people.service.agent.UiAgent;
 import com.vodafone360.people.service.agent.NetworkAgent.AgentState;
 import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.utils.LogUtils;
+import com.vodafone360.people.utils.VersionUtils;
 
 /**
  * Implementation of engine handling Contact-sync. Contact sync is a multi-stage
@@ -360,6 +361,21 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * depending on the SDK.
      */
     private final NativeContactsApi mNativeContactsApi = NativeContactsApi.getInstance();
+    
+    /**
+     * True if changes on native contacts shall be detected.
+     */
+    private final boolean mFetchNativeContactsOnChange;
+    
+    /**
+     * True if native contacts shall be fetched from native.
+     */
+    private final boolean mFetchNativeContacts;
+    
+    /**
+     * True if changes on 360 contacts shall be forwarded to native contacts.
+     */
+    private final boolean mUpdateNativeContacts;
 
     /**
      * Used to listen for NowPlus database change events. Such events will be
@@ -390,6 +406,12 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         mDb = db;
         mEngineId = EngineId.CONTACT_SYNC_ENGINE;
         mContext = context;
+
+        final boolean enableNativeSync = VersionUtils.is2XPlatform() || !Settings.DISABLE_NATIVE_SYNC_AFTER_IMPORT_ON_ANDROID_1X;
+        mFetchNativeContactsOnChange = Settings.ENABLE_FETCH_NATIVE_CONTACTS_ON_CHANGE && enableNativeSync;
+        mFetchNativeContacts = Settings.ENABLE_FETCH_NATIVE_CONTACTS && enableNativeSync;
+        mUpdateNativeContacts = Settings.ENABLE_UPDATE_NATIVE_CONTACTS && enableNativeSync;
+        
         // use standard processor factory if provided one is null
         mProcessorFactory = (processorFactory == null) ? new DefaultProcessorFactory()
                 : processorFactory;
@@ -416,7 +438,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
             mFirstTimeNativeSyncComplete = setting3.getFirstTimeNativeSyncComplete();
         }
 
-        if (Settings.ENABLE_FETCH_NATIVE_CONTACTS_ON_CHANGE) {
+        if (mFetchNativeContactsOnChange) {
             mNativeContactsApi.registerObserver(this);
         }
         if (mFirstTimeSyncComplete) {
@@ -432,7 +454,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      */
     @Override
     public void onDestroy() {
-        if (Settings.ENABLE_FETCH_NATIVE_CONTACTS_ON_CHANGE) {
+        if (mFetchNativeContactsOnChange) {
             mNativeContactsApi.unregisterObserver();
         }
         mDb.removeEventCallback(mDbChangeHandler);
@@ -589,7 +611,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * (normally around 30 seconds).
      */
     private void startFetchNativeContactSyncTimer() {
-        if (!Settings.ENABLE_FETCH_NATIVE_CONTACTS) {
+        if (!mFetchNativeContacts) {
             return;
         }
         synchronized (this) {
@@ -609,7 +631,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * (normally around 30 seconds).
      */
     private void startUpdateNativeContactSyncTimer() {
-        if (!Settings.ENABLE_UPDATE_NATIVE_CONTACTS) {
+        if (!mUpdateNativeContacts) {
             return;
         }
         synchronized (this) {
@@ -941,7 +963,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * @return true if a sync can be started, false otherwise.
      */
     private boolean readyToStartFetchNativeSync() {
-        if (!Settings.ENABLE_FETCH_NATIVE_CONTACTS) {
+        if (!mFetchNativeContacts) {
             return false;
         }
         if (!mFirstTimeSyncStarted) {
@@ -960,7 +982,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * @return true if a sync can be started, false otherwise.
      */
     private boolean readyToStartUpdateNativeSync() {
-        if (!Settings.ENABLE_UPDATE_NATIVE_CONTACTS) {
+        if (!mUpdateNativeContacts) {
             return false;
         }
         if (!mFirstTimeSyncStarted) {
@@ -1049,10 +1071,11 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     /**
      * Helper function to start the fetch native contacts processor
      * 
+     * @param isFirstTimeSync true if importing native contacts for the first time
      * @return if this type of sync is enabled in the settings, false otherwise.
      */
-    private boolean startFetchNativeContacts() {
-        if (Settings.ENABLE_FETCH_NATIVE_CONTACTS) {
+    private boolean startFetchNativeContacts(boolean isFirstTimeSync) {
+        if (mFetchNativeContacts || (Settings.ENABLE_FETCH_NATIVE_CONTACTS && isFirstTimeSync)) {
             newState(State.FETCHING_NATIVE_CONTACTS);
             startProcessor(mProcessorFactory.create(ProcessorFactory.FETCH_NATIVE_CONTACTS, this,
                     mDb, mContext, mCr));
@@ -1067,7 +1090,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * @return if this type of sync is enabled in the settings, false otherwise.
      */
     private boolean startUpdateNativeContacts() {
-        if (Settings.ENABLE_UPDATE_NATIVE_CONTACTS) {
+        if (mUpdateNativeContacts) {
             newState(State.UPDATING_NATIVE_CONTACTS);
             startProcessor(mProcessorFactory.create(ProcessorFactory.UPDATE_NATIVE_CONTACTS, this,
                     mDb, null, mCr));
@@ -1156,7 +1179,9 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
                     break;
                 case FETCHING_SERVER_CONTACTS:
                     mThumbnailSyncRequired = true;
-                    mNativeUpdateSyncRequired = true;
+                    if (mUpdateNativeContacts) {
+                        mNativeUpdateSyncRequired = true;
+                    }
                     break;
                 default:
                     // Do nothing.
@@ -1197,7 +1222,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         
         switch (mState) {
             case IDLE:
-                if (startFetchNativeContacts()) { 
+                if (startFetchNativeContacts(true)) { 
                     return;
                 }
                 // Fall through
@@ -1266,7 +1291,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     private void nextTaskFetchNativeContacts() {
         switch (mState) {
             case IDLE:
-                if (startFetchNativeContacts()) {
+                if (startFetchNativeContacts(false)) {
                     return;
                 }
                 // Fall through
