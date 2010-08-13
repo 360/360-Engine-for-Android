@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.jcraft.jsch.jce.Random;
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.SettingsManager;
 import com.vodafone360.people.datatypes.AuthSessionHolder;
@@ -210,7 +211,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
                                 }
 
                                 LogUtils.logE("XXXXXXYYYXXXXXX Do not Remove this!");
-                                LogUtils.logToFile(payload, "people_" + reqIdList.get(0) + "_"
+                                LogUtils.logToFile(payload, "people_" +( reqIdList.size()>0?reqIdList.get(0):0)+ "_"
                                         + System.currentTimeMillis() + "_req_" + ((int)payload[2]) // message
                                         // type
                                         + ".txt");

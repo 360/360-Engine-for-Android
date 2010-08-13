@@ -300,15 +300,15 @@ public class ResponseReaderThread implements Runnable {
                         + HessianUtils.getInHessian(new ByteArrayInputStream(response), false)
                         + "\n  ");
             }
-
-            // log file containing response to SD card
-            if (Settings.sEnableSuperExpensiveResponseFileLogging) {
-                LogUtils.logE("XXXXXXYYYXXXXXX Do not Remove this!");
-                LogUtils.logToFile(response, "people_" + reqId + "_" + System.currentTimeMillis()
-                        + "_resp_" + ((int)msgType)
-                        + ((compression == 1) ? ".gzip_w_rpg_header" : ".txt"));
-            } // end log file containing response to SD card
         }
+          // log file containing response to SD card
+          if (Settings.sEnableSuperExpensiveResponseFileLogging) {
+              LogUtils.logE("XXXXXXYYYXXXXXX Do not Remove this!");
+              LogUtils.logToFile(response, "people_" + reqId + "_" + System.currentTimeMillis()
+                      + "_resp_" + ((int)msgType)
+                      + ((compression == 1) ? ".gzip_w_rpg_header" : ".txt"));
+          } // end log file containing response to SD card
+  
 
         return response;
     }
