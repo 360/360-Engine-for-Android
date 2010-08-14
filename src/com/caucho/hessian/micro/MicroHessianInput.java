@@ -49,7 +49,7 @@
 
 package com.caucho.hessian.micro;
 
-import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -80,11 +80,11 @@ import com.vodafone360.people.utils.LogUtils;
  * </pre>
  */
 public class MicroHessianInput {
-    protected BufferedInputStream is;
+    protected DataInputStream is;
 
     /** Using fast but not thread safe StringBuilder for constructing strings */
     private StringBuilder mStringBuilder = new StringBuilder(255);
-
+    
     /**
      * Creates a new Hessian input stream, initialized with an underlying input
      * stream.
@@ -105,7 +105,7 @@ public class MicroHessianInput {
      * Initialize the hessian stream with the underlying input stream.
      */
     public void init(InputStream is) {
-        this.is = new BufferedInputStream(is);
+        this.is = new DataInputStream(is);
 
     }
 
