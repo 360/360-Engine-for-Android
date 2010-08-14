@@ -50,7 +50,6 @@
 package com.caucho.hessian.micro;
 
 import java.io.DataInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
@@ -181,12 +180,7 @@ public class MicroHessianInput {
         if (tag != 'I')
             throw expect("integer", tag);
 
-        int b32 = is.read();
-        int b24 = is.read();
-        int b16 = is.read();
-        int b8 = is.read();
-
-        return (b32 << 24) + (b24 << 16) + (b16 << 8) + b8;
+        return is.readInt();
     }
 
     /**
@@ -205,17 +199,7 @@ public class MicroHessianInput {
         if (tag != 'L')
             throw protocolException("expected long");
 
-        long b64 = is.read();
-        long b56 = is.read();
-        long b48 = is.read();
-        long b40 = is.read();
-        long b32 = is.read();
-        long b24 = is.read();
-        long b16 = is.read();
-        long b8 = is.read();
-
-        return ((b64 << 56) + (b56 << 48) + (b48 << 40) + (b40 << 32) + (b32 << 24) + (b24 << 16)
-                + (b16 << 8) + b8);
+        return is.readLong();
     }
 
     /**
@@ -231,17 +215,7 @@ public class MicroHessianInput {
         if (tag != 'd')
             throw protocolException("expected date");
 
-        long b64 = is.read();
-        long b56 = is.read();
-        long b48 = is.read();
-        long b40 = is.read();
-        long b32 = is.read();
-        long b24 = is.read();
-        long b16 = is.read();
-        long b8 = is.read();
-
-        return ((b64 << 56) + (b56 << 48) + (b48 << 40) + (b40 << 32) + (b32 << 24) + (b24 << 16)
-                + (b16 << 8) + b8);
+        return is.readLong();
     }
 
     /**
@@ -290,40 +264,15 @@ public class MicroHessianInput {
                 return false;
 
             case 'I': {
-                int b32 = is.read();
-                int b24 = is.read();
-                int b16 = is.read();
-                int b8 = is.read();
-
-                return ((b32 << 24) + (b24 << 16) + (b16 << 8) + b8);
+                return readInt(tag);
             }
 
             case 'L': {
-                long b64 = is.read();
-                long b56 = is.read();
-                long b48 = is.read();
-                long b40 = is.read();
-                long b32 = is.read();
-                long b24 = is.read();
-                long b16 = is.read();
-                long b8 = is.read();
-
-                return ((b64 << 56) + (b56 << 48) + (b48 << 40) + (b40 << 32) + (b32 << 24)
-                        + (b24 << 16) + (b16 << 8) + b8);
+                return readLong(tag);
             }
 
             case 'd': {
-                long b64 = is.read();
-                long b56 = is.read();
-                long b48 = is.read();
-                long b40 = is.read();
-                long b32 = is.read();
-                long b24 = is.read();
-                long b16 = is.read();
-                long b8 = is.read();
-
-                return new Date((b64 << 56) + (b56 << 48) + (b48 << 40) + (b40 << 32) + (b32 << 24)
-                        + (b24 << 16) + (b16 << 8) + b8);
+                return new Date(is.readLong());
             }
 
             case 'S':
@@ -337,20 +286,7 @@ public class MicroHessianInput {
             }
 
             case 'B': {
-                if (tag != 'B')
-                    throw expect("bytes", tag);
-
-                int b16 = is.read();
-                int b8 = is.read();
-
-                int len = (b16 << 8) + b8;
-
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
-
-                for (int i = 0; i < len; i++)
-                    bos.write(is.read());
-
-                return bos.toByteArray();
+                return readBytes(tag);
             }
             default:
                 throw new IOException("unknown code:" + (char)tag);
