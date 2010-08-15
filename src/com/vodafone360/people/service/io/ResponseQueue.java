@@ -217,6 +217,36 @@ public class ResponseQueue {
         }
     }
 
+
+   /**
+     * Adds a response item to the queue. Same as addToResponseQueue
+     * This is used by JUnit and does not use Engine Manager
+     * 
+     * @param response Contains request ID to add the response for.
+     *                          The response data to add to the queue.
+     *                          The corresponding engine that fired off the request for the
+     *                          response.
+     */
+    public void addToResponseQueueFromTest(final DecodedResponse response)
+    {
+
+    	synchronized (QueueManager.getInstance().lock) {
+            ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.UNKNOWN_DATA_TYPE, response.mDataTypes);
+            if (status == ServiceStatus.ERROR_INVALID_SESSION) {
+                    return;
+                }
+            
+            mResponses.add(response);
+
+            Request request = RequestQueue.getInstance().removeRequest(response.mReqId);
+            if (request != null) {
+                // we suppose the response being handled by the same engine 
+                // that issued the request with the given id
+                response.mSource = request.mEngineId;
+            }
+        }
+    }
+
     /**
      * Retrieves the next response from the response list if there is one and it is equal to the 
      * passed engine ID.

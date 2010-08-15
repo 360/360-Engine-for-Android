@@ -155,7 +155,7 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
 
         long endTime = System.nanoTime() + (((long)ts) * 1000000);
         ServiceStatus returnStatus = ServiceStatus.ERROR_UNEXPECTED_RESPONSE;
-        mStatus = 5; // ERROR_COMMS_TIMEOUT
+        mStatus = 6; // ERROR_COMMS_TIMEOUT
         synchronized (mEngReqLock) {
             while (!mRequestCompleted && System.nanoTime() < endTime) {
                 try {
@@ -205,7 +205,7 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
             List<BaseDataType> dataTypeList = new ArrayList<BaseDataType>();
             ServerError err = new ServerError(ServerError.ErrorType.UNKNOWN);
             dataTypeList.add(err);
-            respQ.addToResponseQueue(new DecodedResponse(reqId, dataTypeList, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
+            respQ.addToResponseQueueFromTest(new DecodedResponse(reqId, dataTypeList, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
         }
     }
 

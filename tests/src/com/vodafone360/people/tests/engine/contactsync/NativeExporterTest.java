@@ -47,7 +47,7 @@ public class NativeExporterTest extends TestCase {
         final int NEW_CONTACTS_COUNT = 30;
         final NativeContactsApiMockup nativeMockup = new NativeContactsApiMockup();
         final PeopleContactsApiMockup peopleMockup = new PeopleContactsApiMockup(null);
-        
+        nativeMockup.feedAccount(NativeImporterTest.PEOPLE_ACCOUNT);
         // add new contacts syncable contact on People side
         feedPeopleContactsApiWithNewSyncableContacts(peopleMockup, NEW_CONTACTS_COUNT);
         long[] nativeIdsFromPeople = peopleMockup.getNativeContactsIds();
@@ -84,7 +84,7 @@ public class NativeExporterTest extends TestCase {
         final int NEW_CONTACTS_COUNT = 30;
         final NativeContactsApiMockup nativeMockup = new NativeContactsApiMockup();
         final PeopleContactsApiMockup peopleMockup = new PeopleContactsApiMockup(null);
-        
+        nativeMockup.feedAccount(NativeImporterTest.PEOPLE_ACCOUNT);
         // add new contacts syncable contact on People side
         feedPeopleContactsApiWithNewSyncableContacts(peopleMockup, NEW_CONTACTS_COUNT);
         long[] nativeIdsFromPeople = peopleMockup.getNativeContactsIds();
@@ -157,6 +157,7 @@ public class NativeExporterTest extends TestCase {
         final NativeContactsApiMockup nativeMockup = new NativeContactsApiMockup();
         final PeopleContactsApiMockup peopleMockup = new PeopleContactsApiMockup(null);
         
+        nativeMockup.feedAccount(NativeImporterTest.PEOPLE_ACCOUNT);
         // add new contacts syncable contact on People side
         feedPeopleContactsApiWithNewSyncableContacts(peopleMockup, NEW_CONTACTS_COUNT);
         long[] nativeIdsFromPeople = peopleMockup.getNativeContactsIds();
@@ -214,7 +215,7 @@ public class NativeExporterTest extends TestCase {
         final int NEW_CONTACTS_COUNT = 30;
         final NativeContactsApiMockup nativeMockup = new NativeContactsApiMockup();
         final PeopleContactsApiMockup peopleMockup = new PeopleContactsApiMockup(null);
-        
+        nativeMockup.feedAccount(NativeImporterTest.PEOPLE_ACCOUNT);
         // add new contacts syncable contact on People side
         feedPeopleContactsApiWithNewSyncableContacts(peopleMockup, NEW_CONTACTS_COUNT);
         long[] nativeIdsFromPeople = peopleMockup.getNativeContactsIds();
@@ -272,7 +273,7 @@ public class NativeExporterTest extends TestCase {
         final int NEW_CONTACTS_COUNT = 30;
         final NativeContactsApiMockup nativeMockup = new NativeContactsApiMockup();
         final PeopleContactsApiMockup peopleMockup = new PeopleContactsApiMockup(null);
-        
+        nativeMockup.feedAccount(NativeImporterTest.PEOPLE_ACCOUNT);
         // add new contacts syncable contact on People side
         feedPeopleContactsApiWithNewSyncableContacts(peopleMockup, NEW_CONTACTS_COUNT);
         long[] nativeIdsFromPeople = peopleMockup.getNativeContactsIds();

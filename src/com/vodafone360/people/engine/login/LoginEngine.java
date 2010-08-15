@@ -1315,7 +1315,11 @@ public class LoginEngine extends BaseEngine {
         ApplicationCache.setTermsStatus(serviceStatus);
 
         /** Trigger UiAgent. **/
-        mUiAgent.sendUnsolicitedUiEvent(ServiceUiRequest.TERMS_CHANGED_EVENT, null);
+        // Added the null check for the JUnit. JUnit does not have uiAgent and hence crashes here
+        if(mUiAgent != null)
+        {
+        	mUiAgent.sendUnsolicitedUiEvent(ServiceUiRequest.TERMS_CHANGED_EVENT, null);
+        }        	
 
         /** Clear this request from the UI queue. **/
         completeUiRequest(serviceStatus, messageText);

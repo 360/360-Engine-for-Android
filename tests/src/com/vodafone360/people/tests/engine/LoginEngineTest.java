@@ -52,7 +52,7 @@ import com.vodafone360.people.service.io.ResponseQueue;
 import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.tests.TestModule;
 
-@Suppress
+
 public class LoginEngineTest extends InstrumentationTestCase implements
         IEngineTestFrameworkObserver, ILoginEventsListener {
 
@@ -227,6 +227,7 @@ public class LoginEngineTest extends InstrumentationTestCase implements
         }
     }
 
+    @Suppress
     @MediumTest
     public void testRemoveUserData() {
         boolean testPassed = true;
@@ -374,7 +375,6 @@ public class LoginEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress // Breaks tests.
     public void testGetTermsAndConditions() {
         boolean testPassed = true;
         mState = LoginTestState.GET_T_AND_C;
@@ -408,7 +408,6 @@ public class LoginEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress // Breaks tests.
     public void testFetchPrivacy() {
 
         boolean testPassed = true;
@@ -445,7 +444,6 @@ public class LoginEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress // Breaks tests.
     public void testFetchUserNameState() {
         mState = LoginTestState.USER_NAME_STATE;
 
@@ -545,7 +543,7 @@ public class LoginEngineTest extends InstrumentationTestCase implements
                 Log.d("TAG", "IdentityEngineTest.reportBackToEngine FETCH ids");
                 StatusMsg msg = new StatusMsg();
                 data.add(msg);
-                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.LOGIN_RESPONSE.ordinal()));
+                respQueue.addToResponseQueueFromTest(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.LOGIN_RESPONSE.ordinal()));
                 mEng.onCommsInMessage();
                 mState = LoginTestState.LOGIN_REQUEST_VALID;
                 break;
@@ -553,19 +551,19 @@ public class LoginEngineTest extends InstrumentationTestCase implements
                 Log.d("TAG", "IdentityEngineTest.reportBackToEngine FETCH ids");
                 AuthSessionHolder sesh = new AuthSessionHolder();
                 data.add(sesh);
-                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.LOGIN_RESPONSE.ordinal()));
+                respQueue.addToResponseQueueFromTest(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.LOGIN_RESPONSE.ordinal()));
                 mEng.onCommsInMessage();
                 mState = LoginTestState.SMS_RESPONSE_SIGNIN;
                 break;
             case REGISTRATION:
                 Log.d("TAG", "IdentityEngineTest.reportBackToEngine Registration");
                 data.add(mTestModule.createDummyContactData());
-                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SIGNUP_RESPONSE.ordinal()));
+                respQueue.addToResponseQueueFromTest(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SIGNUP_RESPONSE.ordinal()));
                 mEng.onCommsInMessage();
                 break;
             case REGISTRATION_ERROR:
                 data.add(new ServerError(ServerError.ErrorType.UNKNOWN));
-                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
+                respQueue.addToResponseQueueFromTest(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
                 mEng.onCommsInMessage();
                 break;
             case GET_T_AND_C:
@@ -574,12 +572,12 @@ public class LoginEngineTest extends InstrumentationTestCase implements
                 SimpleText txt = new SimpleText();
                 txt.addText("Simple text");
                 data.add(txt);
-                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_T_AND_C_RESPONSE.ordinal()));
+                respQueue.addToResponseQueueFromTest(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_T_AND_C_RESPONSE.ordinal()));
                 mEng.onCommsInMessage();
                 break;
             case SERVER_ERROR:
                 data.add(new ServerError(ServerError.ErrorType.UNKNOWN));
-                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
+                respQueue.addToResponseQueueFromTest(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
                 mEng.onCommsInMessage();
                 break;
             default:

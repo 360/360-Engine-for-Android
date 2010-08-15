@@ -117,6 +117,7 @@ public class NativeImporterTest extends TestCase {
     /**
      * Tests that the number of ticks needed to perform the native import is as expected when the count of contacts
      * is below MAX_CONTACTS_OPERATION_COUNT.
+     * TODO Tick concept is changed and is now time based. Need to updated Test cases
      */
     public void testRequiredTicksForBelowMaxOperationCountImport() {
         
@@ -129,6 +130,7 @@ public class NativeImporterTest extends TestCase {
     /**
      * Tests that the number of ticks needed to perform the native import is as expected when the count of contacts
      * is over MAX_CONTACTS_OPERATION_COUNT.
+     * TODO Tick concept is changed and is now time based. Need to updated Test cases
      */
     public void testRequiredTicksForOverMaxOperationCountImport() {
         
@@ -442,6 +444,8 @@ public class NativeImporterTest extends TestCase {
      * @param ncam the NativeContactsApiMockup instance
      * @param pcam the PeopleContactsApiMockup instance
      * @param contactsCount the number of native contacts to setup and import
+     * TODO: Its a helper function for the two commented Test cases.
+     * Once the test cases are added this needs to be removed/changed.
      */
     private void performNativeImport(NativeContactsApiMockup ncam, PeopleContactsApiMockup pcam, float contactsCount) {
         

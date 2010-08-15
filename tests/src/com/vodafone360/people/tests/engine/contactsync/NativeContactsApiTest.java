@@ -495,7 +495,17 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 			threadWait(100);
 		}
 		
+		// Take care of the case when the Account have some Ids. 
 		long[] ids = getContactIdsForAllAccounts();
+		if(ids != null)
+		{
+		    final int idsCount = ids.length;
+		    for(int i = 0; i < idsCount; i++) {
+			    mNabApi.removeContact(ids[i]);
+		    }
+		    ids = getContactIdsForAllAccounts();
+		}
+		
 		assertNull(ids);
 		
 		final int numRandomContacts = 10;
