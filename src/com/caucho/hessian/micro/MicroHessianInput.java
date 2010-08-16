@@ -57,6 +57,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import com.vodafone360.people.utils.LogUtils;
+import com.vodafone360.people.utils.ResetableBufferedInputStream;
 
 /**
  * Input stream for Hessian requests, compatible with microedition Java. It only
@@ -80,7 +81,12 @@ import com.vodafone360.people.utils.LogUtils;
  */
 public class MicroHessianInput {
     protected DataInputStream is;
-
+    /** 
+     * Using a special BufferedInputstream, which is constructed once and then reused.
+     * Saves a lot of GC time.
+     */
+    protected ResetableBufferedInputStream rbis;
+    
     /** Using fast but not thread safe StringBuilder for constructing strings */
     private StringBuilder mStringBuilder = new StringBuilder(255);
     
@@ -104,6 +110,15 @@ public class MicroHessianInput {
      * Initialize the hessian stream with the underlying input stream.
      */
     public void init(InputStream is) {
+        //use the reusable resetablebufferedinputstream here
+        if (rbis==null){
+            // create it only once
+            rbis=new ResetableBufferedInputStream(is,2048);
+        }else{
+            // then reuse it
+            rbis.reset(is);
+        }
+        
         this.is = new DataInputStream(is);
 
     }
