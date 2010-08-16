@@ -366,6 +366,21 @@ public abstract class NativeContactsApi {
      * @param nabContactId Native ID of the contact to remove
      */
     public abstract void removeContact(long nabContactId);
+    
+    /**
+     * Used to retrieve the master Auto-sync setting for the system.
+     * Method only exists to get around platform fragmentation.
+     * Note that this method always returns true for 1.X devices!
+     * @return true if the Master Auto-sync is enabled, false otherwise
+     */
+    public abstract boolean getMasterSyncAutomatically();
+    
+    /**
+     * Used to forcefully set the underlying Sync adapter to be Automatically Syncable or not.
+     * This is really only useful for 2.X devices and for System UE.
+     * @param syncAutomatically if true Sync is Automatic, false otherwise
+     */
+    public abstract void setSyncAutomatically(boolean syncAutomatically);
 
     /**
      * Checks whether or not a {@link ContactChange} key is supported. Results

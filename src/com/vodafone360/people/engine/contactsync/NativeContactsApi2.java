@@ -39,6 +39,7 @@ import android.content.OperationApplicationException;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
@@ -519,11 +520,7 @@ public class NativeContactsApi2 extends NativeContactsApi {
             if (isAdded) {
                 if (VersionUtils.isHtcSenseDevice(mContext)) {
                     createSettingsEntryForAccount(username);
-                }
-                // TODO: RE-ENABLE SYNC VIA SYSTEM
-                ContentResolver.setIsSyncable(account, ContactsContract.AUTHORITY, 0);
-                // ContentResolver.setSyncAutomatically(account,
-                // ContactsContract.AUTHORITY, true);
+                }        
             }
         } catch (Exception ex) {
             LogUtils.logE("People Account creation failed because of exception:\n", ex);
@@ -759,6 +756,34 @@ public class NativeContactsApi2 extends NativeContactsApi {
     public void removeContact(long nabContactId) {
         mCr.delete(addCallerIsSyncAdapterParameter(ContentUris.withAppendedId(
                 RawContacts.CONTENT_URI, nabContactId)), null, null);
+    }
+    
+    /**
+     * @see NativeContactsApi#getMasterSyncAutomatically
+     */
+    @Override
+    public boolean getMasterSyncAutomatically() {
+        // Always true in 1.X
+        return ContentResolver.getMasterSyncAutomatically();
+    }
+    
+    /**
+     * @see NativeContactsApi#setSyncAutomatically(boolean)
+     */
+    @Override
+    public void setSyncAutomatically(boolean syncAutomatically) {
+        android.accounts.Account[] accounts = 
+            AccountManager.get(mContext).getAccountsByType(PEOPLE_ACCOUNT_TYPE_STRING);
+        if(accounts != null && accounts.length > 0) {
+            ContentResolver.setSyncAutomatically(accounts[0], ContactsContract.AUTHORITY, syncAutomatically);
+            if(syncAutomatically) {
+                // Kick start sync     
+                ContentResolver.requestSync(accounts[0], ContactsContract.AUTHORITY, new Bundle());
+            } else {
+                // Cancel ongoing just in case
+                ContentResolver.cancelSync(accounts[0], ContactsContract.AUTHORITY);
+            }
+        }
     }
 
     /**

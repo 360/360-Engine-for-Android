@@ -404,6 +404,23 @@ public class NativeContactsApi1 extends NativeContactsApi {
         Uri rawContactUri = ContentUris.withAppendedId(People.CONTENT_URI, nabContactId);
         mCr.delete(rawContactUri, null, null);
     }
+    
+    /**
+     * @see NativeContactsApi#getMasterSyncAutomatically
+     */
+    @Override
+    public boolean getMasterSyncAutomatically() {
+        // Always true in 1.X
+        return true;
+    }
+        
+    /**
+     * @see NativeContactsApi#setSyncAutomatically(boolean)
+     */
+    @Override
+    public void setSyncAutomatically(boolean syncAutomatically) {
+        // Nothing to do
+    }
 
     /**
      * @see NativeContactsApi#isKeySupported(int)
