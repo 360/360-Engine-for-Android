@@ -40,6 +40,7 @@ import android.test.InstrumentationTestCase;
 import android.test.suitebuilder.annotation.Suppress;
 import android.util.Log;
 
+import com.vodafone360.people.ApplicationCache;
 import com.vodafone360.people.MainApplication;
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.datatypes.BaseDataType;
@@ -49,6 +50,7 @@ import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.engine.contactsync.BaseSyncProcessor;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine;
 import com.vodafone360.people.engine.contactsync.IContactSyncCallback;
+import com.vodafone360.people.engine.contactsync.NativeContactsApi;
 import com.vodafone360.people.engine.contactsync.ProcessorFactory;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine.IContactSyncObserver;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine.Mode;
@@ -56,6 +58,7 @@ import com.vodafone360.people.engine.contactsync.ContactSyncEngine.State;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.NetworkAgent;
+import com.vodafone360.people.service.agent.UiAgent;
 import com.vodafone360.people.service.agent.NetworkAgent.AgentState;
 import com.vodafone360.people.service.io.ResponseQueue;
 import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
@@ -80,6 +83,10 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
      * The contact sync engine handle.
      */
     private ContactSyncEngine mContactSyncEngine;
+    
+    private Context mContext;
+    private UiAgent mUiAgent;
+    private ApplicationCache mCache;
 
     @Override
     protected void setUp() throws Exception {
@@ -95,7 +102,11 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
         mApplication = (MainApplication)Instrumentation.newApplication(MainApplication.class,
                 getInstrumentation().getTargetContext());
         mApplication.onCreate();
-
+        mContext = getInstrumentation().getTargetContext();
+        
+        mUiAgent = new UiAgent(mApplication ,mContext);
+        mCache = new ApplicationCache();
+        
         Log.i(LOG_TAG, "**** setUp() end ****");
     }
 
@@ -145,7 +156,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
      * @param factory the factory used by the ContactSyncEngine
      */
     private void minimalEngineSetup(IEngineEventCallback eventCallback, ProcessorFactory factory) {
-
+    	NativeContactsApi.createInstance(mContext);
         mContactSyncEngine = new ContactSyncEngine(eventCallback, mApplication, mApplication
                 .getDatabase(), factory);
         mContactSyncEngine.onCreate();
@@ -154,10 +165,27 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
     /**
      * Checks that life cycle methods do not crash.
      */
-    @Suppress
+    
     public void testLifecycle() {
 
-        final IEngineEventCallback engineEventCallback = new HelperClasses.EngineCallbackBase();
+        final IEngineEventCallback engineEventCallback = new HelperClasses.EngineCallbackBase(){
+        	 @Override
+             public void onUiEvent(ServiceUiRequest event, int request, int status, Object data) {
+
+                 Log
+                         .i(LOG_TAG, "onUiEvent: " + event + ", " + request + ", " + status + ", "
+                                 + data);
+                 
+             }
+             
+             public UiAgent getUiAgent(){
+          		 return mUiAgent;
+      	 	}
+      	 	public ApplicationCache getApplicationCache() {
+               return mCache;
+      	 	}
+        	
+        };
 
         final ProcessorFactory factory = new ProcessorFactory() {
 
@@ -228,7 +256,26 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
             }
         };
 
-        final IEngineEventCallback engineEventCallback = new HelperClasses.EngineCallbackBase();
+        final IEngineEventCallback engineEventCallback = new HelperClasses.EngineCallbackBase() {
+
+            @Override
+            public void onUiEvent(ServiceUiRequest event, int request, int status, Object data) {
+
+                Log
+                        .i(LOG_TAG, "onUiEvent: " + event + ", " + request + ", " + status + ", "
+                                + data);
+                
+            }
+            
+            public UiAgent getUiAgent(){
+         		 return mUiAgent;
+     	 	}
+     	 	public ApplicationCache getApplicationCache() {
+              return mCache;
+     	 	}
+
+        };
+
         minimalEngineSetup(engineEventCallback, factory);
 
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
@@ -244,7 +291,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
     /**
      * Verifies that events are fired after UI requests.
      */
-    @Suppress
+    
     // Breaks tests.
     public void testUiRequestCompleteEvent_fullSync() {
 
@@ -266,6 +313,13 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
                 uiEventCall.status = status;
                 uiEventCall.data = data;
             }
+            
+            public UiAgent getUiAgent(){
+         		 return mUiAgent;
+     	 	}
+     	 	public ApplicationCache getApplicationCache() {
+              return mCache;
+     	 	}
 
         };
 
@@ -332,6 +386,13 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
                 uiEventCall.status = status;
                 uiEventCall.data = data;
             }
+            
+            public UiAgent getUiAgent(){
+         		 return mUiAgent;
+     	 	}
+     	 	public ApplicationCache getApplicationCache() {
+              return mCache;
+     	 	}
 
         };
 
@@ -417,6 +478,13 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
                 uiEventCall.status = status;
                 uiEventCall.data = data;
             }
+            
+            public UiAgent getUiAgent(){
+         		 return mUiAgent;
+     	 	}
+     	 	public ApplicationCache getApplicationCache() {
+              return mCache;
+     	 	}
 
         };
 
@@ -459,7 +527,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
      * Checks the the method isFirstTimeSyncComplete() returns the correct
      * values.
      */
-    @Suppress
+    
     // Breaks tests.
     public void testIsFirstTimeSyncComplete() {
         Log.i(LOG_TAG, "**** testIsFirstTimeSyncComplete() begin ****");
@@ -480,6 +548,13 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
                 uiEventCall.status = status;
                 uiEventCall.data = data;
             }
+            
+            public UiAgent getUiAgent(){
+         		 return mUiAgent;
+     	 	}
+     	 	public ApplicationCache getApplicationCache() {
+              return mCache;
+     	 	}
 
         };
 
@@ -534,7 +609,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
      * Checks that nothing is scheduled before the first time sync has been
      * completed.
      */
-    @Suppress
+    
     public void testAutoSyncTimer() {
 
         Log.i(LOG_TAG, "**** testAutoSyncTimer() begin ****");
@@ -548,6 +623,13 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
                         .i(LOG_TAG, "onUiEvent: " + event + ", " + request + ", " + status + ", "
                                 + data);
             }
+            
+            public UiAgent getUiAgent(){
+         		 return mUiAgent;
+     	 	}
+     	 	public ApplicationCache getApplicationCache() {
+              return mCache;
+     	 	}
 
         };
 
@@ -609,6 +691,13 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
                 uiEventCall.status = status;
                 uiEventCall.data = data;
             }
+            
+            public UiAgent getUiAgent(){
+          		 return mUiAgent;
+      	 	}
+      	 	public ApplicationCache getApplicationCache() {
+               return mCache;
+      	 	}
 
         };
 
@@ -735,7 +824,14 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
                 uiEventCall.request = request;
                 uiEventCall.status = status;
                 uiEventCall.data = data;
-            }
+                
+                }
+        	 public UiAgent getUiAgent(){
+        		 return mUiAgent;
+        	 }
+        	 public ApplicationCache getApplicationCache() {
+                 return mCache;
+             }
 
         };
 
@@ -952,7 +1048,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
      * Tests that the native sync is scheduled and performed after a first time
      * sync then a re-instantiation of the ContactSyncEngine.
      */
-    @Suppress
+    
     // Breaks tests.
     public void testNativeSync_newEngineInstantiation() {
 
@@ -975,6 +1071,13 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
                 uiEventCall.status = status;
                 uiEventCall.data = data;
             }
+            
+            public UiAgent getUiAgent(){
+         		 return mUiAgent;
+     	 	}
+     	 	public ApplicationCache getApplicationCache() {
+              return mCache;
+     	 	}
 
         };
 
@@ -1093,7 +1196,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
     /**
      * Tests the sync is cancelled in case we remove user data.
      */
-    @Suppress
+    
     // Breaks tests.
     public void testCancelSync() {
 
@@ -1117,6 +1220,13 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
                 uiEventCall.status = status;
                 uiEventCall.data = data;
             }
+            
+            public UiAgent getUiAgent(){
+         		 return mUiAgent;
+     	 	}
+     	 	public ApplicationCache getApplicationCache() {
+              return mCache;
+     	 	}
 
         };
 
@@ -1306,7 +1416,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
                     contactChanges.mNumberOfPages = 0;
                     contactChanges.mVersionAnchor = 0;
                     data.add(contactChanges);
-                    respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_CONTACTCHANGES_RESPONSE.ordinal()));
+                    respQueue.addToResponseQueueFromTest(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_CONTACTCHANGES_RESPONSE.ordinal()));
                     mEngine.onCommsInMessage();
                     break;
                 case FETCHING_NATIVE_CONTACTS:
@@ -1319,7 +1429,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
                     serverContactChanges.mNumberOfPages = 0;
                     serverContactChanges.mVersionAnchor = 0;
                     data.add(serverContactChanges);
-                    respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.BULKUPDATE_CONTACTS_RESPONSE.ordinal()));
+                    respQueue.addToResponseQueueFromTest(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.BULKUPDATE_CONTACTS_RESPONSE.ordinal()));
                     mEngine.onCommsInMessage();
                     Log.d(LOG_TAG, "reportBackToEngine(): state=UPDATING_SERVER_CONTACTS");
                     break;
