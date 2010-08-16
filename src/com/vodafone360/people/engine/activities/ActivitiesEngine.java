@@ -848,4 +848,16 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
         this.mTimelinesUpdated = timelinesUpdated;
     }
 
+    @Override
+    public void onReset() {
+        
+        // reset the engine as if it was just created
+        super.onReset();
+        mTimelinesUpdated = false;
+        mLastStatusUpdated = 0;
+        mOldestStatusUpdated = 0;
+        mState = State.IDLE;
+        mRequestActivitiesRequired = false;
+        mActiveRequests.clear();
+    }
 }

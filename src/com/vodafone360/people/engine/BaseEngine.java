@@ -95,11 +95,6 @@ public abstract class BaseEngine {
      * mutex for thread synchronization
      */
     private Object mMutex = new Object();
-    
-    /**
-     * Flag set when a request to reset the engine is made and the engine has performed its reset tasks.
-     */
-    private boolean resetDone = false;
 
     /**
      * Interface which must be implemented by engine client. Provides the
@@ -564,32 +559,7 @@ public abstract class BaseEngine {
      * Note: if overriden, the engine shall call the super implementation when the reset is done.
      */
     public void onReset() {
-        // default implementation of the reset, sets the reset flag to true
-        setReset(true);
-    }
-    
-    /**
-     * Sets the reset flag.
-     *
-     * @param value the reset state of the engine, true if reset, false if not.
-     */
-    private void setReset(boolean value) {
-        resetDone = value;
-    }
-    
-    /**
-     * Gets the reset flag.
-     *
-     * @return true if the engine is reset, false if not
-     */
-    boolean getReset() {
-        return resetDone;
-    }
-    
-    /**
-     * Clears the reset flag. 
-     */
-    void clearReset() {
-        setReset(false);
+        emptyUiRequestQueue();
+        clearTimeout();
     }
 }

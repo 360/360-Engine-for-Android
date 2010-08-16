@@ -136,13 +136,10 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     private State mState = State.IDLE;
 
     /** List array of Identities retrieved from Server. */
-    private ArrayList<Identity> mAvailableIdentityList;
+    private final ArrayList<Identity> mAvailableIdentityList;
     
     /** List array of Identities retrieved from Server. */
-    private ArrayList<Identity> mMyIdentityList;
-
-    /** List array of Identities supporting chat retrieved from Server. */
-    private ArrayList<String> mMyChatableIdentityList = null;
+    private final ArrayList<Identity> mMyIdentityList;
 
     /** Holds the status messages of the setIdentityCapability-request. */
     private final ArrayList<StatusMsg> mStatusList = new ArrayList<StatusMsg>();
@@ -375,11 +372,6 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
                 reqData.mIdentityStatus))) {
             completeUiRequest(ServiceStatus.ERROR_BAD_SERVER_PARAMETER);
         }
-        // invalidate 'chat-able' identities cache
-        if (mMyChatableIdentityList != null) {
-            mMyChatableIdentityList.clear();
-        }
-
     }
 
     /**
@@ -773,10 +765,12 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     /** {@inheritDoc} */
     @Override
     public final void onReset() {
-        if (null != mMyIdentityList) {
-            mMyIdentityList.clear();
-        }
+        
         super.onReset();
+        mMyIdentityList.clear();
+        mAvailableIdentityList.clear();
+        mStatusList.clear();
+        mState = State.IDLE;
     }
 
 }

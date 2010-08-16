@@ -51,6 +51,7 @@ import com.vodafone360.people.service.agent.UiAgent;
 import com.vodafone360.people.service.agent.NetworkAgent.AgentState;
 import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.utils.LogUtils;
+import com.vodafone360.people.utils.VersionUtils;
 
 /**
  * Implementation of engine handling Contact-sync. Contact sync is a multi-stage
@@ -336,19 +337,6 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     private boolean mThumbnailSyncRequired;
 
     /**
-     * True if the current contact sync is being cancelled. This can happen when
-     * the user performs a remove user data to prevent the database being
-     * updated by a contact sync during deletion.
-     */
-    private boolean mCancelSync = false;
-
-    /**
-     * The following flag is set when the user initiates a remove user data. The
-     * contact sync must be stopped.
-     */
-    private boolean mRemoveUserData = false;
-
-    /**
      * Maintains a list of contact sync observers
      */
     private final ArrayList<IContactSyncObserver> mEventCallbackList = new ArrayList<IContactSyncObserver>();
@@ -373,6 +361,21 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * depending on the SDK.
      */
     private final NativeContactsApi mNativeContactsApi = NativeContactsApi.getInstance();
+    
+    /**
+     * True if changes on native contacts shall be detected.
+     */
+    private final boolean mFetchNativeContactsOnChange;
+    
+    /**
+     * True if native contacts shall be fetched from native.
+     */
+    private final boolean mFetchNativeContacts;
+    
+    /**
+     * True if changes on 360 contacts shall be forwarded to native contacts.
+     */
+    private final boolean mUpdateNativeContacts;
 
     /**
      * Used to listen for NowPlus database change events. Such events will be
@@ -403,6 +406,12 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         mDb = db;
         mEngineId = EngineId.CONTACT_SYNC_ENGINE;
         mContext = context;
+
+        final boolean enableNativeSync = VersionUtils.is2XPlatform() || !Settings.DISABLE_NATIVE_SYNC_AFTER_IMPORT_ON_ANDROID_1X;
+        mFetchNativeContactsOnChange = Settings.ENABLE_FETCH_NATIVE_CONTACTS_ON_CHANGE && enableNativeSync;
+        mFetchNativeContacts = Settings.ENABLE_FETCH_NATIVE_CONTACTS && enableNativeSync;
+        mUpdateNativeContacts = Settings.ENABLE_UPDATE_NATIVE_CONTACTS && enableNativeSync;
+        
         // use standard processor factory if provided one is null
         mProcessorFactory = (processorFactory == null) ? new DefaultProcessorFactory()
                 : processorFactory;
@@ -429,7 +438,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
             mFirstTimeNativeSyncComplete = setting3.getFirstTimeNativeSyncComplete();
         }
 
-        if (Settings.ENABLE_FETCH_NATIVE_CONTACTS_ON_CHANGE) {
+        if (mFetchNativeContactsOnChange) {
             mNativeContactsApi.registerObserver(this);
         }
         if (mFirstTimeSyncComplete) {
@@ -445,7 +454,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      */
     @Override
     public void onDestroy() {
-        if (Settings.ENABLE_FETCH_NATIVE_CONTACTS_ON_CHANGE) {
+        if (mFetchNativeContactsOnChange) {
             mNativeContactsApi.unregisterObserver();
         }
         mDb.removeEventCallback(mDbChangeHandler);
@@ -602,7 +611,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * (normally around 30 seconds).
      */
     private void startFetchNativeContactSyncTimer() {
-        if (!Settings.ENABLE_FETCH_NATIVE_CONTACTS) {
+        if (!mFetchNativeContacts) {
             return;
         }
         synchronized (this) {
@@ -622,7 +631,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * (normally around 30 seconds).
      */
     private void startUpdateNativeContactSyncTimer() {
-        if (!Settings.ENABLE_UPDATE_NATIVE_CONTACTS) {
+        if (!mUpdateNativeContacts) {
             return;
         }
         synchronized (this) {
@@ -667,13 +676,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      */
     @Override
     public long getNextRunTime() {
-        // first check if sync was cancelled (e.g. in "Change User" situation)
-        // this needs to be done first to avoid deadlocks
-        synchronized (this) {
-            if (mCancelSync) {
-                return 0;
-            }
-        }
+
         if (mLastStatus != ServiceStatus.SUCCESS) {
             return getCurrentTimeout();
         }
@@ -710,20 +713,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      */
     @Override
     public void run() {
-        synchronized (this) {
-            if (mCancelSync) {
-                cancelSync();
-                mCancelSync = false;
-                if (mRemoveUserData) {
-                    mFirstTimeSyncStarted = false;
-                    mFirstTimeSyncComplete = false;
-                    mFirstTimeNativeSyncComplete = false;
-                    mRemoveUserData = false;
-                    super.onReset();
-                }
-                return;
-            }
-        }
+
         if (processTimeout()) {
             return;
         }
@@ -973,7 +963,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * @return true if a sync can be started, false otherwise.
      */
     private boolean readyToStartFetchNativeSync() {
-        if (!Settings.ENABLE_FETCH_NATIVE_CONTACTS) {
+        if (!mFetchNativeContacts) {
             return false;
         }
         if (!mFirstTimeSyncStarted) {
@@ -992,7 +982,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * @return true if a sync can be started, false otherwise.
      */
     private boolean readyToStartUpdateNativeSync() {
-        if (!Settings.ENABLE_UPDATE_NATIVE_CONTACTS) {
+        if (!mUpdateNativeContacts) {
             return false;
         }
         if (!mFirstTimeSyncStarted) {
@@ -1081,10 +1071,11 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     /**
      * Helper function to start the fetch native contacts processor
      * 
+     * @param isFirstTimeSync true if importing native contacts for the first time
      * @return if this type of sync is enabled in the settings, false otherwise.
      */
-    private boolean startFetchNativeContacts() {
-        if (Settings.ENABLE_FETCH_NATIVE_CONTACTS) {
+    private boolean startFetchNativeContacts(boolean isFirstTimeSync) {
+        if (mFetchNativeContacts || (Settings.ENABLE_FETCH_NATIVE_CONTACTS && isFirstTimeSync)) {
             newState(State.FETCHING_NATIVE_CONTACTS);
             startProcessor(mProcessorFactory.create(ProcessorFactory.FETCH_NATIVE_CONTACTS, this,
                     mDb, mContext, mCr));
@@ -1099,7 +1090,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * @return if this type of sync is enabled in the settings, false otherwise.
      */
     private boolean startUpdateNativeContacts() {
-        if (Settings.ENABLE_UPDATE_NATIVE_CONTACTS) {
+        if (mUpdateNativeContacts) {
             newState(State.UPDATING_NATIVE_CONTACTS);
             startProcessor(mProcessorFactory.create(ProcessorFactory.UPDATE_NATIVE_CONTACTS, this,
                     mDb, null, mCr));
@@ -1188,7 +1179,9 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
                     break;
                 case FETCHING_SERVER_CONTACTS:
                     mThumbnailSyncRequired = true;
-                    mNativeUpdateSyncRequired = true;
+                    if (mUpdateNativeContacts) {
+                        mNativeUpdateSyncRequired = true;
+                    }
                     break;
                 default:
                     // Do nothing.
@@ -1229,7 +1222,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         
         switch (mState) {
             case IDLE:
-                if (startFetchNativeContacts()) { 
+                if (startFetchNativeContacts(true)) { 
                     return;
                 }
                 // Fall through
@@ -1298,7 +1291,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     private void nextTaskFetchNativeContacts() {
         switch (mState) {
             case IDLE:
-                if (startFetchNativeContacts()) {
+                if (startFetchNativeContacts(false)) {
                     return;
                 }
                 // Fall through
@@ -1706,11 +1699,34 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      */
     @Override
     public void onReset() {
+        
         synchronized (this) {
-            mCancelSync = true;
-            mRemoveUserData = true;
+            
+            mFullSyncRetryCount = 0;
+            mState = State.IDLE;
+            mMode = Mode.NONE;
+            mFailureList = null;
+            mDatabaseChanged = false;
+            mLastDbUpdateTime = 0L;
+            mActiveProcessor = null;
+            mServerSyncTimeout = null;
+            mFetchNativeSyncTimeout = null;
+            mUpdateNativeSyncTimeout = null;
+            mLastServerSyncTime = 0L;
+            mFirstTimeSyncComplete = false;
+            mFirstTimeSyncStarted = false;
+            mFirstTimeNativeSyncComplete = false;
+            mFullSyncRequired = false;
+            mServerSyncRequired = false;
+            mNativeFetchSyncRequired = false;
+            mNativeUpdateSyncRequired = false;
+            mThumbnailSyncRequired = false;
+            mCurrentProgressPercent = 0;
+            mDbChangedByProcessor = false;
+            mActiveUiRequestBackup = null;
         }
-        mEventCallback.kickWorkerThread();
+        super.onReset();
+        ThumbnailHandler.getInstance().reset();
     }
 
     /**

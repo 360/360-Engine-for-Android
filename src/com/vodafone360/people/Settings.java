@@ -153,6 +153,9 @@ public final class Settings {
 
     /** Enable hiding of connected friends group. **/
     public static final boolean HIDE_CONNECTED_FRIENDS_GROUP = true;
+    
+    /** Disable the native sync after the first time import for Android 1.X devices only **/
+    public static final boolean DISABLE_NATIVE_SYNC_AFTER_IMPORT_ON_ANDROID_1X = true;
 
 
     /*

@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
+import junit.framework.TestCase;
 import android.util.Log;
 
 import com.vodafone360.people.database.DatabaseHelper;
@@ -40,8 +41,6 @@ import com.vodafone360.people.engine.contactsync.NativeImporter;
 import com.vodafone360.people.engine.contactsync.PeopleContactsApi;
 import com.vodafone360.people.engine.contactsync.NativeContactsApi.Account;
 import com.vodafone360.people.utils.VersionUtils;
-
-import junit.framework.TestCase;
 
 
 public class NativeImporterTest extends TestCase {
@@ -81,19 +80,19 @@ public class NativeImporterTest extends TestCase {
      * The internal max operation count of the NativeImporter.
      * @see NativeImporter#MAX_CONTACTS_OPERATION_COUNT
      */
-    private final static int NATIVE_IMPORTER_MAX_OPERATION_COUNT = (Integer)getField("MAX_CONTACTS_OPERATION_COUNT", com.vodafone360.people.engine.contactsync.NativeImporter.class);
+    private final static float NATIVE_IMPORTER_MAX_OPERATION_COUNT = (Float)getField("CONTACTS_PER_TICK_START", com.vodafone360.people.engine.contactsync.NativeImporter.class);
     
     /**
      * A count of operations below the maximum.
      * @see NativeImporter#MAX_CONTACTS_OPERATION_COUNT
      */
-    private final static int NATIVE_CONTACTS_COUNT_BELOW_MAX_OPERATION_COUNT = NATIVE_IMPORTER_MAX_OPERATION_COUNT / 2;
+    private final static float NATIVE_CONTACTS_COUNT_BELOW_MAX_OPERATION_COUNT = NATIVE_IMPORTER_MAX_OPERATION_COUNT / 2;
     
     /**
      * A count of operations above the maximum.
      * @see NativeImporter#MAX_CONTACTS_OPERATION_COUNT
      */
-    private final static int NATIVE_CONTACTS_COUNT_OVER_MAX_OPERATION_COUNT = (NATIVE_IMPORTER_MAX_OPERATION_COUNT * 5) + (NATIVE_IMPORTER_MAX_OPERATION_COUNT / 2);
+    private final static float NATIVE_CONTACTS_COUNT_OVER_MAX_OPERATION_COUNT = (NATIVE_IMPORTER_MAX_OPERATION_COUNT * 5) + (NATIVE_IMPORTER_MAX_OPERATION_COUNT / 2);
     
     /**
      * A test Gmail account.
@@ -444,10 +443,10 @@ public class NativeImporterTest extends TestCase {
      * @param pcam the PeopleContactsApiMockup instance
      * @param contactsCount the number of native contacts to setup and import
      */
-    private void performNativeImport(NativeContactsApiMockup ncam, PeopleContactsApiMockup pcam, int contactsCount) {
+    private void performNativeImport(NativeContactsApiMockup ncam, PeopleContactsApiMockup pcam, float contactsCount) {
         
         final NativeImporter nativeImporter = new NativeImporter(pcam, ncam, false);
-        final int requiredTicks = 1 + (contactsCount / NATIVE_IMPORTER_MAX_OPERATION_COUNT) + (contactsCount % NATIVE_IMPORTER_MAX_OPERATION_COUNT > 0 ? 1 : 0);
+        final float requiredTicks = 1 + (contactsCount / NATIVE_IMPORTER_MAX_OPERATION_COUNT) + (contactsCount % NATIVE_IMPORTER_MAX_OPERATION_COUNT > 0 ? 1 : 0);
         
         // feed the native side
         feedNativeContactsApi(ncam, contactsCount, null);
@@ -611,7 +610,7 @@ public class NativeImporterTest extends TestCase {
      * @param contactsCount the number of contacts to add
      * @param account the account where to add the contact
      */
-    private void feedNativeContactsApi(NativeContactsApiMockup ncam, int contactsCount, Account account) {
+    private void feedNativeContactsApi(NativeContactsApiMockup ncam, float contactsCount, Account account) {
         
         for (int i = 0; i < contactsCount; i++) {
             
