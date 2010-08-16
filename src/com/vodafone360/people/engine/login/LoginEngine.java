@@ -1404,7 +1404,7 @@ public class LoginEngine extends BaseEngine {
         mState = State.NOT_INITIALISED;
         mRegistrationDetails = new RegistrationDetails();
         mActivationCode = null;
-        mCurrentLoginState = false;
+        onLoginStateChanged(false);
         // Remove NAB Account at this point (does nothing on 1.X)
         NativeContactsApi.getInstance().removePeopleAccount();
     }
