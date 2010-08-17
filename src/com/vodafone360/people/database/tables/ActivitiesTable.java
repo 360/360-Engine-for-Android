@@ -958,7 +958,11 @@ public abstract class ActivitiesTable {
                             item.mContactName, item.mTimestamp,
                             ActivityItem.TIMELINE_ITEM, activityTypes,
                             writableDb);
+                } else if ((item.mContactAddress == null) && (item.mLocalContactId == null)) {	// unknown contact
+                	latestStatusVal = 1;
                 }
+                
+                
                 ContentValues values = new ContentValues();
                 values.put(Field.CONTACT_NAME.toString(), item.mContactName);
                 values.put(Field.CONTACT_ID.toString(), item.mContactId);
@@ -1253,7 +1257,7 @@ public abstract class ActivitiesTable {
         }
 
         if (name == null) {
-            return null;
+            return "1=1";
         }
         final String searchName = DatabaseUtils.sqlEscapeString(name);
         if (PhoneNumberUtils.isWellFormedSmsAddress(name)) {
