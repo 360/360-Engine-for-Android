@@ -39,6 +39,7 @@ import android.database.sqlite.SQLiteStatement;
 import android.net.Uri;
 import android.provider.CallLog.Calls;
 import android.telephony.PhoneNumberUtils;
+import android.text.TextUtils;
 
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.database.DatabaseHelper;
@@ -808,52 +809,18 @@ public abstract class ActivitiesTable {
         Cursor cursor = null;
         try {
             TimelineNativeTypes[] typeList = null;
-            TimelineSummaryItem timelineItem = null;
             
             //For CallLog Timeline
-            typeList = new TimelineNativeTypes[] {
-                    TimelineNativeTypes.CallLog
-                };
-            cursor = fetchTimelineEventsForContact(0L, latestTimelineItem.mLocalContactId, 
-                   latestTimelineItem.mContactName, typeList, null, readableDb);
-           
-            if(cursor != null && cursor.getCount() > 0) {
-                cursor.moveToFirst();
-                timelineItem = getTimelineData(cursor);
-                if(timelineItem != null) {
-                    deleteTimelineActivity(context, timelineItem, writableDb, readableDb);
-                }
-            }
+            typeList = new TimelineNativeTypes[] { TimelineNativeTypes.CallLog };
+            deleteTimeLineActivitiesByType(context, latestTimelineItem, writableDb, readableDb, typeList);
             
             //For SmsLog/MmsLog Timeline
-            typeList = new TimelineNativeTypes[] {
-                    TimelineNativeTypes.SmsLog, TimelineNativeTypes.MmsLog
-                };
-            cursor = fetchTimelineEventsForContact(0L, latestTimelineItem.mLocalContactId, 
-                   latestTimelineItem.mContactName, typeList, null, readableDb);
-           
-            if(cursor != null && cursor.getCount() > 0) {
-                cursor.moveToFirst();
-                timelineItem = getTimelineData(cursor);
-                if(timelineItem != null) {
-                    deleteTimelineActivity(context, timelineItem, writableDb, readableDb);
-                }
-            }
-           
+            typeList = new TimelineNativeTypes[] { TimelineNativeTypes.SmsLog, TimelineNativeTypes.MmsLog };
+            deleteTimeLineActivitiesByType(context, latestTimelineItem, writableDb, readableDb, typeList);
+
             //For ChatLog Timeline
-            typeList = new TimelineNativeTypes[] {
-                    TimelineNativeTypes.ChatLog
-                };
-            cursor = fetchTimelineEventsForContact(0L, latestTimelineItem.mLocalContactId, 
-                   latestTimelineItem.mContactName, typeList, null, readableDb);
-           
-            if(cursor != null && cursor.getCount() > 0) {
-                cursor.moveToFirst();
-                timelineItem = getTimelineData(cursor);
-                if(timelineItem != null) {
-                    deleteTimelineActivity(context, timelineItem, writableDb, readableDb);
-                }
-            }
+            typeList = new TimelineNativeTypes[] { TimelineNativeTypes.ChatLog };
+            deleteTimeLineActivitiesByType(context, latestTimelineItem, writableDb, readableDb, typeList);
         } catch (SQLException e) {
                 LogUtils.logE("ActivitiesTable.deleteTimelineActivities() "
                         + "Unable to delete timeline activities", e);
@@ -866,6 +833,50 @@ public abstract class ActivitiesTable {
         
         return ServiceStatus.SUCCESS;
     }
+    
+    /**
+     * 
+     * Deletes one or more timeline items for a contact for the given types.
+     * 
+     * @param context The app context to open the transaction in. 
+     * @param latestTimelineItem The latest item from the timeline to get the belonging contact from.
+     * @param writableDb The database to write to.
+     * @param readableDb The database to read from.
+     * @param typeList The list of types to delete timeline events for.
+     * 
+     * @return Returns a success if the transaction was successful, an error otherwise.
+     * 
+     */
+    private static ServiceStatus deleteTimeLineActivitiesByType(Context context, TimelineSummaryItem latestTimelineItem, 
+    													SQLiteDatabase writableDb, SQLiteDatabase readableDb, 
+    													TimelineNativeTypes[] typeList) {
+    	Cursor cursor = null;
+    	TimelineSummaryItem timelineItem = null;
+    	
+    	try {
+	        cursor = fetchTimelineEventsForContact(0L, latestTimelineItem.mLocalContactId, 
+	                latestTimelineItem.mContactName, typeList, null, readableDb);
+	        
+	         if(cursor != null && cursor.getCount() > 0) {
+	             cursor.moveToFirst();
+	             timelineItem = getTimelineData(cursor);
+	             if(timelineItem != null) {
+	                 return deleteTimelineActivity(context, timelineItem, writableDb, readableDb);
+	             }
+	         }
+	    } catch (SQLException e) {
+            LogUtils.logE("ActivitiesTable.deleteTimelineActivities() "
+                    + "Unable to delete timeline activities", e);
+            return ServiceStatus.ERROR_DATABASE_CORRUPT;
+	    } finally {
+	        if(cursor != null) {
+	            CloseUtils.close(cursor);
+	        }
+	    }
+	    
+	    return ServiceStatus.SUCCESS;
+    }
+    
     
     /**
      * Fetches timeline events grouped by local contact ID, name or contact
@@ -950,7 +961,7 @@ public abstract class ActivitiesTable {
                     continue;
                 }
                 int latestStatusVal = 0;
-                if (item.mContactName != null || item.mLocalContactId != null) {
+                if (!TextUtils.isEmpty(item.mContactName) || item.mLocalContactId != null) {
                     latestStatusVal |= removeContactGroup(item.mLocalContactId,
                             item.mContactName, item.mTimestamp,
                             ActivityItem.TIMELINE_ITEM, null, writableDb);
@@ -958,7 +969,7 @@ public abstract class ActivitiesTable {
                             item.mContactName, item.mTimestamp,
                             ActivityItem.TIMELINE_ITEM, activityTypes,
                             writableDb);
-                } else if ((item.mContactAddress == null) && (item.mLocalContactId == null)) {	// unknown contact
+                } else {	// unknown contact
                 	latestStatusVal = 1;
                 }
                 
@@ -1257,7 +1268,7 @@ public abstract class ActivitiesTable {
         }
 
         if (name == null) {
-            return "1=1";
+            return "1=1";	// we need to return something that evaluates to true as this method is called after a SQL AND-operator
         }
         final String searchName = DatabaseUtils.sqlEscapeString(name);
         if (PhoneNumberUtils.isWellFormedSmsAddress(name)) {
