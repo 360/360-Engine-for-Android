@@ -173,7 +173,42 @@ public class EngineManager {
         sEngineManager = new EngineManager(service, uiCallback);
         sEngineManager.onCreate();
     }
-
+    
+    /**
+     * (Used only by JUnit)
+     * Create instance of EngineManager.
+     * 
+     * @param service {@link RemoteService} reference
+     * @param uiCallback Provides useful engine callback functionality.
+     */
+    public static EngineManager createEngineManagerForTest(RemoteService service, IEngineEventCallback uiCallback) {
+        sEngineManager = new EngineManager(service, uiCallback);
+        return sEngineManager;
+    }
+    
+    /**
+     * (Used only by JUnit)
+     * Add a new engine to the EngineManager.
+     * 
+     * @param newEngine Engine to be added.
+     */
+    public void addEngineForTest(BaseEngine newEngine){
+    	
+    	final String newName = newEngine.getClass().getSimpleName();
+        String[] deactivatedEngines = SettingsManager
+                .getStringArrayProperty(Settings.DEACTIVATE_ENGINE_LIST_KEY);
+        for (String engineName : deactivatedEngines) {
+            if (engineName.equals(newName)) {
+                LogUtils.logW("DEACTIVATE ENGINE:  " + engineName);
+                newEngine.deactivateEngine();
+            }
+        }
+        if (!newEngine.isDeactivated()) {
+            newEngine.onCreate();
+            mEngineList.put(newEngine.mEngineId.ordinal(), newEngine);
+        }
+    
+    }
     /**
      * Destroy EngineManager.
      */

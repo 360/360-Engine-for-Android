@@ -188,7 +188,8 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
         }
         mTimelineEventWatcher = new TimelineEventWatcher(mContext, this);
     }
-
+    
+ 
     /**
      * Return next run time for ActivitiesEngine. Determined by whether we have
      * a request we wish to issue, or there is a response that needs processing.
@@ -211,6 +212,24 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
         return getCurrentTimeout();
 
     }
+    /** Used only by JUnit
+     * Return next run time for ActivitiesEngine. Determined by whether we have
+     * a request we wish to issue, or there is a response that needs processing.
+     */    
+    public long getNextRunTimeForTest() {
+        
+         if (isCommsResponseOutstanding()) {
+             return 0;
+         }
+         if (isUiRequestOutstanding()) {
+             return 0;
+         }
+         if (mRequestActivitiesRequired && checkConnectivity()) {
+             return 0;
+         }
+         return getCurrentTimeout();
+
+     }
 
     /**
      * onCreate. Instruct the timeline event watcher to start watching for
@@ -653,6 +672,9 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
     protected void onSyncHelperComplete(ServiceStatus status) {
         if (ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE == status) {
             mTimelinesUpdated = true;
+        }
+        if (status != ServiceStatus.SUCCESS){
+        	completeUiRequest(status, null);
         }
         switch (mState) {
             case FETCH_STATUSES_FIRST_TIME:

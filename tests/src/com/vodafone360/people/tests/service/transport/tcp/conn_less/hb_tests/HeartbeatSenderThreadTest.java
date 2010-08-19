@@ -176,7 +176,7 @@ public class HeartbeatSenderThreadTest extends InstrumentationTestCase {
 		assertEquals(baos, hbSender.getOutputStream());
 	}
 	
-	@Suppress
+	
 	@MediumTest
 	public void testStartConnection() {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -198,7 +198,7 @@ public class HeartbeatSenderThreadTest extends InstrumentationTestCase {
 		hbSender.stopConnection();
 	}
 	
-	@Suppress
+	
 	@MediumTest
 	public void testStopConnection() {
 		DataOutputStream dos = new DataOutputStream(new ByteArrayOutputStream());
@@ -230,7 +230,7 @@ public class HeartbeatSenderThreadTest extends InstrumentationTestCase {
 		}
 	}
 	
-	@Suppress
+	
 	@MediumTest
 	public void testRun_exception() {
 		// IO Exception test
@@ -240,7 +240,7 @@ public class HeartbeatSenderThreadTest extends InstrumentationTestCase {
 				null //QUICKFIX: Not sure about this value
 				);
 		hbSender.setOutputStream(baos);
-		
+		hbSender.setCurrentTcpThread();
 		try {
 			baos.close();
 		} catch (IOException e) {}
@@ -260,6 +260,7 @@ public class HeartbeatSenderThreadTest extends InstrumentationTestCase {
 				null //QUICKFIX: Not sure about this value
 				);
 		hbSender.setOutputStream(null);
+		hbSender.setCurrentTcpThread();
 		
 		hbSender.startConnection();
 		try {
