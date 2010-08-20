@@ -608,7 +608,8 @@ public abstract class ActivitiesTable {
         SQLiteStatement statement =
             ContactsTable.fetchLocalFromServerIdStatement(writableDb);
 
-            for (ActivityItem activity : actList) {          
+            for (ActivityItem activity : actList) {
+
                 try {
                     writableDb.beginTransaction();
                 
@@ -620,6 +621,13 @@ public abstract class ActivitiesTable {
                                 ContactsTable.fetchLocalFromServerId(
                                         activityContact.mContactId,
                                         statement);
+                            
+                            if (activityContact.mLocalContactId == null) {
+                                // Just skip activities for which we don't have a corresponding contact
+                                // in the database anymore otherwise they will be shown as "Blank name".
+                                // This is the same on the web but we could use the provided name instead.
+                                continue;
+                            }
                             
                             int latestStatusVal = removeContactGroup(
                                     activityContact.mLocalContactId, 
@@ -636,7 +644,7 @@ public abstract class ActivitiesTable {
                         activity.localActivityId = writableDb.insertOrThrow(
                                 TABLE_NAME, null, fillUpdateData(activity, null));
                     }
-                    if (activity.localActivityId < 0) {
+                    if ((activity.localActivityId != null) && (activity.localActivityId < 0)) {
                         LogUtils.logE("ActivitiesTable.addActivities() "
                                 + "Unable to add activity");
                         return ServiceStatus.ERROR_DATABASE_CORRUPT;
