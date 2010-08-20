@@ -130,6 +130,8 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
      * the animated buttons in timeline screen correctly.
      */
     private boolean mTimelinesUpdated;
+    
+    public boolean mJUnitTestMode = false ;
 
     /**
      * Definitions of Activities engines states; IDLE - engine is inactive
@@ -407,12 +409,15 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
             mRequestActivitiesRequired = true;
             return;
         }
+      
         mRequestActivitiesRequired = false;
-        if (!isContactSyncReady()
-                || !EngineManager.getInstance().getContactSyncEngine().isFirstTimeSyncComplete()) {
-            // this method will then call completeUiRequest(status, null);
-            onSyncHelperComplete(ServiceStatus.ERROR_NOT_READY);
-            return;
+        if (!mJUnitTestMode){
+	        if (!isContactSyncReady()
+	                || !EngineManager.getInstance().getContactSyncEngine().isFirstTimeSyncComplete()) {
+	            // this method will then call completeUiRequest(status, null);
+	            onSyncHelperComplete(ServiceStatus.ERROR_NOT_READY);
+	            return;
+	        }
         }
         mLastStatusUpdated = StateTable.fetchLatestStatusUpdateTime(mDb.getReadableDatabase());
         mOldestStatusUpdated = StateTable.fetchOldestStatusUpdate(mDb.getReadableDatabase());
@@ -868,6 +873,14 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
      */
     public void setTimelinesUpdated(boolean timelinesUpdated) {
         this.mTimelinesUpdated = timelinesUpdated;
+    }
+    
+    /**
+     * Sets the test mode flag.
+     * Used to bypass dependency with other modules while unit testing
+     */
+    public void setTestMode(boolean mode){
+    	mJUnitTestMode = mode;
     }
 
     @Override

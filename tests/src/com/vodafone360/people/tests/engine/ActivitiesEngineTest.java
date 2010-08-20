@@ -107,6 +107,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
         mEngineTester = new EngineTestFramework(this);
         mEng = new ActivitiesEngine(getInstrumentation().getTargetContext(), mEngineTester,
                 mApplication.getDatabase());
+        mEng.setTestMode(true);
         mEngineTester.setEngine(mEng);
         mState = ActivityTestState.IDLE;
         
