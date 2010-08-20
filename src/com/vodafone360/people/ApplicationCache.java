@@ -39,6 +39,7 @@ import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactSummary;
 import com.vodafone360.people.engine.contactsync.SyncStatus;
 import com.vodafone360.people.service.ServiceStatus;
+import com.vodafone360.people.ui.contacts.MyProfileCache;
 import com.vodafone360.people.utils.ThirdPartyAccount;
 import com.vodafone360.people.utils.LoginPreferences;
 import com.vodafone360.people.utils.LogUtils;
@@ -178,6 +179,11 @@ public class ApplicationCache {
     
     /** Cached whether ThirdPartyAccountsActivity is opened. */
     private boolean mIsAddAccountActivityOpened;
+    
+    /**
+     * The My profile checkboxes states cache. 
+     */
+    private static MyProfileCache sMyProfileCache;
 
     /***
      * GETTER Whether "add Account" activity is opened
@@ -292,6 +298,8 @@ public class ApplicationCache {
         mSyncStatus = null;
         
         mIsAddAccountActivityOpened = false;
+        
+        sMyProfileCache = null;
     }
 
     /**
@@ -662,5 +670,21 @@ public class ApplicationCache {
      */
     public final long getCurrentContactFilter() {
         return mCurrentContactFilter;
+    }
+    
+    /**
+     * Returns the cached checkboxes states on "My profile" screen.
+     * @return MyProfileCache object.
+     */
+    public static MyProfileCache getMyProfileUiCache() {
+        return sMyProfileCache;
+    }
+ 
+    /**
+     * This method sets the cache of checkboxes. 
+     * @param cache MyProfileCache.
+     */
+    public static void setMyProfileCache(MyProfileCache cache) {
+        sMyProfileCache = cache;
     }
 }

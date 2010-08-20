@@ -29,8 +29,6 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
-import android.text.TextUtils;
-
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.database.tables.ActivitiesTable.TimelineSummaryItem;
 import com.vodafone360.people.datatypes.BaseDataType;
@@ -647,31 +645,27 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         
         addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presenceList);
     }
-        
+    
     /**
-     * Changes the user's availability and therefore the state of the engine. 
-     * Also displays the login notification if necessary.
+     * Changes the user's availability.
      * 
-     * @param presence Network-presence to set
+     * @param status - Hashtable<String, String> of pairs <communityName, statusName>.
      */
-    public void setMyAvailability(NetworkPresence presence) {
-        if (presence == null) {
+    public void setMyAvailability(Hashtable<String, String> presenceHash) {
+        if (presenceHash == null) {
             LogUtils.logE("PresenceEngine setMyAvailability:"
                     + " Can't send the setAvailability request due to DB reading errors");
             return;
         }
         
-        LogUtils.logV("PresenceEngine setMyAvailability() called with network presence:"+presence.toString());
+        LogUtils.logV("PresenceEngine setMyAvailability() called with status:"+ presenceHash.toString());
         if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED) {
             LogUtils.logD("PresenceEnfgine.setMyAvailability(): skip - NO NETWORK CONNECTION");
             return;
         }
         
-        ArrayList<NetworkPresence> presenceList = new ArrayList<NetworkPresence>();
-        presenceList.add(presence);
         User me = new User(String.valueOf(PresenceDbUtils.getMeProfileUserId(mDbHelper)),
-                null);
-        me.setPayload(presenceList);
+                presenceHash);
         
         // set the DB values for myself
         me.setLocalContactId(SyncMeDbUtils.getMeProfileLocalContactId(mDbHelper));
@@ -679,7 +673,42 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
 
         // set the engine to run now
         
-        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presenceList);
+        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presenceHash);
+    }
+        
+    /**
+     * Changes the user's availability.
+     * 
+     * @param network - SocialNetwork to set presence on.
+     * @param status - OnlineStatus presence status to set.
+     */
+    public void setMyAvailability(SocialNetwork network, OnlineStatus status) {
+        
+        LogUtils.logV("PresenceEngine setMyAvailability() called with network presence: "+network + "=" + status);
+        if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED) {
+            LogUtils.logD("PresenceEnfgine.setMyAvailability(): skip - NO NETWORK CONNECTION");
+            return;
+        }
+        
+        ArrayList<NetworkPresence> presenceList = new ArrayList<NetworkPresence>();
+
+        String userId = String.valueOf(PresenceDbUtils.getMeProfileUserId(mDbHelper));
+        
+        presenceList.add(new NetworkPresence(userId, network.ordinal(), status.ordinal()));
+        
+        User me = new User(userId, null);
+        
+        me.setPayload(presenceList);
+        
+        // set the DB values for myself
+        me.setLocalContactId(SyncMeDbUtils.getMeProfileLocalContactId(mDbHelper));
+        updateMyPresenceInDatabase(me);
+
+        // set the engine to run now
+        Hashtable<String, String> presenceHash = new Hashtable<String, String>();
+        presenceHash.put(network.toString(), status.toString());
+        
+        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presenceHash);
     }
 
 
@@ -700,8 +729,6 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
      * @param body the message text
      */
     public void sendMessage(long toLocalContactId, String body, int networkId) {
-        LogUtils.logW("PresenceEngine.sendMessage() to:" + toLocalContactId + ", body:" + body
-                + ", at:" + networkId);
         if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED) {
             LogUtils.logD("PresenceEnfgine.sendMessage: skip - NO NETWORK CONNECTION");
             return;
