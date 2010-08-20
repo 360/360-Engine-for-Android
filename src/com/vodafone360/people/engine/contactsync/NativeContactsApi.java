@@ -307,7 +307,7 @@ public abstract class NativeContactsApi {
      * @return true if an account exists, false if not.
      */
     public abstract boolean isPeopleAccountCreated();
-
+    
     /**
      * Removes the (first found) People Account from the NAB accounts. Only
      * supported on 2.X. The 1.X implementation does nothing.
@@ -374,6 +374,13 @@ public abstract class NativeContactsApi {
      * @return true if the Master Auto-sync is enabled, false otherwise
      */
     public abstract boolean getMasterSyncAutomatically();
+
+    /**
+     * Used to set the system syncable functionality on and off.
+     * This is really only useful for 2.X devices.
+     * @param syncable if true, false otherwise 
+     */
+    public abstract void setSyncable(boolean syncable);
     
     /**
      * Used to forcefully set the underlying Sync adapter to be Automatically Syncable or not.
