@@ -535,7 +535,6 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         
         switch (requestId) {
             case SET_MY_AVAILABILITY:
-                LogUtils.logE(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SET_MY_AVAILABILITY:"+ data);
                 Presence.setMyAvailability((Hashtable<String,String>)data);
                 break;
             case GET_PRESENCE_LIST:
@@ -648,29 +647,25 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     }
     
     /**
-     * Changes the user's availability and therefore the state of the engine. 
-     * Also displays the login notification if necessary.
+     * Changes the user's availability.
      * 
-     * @param status Availability to set for all identities we have.
+     * @param status - Hashtable<String, String> of pairs <communityName, statusName>.
      */
-    public void setMyAvailability(Hashtable<String, String> presenceList) {
-        if (presenceList == null) {
+    public void setMyAvailability(Hashtable<String, String> presenceHash) {
+        if (presenceHash == null) {
             LogUtils.logE("PresenceEngine setMyAvailability:"
                     + " Can't send the setAvailability request due to DB reading errors");
             return;
         }
         
-        LogUtils.logV("PresenceEngine setMyAvailability() called with status:"+ presenceList.toString());
+        LogUtils.logV("PresenceEngine setMyAvailability() called with status:"+ presenceHash.toString());
         if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED) {
             LogUtils.logD("PresenceEnfgine.setMyAvailability(): skip - NO NETWORK CONNECTION");
             return;
         }
         
-        // Get presences
-        // TODO: Fill up hashtable with identities and online statuses
-        
         User me = new User(String.valueOf(PresenceDbUtils.getMeProfileUserId(mDbHelper)),
-                presenceList);
+                presenceHash);
         
         // set the DB values for myself
         me.setLocalContactId(SyncMeDbUtils.getMeProfileLocalContactId(mDbHelper));
@@ -678,14 +673,14 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
 
         // set the engine to run now
         
-        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presenceList);
+        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presenceHash);
     }
         
     /**
-     * Changes the user's availability and therefore the state of the engine. 
-     * Also displays the login notification if necessary.
+     * Changes the user's availability.
      * 
-     * @param presence Network-presence to set
+     * @param network - SocialNetwork to set presence on.
+     * @param status - OnlineStatus presence status to set.
      */
     public void setMyAvailability(SocialNetwork network, OnlineStatus status) {
         
@@ -710,9 +705,10 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         updateMyPresenceInDatabase(me);
 
         // set the engine to run now
-        Hashtable<String, String> presence = new Hashtable<String, String>();
-        presence.put(network.toString(), status.toString());
-        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presence);
+        Hashtable<String, String> presenceHash = new Hashtable<String, String>();
+        presenceHash.put(network.toString(), status.toString());
+        
+        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presenceHash);
     }
 
 
@@ -733,8 +729,6 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
      * @param body the message text
      */
     public void sendMessage(long toLocalContactId, String body, int networkId) {
-        LogUtils.logW("PresenceEngine.sendMessage() to:" + toLocalContactId + ", body:" + body
-                + ", at:" + networkId);
         if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED) {
             LogUtils.logD("PresenceEnfgine.sendMessage: skip - NO NETWORK CONNECTION");
             return;

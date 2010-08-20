@@ -278,14 +278,17 @@ public interface IPeopleService {
     void setAvailability(OnlineStatus status);
     
     /**
-     * Change current global (all identities) availability state.
-     * @param status Availability to set for all identities we have. 
+     * Changes the user's availability.
+     * 
+     * @param status - Hashtable<String, String> is the hash of pairs <networkName, statusName>.
      */
     void setAvailability(Hashtable<String, String> status);
     
     /**
-     * Change current availability state for a single network.
-	 * @param presence Network-presence to set
+     * Changes the user's availability.
+     * 
+     * @param network - SocialNetwork to set presence on.
+     * @param status - OnlineStatus presence status to set.
      */
     void setAvailability(SocialNetwork network, OnlineStatus  status);
 

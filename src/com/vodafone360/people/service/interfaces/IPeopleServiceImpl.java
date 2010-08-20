@@ -41,7 +41,6 @@ import com.vodafone360.people.datatypes.RegistrationDetails;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.BaseEngine.IEngineEventCallback;
-import com.vodafone360.people.engine.presence.NetworkPresence;
 import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.RemoteService;
 import com.vodafone360.people.service.ServiceUiRequest;
@@ -337,7 +336,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
     }
 
     /***
-     * @see com.vodafone360.people.service.interfaces.IPeopleService#setAvailability(NetworkPresence)
+     * @see com.vodafone360.people.service.interfaces.IPeopleService#setAvailability(SocialNetwork, OnlineStatus)
      */    
     @Override
     public void setAvailability(SocialNetwork network, OnlineStatus status) {

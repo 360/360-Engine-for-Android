@@ -33,7 +33,6 @@ import java.util.Iterator;
 import com.vodafone360.people.datatypes.ContactSummary;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
-import com.vodafone360.people.utils.LogUtils;
 
 /**
  * User is a class encapsulating the information about a user's presence state.
@@ -67,7 +66,6 @@ public class User {
      *            mobile:online}
      */
     public User(String userId, Hashtable<String, String> payload) {
-        LogUtils.logE("user id " + userId + ": "+ payload);
         if (payload != null) {
             mOverallOnline = isOverallOnline(payload);
             mPayload = createPayload(userId, payload);

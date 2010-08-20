@@ -298,6 +298,8 @@ public class ApplicationCache {
         mSyncStatus = null;
         
         mIsAddAccountActivityOpened = false;
+        
+        sMyProfileCache = null;
     }
 
     /**
@@ -670,14 +672,19 @@ public class ApplicationCache {
         return mCurrentContactFilter;
     }
     
+    /**
+     * Returns the cached checkboxes states on "My profile" screen.
+     * @return MyProfileCache object.
+     */
     public static MyProfileCache getMyProfileUiCache() {
-        if (sMyProfileCache == null) {
-            sMyProfileCache = new MyProfileCache();
-        }
         return sMyProfileCache;
     }
-    
-    public static void setMyProfileUiCache(MyProfileCache cache) {
+ 
+    /**
+     * This method sets the cache of checkboxes. 
+     * @param cache MyProfileCache.
+     */
+    public static void setMyProfileCache(MyProfileCache cache) {
         sMyProfileCache = cache;
     }
 }
