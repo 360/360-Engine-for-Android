@@ -29,8 +29,6 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
-import android.text.TextUtils;
-
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.database.tables.ActivitiesTable.TimelineSummaryItem;
 import com.vodafone360.people.datatypes.BaseDataType;
@@ -537,6 +535,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         
         switch (requestId) {
             case SET_MY_AVAILABILITY:
+                LogUtils.logE(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SET_MY_AVAILABILITY:"+ data);
                 Presence.setMyAvailability((Hashtable<String,String>)data);
                 break;
             case GET_PRESENCE_LIST:
@@ -647,31 +646,31 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         
         addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presenceList);
     }
-        
+    
     /**
      * Changes the user's availability and therefore the state of the engine. 
      * Also displays the login notification if necessary.
      * 
-     * @param presence Network-presence to set
+     * @param status Availability to set for all identities we have.
      */
-    public void setMyAvailability(NetworkPresence presence) {
-        if (presence == null) {
+    public void setMyAvailability(Hashtable<String, String> presenceList) {
+        if (presenceList == null) {
             LogUtils.logE("PresenceEngine setMyAvailability:"
                     + " Can't send the setAvailability request due to DB reading errors");
             return;
         }
         
-        LogUtils.logV("PresenceEngine setMyAvailability() called with network presence:"+presence.toString());
+        LogUtils.logV("PresenceEngine setMyAvailability() called with status:"+ presenceList.toString());
         if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED) {
             LogUtils.logD("PresenceEnfgine.setMyAvailability(): skip - NO NETWORK CONNECTION");
             return;
         }
         
-        ArrayList<NetworkPresence> presenceList = new ArrayList<NetworkPresence>();
-        presenceList.add(presence);
+        // Get presences
+        // TODO: Fill up hashtable with identities and online statuses
+        
         User me = new User(String.valueOf(PresenceDbUtils.getMeProfileUserId(mDbHelper)),
-                null);
-        me.setPayload(presenceList);
+                presenceList);
         
         // set the DB values for myself
         me.setLocalContactId(SyncMeDbUtils.getMeProfileLocalContactId(mDbHelper));
@@ -680,6 +679,40 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         // set the engine to run now
         
         addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presenceList);
+    }
+        
+    /**
+     * Changes the user's availability and therefore the state of the engine. 
+     * Also displays the login notification if necessary.
+     * 
+     * @param presence Network-presence to set
+     */
+    public void setMyAvailability(SocialNetwork network, OnlineStatus status) {
+        
+        LogUtils.logV("PresenceEngine setMyAvailability() called with network presence: "+network + "=" + status);
+        if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED) {
+            LogUtils.logD("PresenceEnfgine.setMyAvailability(): skip - NO NETWORK CONNECTION");
+            return;
+        }
+        
+        ArrayList<NetworkPresence> presenceList = new ArrayList<NetworkPresence>();
+
+        String userId = String.valueOf(PresenceDbUtils.getMeProfileUserId(mDbHelper));
+        
+        presenceList.add(new NetworkPresence(userId, network.ordinal(), status.ordinal()));
+        
+        User me = new User(userId, null);
+        
+        me.setPayload(presenceList);
+        
+        // set the DB values for myself
+        me.setLocalContactId(SyncMeDbUtils.getMeProfileLocalContactId(mDbHelper));
+        updateMyPresenceInDatabase(me);
+
+        // set the engine to run now
+        Hashtable<String, String> presence = new Hashtable<String, String>();
+        presence.put(network.toString(), status.toString());
+        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presence);
     }
 
 
