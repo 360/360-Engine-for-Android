@@ -210,7 +210,7 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
             List<BaseDataType> dataTypeList = new ArrayList<BaseDataType>();
             ServerError err = new ServerError(ServerError.ErrorType.UNKNOWN);
             dataTypeList.add(err);
-            respQ.addToResponseQueueFromTest(new DecodedResponse(reqId, dataTypeList, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
+            respQ.addToResponseQueue(new DecodedResponse(reqId, dataTypeList, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
         }
     }
 

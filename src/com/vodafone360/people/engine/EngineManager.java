@@ -206,6 +206,38 @@ public class EngineManager {
         if (!newEngine.isDeactivated()) {
             newEngine.onCreate();
             mEngineList.put(newEngine.mEngineId.ordinal(), newEngine);
+            
+            switch(newEngine.engineId()){
+            
+            case ACTIVITIES_ENGINE:{
+            	mActivitiesEngine = (ActivitiesEngine) newEngine;
+            	break;
+            }
+            case LOGIN_ENGINE:{
+            	mLoginEngine = (LoginEngine) newEngine;
+            	break;
+            }
+            case IDENTITIES_ENGINE:{
+            	mIdentityEngine = (IdentityEngine) newEngine;
+            	break;
+            }
+            case CONTACT_SYNC_ENGINE:{
+            	mContactSyncEngine = (ContactSyncEngine) newEngine;
+            	break;
+            }
+            case PRESENCE_ENGINE:{
+            	mPresenceEngine  = (PresenceEngine) newEngine;
+            	break;
+            }
+            
+            case SYNCME_ENGINE:{
+            	mSyncMeEngine = (SyncMeEngine) newEngine;
+            	break;
+            }
+            
+            default:
+            	break;
+            }
         }
     
     }
