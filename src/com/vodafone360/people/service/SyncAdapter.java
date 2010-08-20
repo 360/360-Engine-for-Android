@@ -68,11 +68,17 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
 //    
     
     /**
-     * Delay when checking our Sync Setting when we a global setting change.
+     * Delay when checking our Sync Setting when there is a authority auto-sync setting change.
      * This waiting time is necessary because in case it is our sync adapter authority setting 
      * that changes we cannot query in the callback because the value is not yet changed!
      */
     private static final int SYNC_SETTING_CHECK_DELAY = 500;
+    
+    /**
+     * Same as ContentResolver.SYNC_OBSERVER_TYPE_SETTINGS
+     * The reason we have this is just because the constant is not publicly defined before 2.2.
+     */
+    private static final int SYNC_OBSERVER_TYPE_SETTINGS = 1;
     
     /**
      * Application object instance
@@ -92,7 +98,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
     
     /**
      * Observer for the global sync status setting. 
-     * There is no known way to only observer our sync adapter's setting.
+     * There is no known way to only observe our sync adapter's setting.
      */
     private final SyncStatusObserver mSyncStatusObserver = new SyncStatusObserver() {
         @Override
@@ -138,7 +144,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
         context.registerReceiver(mAutoSyncChangeBroadcastReceiver, new IntentFilter(
             "com.android.sync.SYNC_CONN_STATUS_CHANGED"));
         ContentResolver.addStatusChangeListener(
-                ContentResolver.SYNC_OBSERVER_TYPE_SETTINGS, mSyncStatusObserver);
+                SYNC_OBSERVER_TYPE_SETTINGS, mSyncStatusObserver);
         // Register for sync event callbacks
         // TODO: RE-ENABLE SYNC VIA SYSTEM
         // mSyncEngine.addEventCallback(this);
@@ -236,7 +242,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
         if(!ContentResolver.getMasterSyncAutomatically()) {
             return false;
         }
-        return ContentResolver.getSyncAutomatically(mAccount, ContactsContract.AUTHORITY);
+        return mAccount != null && 
+            ContentResolver.getSyncAutomatically(mAccount, ContactsContract.AUTHORITY);
     }
     
     /**
