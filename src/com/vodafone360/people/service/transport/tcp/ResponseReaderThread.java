@@ -95,13 +95,14 @@ public class ResponseReaderThread implements Runnable {
     private Socket mSocket;
 
     /**
+     * 
      * Constructs a new response reader used for reading bytes from a socket
      * connection.
      * 
-     * @param connThread The connection thread that manages this and the
-     *            heartbeat sender thread. It is called back whenever an error
-     *            occured reading from the socket input stream.
+     * @param connThread The connection thread that manages this and the heartbeat sender thread. 
+     * It is called back whenever an error occured reading from the socket input stream.
      * @param decoder Used to decode all incoming responses.
+     * 
      */
     public ResponseReaderThread(TcpConnectionThread connThread, DecoderThread decoder, Socket socket) {
         mConnThread = connThread;
@@ -136,6 +137,7 @@ public class ResponseReaderThread implements Runnable {
      * Attempts to stop the thread and sets it to null.
      */
     public void stopConnection() {
+    	HttpConnectionThread.logD("ResponseReaderThread.stopConnection()", "Stopping connection...");
         mIsConnectionRunning = false;
 
         if (null != mSocket) {
@@ -159,7 +161,7 @@ public class ResponseReaderThread implements Runnable {
                 mIs = null;
             }
         }
-
+        
         try {
             mThread.join(60); // give it 60 millis max
         } catch (InterruptedException ie) {
@@ -190,8 +192,10 @@ public class ResponseReaderThread implements Runnable {
      */
     public void run() {
         while (mIsConnectionRunning) {
+        	HttpConnectionThread.logD("ResponseReaderThread.run()", "Checking for duplicate threads.");
             checkForDuplicateThreads();
-
+            HttpConnectionThread.logD("ResponseReaderThread.run()", "Reading next response...");
+            
             try {
                 byte[] response = readNextResponse();
 
@@ -208,9 +212,11 @@ public class ResponseReaderThread implements Runnable {
                 }
             }
 
-            try {
-                Thread.sleep(THREAD_SLEEP_TIME);
-            } catch (InterruptedException ie) {
+            if (mIsConnectionRunning) {
+	            try {
+	                Thread.sleep(THREAD_SLEEP_TIME);
+	            } catch (InterruptedException ie) {
+	            }
             }
         }
     }

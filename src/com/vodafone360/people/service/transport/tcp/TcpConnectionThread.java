@@ -349,8 +349,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
         ConnectionManager.getInstance().onConnectionStateChanged(
                 ITcpConnectionListener.STATE_CONNECTING);
 
-        if (!mConnectionShouldBeRunning) { // connection was killed by service
-            // agent
+        if (!mConnectionShouldBeRunning) { // connection was killed by service agent
             HttpConnectionThread.logI("TcpConnectionThread.haltAndRetryConnection()", "Connection "
                     + "was disconnected by Service Agent. Stopping retries!");
             return;
@@ -360,18 +359,13 @@ public class TcpConnectionThread implements Runnable, IConnection {
 
         // if we retried enough, we just return and end further retries
         if (numberOfRetries > MAX_NUMBER_RETRIES) {
-            invalidateRequests();
             mDidCriticalErrorOccur = true;
-
             mLastErrorTimestamp = System.currentTimeMillis();
-            /*
-             * FlurryAgent.onError("ERROR_TCP_FAILED",
-             * "Failed reconnecting for the 3rd time. Stopping!" +
-             * mLastErrorTimestamp, "TcpConnectionThread");
-             */
+            
+            invalidateRequests();
+            
             synchronized (this) {
-                notify(); // notify as we might be currently blocked on a
-                // request's wait()
+                notify(); // notify as we might be currently blocked on a request's wait()
             }
 
             ConnectionManager.getInstance().onConnectionStateChanged(
@@ -554,7 +548,9 @@ public class TcpConnectionThread implements Runnable, IConnection {
                 mSocket.close();
             } catch (IOException ioe) {
                 HttpConnectionThread.logE("TcpConnectionThread.stopConnection()",
-                        "Could not close Socket!", ioe);
+                        "Could not close Socket!!!!!!!!!!! This should not happen. If this fails" +
+                        "the connection might get stuck as the read() in ResponseReader might never" +
+                        "get freed!", ioe);
             } finally {
                 mSocket = null;
             }
