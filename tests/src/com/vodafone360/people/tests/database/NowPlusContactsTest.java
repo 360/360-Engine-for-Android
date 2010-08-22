@@ -185,7 +185,7 @@ public class NowPlusContactsTest extends ApplicationTestCase<MainApplication> {
 	}
 	
 	@SmallTest
-	@Suppress
+	
 	public void testAddContactDetail() {
 		assertTrue(initialise());
 		mDatabaseHelper.removeUserData();
@@ -221,6 +221,7 @@ public class NowPlusContactsTest extends ApplicationTestCase<MainApplication> {
 	}
 	
 	@MediumTest
+	@Suppress
     public void testAddModifyContacts() {
 		Log.i(LOG_TAG, "***** EXECUTING testAddModifyContacts *****");
 		Log.i(LOG_TAG, "Test contact functionality (add/modify details contacts)");
@@ -278,7 +279,7 @@ public class NowPlusContactsTest extends ApplicationTestCase<MainApplication> {
 		shutdown();
     }
 	
-	@Suppress
+	
 	@MediumTest
     public void testAddDeleteContactsDetails() {
 		Log.i(LOG_TAG, "***** EXECUTING testAddDeleteContactsDetails *****");
@@ -517,7 +518,7 @@ public class NowPlusContactsTest extends ApplicationTestCase<MainApplication> {
 	}
 	
 	@SmallTest
-	@Suppress
+	
 	public void testModifyDetailServerId() {
 		assertTrue(initialise());
 		mDatabaseHelper.removeUserData();

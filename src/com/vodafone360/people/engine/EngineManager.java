@@ -235,6 +235,11 @@ public class EngineManager {
             	break;
             }
             
+            case CONTENT_ENGINE:{
+            	mContentEngine = (ContentEngine) newEngine;
+            	break;
+            }
+            
             default:
             	break;
             }

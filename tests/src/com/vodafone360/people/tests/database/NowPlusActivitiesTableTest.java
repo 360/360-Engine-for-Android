@@ -168,7 +168,7 @@ public class NowPlusActivitiesTableTest extends	NowPlusTableTestCase {
 	 * This method checks that the added time line events are really present
 	 * in the table.
 	 */
-	@Suppress
+	
 	public void testAddTimelineEvents() {
 		SQLiteDatabase database = mTestDatabase.getWritableDatabase();
 		ActivitiesTable.create(database);
@@ -424,7 +424,7 @@ public class NowPlusActivitiesTableTest extends	NowPlusTableTestCase {
 	/**
 	 * this method checks the updated contacts are present in the database 
 	 */
-	@Suppress
+	
 	public void testUpdateTimelineContactNameAndId3() {
 		Log.i(LOG_TAG, "***** testUpdateTimelineContactNameAndId3: create table *****");
 		SQLiteDatabase writableDataBase = mTestDatabase.getWritableDatabase();
