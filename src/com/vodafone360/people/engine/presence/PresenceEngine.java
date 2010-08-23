@@ -639,8 +639,6 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
 
         // set the engine to run now
         
-        LogUtils.logE(">>>>>>> Hello hello kitty " + presenceList);
-        
         addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presenceList);
     }
     
