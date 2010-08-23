@@ -119,7 +119,7 @@ public class MicroHessianInput {
             rbis.reset(is);
         }
         
-        this.is = new DataInputStream(is);
+        this.is = new DataInputStream(rbis);
 
     }
 
