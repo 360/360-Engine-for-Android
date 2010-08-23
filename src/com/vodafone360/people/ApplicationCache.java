@@ -400,13 +400,13 @@ public class ApplicationCache {
         if (list != null) {
             for (ThirdPartyAccount thirdPartyAccount : list) {
                 if (thirdPartyAccount.getDisplayName().toLowerCase().startsWith("facebook")) {
-                    if (thirdPartyAccount.isChecked()) {
+                    if (thirdPartyAccount.isVerified()) {
                         LogUtils.logV("ApplicationCache."
-                                + "isFacebookInThirdPartyAccountList() Facebook is checked");
+                                + "isFacebookInThirdPartyAccountList() Facebook is verified");
                         return true;
                     } else {
                         LogUtils.logV("ApplicationCache."
-                                + "isFacebookInThirdPartyAccountList() Facebook is unchecked");
+                                + "isFacebookInThirdPartyAccountList() Facebook is not verified");
                         return false;
                     }
                 }
@@ -427,13 +427,13 @@ public class ApplicationCache {
         if (list != null) {
             for (ThirdPartyAccount thirdPartyAccount : list) {
                 if (thirdPartyAccount.getDisplayName().toLowerCase().startsWith("hyves")) {
-                    if (thirdPartyAccount.isChecked()) {
+                    if (thirdPartyAccount.isVerified()) {
                         LogUtils
-                                .logV("ApplicationCache.isHyvesInThirdPartyAccountList() Hyves is checked");
+                                .logV("ApplicationCache.isHyvesInThirdPartyAccountList() Hyves is verified");
                         return true;
                     } else {
                         LogUtils
-                                .logV("ApplicationCache.isHyvesInThirdPartyAccountList() Hyves is unchecked");
+                                .logV("ApplicationCache.isHyvesInThirdPartyAccountList() Hyves is not verified");
                         return false;
                     }
                 }
