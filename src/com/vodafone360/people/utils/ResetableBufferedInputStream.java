@@ -42,6 +42,10 @@ public class ResetableBufferedInputStream extends BufferedInputStream {
      * @param in New InputStream to use 
      */
      public void reset(InputStream in){
+        // just in case close() was called initialize the buffer again.
+        if (buf==null){
+          buf = new byte[8192];
+        }
         this.in=in;
         count=0;
         marklimit=0;
