@@ -180,11 +180,6 @@ public class ApplicationCache {
     /** Cached whether ThirdPartyAccountsActivity is opened. */
     private boolean mIsAddAccountActivityOpened;
     
-    /**
-     * The My profile checkboxes states cache. 
-     */
-    private static MyProfileCache sMyProfileCache;
-
     /***
      * GETTER Whether "add Account" activity is opened
      * 
@@ -298,8 +293,6 @@ public class ApplicationCache {
         mSyncStatus = null;
         
         mIsAddAccountActivityOpened = false;
-        
-        sMyProfileCache = null;
     }
 
     /**
@@ -671,20 +664,5 @@ public class ApplicationCache {
     public final long getCurrentContactFilter() {
         return mCurrentContactFilter;
     }
-    
-    /**
-     * Returns the cached checkboxes states on "My profile" screen.
-     * @return MyProfileCache object.
-     */
-    public static MyProfileCache getMyProfileUiCache() {
-        return sMyProfileCache;
-    }
- 
-    /**
-     * This method sets the cache of checkboxes. 
-     * @param cache MyProfileCache.
-     */
-    public static void setMyProfileCache(MyProfileCache cache) {
-        sMyProfileCache = cache;
-    }
+
 }
