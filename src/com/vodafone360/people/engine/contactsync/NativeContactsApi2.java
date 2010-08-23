@@ -541,10 +541,7 @@ public class NativeContactsApi2 extends NativeContactsApi {
      */
     @Override
     public boolean isPeopleAccountCreated() {
-        AccountManager accountMan = AccountManager.get(mContext);
-        android.accounts.Account[] accounts = accountMan
-                .getAccountsByType(PEOPLE_ACCOUNT_TYPE_STRING);
-        return accounts != null && accounts.length > 0;
+        return getPeopleAccount() != null;
     }
 
     /**
@@ -768,20 +765,31 @@ public class NativeContactsApi2 extends NativeContactsApi {
     }
     
     /**
+     * @see NativeContactsApi#setSyncable(boolean)
+     */        
+    @Override
+    public void setSyncable(boolean syncable) {
+        android.accounts.Account account = getPeopleAccount();
+        if(account != null) {
+            ContentResolver.
+                setIsSyncable(account, ContactsContract.AUTHORITY, syncable ? 1 : 0);
+        }
+    }
+    
+    /**
      * @see NativeContactsApi#setSyncAutomatically(boolean)
      */
     @Override
     public void setSyncAutomatically(boolean syncAutomatically) {
-        android.accounts.Account[] accounts = 
-            AccountManager.get(mContext).getAccountsByType(PEOPLE_ACCOUNT_TYPE_STRING);
-        if(accounts != null && accounts.length > 0) {
-            ContentResolver.setSyncAutomatically(accounts[0], ContactsContract.AUTHORITY, syncAutomatically);
+        android.accounts.Account account = getPeopleAccount();
+        if(account != null) {
+            ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, syncAutomatically);
             if(syncAutomatically) {
                 // Kick start sync     
-                ContentResolver.requestSync(accounts[0], ContactsContract.AUTHORITY, new Bundle());
+                ContentResolver.requestSync(account, ContactsContract.AUTHORITY, new Bundle());
             } else {
                 // Cancel ongoing just in case
-                ContentResolver.cancelSync(accounts[0], ContactsContract.AUTHORITY);
+                ContentResolver.cancelSync(account, ContactsContract.AUTHORITY);
             }
         }
     }
@@ -2185,5 +2193,20 @@ public class NativeContactsApi2 extends NativeContactsApi {
         }
 
         return Website.TYPE_OTHER;
+    }
+    
+    /**
+     * Gets the first People Account found on the device or
+     * null if none is found
+     * @return The Android People account found or null
+     */
+    public android.accounts.Account getPeopleAccount() {
+        android.accounts.Account[] accounts = 
+            AccountManager.get(mContext).getAccountsByType(PEOPLE_ACCOUNT_TYPE_STRING);
+        if(accounts != null && accounts.length > 0) {
+            return accounts[0];
+        }
+        
+        return null;
     }
 }

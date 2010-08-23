@@ -26,7 +26,6 @@
 package com.vodafone360.people.service;
 
 import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.BroadcastReceiver;
 import android.content.ContentProviderClient;
@@ -42,6 +41,7 @@ import android.provider.ContactsContract;
 
 import com.vodafone360.people.MainApplication;
 import com.vodafone360.people.engine.contactsync.NativeContactsApi;
+import com.vodafone360.people.engine.contactsync.NativeContactsApi2;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine.IContactSyncObserver;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine.Mode;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine.State;
@@ -145,6 +145,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
             "com.android.sync.SYNC_CONN_STATUS_CHANGED"));
         ContentResolver.addStatusChangeListener(
                 SYNC_OBSERVER_TYPE_SETTINGS, mSyncStatusObserver);
+        // Necessary in case of Application udpate
+        forceSyncSettingsInCaseOfAppUpdate();
+
         // Register for sync event callbacks
         // TODO: RE-ENABLE SYNC VIA SYSTEM
         // mSyncEngine.addEventCallback(this);
@@ -259,6 +262,20 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
             // Disable data connection
             mApplication.setInternetAvail(InternetAvail.MANUAL_CONNECT);
         }
+    }
+    
+    /**
+     * This method is essentially needed to force the sync settings 
+     * to a consistent state in case of an Application Update.
+     * This is because old versions of the client do not set 
+     * the sync adapter to syncable for the contacts authority.
+     */
+    private void forceSyncSettingsInCaseOfAppUpdate() {
+        NativeContactsApi2 nabApi = (NativeContactsApi2) NativeContactsApi.getInstance();
+        nabApi.setSyncable(true);
+        mAccount = nabApi.getPeopleAccount();
+        nabApi.setSyncAutomatically(
+                mApplication.getInternetAvail() == InternetAvail.ALWAYS_CONNECT);
     }
 }
 
