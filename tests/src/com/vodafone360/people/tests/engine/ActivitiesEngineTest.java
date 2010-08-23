@@ -478,7 +478,10 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
                 err.errorDescription = "Fail";
                 data.add(err);
                 respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
-                mEng.onCommsInMessage();
+                if(mEng != null)
+                {
+                    mEng.onCommsInMessage();
+                }
                 break;
             case GET_ACTIVITIES_UNEXPECTED_RESPONSE:
                 StatusMsg msg = new StatusMsg();

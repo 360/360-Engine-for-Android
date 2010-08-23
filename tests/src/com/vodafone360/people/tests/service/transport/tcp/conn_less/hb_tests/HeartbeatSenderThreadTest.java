@@ -164,6 +164,7 @@ public class HeartbeatSenderThreadTest extends InstrumentationTestCase {
 		
 	}
 	
+
 	@MediumTest
 	public void testSetOutputStream() {
 		MockTcpConnectionThread connThread = new MockTcpConnectionThread(new DecoderThread(), null);
@@ -198,7 +199,7 @@ public class HeartbeatSenderThreadTest extends InstrumentationTestCase {
 		hbSender.stopConnection();
 	}
 	
-	
+	@Suppress
 	@MediumTest
 	public void testStopConnection() {
 		DataOutputStream dos = new DataOutputStream(new ByteArrayOutputStream());
@@ -230,7 +231,7 @@ public class HeartbeatSenderThreadTest extends InstrumentationTestCase {
 		}
 	}
 	
-	
+	@Suppress
 	@MediumTest
 	public void testRun_exception() {
 		// IO Exception test

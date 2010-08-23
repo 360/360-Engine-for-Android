@@ -55,6 +55,7 @@ import com.vodafone360.people.datatypes.GroupItem;
 import com.vodafone360.people.datatypes.ItemList;
 import com.vodafone360.people.datatypes.ServerError;
 import com.vodafone360.people.datatypes.StatusMsg;
+import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.engine.contactsync.IContactSyncCallback;
 import com.vodafone360.people.engine.contactsync.UploadServerContacts;
@@ -92,6 +93,8 @@ public class UploadServerContactsTest extends InstrumentationTestCase implements
 
     private static final long TEST_GROUP_2 = 860910;
 
+    EngineManager mEngineManager = null;
+    
     enum State {
         IDLE,
         ADD_CONTACT_LIST,
@@ -211,6 +214,8 @@ public class UploadServerContactsTest extends InstrumentationTestCase implements
 
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
         mBulkContactTest = false;
+        mEngineManager = EngineManager.createEngineManagerForTest(null ,mEngineTester);
+        mEngineManager.addEngineForTest(mEng);
     }
 
     @Override
