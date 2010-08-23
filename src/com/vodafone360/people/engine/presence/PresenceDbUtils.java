@@ -39,13 +39,13 @@ import com.vodafone360.people.database.tables.ContactsTable;
 import com.vodafone360.people.database.tables.PresenceTable;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactDetail;
+import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.meprofile.SyncMeDbUtils;
 import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.agent.UiAgent;
-import com.vodafone360.people.utils.HardcodedUtils;
 import com.vodafone360.people.utils.LogUtils;
 
 public class PresenceDbUtils {
@@ -266,9 +266,14 @@ public class PresenceDbUtils {
             }    
         }
         // 2. ignore the TPC networks presence state for which is unknown
-        for (int networkId : HardcodedUtils.THIRD_PARTY_CHAT_ACCOUNTS) {
-            if (!userNetworks.contains(networkId)) {
-                ignoredNetworks.add(networkId);
+        ArrayList<Identity> identities = EngineManager.getInstance().getIdentityEngine().getMy360AndThirdPartyChattableIdentities();   
+        SocialNetwork network = null;
+        for (Identity identity : identities) {
+            network = SocialNetwork.getValue(identity.mNetwork);
+            if (network != null) {
+                if (!userNetworks.contains(network.ordinal())) {
+                    ignoredNetworks.add(network.ordinal());
+                }   
             }
         }
          

@@ -58,7 +58,6 @@ import com.vodafone360.people.service.io.api.Chat;
 import com.vodafone360.people.service.io.api.Presence;
 import com.vodafone360.people.service.transport.ConnectionManager;
 import com.vodafone360.people.service.transport.tcp.ITcpConnectionListener;
-import com.vodafone360.people.utils.HardcodedUtils;
 import com.vodafone360.people.utils.LogUtils;
 
 /**
@@ -549,8 +548,6 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
             case SEND_CHAT_MESSAGE:
                 ChatMessage msg = (ChatMessage)data;
                 updateChatDatabase(msg, TimelineSummaryItem.Type.OUTGOING);
-
-                LogUtils.logW("PresenceEngine processUiRequest() SEND_CHAT_MESSAGE :" + msg);
                 //cache the message (necessary for failed message sending failures)
                 mSendMessagesHash.put(msg.getTos().get(0), msg);
                 
@@ -631,8 +628,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         }
         
         // Get presences
-        // TODO: Fill up hashtable with identities and online statuses
-        Hashtable<String, String> presenceList = HardcodedUtils.createMyAvailabilityHashtable(status);
+        Hashtable<String, String> presenceList = getPresencesForStatus(status);
         
         User me = new User(String.valueOf(PresenceDbUtils.getMeProfileUserId(mDbHelper)),
                 presenceList);
