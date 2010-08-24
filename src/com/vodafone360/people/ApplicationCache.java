@@ -25,6 +25,7 @@
 
 package com.vodafone360.people;
 
+import java.lang.ref.SoftReference;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 
@@ -33,15 +34,14 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.vodafone360.people.R;
 import com.vodafone360.people.database.tables.ActivitiesTable.TimelineSummaryItem;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactSummary;
 import com.vodafone360.people.engine.contactsync.SyncStatus;
 import com.vodafone360.people.service.ServiceStatus;
-import com.vodafone360.people.utils.ThirdPartyAccount;
-import com.vodafone360.people.utils.LoginPreferences;
 import com.vodafone360.people.utils.LogUtils;
+import com.vodafone360.people.utils.LoginPreferences;
+import com.vodafone360.people.utils.ThirdPartyAccount;
 
 /**
  * Caches information about the current state of the application. Stores most
@@ -670,4 +670,19 @@ public class ApplicationCache {
         return mCurrentContactFilter;
     }
 
+    /** Background thread for caching Thumbnails in memory. **/
+    private SoftReference<ThumbnailCache> mThumbnailCache;
+
+    /***
+     * Get or create a background thread for caching Thumbnails in memory.
+     * Note: This object can be used by multiple activities.
+     */
+    public ThumbnailCache getThumbnailCache() {
+        if (mThumbnailCache == null || mThumbnailCache.get() != null) {
+            mThumbnailCache = new SoftReference<ThumbnailCache>(
+                    new ThumbnailCache());
+        }
+
+        return mThumbnailCache.get();
+    }
 }
