@@ -39,7 +39,6 @@ import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactSummary;
 import com.vodafone360.people.engine.contactsync.SyncStatus;
 import com.vodafone360.people.service.ServiceStatus;
-import com.vodafone360.people.ui.contacts.MyProfileCache;
 import com.vodafone360.people.utils.ThirdPartyAccount;
 import com.vodafone360.people.utils.LoginPreferences;
 import com.vodafone360.people.utils.LogUtils;
