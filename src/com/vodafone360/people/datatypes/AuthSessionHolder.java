@@ -99,11 +99,10 @@ public class AuthSessionHolder extends BaseDataType {
     /** {@inheritDoc} */
     public String toString() {
         final StringBuilder sb = 
-            new StringBuilder("Auth Session Holder: \n  userID: \t   ");
+            new StringBuilder("Auth Session Holder: \n  userID: \t");
         sb.append(userID); 
-        sb.append("\n  sessionSecret: "); sb.append(sessionSecret); 
-        sb.append("\n  userName: \t "); sb.append(userName); 
-        sb.append("\n  sessionID: \t"); sb.append(sessionID);
+        sb.append("\n  userName: \t"); sb.append(userName);
+        sb.append("\n  sessionID:\n\t"); sb.append(sessionID);
         return sb.toString();
     }
 

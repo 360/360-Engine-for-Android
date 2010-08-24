@@ -1170,7 +1170,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         ServiceStatus mStatus = ServiceStatus.SUCCESS;
 
-        if (isTimelineAll == true) {
+        if (isTimelineAll) {
             mStatus = ActivitiesTable.deleteTimelineActivities(mContext, timelineItem,
                     getWritableDatabase(), getReadableDatabase());
         } else {

@@ -756,6 +756,10 @@ public abstract class ActivitiesTable {
                               context.getContentResolver().delete(Calls.CONTENT_URI, Calls._ID + "=" + nativeItemId, null);   
                           }    
                       }
+                } else if ((TextUtils.isEmpty(timelineItem.mContactName)) && // we have an unknown caller 
+                		(null == timelineItem.mContactId)) {
+                	context.getContentResolver().delete(Calls.CONTENT_URI, Calls._ID + "=" + 
+                			timelineItem.mNativeItemId, null);
                 } else {
                     if(timelineItem.mContactAddress != null) {
                         context.getContentResolver().delete(Calls.CONTENT_URI, Calls.NUMBER + "='" + timelineItem.mContactAddress+"'", null);
@@ -786,8 +790,14 @@ public abstract class ActivitiesTable {
                     + Field.CONTACT_ADDRESS + "='" + timelineItem.mContactAddress + "' AND "
                     + Field.NATIVE_THREAD_ID + "=" + timelineItem.mNativeThreadId + ";";
                 }
+            } else if ((TextUtils.isEmpty(timelineItem.mContactName)) && // we have an unknown caller 
+            		(null == timelineItem.mContactId)) {
+            	whereClause = Field.FLAG + "&" + ActivityItem.TIMELINE_ITEM + " AND " 
+                + Field.NATIVE_ITEM_ID + "=" + timelineItem.mNativeItemId;
             }
 
+LogUtils.logE("-------------------------------------------------- " + whereClause);
+            
             if (writableDb.delete(TABLE_NAME, whereClause, null) < 0) {
                 LogUtils.logE("ActivitiesTable.deleteTimelineActivity() "
                         + "Unable to delete specified activity");
@@ -862,16 +872,21 @@ public abstract class ActivitiesTable {
     	TimelineSummaryItem timelineItem = null;
     	
     	try {
-	        cursor = fetchTimelineEventsForContact(0L, latestTimelineItem.mLocalContactId, 
-	                latestTimelineItem.mContactName, typeList, null, readableDb);
-	        
-	         if(cursor != null && cursor.getCount() > 0) {
-	             cursor.moveToFirst();
-	             timelineItem = getTimelineData(cursor);
-	             if(timelineItem != null) {
-	                 return deleteTimelineActivity(context, timelineItem, writableDb, readableDb);
-	             }
-	         }
+    		if ((TextUtils.isEmpty(latestTimelineItem.mContactName)) && 
+    				(latestTimelineItem.mContactId != null)) {
+		        cursor = fetchTimelineEventsForContact(0L, latestTimelineItem.mLocalContactId, 
+		                latestTimelineItem.mContactName, typeList, null, readableDb);
+		        
+		         if(cursor != null && cursor.getCount() > 0) {
+		             cursor.moveToFirst();
+		             timelineItem = getTimelineData(cursor);
+		             if(timelineItem != null) {
+		                 return deleteTimelineActivity(context, timelineItem, writableDb, readableDb);
+		             }
+		         }
+    		} else { // contact id and name are null or empty, so it is an unknown contact
+    			return deleteTimelineActivity(context, latestTimelineItem, writableDb, readableDb);
+    		}
 	    } catch (SQLException e) {
             LogUtils.logE("ActivitiesTable.deleteTimelineActivities() "
                     + "Unable to delete timeline activities", e);
