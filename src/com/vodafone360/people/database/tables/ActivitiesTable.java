@@ -758,7 +758,7 @@ public abstract class ActivitiesTable {
                       }
                 } else {
                     if(timelineItem.mContactAddress != null) {
-                        context.getContentResolver().delete(Calls.CONTENT_URI, Calls.NUMBER + "=" + timelineItem.mContactAddress, null);
+                        context.getContentResolver().delete(Calls.CONTENT_URI, Calls.NUMBER + "='" + timelineItem.mContactAddress+"'", null);
                     }
                 }
             }
