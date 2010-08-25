@@ -92,7 +92,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
     private final BroadcastReceiver mAutoSyncChangeBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            setConnectionSettingForAutoSyncSetting();
+            actOnAutoSyncSettings();
         }
     };
     
@@ -133,7 +133,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
     private final Runnable mRunnable = new Runnable() {
         @Override
         public void run() {
-            setConnectionSettingForAutoSyncSetting();
+            actOnAutoSyncSettings();
         }   
     };
             
@@ -164,7 +164,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
             return;
         } 
 
-        setConnectionSettingForAutoSyncSetting();
+        actOnAutoSyncSettings();
 
      // TODO: RE-ENABLE SYNC VIA SYSTEM
 //        try {
@@ -242,28 +242,27 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
      * @return true if the settings are enabled, false otherwise
      */
     private boolean canSyncAutomatically() {
-        if(!ContentResolver.getMasterSyncAutomatically()) {
-            return false;
-        }
-        return mAccount != null && 
-            ContentResolver.getSyncAutomatically(mAccount, ContactsContract.AUTHORITY);
+        return ContentResolver.getMasterSyncAutomatically()
+            && mAccount != null 
+            && ContentResolver.getSyncAutomatically(mAccount, ContactsContract.AUTHORITY);
     }
     
     /**
-     * Sets the application data connection setting depending on the Auto-Sync Setting.
-     * If Auto-sync is enabled then connection is to online ("always connect")
+     * Sets the application data connection setting depending on whether or not 
+     * the Sync Adapter is allowed to Sync Automatically.
+     * If Automatic Sync is enabled then connection is to online ("always connect")
      * Otherwise connection is set to offline ("manual connect")
      */
-    private synchronized void setConnectionSettingForAutoSyncSetting() {
+    private synchronized void actOnAutoSyncSettings() {
         if(canSyncAutomatically()) {
             // Enable data connection
-            mApplication.setInternetAvail(InternetAvail.ALWAYS_CONNECT);
+            mApplication.setInternetAvail(InternetAvail.ALWAYS_CONNECT, false);
         } else {
             // Disable data connection
-            mApplication.setInternetAvail(InternetAvail.MANUAL_CONNECT);
+            mApplication.setInternetAvail(InternetAvail.MANUAL_CONNECT, false);
         }
     }
-    
+        
     /**
      * This method is essentially needed to force the sync settings 
      * to a consistent state in case of an Application Update.

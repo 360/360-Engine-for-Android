@@ -65,6 +65,8 @@ import com.vodafone360.people.datatypes.VCardHelper;
 import com.vodafone360.people.datatypes.VCardHelper.Name;
 import com.vodafone360.people.datatypes.VCardHelper.Organisation;
 import com.vodafone360.people.datatypes.VCardHelper.PostalAddress;
+import com.vodafone360.people.service.NativeAccountObjectsHolder;
+import com.vodafone360.people.service.SyncAdapter;
 import com.vodafone360.people.utils.CursorUtils;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.VersionUtils;
@@ -520,6 +522,7 @@ public class NativeContactsApi2 extends NativeContactsApi {
             if (isAdded) {
                 if (VersionUtils.isHtcSenseDevice(mContext)) {
                     createSettingsEntryForAccount(username);
+                    requestSyncAdapterInitialization(account);
                 }        
             }
         } catch (Exception ex) {
@@ -760,7 +763,6 @@ public class NativeContactsApi2 extends NativeContactsApi {
      */
     @Override
     public boolean getMasterSyncAutomatically() {
-        // Always true in 1.X
         return ContentResolver.getMasterSyncAutomatically();
     }
     
@@ -1988,6 +1990,18 @@ public class NativeContactsApi2 extends NativeContactsApi {
         mValues.put(Settings.UNGROUPED_VISIBLE, true);
         mValues.put(Settings.SHOULD_SYNC, false); // TODO Unsupported for now
         mCr.insert(Settings.CONTENT_URI, mValues);
+    }
+    
+    /**
+     * Requests the SyncAdapter to perform a sync with initialization sequence.
+     *  
+     * @param account the account to be initialized
+     */
+    private void requestSyncAdapterInitialization(android.accounts.Account account) {
+        
+        final Bundle bundle = new Bundle();
+        bundle.putBoolean(ContentResolver.SYNC_EXTRAS_INITIALIZE, true);
+        ContentResolver.requestSync(account, ContactsContract.AUTHORITY, bundle);
     }
 
     /**

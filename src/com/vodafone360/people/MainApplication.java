@@ -184,10 +184,12 @@ public class MainApplication extends Application {
      * stored in People database.
      * 
      * @param internetAvail Internet availability setting.
+     * @param forwardToSyncAdapter TRUE if the SyncAdater needs to know about the changes, FALSE otherwise
      * @return SerivceStatus indicating whether the Internet availability
      *         setting has been successfully updated in the database.
      */
-    public ServiceStatus setInternetAvail(InternetAvail internetAvail) {
+    public ServiceStatus setInternetAvail(InternetAvail internetAvail, boolean forwardToSyncAdapter) {
+
         if(getInternetAvail() == internetAvail) {
             // Nothing to do
             return ServiceStatus.SUCCESS;
@@ -204,8 +206,9 @@ public class MainApplication extends Application {
         mPersistSettings.putInternetAvail(internetAvail);
         ServiceStatus ss = mDatabaseHelper.setOption(mPersistSettings);
         // FIXME: This is a hack in order to set the system auto sync on/off depending on our data settings
-        NativeContactsApi.getInstance().setSyncAutomatically(
-                internetAvail == InternetAvail.ALWAYS_CONNECT);
+        if (forwardToSyncAdapter) {
+            NativeContactsApi.getInstance().setSyncAutomatically(internetAvail == InternetAvail.ALWAYS_CONNECT);
+        }
 
         synchronized (this) {
             if (mServiceInterface != null) {
