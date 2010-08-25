@@ -136,5 +136,9 @@ abstract public class BaseDataType {
      * System Notification data type
      */    
     public static final int SYSTEM_NOTIFICATION_DATA_TYPE = 24;
-    
+    /**
+     * Identity Removal Data type.
+     */
+    public static final int IDENTITY_DELETION_DATA_TYPE = 25;
+
 }

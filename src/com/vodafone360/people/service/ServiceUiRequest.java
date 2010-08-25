@@ -242,6 +242,10 @@ public enum ServiceUiRequest {
      * Gets the groups for the contacts that are retrieved from the backend.
      */
     GET_GROUPS,
+    /**
+     * Remove Identity.
+     */
+    DELETE_IDENTITY,
     /*
      * Do not handle this message.
      */

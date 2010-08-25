@@ -368,4 +368,12 @@ public interface IPeopleService {
      */
     void updateChatNotification(long localContactId);
 
+    /**
+     * This method delete the identity.
+     * @param network Social Network Name
+     * @param identityId Social Network Identifier
+     */
+    void deleteIdentity(String network, String identityId);
+
+
 }

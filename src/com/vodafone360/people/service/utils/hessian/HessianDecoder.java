@@ -45,6 +45,7 @@ import com.vodafone360.people.datatypes.ContactListResponse;
 import com.vodafone360.people.datatypes.Conversation;
 import com.vodafone360.people.datatypes.ExternalResponseObject;
 import com.vodafone360.people.datatypes.Identity;
+import com.vodafone360.people.datatypes.IdentityDeletion;
 import com.vodafone360.people.datatypes.ItemList;
 import com.vodafone360.people.datatypes.PresenceList;
 import com.vodafone360.people.datatypes.PublicKeyDetails;
@@ -474,6 +475,12 @@ public class HessianDecoder {
                 clist.add(mConversation);
                 responseType = DecodedResponse.ResponseType.CREATE_CONVERSATION_RESPONSE.ordinal();
                 break;
+            case DELETE_IDENTITY:
+            	IdentityDeletion mIdenitityDeletion = new IdentityDeletion();
+            	clist.add(mIdenitityDeletion.createFromHashtable(hash));
+            	responseType = DecodedResponse.ResponseType.DELETE_IDENTITY_RESPONSE
+					.ordinal();
+            	break;
             default:
                 LogUtils.logE("HessianDecoder.decodeResponseByRequestType() Unhandled type["
                         + type.name() + "]");

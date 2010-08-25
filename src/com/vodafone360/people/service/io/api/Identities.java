@@ -52,6 +52,8 @@ public class Identities {
 
     private final static String FUNCTION_VALIDATE_IDENTITY_CREDENTIALS = "identities/validateidentitycredentials";
 
+    private final static String FUNCTION_DELETE_IDENITY = "identities/deleteidentity";
+
     public final static String ENABLE_IDENTITY = "enable";
 
     public final static String DISABLE_IDENTITY = "disable";
@@ -211,4 +213,50 @@ public class Identities {
         queue.fireQueueStateChanged();
         return requestId;
     }
+
+	/**
+	 * Implementation of identities/deleteIdentity API. Parameters are; [auth],
+	 * String network, String identityid.
+	 *
+	 * @param engine
+	 *            Handle to IdentitiesEngine.
+	 * @param network
+	 *            Name of network.
+	 * @param identityId
+	 *            The user's identity ID.
+	 * @return requestId The request ID generated for this request.
+	 */
+
+	public static int deleteIdentity(final BaseEngine engine,
+			final String network, final String identityId) {
+		if (LoginEngine.getSession() == null) {
+			LogUtils
+					.logE("Identities.deleteIdentity() Invalid session, return -1");
+			return -1;
+		}
+		if (network == null) {
+			LogUtils.logE("Identities.deleteIdentity() network cannot be NULL");
+			return -1;
+		}
+		if (identityId == null) {
+			LogUtils
+					.logE("Identities.deleteIdentity() identityId cannot be NULL");
+			return -1;
+		}
+
+		Request request = new Request(FUNCTION_DELETE_IDENITY,
+				Request.Type.DELETE_IDENTITY, engine.engineId(), false,
+				Settings.API_REQUESTS_TIMEOUT_IDENTITIES);
+		request.addData("network", network);
+		request.addData("identityid", identityId);
+
+		LogUtils.logI("Identity to be removed : " + network + " : "
+				+ identityId);
+
+		QueueManager queue = QueueManager.getInstance();
+		int requestId = queue.addRequest(request);
+		queue.fireQueueStateChanged();
+		return requestId;
+
+	}
 }

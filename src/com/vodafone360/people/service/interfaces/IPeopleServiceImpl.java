@@ -435,5 +435,15 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
         mHandlerAgent.updateChat(localContactId, false);
         
     }
+    
+	/**
+	 * @see com.vodafone360.people.service.interfaces.IPeopleService#deleteIdentity(String,String)
+	 */
+	@Override
+	public void deleteIdentity(final String network, final String identityId) {
+		EngineManager.getInstance().getIdentityEngine()
+				.addUiDeleteIdentityRequest(network, identityId);
+
+	}
 
 }

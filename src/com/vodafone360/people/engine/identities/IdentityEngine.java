@@ -70,7 +70,8 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         VALIDATING_IDENTITY_CREDENTIALS,
         SETTING_IDENTITY_STATUS,
         GETTING_MY_IDENTITIES,
-        GETTING_MY_CHATABLE_IDENTITIES
+        GETTING_MY_CHATABLE_IDENTITIES,
+        DELETE_IDENTITY
     }
 
     /**
@@ -124,6 +125,18 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
             mStatus = prepareBoolFilter(filter);
         }
     }
+    
+    /**
+     * 
+     * Container class for Delete Identity request. Consist network and identity id.
+     *
+     */
+    private static class DeleteIdentityRequest {
+    	/** Network to delete.*/
+    	private String mNetwork;
+    	/** IdentityID which needs to be Deleted.*/
+    	private String mIdentityId;
+    }
 
     /** The minimum interval between identity requests. */
     private static final long MIN_REQUEST_INTERVAL = 60 * 60 * 1000;
@@ -150,6 +163,11 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 	public static final String KEY_AVAILABLE_IDS = "availableids";
 	/** The key for my identities for the push ui message. */
 	public static final String KEY_MY_IDS = "myids";
+	/**
+	 * Maintaining DeleteIdentityRequest so that it can be later removed from
+	 * maintained cache.
+	 **/
+	private DeleteIdentityRequest identityToBeDeleted;
 
     /**
      * Constructor
@@ -333,10 +351,47 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         emptyUiRequestQueue();
         addUiRequestToQueue(ServiceUiRequest.VALIDATE_IDENTITY_CREDENTIALS, data);
     }
+    
+
+    /**
+     * Delete the given social network.
+     *
+     * @param network Name of the identity,
+     * @param identityId Id of identity.
+     */
+    public final void addUiDeleteIdentityRequest(final String network, final String identityId) {
+    	LogUtils.logD("IdentityEngine.addUiRemoveIdentity()");
+    	DeleteIdentityRequest data = new DeleteIdentityRequest();
+
+    	data.mNetwork = network;
+    	data.mIdentityId = identityId;
+
+    	/**maintaining the sent object*/
+    	setIdentityToBeDeleted(data);
+
+    	addUiRequestToQueue(ServiceUiRequest.DELETE_IDENTITY, data);
+    }
+
+	/**
+	 * Setting the DeleteIdentityRequest object.
+	 *
+	 * @param data
+	 */
+	private void setIdentityToBeDeleted(final DeleteIdentityRequest data) {
+		identityToBeDeleted = data;
+	}
+
+	/**
+	 * Return the DeleteIdentityRequest object.
+	 *
+	 */
+	private DeleteIdentityRequest getIdentityToBeDeleted() {
+		return identityToBeDeleted;
+	}
 
     /**
      * Issue any outstanding UI request.
-     * 
+     *
      * @param requestType Request to be issued.
      * @param dara Data associated with the request.
      */
@@ -350,6 +405,9 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
             case SET_IDENTITY_CAPABILITY_STATUS:
                 executeSetIdentityStatusRequest(data);
                 break;
+            case DELETE_IDENTITY:
+            	executeDeleteIdentityRequest(data);
+            	break;
             default:
                 completeUiRequest(ServiceStatus.ERROR_NOT_FOUND, null);
                 break;
@@ -394,6 +452,26 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     }
     
     /**
+     * Issue request to delete the identity as specified . (Request is not issued if there
+     * is currently no connectivity).
+     *
+     * @param data bundled request data containing network and identityId.
+     */
+
+	private void executeDeleteIdentityRequest(final Object data) {
+		if (!isConnected()) {
+			completeUiRequest(ServiceStatus.ERROR_NO_INTERNET);
+		}
+		newState(State.DELETE_IDENTITY);
+		DeleteIdentityRequest reqData = (DeleteIdentityRequest) data;
+
+		if (!setReqId(Identities.deleteIdentity(this, reqData.mNetwork,
+				reqData.mIdentityId))) {
+			completeUiRequest(ServiceStatus.ERROR_BAD_SERVER_PARAMETER);
+		}
+	}
+    
+    /**
      * Process a response received from Server. The response is handled
      * according to the current IdentityEngine state.
      * 
@@ -425,6 +503,9 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 	        		break;
 	        	case BaseDataType.STATUS_MSG_DATA_TYPE:
 	        		handleValidateIdentityCredentials(resp.mDataTypes);
+	        		break;
+	        	case BaseDataType.IDENTITY_DELETION_DATA_TYPE:
+	        		handleDeleteIdentity(resp.mDataTypes);
 	        		break;
 	            default:
 	                LogUtils.logW("IdentityEngine.processCommsResponse DEFAULT should never happened.");
@@ -617,6 +698,43 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         completeUiRequest(errorStatus, bu);
         newState(State.IDLE);
     }
+    
+	/**
+	 * Handle Server response of request to delete the identity. The response
+	 * should be a status that whether the operation is succeeded or not. The
+	 * response will be a status result otherwise ERROR_UNEXPECTED_RESPONSE if
+	 * the response is not as expected.
+	 *
+	 * @param data
+	 *            List of BaseDataTypes generated from Server response.
+	 */
+	private void handleDeleteIdentity(final List<BaseDataType> data) {
+		Bundle bu = null;
+		ServiceStatus errorStatus = getResponseStatus(
+				BaseDataType.IDENTITY_DELETION_DATA_TYPE, data);
+		if (errorStatus == ServiceStatus.SUCCESS) {
+			for (BaseDataType item : data) {
+				if (item.getType() == BaseDataType.IDENTITY_DELETION_DATA_TYPE) {
+					// iterating through the subscribed identities
+					for (Identity identity : mMyIdentityList) {
+						if (identity.mIdentityId
+								.equals(getIdentityToBeDeleted().mIdentityId)) {
+							mMyIdentityList.remove(identity);
+							break;
+						}
+					}
+
+					completeUiRequest(ServiceStatus.SUCCESS);
+					return;
+				} else {
+					completeUiRequest(ServiceStatus.ERROR_UNEXPECTED_RESPONSE);
+					return;
+				}
+			}
+		}
+		completeUiRequest(errorStatus, bu);
+
+	}
 
     /**
      * 

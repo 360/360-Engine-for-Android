@@ -114,7 +114,9 @@ public class ResponseQueue {
     		/** The response type for get t&cs. */
     		GET_T_AND_C_RESPONSE,
     		/** The response type for get privacy statement. */
-    		GET_PRIVACY_STATEMENT_RESPONSE; 
+    		GET_PRIVACY_STATEMENT_RESPONSE,
+    		/** The response type for removing the identity. */
+    		DELETE_IDENTITY_RESPONSE;
     		
     		// TODO add more types here and remove them from the BaseDataType. Having them in ONE location is better than in dozens!!!
     	}
