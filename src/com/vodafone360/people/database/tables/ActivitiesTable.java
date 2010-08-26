@@ -795,8 +795,6 @@ public abstract class ActivitiesTable {
             	whereClause = Field.FLAG + "&" + ActivityItem.TIMELINE_ITEM + " AND " 
                 + Field.NATIVE_ITEM_ID + "=" + timelineItem.mNativeItemId;
             }
-
-LogUtils.logE("-------------------------------------------------- " + whereClause);
             
             if (writableDb.delete(TABLE_NAME, whereClause, null) < 0) {
                 LogUtils.logE("ActivitiesTable.deleteTimelineActivity() "

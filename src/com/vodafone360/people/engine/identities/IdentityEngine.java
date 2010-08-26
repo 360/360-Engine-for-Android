@@ -48,7 +48,6 @@ import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.io.api.Identities;
 import com.vodafone360.people.service.io.rpg.PushMessageTypes;
 import com.vodafone360.people.service.transport.ConnectionManager;
-import com.vodafone360.people.service.transport.http.HttpConnectionThread;
 import com.vodafone360.people.service.transport.tcp.ITcpConnectionListener;
 import com.vodafone360.people.utils.LogUtils;
 
