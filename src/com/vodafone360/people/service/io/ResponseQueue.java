@@ -223,15 +223,16 @@ public class ResponseQueue {
 
         DecodedResponse resp = null;
         for (int i = 0; i < mResponses.size(); i++) {
-            resp = mResponses.get(i);
-            if (resp.mSource == source) {
-                mResponses.remove(i);
-
+            resp = mResponses.remove(i);
+            
+            if ((null != resp) && (null != resp.mSource) && (resp.mSource == source)) {
                 if (source != null) {
                     LogUtils.logV("ResponseQueue.getNextResponse() Returning a response to engine["
                             + source.name() + "]");
                 }
                 return resp;
+            } else if ((null == resp) || (null == resp.mSource)) {
+            	LogUtils.logE("Either the response or its source was null. Response: " + resp);
             }
         }
         return null;
