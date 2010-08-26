@@ -134,6 +134,12 @@ public class ApplicationCache {
     public final static String PREFS_UPGRADE_URL = "upgradeUrl";
 
     public final static String PREFS_UPGRADE_TEXT = "upgradeText";
+    
+    /**
+     * Text key to indicate if the intent from StartTabsActivity needs to be
+     * retained.
+     */
+    public final static String RETAIN_INTENT = "RetainIntent";
 
     public static String sWidgetProviderClassName = null;
 
