@@ -870,7 +870,7 @@ public abstract class ActivitiesTable {
     	TimelineSummaryItem timelineItem = null;
     	
     	try {
-    		if ((TextUtils.isEmpty(latestTimelineItem.mContactName)) && 
+    		if ((!TextUtils.isEmpty(latestTimelineItem.mContactName)) && 
     				(latestTimelineItem.mContactId != null)) {
 		        cursor = fetchTimelineEventsForContact(0L, latestTimelineItem.mLocalContactId, 
 		                latestTimelineItem.mContactName, typeList, null, readableDb);
