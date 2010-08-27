@@ -216,7 +216,8 @@ public class ResponseQueue {
     }
 
     /**
-     * Retrieves the next response from the response list if there is one.
+     * Retrieves the next response from the response list if there is one and it is equal to the 
+     * passed engine ID.
      * 
      * @param source The originating engine id that requested this response.
      * @return Response The first response that matches the given engine or null
@@ -229,13 +230,16 @@ public class ResponseQueue {
         
         while (iterator.hasNext()) {
             resp = iterator.next();
-            iterator.remove();
             
-            if ((null != resp) && (null != resp.mSource) && (resp.mSource == source)) {
+            if ((null != resp) && (resp.mSource == source)) {
+            	// remove response if the source engine is equal to the response's engine
+            	iterator.remove();
+            	
                 if (source != null) {
                     LogUtils.logV("ResponseQueue.getNextResponse() Returning a response to engine["
                             + source.name() + "]");
                 }
+                
                 return resp;
             } else if ((null == resp) || (null == resp.mSource)) {
             	LogUtils.logE("Either the response or its source was null. Response: " + resp);
