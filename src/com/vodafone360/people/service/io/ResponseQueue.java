@@ -26,6 +26,7 @@
 package com.vodafone360.people.service.io;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import com.vodafone360.people.datatypes.BaseDataType;
@@ -213,7 +214,7 @@ public class ResponseQueue {
     }
 
     /**
-     * Retrieves the next response in the list if there is one.
+     * Retrieves the next response from the response list if there is one.
      * 
      * @param source The originating engine id that requested this response.
      * @return Response The first response that matches the given engine or null
@@ -222,8 +223,11 @@ public class ResponseQueue {
     public DecodedResponse getNextResponse(EngineId source) {
 
         DecodedResponse resp = null;
-        for (int i = 0; i < mResponses.size(); i++) {
-            resp = mResponses.remove(i);
+        Iterator<DecodedResponse> iterator = mResponses.iterator();
+        
+        while (iterator.hasNext()) {
+            resp = iterator.next();
+            iterator.remove();
             
             if ((null != resp) && (null != resp.mSource) && (resp.mSource == source)) {
                 if (source != null) {
