@@ -132,11 +132,17 @@ public class NetworkPresence {
         private SocialNetwork(String field) {
             mSocialNetwork = field;
         }
-
+        
+        @Override
         public String toString() {
             return mSocialNetwork;
         }
 
+        /**
+         * This method returns the SocialNetwork object based on the underlying string.  
+         * @param value - the String containing the SocialNetwork name.
+         * @return SocialNetwork object for the provided string.
+         */
         public static SocialNetwork getValue(String value) {
             try {
                 return valueOf(value.replace('.', '_').toUpperCase());
@@ -145,18 +151,39 @@ public class NetworkPresence {
             }
         }
 
+        /**
+         * This method returns the SocialNetwork object based on index in the SocialNetwork enum.
+         * This method should be called to get the SocialNetwork object by networkId
+         * index from {@code}NetworkPresence.   
+         * @param index - integer index.
+         * @return SocialNetwork object for the provided index.
+         */
         public static SocialNetwork getPresenceValue(int index) {
             if (index == VODAFONE.ordinal())
                 return MOBILE;
             return values()[index];
         }
 
+        /**
+         * This method returns the SocialNetwork object based on index in the SocialNetwork enum.
+         * This method should be called to get the SocialNetwork for a chat network id index.
+         * @param index - integer index.
+         * @return SocialNetwork object for the provided index.
+         */
         public static SocialNetwork getChatValue(int index) {
             if (index == MOBILE.ordinal() || index == PC.ordinal() || index == VODAFONE.ordinal())
                 return VODAFONE;
             return values()[index];
         }
 
+        /**
+         * This method returns the SocialNetwork object based on the provided
+         * string.
+         * This method should be called to get the SocialNetwork objects for UI purposes, i.e. 
+         * it returns Vodafone rather than MOBILE or PC if "pc" and "mobile" are passed in.
+         * @param index - integer index.
+         * @return SocialNetwork object for the provided underlying string.
+         */
         public static SocialNetwork getNetworkBasedOnString(String sns) {
             if (sns != null) {
                 if (sns.contains(ThirdPartyAccount.SNS_TYPE_FACEBOOK)) {
