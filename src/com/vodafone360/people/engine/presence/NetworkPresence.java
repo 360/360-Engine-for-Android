@@ -137,7 +137,7 @@ public class NetworkPresence {
             return mSocialNetwork;
         }
 
-        protected static SocialNetwork getValue(String value) {
+        public static SocialNetwork getValue(String value) {
             try {
                 return valueOf(value.replace('.', '_').toUpperCase());
             } catch (Exception e) {
