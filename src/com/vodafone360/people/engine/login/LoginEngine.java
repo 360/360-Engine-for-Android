@@ -246,9 +246,9 @@ public class LoginEngine extends BaseEngine {
     public void onDestroy() {
         LogUtils.logD("LoginEngine.onDestroy()");
 
-        Intent intent = new Intent();
-        intent.setAction(Intents.HIDE_LOGIN_NOTIFICATION);
-        mContext.sendBroadcast(intent);
+//        Intent intent = new Intent();
+//        intent.setAction(Intents.HIDE_LOGIN_NOTIFICATION);
+//        mContext.sendBroadcast(intent);
 
         removeAllListeners();
         mContext.unregisterReceiver(mEventReceiver);
@@ -1029,9 +1029,9 @@ public class LoginEngine extends BaseEngine {
             // here should be no break
             case NOT_REGISTERED:
             case LOGIN_FAILED:
-                intent = new Intent();
-                intent.setAction(Intents.LOGIN_FAILED);
-                mContext.sendBroadcast(intent);
+//                intent = new Intent();
+//                intent.setAction(Intents.LOGIN_FAILED);
+//                mContext.sendBroadcast(intent);
 
                 setRegistrationComplete(false);
                 // startLogout();
@@ -1047,9 +1047,9 @@ public class LoginEngine extends BaseEngine {
             case LOGGED_OFF_WAITING_FOR_NETWORK:
             case LOGGED_OFF_WAITING_FOR_RETRY:
             case LOGGED_ON:
-                intent = new Intent();
-                intent.setAction(Intents.HIDE_LOGIN_NOTIFICATION);
-                mContext.sendBroadcast(intent);
+//                intent = new Intent();
+//                intent.setAction(Intents.HIDE_LOGIN_NOTIFICATION);
+//                mContext.sendBroadcast(intent);
                 break;
             default:// do nothing
                 break;

@@ -40,11 +40,11 @@ public class Intents {
     public static final String START_LOGIN_ACTIVITY = 
         "com.vodafone360.people.Intents.START_LOGIN_ACTIVITY";
     
-    public static final String LOGIN_FAILED = 
-        "com.vodafone360.people.Intents.LOGIN_FAILED";
-    
-    public static final String HIDE_LOGIN_NOTIFICATION = 
-        "com.vodafone360.people.Intents.HIDE_LOGIN_NOTIFICATION";
+//    public static final String LOGIN_FAILED = 
+//        "com.vodafone360.people.Intents.LOGIN_FAILED";
+//    
+//    public static final String HIDE_LOGIN_NOTIFICATION = 
+//        "com.vodafone360.people.Intents.HIDE_LOGIN_NOTIFICATION";
 
     
 }
