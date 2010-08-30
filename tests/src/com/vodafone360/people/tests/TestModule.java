@@ -359,11 +359,11 @@ public class TestModule {
 			
 			/** Unique identifier for the activity. This can be empty when setting 
 			 * a new activity (the id is generated on the server side) */
-			activityItem.mActivityId = System.currentTimeMillis();
+			activityItem.activityId = System.currentTimeMillis();
 
 			/** Timestamp representing the time of the activity. 
 			 * This may not be related to creation/updated time. */
-			activityItem.mTime = System.currentTimeMillis();
+			activityItem.time = System.currentTimeMillis();
 			
 			/** local id for db */
 //			activityItem.mLocalId; set by DB insertion
@@ -397,14 +397,14 @@ public class TestModule {
 			/** Name of the store type for this message. This field contains information about the 
 			 * originator network (local or external community activity). 
 			 * By default, should be set to local*/		
-			activityItem.mStore = "local";
+			activityItem.store = "local";
 			
-			activityItem.mTitle = generateRandomString(); 
+			activityItem.title = generateRandomString(); 
 			
-			activityItem.mDescription = activityItem.mDescription + activityItem.mStore;
+			activityItem.description = activityItem.description + activityItem.store;
 			
 			/** Defines the type of the activity. */
-			activityItem.mType = Type.CONTACT_FRIEND_INVITATION_SENT;
+			activityItem.type = Type.CONTACT_FRIEND_INVITATION_SENT;
 			
 			/** Defines an internal reference (if any) to the source of the activity. 
 			 * The format for the uri is "module:identifier".Some examples of valid uri are:
@@ -414,20 +414,20 @@ public class TestModule {
 			 * on a file identified by id=virtual/flickr/2590004126.
 			 * message:9efd255359074dd9bd04cc1c8c4743e5 The activity is linked to a message 
 			 * identified by id=9efd255359074dd9bd04cc1c8c4743e5 */
-			activityItem.mUri = "virtual/flickr/2590004126";
+			activityItem.uri = "virtual/flickr/2590004126";
 			
 	//can be 0		activityItem.mActivityFlags;
 
 			/** Miscellaneous flags.*/
-			activityItem.mFlagList = new ArrayList<Flag>();
-			activityItem.mFlagList.add(Flag.ALREADY_READ);
+			activityItem.flagList = new ArrayList<Flag>();
+			activityItem.flagList.add(Flag.ALREADY_READ);
 			
 			/** Defines the contact information of the counter-parties in the activity. 
 			 * This field is not mandatory, because some activity types 
 			 * are not related to contacts, but required if known.. */
 	//keep it simple - empty		activityItem.mContactList = ;
-			activityItem.mVisibility = new ArrayList<Visibility>();
-			activityItem.mVisibility.add(Visibility.ORIGINATOR);
+			activityItem.visibility = new ArrayList<Visibility>();
+			activityItem.visibility.add(Visibility.ORIGINATOR);
 			
 	//keep it 0		activityItem.mVisibilityFlags = 0;
 			activityList.add(activityItem);
@@ -493,11 +493,11 @@ public class TestModule {
 			
 			/** Unique identifier for the activity. This can be empty when setting 
 			 * a new activity (the id is generated on the server side) */
-			activityItem.mActivityId = System.currentTimeMillis();
+			activityItem.activityId = System.currentTimeMillis();
 
 			/** Timestamp representing the time of the activity. 
 			 * This may not be related to creation/updated time. */
-			activityItem.mTime = System.currentTimeMillis();
+			activityItem.time = System.currentTimeMillis();
 			
 			/** local id for db */
 //			activityItem.mLocalId; set by DB insertion
@@ -531,14 +531,14 @@ public class TestModule {
 			/** Name of the store type for this message. This field contains information about the 
 			 * originator network (local or external community activity). 
 			 * By default, should be set to local*/		
-			activityItem.mStore = "local";
+			activityItem.store = "local";
 			
-			activityItem.mTitle = generateRandomString(); 
+			activityItem.title = generateRandomString(); 
 			
-			activityItem.mDescription = activityItem.mDescription + activityItem.mStore;
+			activityItem.description = activityItem.description + activityItem.store;
 			
 			/** Defines the type of the activity. */
-			activityItem.mType = Type.CONTACT_RECEIVED_STATUS_UPDATE;
+			activityItem.type = Type.CONTACT_RECEIVED_STATUS_UPDATE;
 			
 			/** Defines an internal reference (if any) to the source of the activity. 
 			 * The format for the uri is "module:identifier".Some examples of valid uri are:
@@ -548,21 +548,21 @@ public class TestModule {
 			 * on a file identified by id=virtual/flickr/2590004126.
 			 * message:9efd255359074dd9bd04cc1c8c4743e5 The activity is linked to a message 
 			 * identified by id=9efd255359074dd9bd04cc1c8c4743e5 */
-			activityItem.mUri = "virtual/flickr/2590004126";
+			activityItem.uri = "virtual/flickr/2590004126";
 			
 	//can be 0		activityItem.mActivityFlags;
 
 			/** Miscellaneous flags.*/
-			activityItem.mFlagList = new ArrayList<Flag>();
-			activityItem.mFlagList.add(Flag.STATUS);
-			activityItem.mActivityFlags = 0x04;
+			activityItem.flagList = new ArrayList<Flag>();
+			activityItem.flagList.add(Flag.STATUS);
+			activityItem.activityFlags = 0x04;
 			
 			/** Defines the contact information of the counter-parties in the activity. 
 			 * This field is not mandatory, because some activity types 
 			 * are not related to contacts, but required if known.. */
 	//keep it simple - empty		activityItem.mContactList = ;
-			activityItem.mVisibility = new ArrayList<Visibility>();
-			activityItem.mVisibility.add(Visibility.ORIGINATOR);
+			activityItem.visibility = new ArrayList<Visibility>();
+			activityItem.visibility.add(Visibility.ORIGINATOR);
 			
 	//keep it 0		activityItem.mVisibilityFlags = 0;
 			activityList.add(activityItem);

@@ -26,10 +26,12 @@
 package com.vodafone360.people;
 
 import android.app.Application;
+import android.content.ContentResolver;
 import android.os.Handler;
 
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.engine.EngineManager;
+import com.vodafone360.people.engine.contactsync.NativeContactsApi;
 import com.vodafone360.people.service.PersistSettings;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.PersistSettings.InternetAvail;
@@ -182,13 +184,32 @@ public class MainApplication extends Application {
      * stored in People database.
      * 
      * @param internetAvail Internet availability setting.
+     * @param forwardToSyncAdapter TRUE if the SyncAdater needs to know about the changes, FALSE otherwise
      * @return SerivceStatus indicating whether the Internet availability
      *         setting has been successfully updated in the database.
      */
-    public ServiceStatus setInternetAvail(InternetAvail internetAvail) {
+    public ServiceStatus setInternetAvail(InternetAvail internetAvail, boolean forwardToSyncAdapter) {
+
+        if(getInternetAvail() == internetAvail) {
+            // Nothing to do
+            return ServiceStatus.SUCCESS;
+        }
+        
+        if(internetAvail == InternetAvail.ALWAYS_CONNECT &&
+                !NativeContactsApi.getInstance().getMasterSyncAutomatically()) {
+            // FIXME: Perhaps an abusive use of this error code for when 
+            //        Master Sync Automatically is OFF, should have a different
+            return ServiceStatus.ERROR_NO_AUTO_CONNECT;
+        }
+        
         PersistSettings mPersistSettings = new PersistSettings();
         mPersistSettings.putInternetAvail(internetAvail);
         ServiceStatus ss = mDatabaseHelper.setOption(mPersistSettings);
+        // FIXME: This is a hack in order to set the system auto sync on/off depending on our data settings
+        if (forwardToSyncAdapter) {
+            NativeContactsApi.getInstance().setSyncAutomatically(internetAvail == InternetAvail.ALWAYS_CONNECT);
+        }
+
         synchronized (this) {
             if (mServiceInterface != null) {
                 mServiceInterface.notifyDataSettingChanged(internetAvail);

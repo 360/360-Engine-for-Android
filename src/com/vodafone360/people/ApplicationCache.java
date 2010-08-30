@@ -134,6 +134,12 @@ public class ApplicationCache {
     public final static String PREFS_UPGRADE_URL = "upgradeUrl";
 
     public final static String PREFS_UPGRADE_TEXT = "upgradeText";
+    
+    /**
+     * Text key to indicate if the intent from StartTabsActivity needs to be
+     * retained.
+     */
+    public final static String RETAIN_INTENT = "RetainIntent";
 
     public static String sWidgetProviderClassName = null;
 
@@ -178,7 +184,7 @@ public class ApplicationCache {
     
     /** Cached whether ThirdPartyAccountsActivity is opened. */
     private boolean mIsAddAccountActivityOpened;
-
+    
     /***
      * GETTER Whether "add Account" activity is opened
      * 
@@ -400,13 +406,13 @@ public class ApplicationCache {
         if (list != null) {
             for (ThirdPartyAccount thirdPartyAccount : list) {
                 if (thirdPartyAccount.getDisplayName().toLowerCase().startsWith("facebook")) {
-                    if (thirdPartyAccount.isChecked()) {
+                    if (thirdPartyAccount.isVerified()) {
                         LogUtils.logV("ApplicationCache."
-                                + "isFacebookInThirdPartyAccountList() Facebook is checked");
+                                + "isFacebookInThirdPartyAccountList() Facebook is verified");
                         return true;
                     } else {
                         LogUtils.logV("ApplicationCache."
-                                + "isFacebookInThirdPartyAccountList() Facebook is unchecked");
+                                + "isFacebookInThirdPartyAccountList() Facebook is not verified");
                         return false;
                     }
                 }
@@ -427,13 +433,13 @@ public class ApplicationCache {
         if (list != null) {
             for (ThirdPartyAccount thirdPartyAccount : list) {
                 if (thirdPartyAccount.getDisplayName().toLowerCase().startsWith("hyves")) {
-                    if (thirdPartyAccount.isChecked()) {
+                    if (thirdPartyAccount.isVerified()) {
                         LogUtils
-                                .logV("ApplicationCache.isHyvesInThirdPartyAccountList() Hyves is checked");
+                                .logV("ApplicationCache.isHyvesInThirdPartyAccountList() Hyves is verified");
                         return true;
                     } else {
                         LogUtils
-                                .logV("ApplicationCache.isHyvesInThirdPartyAccountList() Hyves is unchecked");
+                                .logV("ApplicationCache.isHyvesInThirdPartyAccountList() Hyves is not verified");
                         return false;
                     }
                 }
@@ -663,4 +669,5 @@ public class ApplicationCache {
     public final long getCurrentContactFilter() {
         return mCurrentContactFilter;
     }
+
 }

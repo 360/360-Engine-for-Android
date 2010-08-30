@@ -1158,6 +1158,7 @@ public abstract class ContactSummaryTable {
             
             writableDb.beginTransaction();
             statement.bindString(1, nameString);
+            statement.bindLong(2, contact.localContactID);
             statement.execute();
             writableDb.setTransactionSuccessful();
             

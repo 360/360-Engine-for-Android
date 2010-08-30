@@ -92,15 +92,6 @@ public class SyncMeEngine extends BaseEngine {
      * Indicates if the first time sync has been completed.
      */
     private boolean mFirstTimeMeSyncComplete;
-    
-    /**
-     * UiAgent reference to update progress bar.
-     */
-    private final UiAgent mUiAgent;
-    /**
-     * ApplicationCache reference to update progress bar.
-     */
-    private final ApplicationCache mCache;
 
     /**
      * Defines the contact sync mode. The mode determines the sequence in which
@@ -128,11 +119,6 @@ public class SyncMeEngine extends BaseEngine {
          */
         FETCHING_ME_PROFILE_THUMBNAIL,
     }
-
-    /**
-     * Percentage used to show progress when the me sync is half complete.
-     */
-    private static final int PROGRESS_50 = 50;
     
     /**
      * The service context.
@@ -151,8 +137,6 @@ public class SyncMeEngine extends BaseEngine {
         mContext = context;
         
         mFromRevision = StateTable.fetchMeProfileRevision(mDbHelper.getReadableDatabase());
-        mUiAgent = mEventCallback.getUiAgent();
-        mCache = mEventCallback.getApplicationCache();
     }
 
     @Override
@@ -368,12 +352,19 @@ public class SyncMeEngine extends BaseEngine {
      *            picture
      */
     private void processMeProfileThumbnailResponse(final DecodedResponse resp) {
+        
+        if (resp.mDataTypes.size()==0){
+            LogUtils.logE("SyncMeProfile processMeProfileThumbnailResponse():"
+                    + SystemNotification.SysNotificationCode.EXTERNAL_HTTP_ERROR);
+            completeUiRequest(ServiceStatus.ERROR_COMMS_BAD_RESPONSE);
+            return;
+     
+        }
         Contact currentMeProfile = new Contact();
         ServiceStatus status = SyncMeDbUtils.fetchMeProfile(mDbHelper, currentMeProfile);
         if (status == ServiceStatus.SUCCESS) {
             if (resp.mReqId == null || resp.mReqId == 0) {
-                if (resp.mDataTypes.size() > 0
-                        && resp.mDataTypes.get(0).getType() == BaseDataType.SYSTEM_NOTIFICATION_DATA_TYPE
+                if (resp.mDataTypes.get(0).getType() == BaseDataType.SYSTEM_NOTIFICATION_DATA_TYPE
                         && ((SystemNotification)resp.mDataTypes.get(0)).getSysCode() == SystemNotification.SysNotificationCode.EXTERNAL_HTTP_ERROR) {
                     LogUtils.logE("SyncMeProfile processMeProfileThumbnailResponse():"
                             + SystemNotification.SysNotificationCode.EXTERNAL_HTTP_ERROR);
@@ -668,10 +659,14 @@ public class SyncMeEngine extends BaseEngine {
     /** {@inheritDoc} */
     @Override
     public final void onReset() {
+        
+        // reset the engine as if it was just created
+        super.onReset();
         mFirstTimeMeSyncComplete = false;
         mFirstTimeSyncStarted = false;
         mFromRevision = 0;
-        super.onReset();
+        mUploadedMeDetails = null;
+        mState = State.IDLE;
     }
 
     /**

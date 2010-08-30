@@ -26,6 +26,7 @@
 package com.vodafone360.people.service.io;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import com.vodafone360.people.datatypes.BaseDataType;
@@ -114,7 +115,9 @@ public class ResponseQueue {
     		/** The response type for get t&cs. */
     		GET_T_AND_C_RESPONSE,
     		/** The response type for get privacy statement. */
-    		GET_PRIVACY_STATEMENT_RESPONSE; 
+    		GET_PRIVACY_STATEMENT_RESPONSE,
+    		/** The response type for removing the identity. */
+    		DELETE_IDENTITY_RESPONSE;
     		
     		// TODO add more types here and remove them from the BaseDataType. Having them in ONE location is better than in dozens!!!
     	}
@@ -196,7 +199,9 @@ public class ResponseQueue {
                     return;
                 }
             }
-            mResponses.add(response);
+            synchronized (mResponses) {
+            	mResponses.add(response);
+            }
 
             Request request = RequestQueue.getInstance().removeRequest(response.mReqId);
             if (request != null) {
@@ -213,7 +218,8 @@ public class ResponseQueue {
     }
 
     /**
-     * Retrieves the next response in the list if there is one.
+     * Retrieves the next response from the response list if there is one and it is equal to the 
+     * passed engine ID.
      * 
      * @param source The originating engine id that requested this response.
      * @return Response The first response that matches the given engine or null
@@ -222,28 +228,29 @@ public class ResponseQueue {
     public DecodedResponse getNextResponse(EngineId source) {
 
         DecodedResponse resp = null;
-        for (int i = 0; i < mResponses.size(); i++) {
-            resp = mResponses.get(i);
-            if (resp.mSource == source) {
-                mResponses.remove(i);
-
-                if (source != null) {
-                    LogUtils.logV("ResponseQueue.getNextResponse() Returning a response to engine["
-                            + source.name() + "]");
-                }
-                return resp;
-            }
+        
+        synchronized (mResponses) {
+	        Iterator<DecodedResponse> iterator = mResponses.iterator();
+	        
+	        while (iterator.hasNext()) {
+	            resp = iterator.next();
+	            
+	            if ((null != resp) && (resp.mSource == source)) {
+	            	// remove response if the source engine is equal to the response's engine
+	            	iterator.remove();
+	            	
+	                if (source != null) {
+	                    LogUtils.logV("ResponseQueue.getNextResponse() Returning a response to engine["
+	                            + source.name() + "]");
+	                }
+	                
+	                return resp;
+	            } else if ((null == resp) || (null == resp.mSource)) {
+	            	LogUtils.logE("Either the response or its source was null. Response: " + resp);
+	            }
+	        }
         }
         return null;
-    }
-
-    /**
-     * Get number of items currently in the response queue.
-     * 
-     * @return number of items currently in the response queue.
-     */
-    private int responseCount() {
-        return mResponses.size();
     }
 
     /**
@@ -254,11 +261,16 @@ public class ResponseQueue {
      */
     protected synchronized boolean responseExists(int reqId) {
         boolean exists = false;
-        for (int i = 0; i < responseCount(); i++) {
-            if (mResponses.get(i).mReqId != null && mResponses.get(i).mReqId.intValue() == reqId) {
-                exists = true;
-                break;
-            }
+        
+        synchronized (mResponses) {
+        	int responseCount = mResponses.size();
+        	
+	        for (int i = 0; i < responseCount; i++) {
+	            if (mResponses.get(i).mReqId != null && mResponses.get(i).mReqId.intValue() == reqId) {
+	                exists = true;
+	                break;
+	            }
+	        }
         }
         return exists;
     }

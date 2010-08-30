@@ -39,6 +39,7 @@ import android.content.OperationApplicationException;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
@@ -64,6 +65,8 @@ import com.vodafone360.people.datatypes.VCardHelper;
 import com.vodafone360.people.datatypes.VCardHelper.Name;
 import com.vodafone360.people.datatypes.VCardHelper.Organisation;
 import com.vodafone360.people.datatypes.VCardHelper.PostalAddress;
+import com.vodafone360.people.service.NativeAccountObjectsHolder;
+import com.vodafone360.people.service.SyncAdapter;
 import com.vodafone360.people.utils.CursorUtils;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.VersionUtils;
@@ -519,11 +522,8 @@ public class NativeContactsApi2 extends NativeContactsApi {
             if (isAdded) {
                 if (VersionUtils.isHtcSenseDevice(mContext)) {
                     createSettingsEntryForAccount(username);
-                }
-                // TODO: RE-ENABLE SYNC VIA SYSTEM
-                ContentResolver.setIsSyncable(account, ContactsContract.AUTHORITY, 0);
-                // ContentResolver.setSyncAutomatically(account,
-                // ContactsContract.AUTHORITY, true);
+                    requestSyncAdapterInitialization(account);
+                }        
             }
         } catch (Exception ex) {
             LogUtils.logE("People Account creation failed because of exception:\n", ex);
@@ -544,10 +544,7 @@ public class NativeContactsApi2 extends NativeContactsApi {
      */
     @Override
     public boolean isPeopleAccountCreated() {
-        AccountManager accountMan = AccountManager.get(mContext);
-        android.accounts.Account[] accounts = accountMan
-                .getAccountsByType(PEOPLE_ACCOUNT_TYPE_STRING);
-        return accounts != null && accounts.length > 0;
+        return getPeopleAccount() != null;
     }
 
     /**
@@ -759,6 +756,44 @@ public class NativeContactsApi2 extends NativeContactsApi {
     public void removeContact(long nabContactId) {
         mCr.delete(addCallerIsSyncAdapterParameter(ContentUris.withAppendedId(
                 RawContacts.CONTENT_URI, nabContactId)), null, null);
+    }
+    
+    /**
+     * @see NativeContactsApi#getMasterSyncAutomatically
+     */
+    @Override
+    public boolean getMasterSyncAutomatically() {
+        return ContentResolver.getMasterSyncAutomatically();
+    }
+    
+    /**
+     * @see NativeContactsApi#setSyncable(boolean)
+     */        
+    @Override
+    public void setSyncable(boolean syncable) {
+        android.accounts.Account account = getPeopleAccount();
+        if(account != null) {
+            ContentResolver.
+                setIsSyncable(account, ContactsContract.AUTHORITY, syncable ? 1 : 0);
+        }
+    }
+    
+    /**
+     * @see NativeContactsApi#setSyncAutomatically(boolean)
+     */
+    @Override
+    public void setSyncAutomatically(boolean syncAutomatically) {
+        android.accounts.Account account = getPeopleAccount();
+        if(account != null) {
+            ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, syncAutomatically);
+            if(syncAutomatically) {
+                // Kick start sync     
+                ContentResolver.requestSync(account, ContactsContract.AUTHORITY, new Bundle());
+            } else {
+                // Cancel ongoing just in case
+                ContentResolver.cancelSync(account, ContactsContract.AUTHORITY);
+            }
+        }
     }
 
     /**
@@ -1956,6 +1991,18 @@ public class NativeContactsApi2 extends NativeContactsApi {
         mValues.put(Settings.SHOULD_SYNC, false); // TODO Unsupported for now
         mCr.insert(Settings.CONTENT_URI, mValues);
     }
+    
+    /**
+     * Requests the SyncAdapter to perform a sync with initialization sequence.
+     *  
+     * @param account the account to be initialized
+     */
+    private void requestSyncAdapterInitialization(android.accounts.Account account) {
+        
+        final Bundle bundle = new Bundle();
+        bundle.putBoolean(ContentResolver.SYNC_EXTRAS_INITIALIZE, true);
+        ContentResolver.requestSync(account, ContactsContract.AUTHORITY, bundle);
+    }
 
     /**
      * Maps a phone type from the native value to the {@link ContactChange}
@@ -2160,5 +2207,20 @@ public class NativeContactsApi2 extends NativeContactsApi {
         }
 
         return Website.TYPE_OTHER;
+    }
+    
+    /**
+     * Gets the first People Account found on the device or
+     * null if none is found
+     * @return The Android People account found or null
+     */
+    public android.accounts.Account getPeopleAccount() {
+        android.accounts.Account[] accounts = 
+            AccountManager.get(mContext).getAccountsByType(PEOPLE_ACCOUNT_TYPE_STRING);
+        if(accounts != null && accounts.length > 0) {
+            return accounts[0];
+        }
+        
+        return null;
     }
 }

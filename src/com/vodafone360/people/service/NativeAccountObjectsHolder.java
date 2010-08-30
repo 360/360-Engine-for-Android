@@ -49,7 +49,7 @@ public class NativeAccountObjectsHolder {
     public NativeAccountObjectsHolder(MainApplication application) {
         Context context = application.getApplicationContext();
         sAuthenticator = new Authenticator(context, application);
-        sSyncAdapter = new SyncAdapter(context, true);
+        sSyncAdapter = new SyncAdapter(context, application);
     }
     
     /**

@@ -45,6 +45,7 @@ import com.vodafone360.people.engine.presence.PresenceEngine;
 import com.vodafone360.people.engine.upgrade.UpgradeEngine;
 import com.vodafone360.people.service.RemoteService;
 import com.vodafone360.people.service.WorkerThread;
+import com.vodafone360.people.service.io.QueueManager;
 import com.vodafone360.people.service.io.ResponseQueue;
 import com.vodafone360.people.service.transport.ConnectionManager;
 import com.vodafone360.people.utils.LogUtils;
@@ -565,32 +566,17 @@ public class EngineManager {
      */
     public void resetAllEngines() {
         LogUtils.logV("EngineManager.resetAllEngines() - begin");
-        synchronized (mEngineList) {
+        synchronized (this) {
+            // Entering this block should guarantee that the engines are not running
             // Propagate the reset event to all engines
             for (BaseEngine engine : mEngineList.values()) {
                 engine.onReset();
             }
+            // Reset engine requests inside this synchronized block to
+            // prevent running the engines at the same time
+            QueueManager.getInstance().clearAllRequests();
         }
 
-        // block the thread until all engines have been reset
-        boolean allEngineAreReset = false;
-        while (!allEngineAreReset) {
-            synchronized (mEngineList) {
-                boolean engineNotReset = false;
-                for (BaseEngine engine : mEngineList.values()) {
-                    if (!engine.getReset()) {
-                        engineNotReset = true;
-                    }
-                }
-                if (!engineNotReset) {
-                    allEngineAreReset = true;
-                    for (BaseEngine engine : mEngineList.values()) {
-                        engine.clearReset();
-                    }
-                }
-            }
-            Thread.yield();
-        }
         LogUtils.logV("EngineManager.resetAllEngines() - end");
     }
 }

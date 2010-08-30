@@ -66,17 +66,17 @@ public abstract class GroupsTable {
     /**
      * Special ID for the ONLINE contacts group (to be added later)
      */
-    protected static final long GROUP_ONLINE = -1001;
+    public static final long GROUP_ONLINE = -1001;
 
     /**
      * Special ID for the phonebook contacts group
      */
-    protected static final long GROUP_PHONEBOOK = -1002;
+    public static final long GROUP_PHONEBOOK = -1002;
 
     /**
      * Special ID for the connected friends group
      */
-    protected static final long GROUP_CONNECTED_FRIENDS = 2;
+    public static final long GROUP_CONNECTED_FRIENDS = 2;
 
     /**
      * An enumeration of all the field names in the database.

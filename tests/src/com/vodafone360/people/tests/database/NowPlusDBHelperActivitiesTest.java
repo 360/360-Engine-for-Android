@@ -157,7 +157,7 @@ public class NowPlusDBHelperActivitiesTest extends	ApplicationTestCase<MainAppli
 		List<Long> idsList = new ArrayList<Long>();
 		
 		for (ActivityItem activity:activityList) {
-			idsList.add(activity.mActivityId);
+			idsList.add(activity.activityId);
 		}
 		status = null;
 		

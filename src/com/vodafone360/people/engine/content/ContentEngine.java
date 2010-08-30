@@ -247,4 +247,13 @@ public class ContentEngine extends BaseEngine {
         }
     }
 
+    @Override
+    public void onReset() {
+
+        super.onReset();
+        requestContentObjectMatchTable.clear();
+        mUnprocessedQueue.clear();
+        mDownloadQueue.clear();
+        mUploadQueue.clear();
+    }
 }

@@ -41,7 +41,6 @@ import com.vodafone360.people.datatypes.RegistrationDetails;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.BaseEngine.IEngineEventCallback;
-import com.vodafone360.people.engine.presence.NetworkPresence;
 import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.RemoteService;
 import com.vodafone360.people.service.ServiceUiRequest;
@@ -337,13 +336,20 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
     }
 
     /***
-     * @see com.vodafone360.people.service.interfaces.IPeopleService#setAvailability(NetworkPresence)
+     * @see com.vodafone360.people.service.interfaces.IPeopleService#setAvailability(SocialNetwork, OnlineStatus)
      */    
     @Override
-    public void setAvailability(NetworkPresence presence) {
-        EngineManager.getInstance().getPresenceEngine().setMyAvailability(presence);
+    public void setAvailability(SocialNetwork network, OnlineStatus status) {
+        EngineManager.getInstance().getPresenceEngine().setMyAvailability(network, status);
     }
-    
+
+    /***
+     * @see com.vodafone360.people.service.interfaces.IPeopleService#setAvailability(Hashtable<String, String> status)
+     */    
+    @Override
+    public void setAvailability(Hashtable<String, String> status) {
+        EngineManager.getInstance().getPresenceEngine().setMyAvailability(status);
+    }
 
     /***
      * @see com.vodafone360.people.service.interfaces.IPeopleService#subscribe(Handler,
@@ -429,5 +435,15 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
         mHandlerAgent.updateChat(localContactId, false);
         
     }
+    
+	/**
+	 * @see com.vodafone360.people.service.interfaces.IPeopleService#deleteIdentity(String,String)
+	 */
+	@Override
+	public void deleteIdentity(final String network, final String identityId) {
+		EngineManager.getInstance().getIdentityEngine()
+				.addUiDeleteIdentityRequest(network, identityId);
+
+	}
 
 }

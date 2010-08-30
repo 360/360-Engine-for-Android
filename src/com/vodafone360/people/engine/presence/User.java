@@ -66,8 +66,10 @@ public class User {
      *            mobile:online}
      */
     public User(String userId, Hashtable<String, String> payload) {
-        mOverallOnline = isOverallOnline(payload);
-        mPayload = createPayload(userId, payload);
+        if (payload != null) {
+            mOverallOnline = isOverallOnline(payload);
+            mPayload = createPayload(userId, payload);
+        }
     }
 
     /**

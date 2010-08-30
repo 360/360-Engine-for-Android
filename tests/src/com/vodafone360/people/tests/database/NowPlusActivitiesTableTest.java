@@ -98,7 +98,7 @@ public class NowPlusActivitiesTableTest extends	NowPlusTableTestCase {
 		// check if the records are there
 		List<Long> activitiesIds = new ArrayList<Long>();
 		for (ActivityItem item: activitiesList) {
-			activitiesIds.add(item.mActivityId);
+			activitiesIds.add(item.activityId);
 		}
 		SQLiteDatabase readableDataBase = mTestDatabase.getReadableDatabase();
 		List<Long> actualDBIds = new ArrayList<Long>();
@@ -147,9 +147,9 @@ public class NowPlusActivitiesTableTest extends	NowPlusTableTestCase {
 	    List<Long> insertedDbIds = new ArrayList<Long>();
 	    ActivitiesTable.fetchActivitiesIds(insertedDbIds, YESTERDAY_TIME_MILLIS, db);
 		for (ActivityItem item: activitiesList) {
-			assertNotNull("item.mActivityId should not be NULL", item.mActivityId);
-			assertNotNull("item.mLocalActivityId should not be NULL", item.mLocalActivityId);
-			assertNotNull("item.mTitle should not be NULL", item.mTitle);
+			assertNotNull("item.mActivityId should not be NULL", item.activityId);
+			assertNotNull("item.mLocalActivityId should not be NULL", item.localActivityId);
+			assertNotNull("item.mTitle should not be NULL", item.title);
 		}
 		
 		/** Delete all activities regardless of flag. **/
@@ -256,7 +256,7 @@ public class NowPlusActivitiesTableTest extends	NowPlusTableTestCase {
 		// check if the records are there
 		List<Long> activitiesIds = new ArrayList<Long>();
 		for (ActivityItem item: activitiesList) {
-			activitiesIds.add(item.mActivityId);
+			activitiesIds.add(item.activityId);
 		}
 		SQLiteDatabase readableDataBase = mTestDatabase.getReadableDatabase();
 		List<Long> actualDBIds = new ArrayList<Long>();
@@ -267,10 +267,10 @@ public class NowPlusActivitiesTableTest extends	NowPlusTableTestCase {
     		ActivityContact ac = new ActivityContact();
     		ActivitiesTable.getQueryData(c, ai, ac);
     		if (ac.mContactId != null) {
-    			ai.mContactList = new ArrayList<ActivityContact>();
-    			ai.mContactList.add(ac);
+    			ai.contactList = new ArrayList<ActivityContact>();
+    			ai.contactList.add(ac);
     		}
-    		actualDBIds.add(ai.mActivityId);
+    		actualDBIds.add(ai.activityId);
 		}
  		c.close();
  		compareActivityIds(activitiesIds, actualDBIds);
@@ -368,8 +368,8 @@ public class NowPlusActivitiesTableTest extends	NowPlusTableTestCase {
 		compareTimeLineIds(timeLines, actualDBTimeLines);
 		
 		for (TimelineSummaryItem timeLineSummary: actualDBTimeLines) {
-			Long actualDBTimeStamp = ActivitiesTable.fetchLatestStatusTimestampForContact(timeLineSummary.mContactId, readableDataBase);
-			assertEquals("the timestamps are not equal!", timeLineSummary.mTimestamp, actualDBTimeStamp);
+		    ActivityItem actualActivityItem = ActivitiesTable.getLatestStatusForContact(timeLineSummary.mContactId, readableDataBase);
+			assertEquals("the timestamps are not equal!", timeLineSummary.mTimestamp, actualActivityItem.time);
 		}
 		Log.i(LOG_TAG, "***** restFetchLatestStatusTimestampForContact SUCCEEDED *****");
 	}

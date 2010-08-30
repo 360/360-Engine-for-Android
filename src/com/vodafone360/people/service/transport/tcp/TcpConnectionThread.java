@@ -210,7 +210,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
                                 }
 
                                 LogUtils.logE("XXXXXXYYYXXXXXX Do not Remove this!");
-                                LogUtils.logToFile(payload, "people_" + reqIdList.get(0) + "_"
+                                LogUtils.logToFile(payload, "people_" +( reqIdList.size()>0?reqIdList.get(0):0)+ "_"
                                         + System.currentTimeMillis() + "_req_" + ((int)payload[2]) // message
                                         // type
                                         + ".txt");

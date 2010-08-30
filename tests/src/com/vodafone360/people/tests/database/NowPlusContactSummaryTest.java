@@ -345,7 +345,7 @@ public class NowPlusContactSummaryTest extends ApplicationTestCase<MainApplicati
         final ContactDetail contactDetail = new ContactDetail();
         contactDetail.localContactID = contact.localContactID;
         contactDetail.setEmail("toto@mail.co.uk", ContactDetail.DetailKeyTypes.HOME);
-        assertTrue(ContactSummaryTable.updateNameAndStatus(contact, mTestDatabase
+        assertTrue(ContactSummaryTable.updateContactDisplayName(contact, mTestDatabase
                 .getWritableDatabase()) == ServiceStatus.SUCCESS);
     }
 
@@ -374,14 +374,14 @@ public class NowPlusContactSummaryTest extends ApplicationTestCase<MainApplicati
         ContactDetail contactDetail = new ContactDetail();
         contactDetail.localContactID = contact.localContactID;
         contactDetail.setEmail("toto@mail.co.uk", ContactDetail.DetailKeyTypes.HOME);
-        assertTrue(ContactSummaryTable.updateNameAndStatus(contact, mTestDatabase
+        assertTrue(ContactSummaryTable.updateContactDisplayName(contact, mTestDatabase
                 .getWritableDatabase()) == ServiceStatus.SUCCESS);
 
         Log.i(LOG_TAG, "Modify a contact detail to the previous contact");
         contactDetail = new ContactDetail();
         contactDetail.localContactID = contact.localContactID;
         contactDetail.setEmail("toto2@mail.co.uk", ContactDetail.DetailKeyTypes.HOME);
-        assertTrue(ContactSummaryTable.updateNameAndStatus(contact, mTestDatabase
+        assertTrue(ContactSummaryTable.updateContactDisplayName(contact, mTestDatabase
                 .getWritableDatabase()) == ServiceStatus.SUCCESS);
     }
 
@@ -410,11 +410,11 @@ public class NowPlusContactSummaryTest extends ApplicationTestCase<MainApplicati
         ContactDetail contactDetail = new ContactDetail();
         contactDetail.localContactID = contact.localContactID;
         contactDetail.setEmail("toto@mail.co.uk", ContactDetail.DetailKeyTypes.HOME);
-        assertTrue(ContactSummaryTable.updateNameAndStatus(contact, mTestDatabase
+        assertTrue(ContactSummaryTable.updateContactDisplayName(contact, mTestDatabase
                 .getWritableDatabase()) == ServiceStatus.SUCCESS);
 
         Log.i(LOG_TAG, "Delete a contact detail from the previous contact");
-        assertTrue(ContactSummaryTable.updateNameAndStatus(contact, mTestDatabase
+        assertTrue(ContactSummaryTable.updateContactDisplayName(contact, mTestDatabase
                 .getWritableDatabase()) == ServiceStatus.SUCCESS);
     }
 
