@@ -199,7 +199,9 @@ public class ResponseQueue {
                     return;
                 }
             }
-            mResponses.add(response);
+            synchronized (mResponses) {
+            	mResponses.add(response);
+            }
 
             Request request = RequestQueue.getInstance().removeRequest(response.mReqId);
             if (request != null) {
@@ -226,35 +228,29 @@ public class ResponseQueue {
     public DecodedResponse getNextResponse(EngineId source) {
 
         DecodedResponse resp = null;
-        Iterator<DecodedResponse> iterator = mResponses.iterator();
         
-        while (iterator.hasNext()) {
-            resp = iterator.next();
-            
-            if ((null != resp) && (resp.mSource == source)) {
-            	// remove response if the source engine is equal to the response's engine
-            	iterator.remove();
-            	
-                if (source != null) {
-                    LogUtils.logV("ResponseQueue.getNextResponse() Returning a response to engine["
-                            + source.name() + "]");
-                }
-                
-                return resp;
-            } else if ((null == resp) || (null == resp.mSource)) {
-            	LogUtils.logE("Either the response or its source was null. Response: " + resp);
-            }
+        synchronized (mResponses) {
+	        Iterator<DecodedResponse> iterator = mResponses.iterator();
+	        
+	        while (iterator.hasNext()) {
+	            resp = iterator.next();
+	            
+	            if ((null != resp) && (resp.mSource == source)) {
+	            	// remove response if the source engine is equal to the response's engine
+	            	iterator.remove();
+	            	
+	                if (source != null) {
+	                    LogUtils.logV("ResponseQueue.getNextResponse() Returning a response to engine["
+	                            + source.name() + "]");
+	                }
+	                
+	                return resp;
+	            } else if ((null == resp) || (null == resp.mSource)) {
+	            	LogUtils.logE("Either the response or its source was null. Response: " + resp);
+	            }
+	        }
         }
         return null;
-    }
-
-    /**
-     * Get number of items currently in the response queue.
-     * 
-     * @return number of items currently in the response queue.
-     */
-    private int responseCount() {
-        return mResponses.size();
     }
 
     /**
@@ -265,11 +261,16 @@ public class ResponseQueue {
      */
     protected synchronized boolean responseExists(int reqId) {
         boolean exists = false;
-        for (int i = 0; i < responseCount(); i++) {
-            if (mResponses.get(i).mReqId != null && mResponses.get(i).mReqId.intValue() == reqId) {
-                exists = true;
-                break;
-            }
+        
+        synchronized (mResponses) {
+        	int responseCount = mResponses.size();
+        	
+	        for (int i = 0; i < responseCount; i++) {
+	            if (mResponses.get(i).mReqId != null && mResponses.get(i).mReqId.intValue() == reqId) {
+	                exists = true;
+	                break;
+	            }
+	        }
         }
         return exists;
     }
