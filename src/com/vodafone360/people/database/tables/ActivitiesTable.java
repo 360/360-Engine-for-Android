@@ -47,11 +47,13 @@ import com.vodafone360.people.database.SQLKeys;
 import com.vodafone360.people.database.utils.SqlUtils;
 import com.vodafone360.people.datatypes.ActivityContact;
 import com.vodafone360.people.datatypes.ActivityItem;
+import com.vodafone360.people.engine.meprofile.SyncMeDbUtils;
 import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.utils.CloseUtils;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.StringBufferPool;
+import com.vodafone360.people.utils.WidgetUtils;
 
 /**
  * Contains all the functionality related to the activities database table. This
@@ -603,10 +605,12 @@ public abstract class ActivitiesTable {
      * @return SUCCESS or a suitable error code
      */
     public static ServiceStatus addActivities(final List<ActivityItem> actList,
-            final SQLiteDatabase writableDb) {
+            final SQLiteDatabase writableDb, final Context context) {
         DatabaseHelper.trace(true, "DatabaseHelper.addActivities()");
         SQLiteStatement statement =
             ContactsTable.fetchLocalFromServerIdStatement(writableDb);
+        boolean meProfileChanged = false;
+        Long meProfileId = StateTable.fetchMeProfileId(writableDb);
 
             for (ActivityItem activity : actList) {
 
@@ -621,6 +625,11 @@ public abstract class ActivitiesTable {
                                 ContactsTable.fetchLocalFromServerId(
                                         activityContact.mContactId,
                                         statement);
+                            // Check if me profile status has been modified.
+                            if(meProfileId != null && activityContact.mLocalContactId != null
+                                    && activityContact.mLocalContactId.equals(meProfileId)) {
+                                meProfileChanged = true;
+                            }
                             
                             if (activityContact.mLocalContactId == null) {
                                 // Just skip activities for which we don't have a corresponding contact
@@ -661,6 +670,11 @@ public abstract class ActivitiesTable {
             if(statement != null) {
                 statement.close();
                 statement = null;
+            }
+
+            // Update widget if me profile status has been modified.
+            if(meProfileChanged) {
+                WidgetUtils.kickWidgetUpdateNow(context);
             }
 
         return ServiceStatus.SUCCESS;

@@ -1202,7 +1202,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
     public ServiceStatus addActivities(List<ActivityItem> activityList) {
         SQLiteDatabase writableDb = getWritableDatabase();
-        ServiceStatus mStatus = ActivitiesTable.addActivities(activityList, writableDb);
+        ServiceStatus mStatus = ActivitiesTable.addActivities(activityList, writableDb, mContext);
         ActivitiesTable.cleanupActivityTable(writableDb);
         fireDatabaseChangedEvent(DatabaseChangeType.ACTIVITIES, true);
         return mStatus;
