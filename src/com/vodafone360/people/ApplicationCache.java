@@ -91,6 +91,8 @@ public class ApplicationCache {
     public static final String CONTACT_MODIFIED = "ContactModified";
 
     public static final String STARTUP_LAUNCH_PATH_KEY = "LAUNCHED_FROM";
+    
+    public static final String ADD_ACCOUNT_CLICKED = "ADD_ACCOUNT_CLICKED";
 
     public static final int RESULT_DELETE = -100;
 
@@ -268,7 +270,7 @@ public class ApplicationCache {
         LoginPreferences.clearCachedLoginDetails();
 
         setBooleanValue(context, JUST_LOGGED_IN, true);
-        
+        setBooleanValue(context, ADD_ACCOUNT_CLICKED, false);
         mScanThirdPartyAccounts = true;
         mIdentityBeingProcessed = -1;
         mAcceptedTermsAndConditions = false;
