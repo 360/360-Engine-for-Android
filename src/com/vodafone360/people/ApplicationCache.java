@@ -159,9 +159,6 @@ public class ApplicationCache {
     /** In memory cache of the current contacts sync status. **/
     private SyncStatus mSyncStatus = null;
     
-    // Cached login flags
-    private boolean mFirstTimeLogin = true;
-
     private boolean mScanThirdPartyAccounts = true;
 
     private boolean mAcceptedTermsAndConditions = false;
@@ -177,6 +174,11 @@ public class ApplicationCache {
     private ContactSummary mCurrentContactSummary;
 
     private ServiceStatus mServiceStatus = ServiceStatus.ERROR_UNKNOWN;
+    
+    /**
+     * The constant for storing the "Add Account" button state (hidden or shown).   
+     */
+    public static final String JUST_LOGGED_IN = "first_time"; 
     
     private TimelineSummaryItem mCurrentTimelineSummary;
 
@@ -203,26 +205,7 @@ public class ApplicationCache {
         mIsAddAccountActivityOpened = flag;
     }
     
-    /**
-     * Whether this is a first time login (on this device) for current account.
-     * 
-     * @return True if this is the first login for current account.
-     */
-    public boolean firstTimeLogin() {
-        return mFirstTimeLogin;
-    }
-
-    /**
-     * Set whether this is a first time login (on this device) for current
-     * account. If we have not logged in on this device (or after 'Remove user
-     * data') we will need to perform the first time 'full' time contact sync.
-     * 
-     * @param aState True if this is our 1st time sync.
-     */
-    public void setFirstTimeLogin(boolean state) {
-        mFirstTimeLogin = state;
-    }
-
+    
     /**
      * Set whether application should re-scan 3rd party accounts.
      * 
@@ -284,7 +267,8 @@ public class ApplicationCache {
         LoginPreferences.clearPreferencesFile(context);
         LoginPreferences.clearCachedLoginDetails();
 
-        mFirstTimeLogin = true;
+        setBooleanValue(context, JUST_LOGGED_IN, true);
+        
         mScanThirdPartyAccounts = true;
         mIdentityBeingProcessed = -1;
         mAcceptedTermsAndConditions = false;
