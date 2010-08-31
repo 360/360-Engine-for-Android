@@ -65,8 +65,6 @@ import com.vodafone360.people.datatypes.VCardHelper;
 import com.vodafone360.people.datatypes.VCardHelper.Name;
 import com.vodafone360.people.datatypes.VCardHelper.Organisation;
 import com.vodafone360.people.datatypes.VCardHelper.PostalAddress;
-import com.vodafone360.people.service.NativeAccountObjectsHolder;
-import com.vodafone360.people.service.SyncAdapter;
 import com.vodafone360.people.utils.CursorUtils;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.VersionUtils;
@@ -2211,10 +2209,10 @@ public class NativeContactsApi2 extends NativeContactsApi {
     
     /**
      * Gets the first People Account found on the device or
-     * null if none is found
+     * null if none is found.
      * @return The Android People account found or null
      */
-    public android.accounts.Account getPeopleAccount() {
+    private android.accounts.Account getPeopleAccount() {
         android.accounts.Account[] accounts = 
             AccountManager.get(mContext).getAccountsByType(PEOPLE_ACCOUNT_TYPE_STRING);
         if(accounts != null && accounts.length > 0) {

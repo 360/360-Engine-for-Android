@@ -26,6 +26,7 @@
 package com.vodafone360.people.service;
 
 import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.BroadcastReceiver;
 import android.content.ContentProviderClient;
@@ -41,7 +42,6 @@ import android.provider.ContactsContract;
 
 import com.vodafone360.people.MainApplication;
 import com.vodafone360.people.engine.contactsync.NativeContactsApi;
-import com.vodafone360.people.engine.contactsync.NativeContactsApi2;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine.IContactSyncObserver;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine.Mode;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine.State;
@@ -114,10 +114,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
      */
     private final Handler mHandler = new Handler();
     
-    /**
-     * Cached Account we use to query this Sync Adapter instance's Auto-sync setting.
-     */
-    private Account mAccount;
     
     /**
      * Runnable used to post to a runnable in order to wait 
@@ -230,7 +226,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
      * @param authority The authority of the content
      */
     private void initializeSyncAdapter(Account account, String authority) {
-        mAccount = account; // caching
         ContentResolver.setIsSyncable(account, authority, 1);
         ContentResolver.setSyncAutomatically(account, authority, true);
     }
@@ -242,9 +237,15 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
      * @return true if the settings are enabled, false otherwise
      */
     private boolean canSyncAutomatically() {
+        Account account = getPeopleAccount();
+        if (account == null) {
+            // There's no account in the system anyway so 
+            // just say true to avoid any issues with the application.
+            return true;
+        }
         return ContentResolver.getMasterSyncAutomatically()
-            && mAccount != null 
-            && ContentResolver.getSyncAutomatically(mAccount, ContactsContract.AUTHORITY);
+            && ContentResolver.getSyncAutomatically(account,
+               ContactsContract.AUTHORITY);
     }
     
     /**
@@ -270,11 +271,28 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
      * the sync adapter to syncable for the contacts authority.
      */
     private void forceSyncSettingsInCaseOfAppUpdate() {
-        NativeContactsApi2 nabApi = (NativeContactsApi2) NativeContactsApi.getInstance();
+        NativeContactsApi nabApi = NativeContactsApi.getInstance();
         nabApi.setSyncable(true);
-        mAccount = nabApi.getPeopleAccount();
         nabApi.setSyncAutomatically(
                 mApplication.getInternetAvail() == InternetAvail.ALWAYS_CONNECT);
+    }
+    
+    /**
+     * Gets the first People Account found on the device or
+     * null if none is found.
+     * Beware! This method is basically duplicate code from 
+     * NativeContactsApi2.getPeopleAccount().
+     * Duplicating the code was found to be cleanest way to acess the functionality. 
+     * @return The Android People account found or null
+     */
+    private Account getPeopleAccount() {
+        android.accounts.Account[] accounts = 
+            AccountManager.get(mApplication).getAccountsByType(NativeContactsApi.PEOPLE_ACCOUNT_TYPE_STRING);
+        if (accounts != null && accounts.length > 0) {
+            Account ret = new Account(accounts[0].name, accounts[0].type);
+            return ret;
+        }
+        return null;
     }
 }
 

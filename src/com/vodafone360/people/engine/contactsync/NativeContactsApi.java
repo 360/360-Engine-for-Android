@@ -59,7 +59,7 @@ public abstract class NativeContactsApi {
      * Account type for 360 People in the Native Accounts. 
      * MUST be a copy of type in 'res/xml/authenticator.xml' 
      */
-    protected static final String PEOPLE_ACCOUNT_TYPE_STRING = "com.vodafone360.people.android.account";
+    public static final String PEOPLE_ACCOUNT_TYPE_STRING = "com.vodafone360.people.android.account";
 
     /**
      * Google account, there can be more than one of these
@@ -299,7 +299,7 @@ public abstract class NativeContactsApi {
      * @return true if successful, false if not
      */
     public abstract boolean addPeopleAccount(String username);
-
+    
     /**
      * Checks if there is a People Account in the NAB Accounts. Only supported
      * on 2.X The 1.X implementation does nothing.
@@ -412,4 +412,5 @@ public abstract class NativeContactsApi {
         }
         return false;
     }
+  
 }
