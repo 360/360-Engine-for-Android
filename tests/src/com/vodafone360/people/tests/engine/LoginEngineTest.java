@@ -31,6 +31,7 @@ import java.util.List;
 import android.app.Instrumentation;
 import android.test.InstrumentationTestCase;
 import android.test.suitebuilder.annotation.MediumTest;
+import android.test.suitebuilder.annotation.Suppress;
 import android.util.Log;
 
 import com.vodafone360.people.MainApplication;
@@ -231,7 +232,7 @@ public class LoginEngineTest extends InstrumentationTestCase implements
             fail("testLoginValidDetails test 1 failed with exception");
         }
     }
-
+    @Suppress
     @MediumTest
     public void testRemoveUserData() {
         boolean testPassed = true;
@@ -265,7 +266,6 @@ public class LoginEngineTest extends InstrumentationTestCase implements
         } catch (Exception e) {
             testPassed = false;
         }
-
         assertTrue(testPassed == true);
     }
 

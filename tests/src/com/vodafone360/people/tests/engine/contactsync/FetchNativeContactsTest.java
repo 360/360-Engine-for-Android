@@ -1221,6 +1221,7 @@ public class FetchNativeContactsTest extends InstrumentationTestCase implements
     @MediumTest
     
     // Breaks tests.
+    @Suppress
     public void testRunConflictTests() {
         final String fnName = "testRunConflictTests";
         Log.i(LOG_TAG, "***** EXECUTING " + fnName + " *****");

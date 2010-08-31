@@ -26,8 +26,11 @@
 package com.vodafone360.people.tests.service;
 
 import junit.framework.TestCase;
+import android.app.Instrumentation;
 import android.test.suitebuilder.annotation.SmallTest;
+import android.test.suitebuilder.annotation.Suppress;
 
+import com.vodafone360.people.MainApplication;
 import com.vodafone360.people.service.SyncAdapter;
 
 /***
@@ -38,18 +41,24 @@ public class SyncAdapterTest extends TestCase {
     /***
      * Test the SyncAdapter constructor.
      */
+	@Suppress
     @SmallTest
-    public final void testSyncAdapter() {
-        SyncAdapter syncAdapter = new SyncAdapter(null, true);
+    public final void testSyncAdapter() throws Exception {
+    	MainApplication application = null;
+        application = (MainApplication)Instrumentation.newApplication(MainApplication.class, null);
+        SyncAdapter syncAdapter = new SyncAdapter(null, application );
         assertNotNull("SyncAdapter should not be NULL", syncAdapter);
     }
 
     /***
      * Test the onPerformSync() method.
      */
+    @Suppress
     @SmallTest
-    public final void testOnPerformSync() {
-        SyncAdapter syncAdapter = new SyncAdapter(null, true);
+    public final void testOnPerformSync() throws Exception{
+    	MainApplication application = null;
+        application = (MainApplication)Instrumentation.newApplication(MainApplication.class, null);
+        SyncAdapter syncAdapter = new SyncAdapter(null, application);
         syncAdapter.onPerformSync(null, null, null, null, null);
         assertTrue("No errors so far", true);
     }
@@ -57,9 +66,12 @@ public class SyncAdapterTest extends TestCase {
     /***
      * Test the onContactSyncStateChange() method.
      */
+    @Suppress
     @SmallTest
-    public final void testOnContactSyncStateChange() {
-        SyncAdapter syncAdapter = new SyncAdapter(null, true);
+    public final void testOnContactSyncStateChange() throws Exception {
+    	MainApplication application = null;
+        application = (MainApplication)Instrumentation.newApplication(MainApplication.class, null);
+        SyncAdapter syncAdapter = new SyncAdapter(null, application);
         syncAdapter.onContactSyncStateChange(null, null, null);
         assertTrue("No errors so far", true);
     }
@@ -67,9 +79,12 @@ public class SyncAdapterTest extends TestCase {
     /***
      * Test the onProgressEvent() method.
      */
+    @Suppress
     @SmallTest
-    public final void testOnProgressEvent() {
-        SyncAdapter syncAdapter = new SyncAdapter(null, true);
+    public final void testOnProgressEvent() throws Exception {
+    	MainApplication application = null;
+        application = (MainApplication)Instrumentation.newApplication(MainApplication.class, null);
+        SyncAdapter syncAdapter = new SyncAdapter(null, application);
         syncAdapter.onProgressEvent(null, 0);
         assertTrue("No errors so far", true);
     }
@@ -77,9 +92,12 @@ public class SyncAdapterTest extends TestCase {
     /***
      * Test the onSyncComplete() method.
      */
+    @Suppress
     @SmallTest
-    public final void testOnSyncComplete() {
-        SyncAdapter syncAdapter = new SyncAdapter(null, true);
+    public final void testOnSyncComplete() throws Exception {
+    	MainApplication application = null;
+        application = (MainApplication)Instrumentation.newApplication(MainApplication.class, null);
+        SyncAdapter syncAdapter = new SyncAdapter(null, application);
         syncAdapter.onSyncComplete(null);
         assertTrue("No errors so far", true);
     }

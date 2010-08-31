@@ -154,6 +154,7 @@ public class PeopleContactsApiTest extends AndroidTestCase {
     /**
      * Tests the methods sequence addNativeContact() then deleteNativeContact().
      */
+    @Suppress
     public void testAddDeleteNativeContact() {
         
         final long NATIVE_ID = 15;
@@ -182,7 +183,7 @@ public class PeopleContactsApiTest extends AndroidTestCase {
     /**
      * Tests the methods sequence addNativeContact() then getNativeContact().
      */
-  
+    @Suppress
     public void testAddGetNativeContact() {
         
         final long NATIVE_ID = 15;

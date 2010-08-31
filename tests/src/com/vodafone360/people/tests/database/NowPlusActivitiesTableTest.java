@@ -91,7 +91,7 @@ public class NowPlusActivitiesTableTest extends	NowPlusTableTestCase {
 		ActivitiesTable.create(writableDataBase);
 		
 		List<ActivityItem> activitiesList = mTestModule.createFakeActivitiesList();
-		ServiceStatus status  = ActivitiesTable.addActivities(activitiesList, writableDataBase);
+		ServiceStatus status  = ActivitiesTable.addActivities(activitiesList, writableDataBase, null );
 		assertEquals("Activities not added to the table", ServiceStatus.SUCCESS, status);
 		Log.i(LOG_TAG, "***** testAddActivities: activities added *****");
 
@@ -140,7 +140,7 @@ public class NowPlusActivitiesTableTest extends	NowPlusTableTestCase {
 	    /** Add activities list to database. **/
 		assertEquals("ActivitiesTable.addActivities was unsuccessfull",
 		        ServiceStatus.SUCCESS,
-		        ActivitiesTable.addActivities(activitiesList, db));
+		        ActivitiesTable.addActivities(activitiesList, db, null));
 	    assertEquals("activitiesList is the wrong size", 25, activitiesList.size());
 
 		/** Check if the records are in the database. **/
@@ -249,7 +249,7 @@ public class NowPlusActivitiesTableTest extends	NowPlusTableTestCase {
 		ActivitiesTable.create(writableDataBase);
 		
 		List<ActivityItem> activitiesList = mTestModule.createFakeStatusEventList();
-		ServiceStatus status  = ActivitiesTable.addActivities(activitiesList, writableDataBase);
+		ServiceStatus status  = ActivitiesTable.addActivities(activitiesList, writableDataBase, null);
 		assertEquals("Activities not added to the table", ServiceStatus.SUCCESS, status);
 		Log.i(LOG_TAG, "***** testFetchStatusEventList: activities added *****");
 

@@ -47,12 +47,10 @@ import com.vodafone360.people.datatypes.PushEvent;
 import com.vodafone360.people.datatypes.ServerError;
 import com.vodafone360.people.datatypes.StatusMsg;
 import com.vodafone360.people.engine.EngineManager;
-import com.vodafone360.people.engine.BaseEngine.IEngineEventCallback;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.engine.activities.ActivitiesEngine;
 import com.vodafone360.people.engine.meprofile.SyncMeDbUtils;
 import com.vodafone360.people.service.ServiceStatus;
-import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.io.ResponseQueue;
 import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
@@ -175,7 +173,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-   
+    @Suppress
     public void testGetActivitiesGoodNoMeProfile() {
         boolean testPass = true;
         mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
@@ -193,7 +191,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-   
+    @Suppress
     public void testGetActivitiesGood() {
 
         boolean testPass = true;
@@ -216,7 +214,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-
+    @Suppress
     public void testGetActivitiesServerErr() {
         boolean testPass = true;
         mState = ActivityTestState.GET_ACTIVITIES_SERVER_ERR;
@@ -236,7 +234,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-   
+    @Suppress
     public void testGetActivitiesUnexpectedResponse() {
         boolean testPass = true;
         mState = ActivityTestState.GET_ACTIVITIES_UNEXPECTED_RESPONSE;
@@ -297,6 +295,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
 
 
     @MediumTest
+    @Suppress
     public void testPushMessage() {
         boolean testPass = true;
         mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
@@ -340,7 +339,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
      */
 
     @MediumTest
-   
+    @Suppress
     public void testMessageLog() {
         final String ADDRESS = "address";
         // final String PERSON = "person";
@@ -385,7 +384,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
         Log.i(LOG_TAG, "**** testGetActivities (SUCCESS) ****\n");
     }
 
-    
+    @Suppress
     public void testPopulatedActivities() {
         boolean testPass = true;
         mState = ActivityTestState.GET_POPULATED_ACTIVITIES;

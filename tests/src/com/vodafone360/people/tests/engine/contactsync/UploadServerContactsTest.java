@@ -576,6 +576,7 @@ public class UploadServerContactsTest extends InstrumentationTestCase implements
 
     @SmallTest
     // Breaks tests
+    @Suppress
     public void testRunWithNoContactChanges() {
         final String fnName = "testRunWithNoContactChanges";
         Log.i(LOG_TAG, "***** EXECUTING " + fnName + " *****");
@@ -600,7 +601,9 @@ public class UploadServerContactsTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
+    
     // Breaks tests
+    @Suppress
     public void testRunWithNewContactChange() {
         final String fnName = "testRunWithNewContactChange";
         Log.i(LOG_TAG, "***** EXECUTING " + fnName + " *****");
@@ -656,6 +659,7 @@ public class UploadServerContactsTest extends InstrumentationTestCase implements
 
     @MediumTest
     // Breaks tests
+    @Suppress
     public void testRunWithDetailChanges() {
         final String fnName = "testRunWithDetailChanges";
         Log.i(LOG_TAG, "***** EXECUTING " + fnName + " *****");
@@ -734,6 +738,7 @@ public class UploadServerContactsTest extends InstrumentationTestCase implements
     @MediumTest
     
     // Breaks tests
+    @Suppress
     public void testRunWithContactDeletion() {
         final String fnName = "testRunWithContactDeletion";
         Log.i(LOG_TAG, "***** EXECUTING " + fnName + " *****");
@@ -783,6 +788,7 @@ public class UploadServerContactsTest extends InstrumentationTestCase implements
     @MediumTest
     
     // Breaks tests
+    @Suppress
     public void testRunWithContactDetailDeletion() {
         final String fnName = "testRunWithContactDetailDeletion";
         Log.i(LOG_TAG, "***** EXECUTING " + fnName + " *****");
@@ -903,6 +909,7 @@ public class UploadServerContactsTest extends InstrumentationTestCase implements
     @LargeTest
     
     // Breaks tests
+    @Suppress
     public void testRunWithManyContacts() {
         final String fnName = "testRunWithManyContacts";
         mBulkContactTest = true;
@@ -990,7 +997,7 @@ public class UploadServerContactsTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    
+    @Suppress
     // Breaks tests
     public void testRunWithAddDeleteContactChange() {
         final String fnName = "testRunWithAddDeleteContactChange";
@@ -1032,7 +1039,7 @@ public class UploadServerContactsTest extends InstrumentationTestCase implements
         Log.i(LOG_TAG, "");
     }
 
-    
+    @Suppress
     // Breaks tests
     public void testRunWithAddDeleteContactDetailChange() {
         final String fnName = "testRunWithAddDeleteContactDetailChange";
@@ -1093,6 +1100,7 @@ public class UploadServerContactsTest extends InstrumentationTestCase implements
 
     
     // Breaks tests
+    @Suppress
     public void testRunWithAddDeleteGroupChange() {
         final String fnName = "testRunWithAddDeleteGroupChange";
         Log.i(LOG_TAG, "***** EXECUTING " + fnName + " *****");

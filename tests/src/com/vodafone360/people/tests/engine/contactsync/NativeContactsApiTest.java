@@ -242,7 +242,7 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 	 * Now that this also makes indirect use of Add and Remove functionality
 	 */
 	@SmallTest
-	
+	@Suppress
 	public void testGetAccounts() {
 		Account[] accounts = mNabApi.getAccounts();
 		int initialNumAccounts = 0;
@@ -286,7 +286,7 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 	 * Tests getAccountsByType functionality
 	 */
 	@SmallTest
-	
+	@Suppress
 	public void testGetAccountsByType() {
 		assertNull(mNabApi.getAccountsByType(5));
 		assertNull(mNabApi.getAccountsByType(6));
@@ -329,7 +329,7 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 	 * It is not possible to test adding/removing other types of accounts explicitly
 	 */
 	@SmallTest
-	
+	@Suppress
 	public void testAddRemoveAccount() {
 		verifyPeopleAccountPresence(0);
 		
@@ -484,7 +484,7 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 		mNabApi.unregisterObserver();
 	}
 	
-	
+	@Suppress
 	@MediumTest
 	public void testAddGetRemoveContacts() {
 		Account account = null;
@@ -546,7 +546,7 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 	}
 	
 	@MediumTest
-	
+	@Suppress
 	public void testUpdateContacts() {
 		Account account = null;
 		if(mUsing2xApi) {

@@ -34,6 +34,7 @@ import android.app.Instrumentation;
 import android.os.Bundle;
 import android.test.InstrumentationTestCase;
 import android.test.suitebuilder.annotation.MediumTest;
+import android.test.suitebuilder.annotation.Suppress;
 import android.util.Log;
 
 import com.vodafone360.people.MainApplication;
@@ -176,6 +177,7 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
+    @Suppress
     public void testSetIdentityCapability() {
         mState = IdentityTestState.SET_IDENTITY_CAPABILTY;
 

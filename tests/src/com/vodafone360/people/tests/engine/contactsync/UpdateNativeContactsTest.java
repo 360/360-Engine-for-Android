@@ -127,6 +127,7 @@ public class UpdateNativeContactsTest  extends AndroidTestCase {
     /**
      * Tests the export of new syncable contacts.
      */
+    @Suppress
     public void testExportingNewContacts() {
         
         final int CONTACTS_COUNT = 10;
@@ -166,6 +167,7 @@ public class UpdateNativeContactsTest  extends AndroidTestCase {
     /**
      * Tests the export of new syncable contacts.
      */
+    @Suppress
     public void testExportingDeletedContacts() {
         
         final int CONTACTS_COUNT = 30;
@@ -235,6 +237,7 @@ public class UpdateNativeContactsTest  extends AndroidTestCase {
     /**
      * Tests the export of a new syncable contact with all the possible details combinations.
      */
+    @Suppress
     public void testExportingContactAllDetails() {
         
         UpdateNativeContacts processor = new UpdateNativeContacts(mContactSyncCallback, mDatabaseHelper, getContext().getContentResolver());

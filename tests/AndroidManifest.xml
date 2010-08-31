@@ -30,6 +30,8 @@
 	<uses-permission android:name="android.permission.WRITE_SMS"/>
 	<uses-permission android:name="android.permission.WRITE_MMS"/>
 	<uses-permission android:name="android.permission.READ_CONTACTS"/>
+	<uses-permission android:name="android.permission.READ_SYNC_SETTINGS"/>
+
     <!-- We add an application tag here just so that we can indicate that
          this package needs to link against the android.test library,
          which is needed when building test cases. -->    
