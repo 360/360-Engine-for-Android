@@ -663,12 +663,12 @@ public class ApplicationCache {
      * Get or create a background thread for caching Thumbnails in memory.
      * Note: This object can be used by multiple activities.
      */
-    public ThumbnailCache getThumbnailCache() {
-        if (mThumbnailCache == null || mThumbnailCache.get() != null) {
-            mThumbnailCache = new SoftReference<ThumbnailCache>(
-                    new ThumbnailCache());
+    public synchronized ThumbnailCache getThumbnailCache() {
+        ThumbnailCache local = null;
+        if (mThumbnailCache == null || mThumbnailCache.get() == null) {
+            local = new ThumbnailCache();
+            mThumbnailCache =new SoftReference<ThumbnailCache>(local);
         }
-
         return mThumbnailCache.get();
     }
 }
