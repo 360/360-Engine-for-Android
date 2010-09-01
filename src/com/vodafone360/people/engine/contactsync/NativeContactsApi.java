@@ -72,7 +72,8 @@ public abstract class NativeContactsApi {
      */
     protected static final String[] VENDOR_SPECIFIC_ACCOUNTS = {
             "com.htc.android.pcsc", "vnd.sec.contact.phone",
-            "com.motorola.blur.service.bsutils.MOTHER_USER_CREDS_TYPE"
+            "com.motorola.blur.service.bsutils.MOTHER_USER_CREDS_TYPE",
+            "com.sonyericsson.localcontacts"
     };
     
     /**
