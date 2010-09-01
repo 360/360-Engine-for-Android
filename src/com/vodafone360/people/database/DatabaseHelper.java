@@ -1137,10 +1137,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param flag The type of activity to delete or null to delete all
      * @return SUCCESS or a suitable error code
      * @see #addActivities(List)
-     * @see #addTimelineEvents(ArrayList, boolean)
      * @see #fetchActivitiesIds(List, Long)
-     * @see #fetchTimelineEvents(Long,
-     *      com.vodafone360.people.database.tables.ActivitiesTable.TimelineNativeTypes[])
      */
     public ServiceStatus deleteActivities(Integer flag) {
         if (Settings.ENABLED_DATABASE_TRACE)
@@ -1198,7 +1195,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param activityList contains the list of activity item
      * @return SUCCESS or a suitable error code
      * @see #deleteActivities(Integer)
-     * @see #addTimelineEvents(ArrayList, boolean)
      */
     public ServiceStatus addActivities(List<ActivityItem> activityList) {
         SQLiteDatabase writableDb = getWritableDatabase();
@@ -1214,8 +1210,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param activityIdList an empty list to be populated
      * @param timeStamp The oldest time that should be included in the list
      * @return SUCCESS or a suitable error code
-     * @see #fetchTimelineEvents(Long,
-     *      com.vodafone360.people.database.tables.ActivitiesTable.TimelineNativeTypes[])
      */
     public synchronized ServiceStatus fetchActivitiesIds(List<Long> activityIdList, Long timeStamp) {
         if (Settings.ENABLED_DATABASE_TRACE) {
@@ -1224,20 +1218,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         activityIdList.clear();
         ActivitiesTable.fetchActivitiesIds(activityIdList, timeStamp, getReadableDatabase());
         return ServiceStatus.SUCCESS;
-    }
-
-    /***
-     * Fetches timeline events from a given time.
-     * 
-     * @param timeStamp The oldest time that should be included in the list
-     * @param types A list of required timeline types (or an empty list for all)
-     * @return SUCCESS or a suitable error code
-     * @see #addTimelineEvents(ArrayList, boolean)
-     * @see #fetchActivitiesIds(List, Long)
-     */
-    public synchronized Cursor fetchTimelineEvents(Long timeStamp,
-            ActivitiesTable.TimelineNativeTypes[] types) {
-        return ActivitiesTable.fetchTimelineEventList(timeStamp, types, getReadableDatabase());
     }
 
     /***
@@ -2225,11 +2205,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param isCallLog true if the list has come from the call-log, false
      *            otherwise
      * @return SUCCESS or a suitable error code
-     * @see #addTimelineEvents(ArrayList, boolean)
      * @see #deleteActivities(Integer)
      * @see #fetchActivitiesIds(List, Long)
-     * @see #fetchTimelineEvents(Long,
-     *      com.vodafone360.people.database.tables.ActivitiesTable.TimelineNativeTypes[])
      */
     public ServiceStatus addTimelineEvents(ArrayList<TimelineSummaryItem> syncItemList,
             boolean isCallLog) {
@@ -2240,7 +2217,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 writableDb);
         
         if (ServiceStatus.SUCCESS == status) {
-            ActivitiesTable.cleanupActivityTable(writableDb);
             fireDatabaseChangedEvent(DatabaseChangeType.ACTIVITIES, true);
         }
         return status;

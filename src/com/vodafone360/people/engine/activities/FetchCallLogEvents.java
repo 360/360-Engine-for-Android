@@ -32,19 +32,21 @@ import java.util.Date;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
+import android.os.Bundle;
 import android.provider.CallLog.Calls;
 import android.telephony.PhoneNumberUtils;
 
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.database.tables.ActivitiesTable;
-import com.vodafone360.people.database.tables.StateTable;
 import com.vodafone360.people.database.tables.ActivitiesTable.TimelineSummaryItem;
+import com.vodafone360.people.database.tables.StateTable;
 import com.vodafone360.people.datatypes.ActivityItem;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactDetail;
 import com.vodafone360.people.datatypes.VCardHelper;
 import com.vodafone360.people.engine.activities.ActivitiesEngine.ISyncHelper;
 import com.vodafone360.people.service.ServiceStatus;
+import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.ServiceUtils;
 
@@ -53,14 +55,18 @@ import com.vodafone360.people.utils.ServiceUtils;
  * Activities and displayed in Timeline UI.
  */
 public class FetchCallLogEvents implements ISyncHelper {
+    /**
+     * The maximum number of times the ISyncHelper should be called on this
+     * sync (i.e. worker thread run loop).
+     */
+    private static final int MAX_NUMBER_OF_PAGES = 10;
+    /**
+     * The maximum number of Cursor rows that should be parsed on the current
+     * run (i.e. while loop).
+     */    
     private static final int MAX_CALL_LOG_ITEMS_PER_PAGE = 2;
 
     private static final int MAX_ITEMS_TO_WRITE = 10;
-
-    /**
-     * the number of timeline pages to be loaded by one ISyncHelper
-     */
-    private static final int MAX_NUMBER_OF_PAGES = 10;
 
     // "-1" means number is unknown
     private static final String NATIVE_NUMBER_UNKNOWN_STRING = "-1";
@@ -239,6 +245,7 @@ public class FetchCallLogEvents implements ISyncHelper {
                     complete(mStatus);
                     return;
                 }
+                mEngine.fireNewState(ServiceUiRequest.DATABASE_CHANGED_EVENT, new Bundle());
             }
         } else {
             finished = true;

@@ -33,6 +33,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.database.tables.ActivitiesTable;
@@ -44,6 +45,7 @@ import com.vodafone360.people.datatypes.ContactDetail;
 import com.vodafone360.people.datatypes.VCardHelper;
 import com.vodafone360.people.engine.activities.ActivitiesEngine.ISyncHelper;
 import com.vodafone360.people.service.ServiceStatus;
+import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.utils.LogUtils;
 
 /**
@@ -54,10 +56,14 @@ public class FetchSmsLogEvents implements ISyncHelper {
     protected static final Uri SMS_CONTENT_URI = Uri.parse("content://sms");
 
     /**
-     * the number of timeline pages to be loaded by one ISyncHelper
+     * The maximum number of times the ISyncHelper should be called on this
+     * sync (i.e. worker thread run loop).
      */
     private static final int MAX_PAGES_TO_LOAD_AT_ONCE = 10;
-
+    /**
+     * The maximum number of Cursor rows that should be parsed on the current
+     * run (i.e. while loop).
+     */  
     private static final int MAX_ITEMS_PER_PAGE = 2;
 
     private static final int MAX_ITEMS_TO_WRITE = 10;
@@ -283,6 +289,7 @@ public class FetchSmsLogEvents implements ISyncHelper {
                     complete(mStatus);
                     return;
                 }
+                mEngine.fireNewState(ServiceUiRequest.DATABASE_CHANGED_EVENT, new Bundle());
             }
         } else {
             finished = true;
@@ -404,6 +411,7 @@ public class FetchSmsLogEvents implements ISyncHelper {
                     complete(mStatus);
                     return;
                 }
+                mEngine.fireNewState(ServiceUiRequest.DATABASE_CHANGED_EVENT, new Bundle());
             }
         } else {
             finished = true;

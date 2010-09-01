@@ -184,49 +184,7 @@ public class NowPlusDBHelperActivitiesTest extends	ApplicationTestCase<MainAppli
 		Log.i(LOG_TAG, "********************************");
 		Log.i(LOG_TAG, "");
     }
-	
-	@MediumTest
-	@Suppress
-	public void testTimelineEvents() {
-		mDatabase.removeUserData();
-		
-		ServiceStatus status = mTestUtility.waitForEvent(WAIT_EVENT_TIMEOUT_MS, DbTestUtility.CONTACTS_INT_EVENT_MASK);
-		
-		assertEquals(ServiceStatus.SUCCESS, status);
-		
-		Log.i(LOG_TAG, "***** EXECUTING testTimelineEvents *****");
 
-		ArrayList<TimelineSummaryItem> syncItemList = TestModule.generateFakeTimeLinesList();
-		status =  mDatabase.addTimelineEvents(syncItemList, true);
-		assertEquals(ServiceStatus.SUCCESS, status);
-		
-		Cursor c = mDatabase
-				.fetchTimelineEvents(YESTERDAY_TIME_MILLIS,
-						new TimelineNativeTypes[] { TimelineNativeTypes.SmsLog,
-								TimelineNativeTypes.MmsLog,
-								TimelineNativeTypes.CallLog });
-		ArrayList<TimelineSummaryItem> actualDBTimeLines = new ArrayList<TimelineSummaryItem>();
-		while (c.moveToNext()) {
-			actualDBTimeLines.add(ActivitiesTable.getTimelineData(c));
-		}
-		c.close();
-		c = null;
-		assertEquals(syncItemList.size(), actualDBTimeLines.size());
-	
-		for (TimelineSummaryItem actualItem : actualDBTimeLines) {
-			for (TimelineSummaryItem syncedItem : syncItemList) {
-				if (actualItem.mTimestamp == syncedItem.mTimestamp) {
-					assertEquals(actualItem.mContactName, syncedItem.mContactName);
-				}
-			}
-		}
-		
-		Log.i(LOG_TAG, "********************************");
-		Log.i(LOG_TAG, "testTimelineEvents has completed successfully");
-		Log.i(LOG_TAG, "********************************");
-		Log.i(LOG_TAG, "");
-	}
-	
    /**
     * This method fires assertion error when the supplied List are not identical 
     * @param ids - the initial ActivityItem ids 

@@ -144,6 +144,19 @@ public class ApplicationCache {
      */
     public final static String RETAIN_INTENT = "RetainIntent";
 
+    /**
+     * Current state of the Activities engine fetching older time line logic.
+     */
+    private static boolean sFetchingOlderTimeline = false;
+    /**
+     * Current state of the Activities engine updating statuses logic.
+     */
+    private static boolean sUpdatingStatuses = false;
+    /**
+     * Current state of the Activities engine fetching newer time line logic.
+     */
+    private static boolean sFetchingOlderStatuses = false;
+
     public static String sWidgetProviderClassName = null;
 
     public static String sIsNewMessage = "isNewMessage";
@@ -301,6 +314,10 @@ public class ApplicationCache {
         mSyncStatus = null;
         
         mIsAddAccountActivityOpened = false;
+        
+        sFetchingOlderTimeline = false;
+        sUpdatingStatuses = false;
+        sFetchingOlderStatuses = false;
     }
 
     /**
@@ -635,5 +652,66 @@ public class ApplicationCache {
             mThumbnailCache =new SoftReference<ThumbnailCache>(local);
         }
         return mThumbnailCache.get();
+    }
+
+    /***
+     * TRUE if the Activities engine is currently fetching older time line
+     * data.
+     *
+     * @return TRUE if the Activities engine is currently fetching older time
+     *          line data.
+     */
+    public static boolean isFetchingOlderTimeline() {
+        return sFetchingOlderTimeline;
+    }
+
+    /***
+     * Set if the Activities engine is currently fetching older time line
+     * data.
+     *
+     * @param fetchingOlderTimeline Specific current state.
+     */
+    public static void setFetchingOlderTimeline(
+            final boolean fetchingOlderTimeline) {
+        sFetchingOlderTimeline = fetchingOlderTimeline;
+    }
+
+    /***
+     * TRUE if the Activities engine is currently updating status data.
+     *
+     * @return TRUE if the Activities engine is currently updating status data.
+     */
+    public static boolean isUpdatingStatuses() {
+        return sUpdatingStatuses;
+    }
+
+    /***
+     * Set if the Activities engine is currently updating status data.
+     *
+     * @param updatingStatuses Specific current state.
+     */
+    public static void setUpdatingStatuses(final boolean updatingStatuses) {
+        sUpdatingStatuses = updatingStatuses;
+    }
+    /***
+     * TRUE if the Activities engine is currently fetching older time line
+     * statuses.
+     *
+     * @return TRUE if the Activities engine is currently fetching older time
+     *          line data.
+     */
+    public static boolean isFetchingOlderStatuses() {
+        return sFetchingOlderStatuses;
+    }
+
+    /***
+     * Set if the Activities engine is currently fetching older time line
+     * statuses.
+     *
+     * @param fetchingOlderStatuses Specific current state.
+     */
+    public static void setFetchingOlderStatuses(
+            final boolean fetchingOlderStatuses) {
+        sFetchingOlderStatuses = fetchingOlderStatuses;
     }
 }
