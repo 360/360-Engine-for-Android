@@ -102,7 +102,7 @@ public class UiAgent {
         mMainApplication = mainApplication;
         mContext = context;
         mHandler = null;
-        mLocalContactId = -1;
+        mLocalContactId = ALL_USERS;
         mShouldHandleChat = false;
     }
 
@@ -234,7 +234,7 @@ public class UiAgent {
                     + "unsubscribe with a different handler");
         } else {
             mHandler = null;
-            mLocalContactId = -1;
+            mLocalContactId = ALL_USERS;
             mShouldHandleChat = false;
         }
     }
@@ -280,18 +280,42 @@ public class UiAgent {
     public final void updatePresence(final long contactId) {
         WidgetUtils.kickWidgetUpdateNow(mMainApplication);
 
-        if (mHandler != null) {
-            if (mLocalContactId == -1 || mLocalContactId == contactId) {
-                mHandler.sendMessage(mHandler.obtainMessage(
-                        ServiceUiRequest.UNSOLICITED_PRESENCE.ordinal(),
-                        null));
-            } else {
-                LogUtils.logV("UiAgent.updatePresence() No Activities are "
-                        + "interested in contactId[" + contactId + "]");
-            }
-        } else {
+        if (mHandler == null) {
             LogUtils.logW("UiAgent.updatePresence() No subscribed Activities");
+            return;
         }
+                
+        if(shouldSendPresenceToUi(contactId)) {
+            mHandler.sendMessage(mHandler.obtainMessage(
+                    ServiceUiRequest.UNSOLICITED_PRESENCE.ordinal(),
+                    null));
+        } else {
+            LogUtils.logV("UiAgent.updatePresence() No Activities are "
+                    + "interested in contactId[" + contactId + "]");
+        }
+    }
+    
+    /**
+     * Checks if a (Unsolicited) Presence event should be sent to the UI.
+     * At the moment sending it only if contactId or mLocalContactId for ALL_USERS
+     * or the monitored contact matches mLocalContactId.
+     * @param contactId
+     * @return
+     */
+    private boolean shouldSendPresenceToUi(final long contactId) {
+        if(mLocalContactId == ALL_USERS) {
+            return true;
+        }
+    
+        /*
+         * Basically this fixes bug in the me profile where presence is not updated to invisible
+         * when user goes into flight mode 
+         */
+        if(contactId == ALL_USERS) {
+            return true;
+        }
+        
+        return mLocalContactId == contactId;
     }
 
     /**
