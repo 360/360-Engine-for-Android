@@ -667,12 +667,7 @@
 	            <arg value="${emma.dump.file}" />
 	            <arg value="coverage.ec" />
 	        </exec>
-	    	
-	    	<echo>#################### INSERTED CODE #####################</echo>
-	    	<move file="${tested.project.absolute.dir}/coverage.em"
-	    		tofile="${tested.project.absolute.dir}/tests/coverage.em"/>
-	    	<echo>#################### INSERTED CODE #####################</echo>
-	    	
+    	
 	        <echo>Extracting coverage report...</echo>
 	        <emma>
 	            <report sourcepath="${tested.project.absolute.dir}/${source.dir}"
