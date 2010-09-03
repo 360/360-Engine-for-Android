@@ -40,6 +40,7 @@ import com.vodafone360.people.service.transport.http.HttpConnectionThread;
 import com.vodafone360.people.service.transport.http.authentication.AuthenticationManager;
 import com.vodafone360.people.service.transport.tcp.ITcpConnectionListener;
 import com.vodafone360.people.service.transport.tcp.TcpConnectionThread;
+import com.vodafone360.people.utils.LogUtils;
 
 /**
  * ConnectionManager - responsible for controlling the current connection
@@ -154,9 +155,6 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
             mConnection.stopThread();
             mConnection = null;
             unsubscribeFromQueueEvents();
-
-            // TODO remove as soon as the network agent is out. this is a hack!
-            onConnectionStateChanged(ITcpConnectionListener.STATE_DISCONNECTED);
         }
     }
 
@@ -230,13 +228,17 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
     }
 
     /**
-     * This method is called by protocol to signal the connection state change.
+     * This method is called by the protocol to signal the connection state change.
      * 
-     * @param state int - the new connection state, @see ITcpConnectionListener.
+     * @param state The new connection state, @see ITcpConnectionListener.
      */
     public void onConnectionStateChanged(int state) {
+    	HttpConnectionThread.logI("ConnectionManager.onConnectionStateChanged()", 
+    			"State is " + state);
+    	
         if (state == ITcpConnectionListener.STATE_DISCONNECTED) {
-            // showToast(R.string.ContactProfile_no_connection);	// TODO show toast only if activity in foreground
+        	// TODO show toast only if activity in foreground
+            // showToast(R.string.ContactProfile_no_connection);
         }
 
         mConnectionState = state;

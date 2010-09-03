@@ -477,6 +477,8 @@ public class TcpConnectionThread implements Runnable, IConnection {
 
         mConnectionShouldBeRunning = false;
         stopConnection();
+        ConnectionManager.getInstance().onConnectionStateChanged(
+        		ITcpConnectionListener.STATE_DISCONNECTED);
 
         synchronized (this) {
             notify();
