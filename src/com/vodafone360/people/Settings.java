@@ -97,15 +97,15 @@ public final class Settings {
     /** Trace output for database components. **/
     public static final boolean ENABLED_DATABASE_TRACE = false;
 
-    /** Trace output for transport (i.e. network IO) components. **/
-
-    public static final boolean ENABLED_TRANSPORT_TRACE = false;
-
     /** Trace output for contact synchronisation components. **/
     public static final boolean ENABLED_CONTACTS_SYNC_TRACE = false;
 
     /** Log engine runtime information to file for profiling. **/
     public static final boolean ENABLED_PROFILE_ENGINES = false;    
+
+    /** Trace output for protocol (i.e. network IO) components. **/
+    public static boolean sEnableProtocolTrace = false;
+    
     
     /**
      * This is a list of strings containing the names of engines to be

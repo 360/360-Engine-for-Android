@@ -275,7 +275,7 @@ public class HeartbeatSenderThread implements Runnable, IWakeupListener {
 
         try {
             // Try and issue the request
-            if (Settings.ENABLED_TRANSPORT_TRACE) {
+            if (Settings.sEnableProtocolTrace) {
                 Long userID = null;
                 AuthSessionHolder auth = LoginEngine.getSession();
                 if (auth != null) {
@@ -368,7 +368,7 @@ public class HeartbeatSenderThread implements Runnable, IWakeupListener {
 
     @Override
     public void notifyOfWakeupAlarm() {
-        if (Settings.ENABLED_TRANSPORT_TRACE) {
+        if (Settings.sEnableProtocolTrace) {
             HttpConnectionThread.logI("HeartbeatSenderThread.notifyOfWakeupAlarm()",
                     "Waking up for a heartbeat!");
         }

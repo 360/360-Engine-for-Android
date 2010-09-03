@@ -159,7 +159,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
                     int reqNum = reqs.size();
 
                     List<Integer> reqIdList = null;
-                    if (Settings.ENABLED_TRANSPORT_TRACE
+                    if (Settings.sEnableProtocolTrace
                             || Settings.sEnableSuperExpensiveResponseFileLogging) {
                         reqIdList = new ArrayList<Integer>();
                     }
@@ -190,7 +190,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
                                 queueManager.removeRequest(req.getRequestId());
                             }
 
-                            if (Settings.ENABLED_TRANSPORT_TRACE) {
+                            if (Settings.sEnableProtocolTrace) {
                                 reqIdList.add(req.getRequestId());
                                 HttpConnectionThread.logD("HttpConnectionThread.run()", "Req ID: "
                                         + req.getRequestId() + " <-> Auth: " + req.getAuth());
@@ -216,7 +216,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
                                         + ".txt");
                             } // end log file containing response to SD card
 
-                            if (Settings.ENABLED_TRANSPORT_TRACE) {
+                            if (Settings.sEnableProtocolTrace) {
                                 Long userID = null;
                                 AuthSessionHolder auth = LoginEngine.getSession();
                                 if (auth != null) {

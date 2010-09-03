@@ -286,7 +286,7 @@ public class ResponseReaderThread implements Runnable {
         dos.close();
         final byte[] response = baos.toByteArray();
 
-        if (Settings.ENABLED_TRANSPORT_TRACE) {
+        if (Settings.sEnableProtocolTrace) {
             if (reqId != 0) { // regular response
                 HttpConnectionThread.logI("ResponseReader.readResponses()", "\n"
                         + "  < Response for ID " + reqId + " with payload-length " + payloadSize

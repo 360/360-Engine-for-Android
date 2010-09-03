@@ -191,7 +191,7 @@ public class HttpConnectionThread implements Runnable, IConnection {
                         if (null != LoginEngine.getSession()) {
                             synchronized (mSendLock) {
                                 if (mIsConnectionRunning) {
-                                    if (Settings.ENABLED_TRANSPORT_TRACE) {
+                                    if (Settings.sEnableProtocolTrace) {
                                         HttpConnectionThread.logI("RpgTcpConnectionThread.run()",
                                                 "\n \n \nSending a request: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
                                                         + HessianUtils.getInHessian(
@@ -412,7 +412,7 @@ public class HttpConnectionThread implements Runnable, IConnection {
                             entity.consumeContent();
                         }
 
-                        if (Settings.ENABLED_TRANSPORT_TRACE) {
+                        if (Settings.sEnableProtocolTrace) {
                             int length = 0;
                             if (ret != null) {
                                 length = ret.length;
@@ -551,7 +551,7 @@ public class HttpConnectionThread implements Runnable, IConnection {
     }
 
     public static void logE(String tag, String message, Throwable error) {
-        if (Settings.ENABLED_TRANSPORT_TRACE) {
+        if (Settings.sEnableProtocolTrace) {
             Thread t = Thread.currentThread();
             if (null != error) {
                 Log.e("(PROTOCOL)",
@@ -573,7 +573,7 @@ public class HttpConnectionThread implements Runnable, IConnection {
     }
 
     public static void logW(String tag, String message) {
-        if (Settings.ENABLED_TRANSPORT_TRACE) {
+        if (Settings.sEnableProtocolTrace) {
             Thread t = Thread.currentThread();
             Log.w("(PROTOCOL)", tag + "[" + t.getName() + "] ################### " + " : "
                     + message);
@@ -581,21 +581,21 @@ public class HttpConnectionThread implements Runnable, IConnection {
     }
 
     public static void logI(String tag, String message) {
-        if (Settings.ENABLED_TRANSPORT_TRACE) {
+        if (Settings.sEnableProtocolTrace) {
             Thread t = Thread.currentThread();
             Log.i("(PROTOCOL)", tag + "[" + t.getName() + "]" + " : " + message);
         }
     }
 
     public static void logD(String tag, String message) {
-        if (Settings.ENABLED_TRANSPORT_TRACE) {
+        if (Settings.sEnableProtocolTrace) {
             Thread t = Thread.currentThread();
             Log.d("(PROTOCOL)", tag + "[" + t.getName() + "]" + " : " + message);
         }
     }
 
     public static void logV(String tag, String message) {
-        if (Settings.ENABLED_TRANSPORT_TRACE) {
+        if (Settings.sEnableProtocolTrace) {
             Thread t = Thread.currentThread();
             Log.v("(PROTOCOL)", tag + "[" + t.getName() + "]" + " : " + message);
         }
