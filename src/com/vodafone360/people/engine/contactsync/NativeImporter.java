@@ -231,14 +231,20 @@ public class NativeImporter {
             // accounts otherwise
             if (firstTimeImport) {
                 ArrayList<Account> accountList = new ArrayList<Account>();
-                
+             
+                /**
+                 * PAND-2125
+                 * The decision has been made to stop the import of Google contacts on 2.x devices. 
+                 * From now on, we will only import native addressbook contacts.
+                 */
+                /*
                 Account googleAccounts[] = mNativeContactsApi.getAccountsByType(NativeContactsApi.GOOGLE_ACCOUNT_TYPE);
                 if (googleAccounts!=null ){
                   for (Account account : googleAccounts) {
                       accountList.add(account);
                   }
                 }
-                
+                */
                 Account phoneAccounts[] = mNativeContactsApi.getAccountsByType(NativeContactsApi.PHONE_ACCOUNT_TYPE);
                 if (phoneAccounts!=null){
                   for (Account account : phoneAccounts) {

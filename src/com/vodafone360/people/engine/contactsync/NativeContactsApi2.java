@@ -832,8 +832,8 @@ public class NativeContactsApi2 extends NativeContactsApi {
                     // TODO: Remove hardcoding (if statement)
                     if (TextUtils.isEmpty(accountType)
                             || accountType.equals(NativeContactsApi.PEOPLE_ACCOUNT_TYPE_STRING)
-                            || isVendorSpecificAccount(accountType)
-                            || isContactInMyContactsGroup(id)) {
+                            || isVendorSpecificAccount(accountType)) {
+                     //PAND-2125       || isContactInMyContactsGroup(id)) {
                         tempIds[idCount] = id;
                         idCount++;
                     }
@@ -889,6 +889,12 @@ public class NativeContactsApi2 extends NativeContactsApi {
      * @param nabContactId ID of the Contact to check
      * @return true if the Contact is in the Group, false if not
      */
+    /**
+     * PAND-2125
+     * The decision has been made to stop the import of Google contacts on 2.x devices. 
+     * From now on, we will only import native addressbook contacts.
+     */
+    /*
     private boolean isContactInMyContactsGroup(long nabContactId) {
         boolean belongs = false;
         if (mMyContactsGroupRowIds != null) {
@@ -916,7 +922,7 @@ public class NativeContactsApi2 extends NativeContactsApi {
         }
         return belongs;
     }
-
+*/
     /**
      * Reads a Contact Detail from a Cursor into the supplied Contact Change
      * List.
