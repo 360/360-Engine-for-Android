@@ -26,13 +26,12 @@
 package com.vodafone360.people.engine.meprofile;
 
 import java.io.IOException;
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import android.content.Context;
 
-import com.vodafone360.people.ApplicationCache;
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.database.tables.ContactSummaryTable;
 import com.vodafone360.people.database.tables.StateTable;
@@ -43,6 +42,7 @@ import com.vodafone360.people.datatypes.ContactDetail;
 import com.vodafone360.people.datatypes.ExternalResponseObject;
 import com.vodafone360.people.datatypes.PushEvent;
 import com.vodafone360.people.datatypes.SystemNotification;
+import com.vodafone360.people.datatypes.UserProfile;
 import com.vodafone360.people.engine.BaseEngine;
 import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.EngineManager.EngineId;
@@ -50,7 +50,6 @@ import com.vodafone360.people.service.PersistSettings;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.NetworkAgent;
-import com.vodafone360.people.service.agent.UiAgent;
 import com.vodafone360.people.service.io.QueueManager;
 import com.vodafone360.people.service.io.Request;
 import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
@@ -433,33 +432,86 @@ public class SyncMeEngine extends BaseEngine {
             ContactChanges changes = (ContactChanges)resp.mDataTypes.get(0);
             Contact currentMeProfile = new Contact();
             status = SyncMeDbUtils.fetchMeProfile(mDbHelper, currentMeProfile);
+            
             switch (status) {
                 case SUCCESS:
-                    String url = SyncMeDbUtils.updateMeProfile(mDbHelper, currentMeProfile,
-                            changes.mUserProfile);
-                    if (url != null) {
-                        downloadMeProfileThumbnail(url, currentMeProfile.localContactID);
-                    } else {
-                        completeUiRequest(status);
-                    }
+                    SyncMeDbUtils.updateMeProfile(mDbHelper, currentMeProfile, changes.mUserProfile);
                     break;
                 case ERROR_NOT_FOUND: // this is the 1st time sync
                     currentMeProfile.copy(changes.mUserProfile);
                     status = SyncMeDbUtils.setMeProfile(mDbHelper, currentMeProfile);
-                    mFromRevision = changes.mCurrentServerVersion;
-                    StateTable.modifyMeProfileRevision(mFromRevision, mDbHelper
-                            .getWritableDatabase());
                     setFirstTimeMeSyncComplete(true);
-                    completeUiRequest(status);
                     break;
                 default:
                     completeUiRequest(status);
+                    return;
             }
+            
+            final String url = fetchThumbnailUrlFromProfile(changes.mUserProfile);
+            if (url != null) {
+                downloadMeProfileThumbnail(url, currentMeProfile.localContactID);
+            } else {
+                completeUiRequest(status);
+            }
+            
+            storeMeProfileRevisionInDb(changes.mCurrentServerVersion);
         } else {
             completeUiRequest(status);
         }
     }
 
+    /**
+     * 
+     * Stores the new server revision of the me profile passed to this method in the database.
+     * 
+     * @param newServerRevision The new revision of the me profile.
+     * 
+     */
+    private void storeMeProfileRevisionInDb(final int newServerRevision) {
+    	mFromRevision = newServerRevision;
+        StateTable.modifyMeProfileRevision(mFromRevision, mDbHelper.getWritableDatabase());
+        LogUtils.logI("SyncMeEngine.processGetMyChangesResponse() " +
+        		"Stored fromRevision: " + mFromRevision);
+    }
+    
+    /**
+     * 
+     * Fetches the thumbnail URL if there is one in the passed profile.
+     * 
+     * @param profile The profile which contains the URL of the thumbnail in its details.
+     * 
+     * @return Returns the thumbnail if it was found as part of the PHOTO-detail or null if the 
+     * passed profile was null, the PHOTO-detail was not found or all of the details in the profile
+     * are null.
+     * 
+     */
+    private final String fetchThumbnailUrlFromProfile(final UserProfile profile) {
+    	if (null == profile) {
+    		return null;
+    	}
+    	
+    	List<ContactDetail> details = profile.details;
+    	if (null == details) {
+    		return null;
+    	}
+    	
+    	Iterator<ContactDetail> iterator = details.iterator();
+    	
+    	while (iterator.hasNext()) {
+    		ContactDetail detail = iterator.next();
+    		
+    		if (null == detail) {
+    			continue;
+    		}
+    		
+    		if (ContactDetail.DetailKeys.PHOTO.equals(detail.key)) {
+    			return detail.value;
+    		}
+    	}
+    	
+    	return null;
+    }
+    
     /**
      * Processes the response from a SetMe request. If successful, the server
      * IDs will be stored in the local database if they have changed. Otherwise
