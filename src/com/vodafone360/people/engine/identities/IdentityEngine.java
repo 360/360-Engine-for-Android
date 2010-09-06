@@ -889,5 +889,45 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         mStatusList.clear();
         mState = State.IDLE;
     }
+    
+    /***
+     * Return TRUE if the given ThirdPartyAccount contains a Facebook account.
+     * 
+     * @param list List of Identity objects, can be NULL.
+     * @return TRUE if the given Identity contains a Facebook account.
+     */
+    public boolean isFacebookInThirdPartyAccountList() {
+        if (mMyIdentityList != null) {
+            for (Identity identity : mMyIdentityList) {
+           if (identity.mName.toLowerCase().contains("facebook")){
+               return true;
+            }
+            }
+        
+        }
+        LogUtils.logV("ApplicationCache."
+                + "isFacebookInThirdPartyAccountList() Facebook not found in list");
+        return false;
+    }
+
+    /***
+     * Return TRUE if the given Identity contains a Hyves account.
+     * 
+     * @param list List of ThirdPartyAccount objects, can be NULL.
+     * @return TRUE if the given Identity contains a Hyves account.
+     */
+    public boolean isHyvesInThirdPartyAccountList() {
+        if (mMyIdentityList != null) {
+            for (Identity identity : mMyIdentityList) {
+           if (identity.mName.toLowerCase().contains("hyves")){
+               return true;
+            }
+            }
+        
+        }
+        LogUtils.logV("ApplicationCache."
+                + "isFacebookInThirdPartyAccountList() Hyves not found in list");
+        return false;
+    }
 
 }
