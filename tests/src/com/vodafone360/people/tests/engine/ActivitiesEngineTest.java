@@ -173,7 +173,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress
+    
     public void testGetActivitiesGoodNoMeProfile() {
         boolean testPass = true;
         mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
