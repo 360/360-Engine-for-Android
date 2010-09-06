@@ -189,7 +189,23 @@ public class ApplicationCache {
     
     /** Cached whether ThirdPartyAccountsActivity is opened. */
     private boolean mIsAddAccountActivityOpened;
+    /**
+     * For storing the filter type in timeline status.
+     */
+    private int mSelectedFilterType = 0;
     
+    /**
+     * Setter for the selected filter
+     */
+    public void setSelectedFilterTimeLine(int filter) {
+    	mSelectedFilterType = filter;
+    }
+    /**
+     * Getter for the selected filter
+     */
+    public int getSelectedFilter() {
+    	return mSelectedFilterType;
+    }
     /***
      * GETTER Whether "add Account" activity is opened
      * 
