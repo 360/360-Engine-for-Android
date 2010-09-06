@@ -115,6 +115,7 @@ public class UpdateNativeContactsTest  extends AndroidTestCase {
     /**
      * Tests running the processor with an empty database.
      */
+    @Suppress
     public void testRunWithEmptyDatabase() {
         
         UpdateNativeContacts processor = new UpdateNativeContacts(mContactSyncCallback, mDatabaseHelper, getContext().getContentResolver());
