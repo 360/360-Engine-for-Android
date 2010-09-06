@@ -191,7 +191,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress
+    
     public void testGetActivitiesGood() {
 
         boolean testPass = true;
@@ -203,8 +203,12 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
         mEng.addStatusesSyncRequest();
 
-      
-        assertEquals("Expected SUCCESS, not timeout", ServiceStatus.SUCCESS, mEngineTester.waitForEvent());
+        ServiceStatus status = mEngineTester.waitForEvent();
+        if (status != ServiceStatus.SUCCESS &&
+        						status != ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE){
+        	fail("Expected SUCCESS");
+        }
+        //assertEquals("Expected SUCCESS, not timeout", ServiceStatus.SUCCESS, mEngineTester.waitForEvent());
         
         Object data = mEngineTester.data();
         assertTrue(data == null);
@@ -214,13 +218,13 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress
+    
     public void testGetActivitiesServerErr() {
         boolean testPass = true;
         mState = ActivityTestState.GET_ACTIVITIES_SERVER_ERR;
-       
-        mEng.addStatusesSyncRequest();
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
+        mEng.addStatusesSyncRequest();
+        
         ServiceStatus status = mEngineTester.waitForEvent();
         if (status == ServiceStatus.SUCCESS) {
             throw (new RuntimeException("Did not expect SUCCESS"));
@@ -234,7 +238,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress
+    
     public void testGetActivitiesUnexpectedResponse() {
         boolean testPass = true;
         mState = ActivityTestState.GET_ACTIVITIES_UNEXPECTED_RESPONSE;
@@ -295,7 +299,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
 
 
     @MediumTest
-    @Suppress
+    
     public void testPushMessage() {
         boolean testPass = true;
         mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
@@ -339,7 +343,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
      */
 
     @MediumTest
-    @Suppress
+    
     public void testMessageLog() {
         final String ADDRESS = "address";
         // final String PERSON = "person";
@@ -384,7 +388,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
         Log.i(LOG_TAG, "**** testGetActivities (SUCCESS) ****\n");
     }
 
-    @Suppress
+    
     public void testPopulatedActivities() {
         boolean testPass = true;
         mState = ActivityTestState.GET_POPULATED_ACTIVITIES;
@@ -400,7 +404,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
 
     @Override
     public void reportBackToEngine(int reqId, EngineId engine) {
-        Log.d("TAG", "IdentityEngineTest.reportBackToEngine");
+        Log.d("TAG", "ActivityEngineTest.reportBackToEngine");
         ResponseQueue respQueue = ResponseQueue.getInstance();
         List<BaseDataType> data = new ArrayList<BaseDataType>();
 

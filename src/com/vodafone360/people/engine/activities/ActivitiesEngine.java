@@ -673,9 +673,17 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
      * @param status - ServiceStatus of completed operation.
      */
     protected void onSyncHelperComplete(ServiceStatus status) {
-        if (ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE == status) {
+    	
+    	        
+    	if (ServiceStatus.SUCCESS != status && 
+				ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE != status){
+    		completeUiRequest(status, null);
+    	}    	
+    	
+    	if (ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE == status) {
             mTimelinesUpdated = true;
         }
+                
         switch (mState) {
             case FETCH_STATUSES_FIRST_TIME:
                 // 1st/full sync
