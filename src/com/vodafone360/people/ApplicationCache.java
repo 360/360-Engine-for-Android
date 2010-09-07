@@ -37,6 +37,7 @@ import android.content.SharedPreferences;
 import com.vodafone360.people.database.tables.ActivitiesTable.TimelineSummaryItem;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactSummary;
+import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.contactsync.SyncStatus;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.utils.LogUtils;
@@ -367,8 +368,8 @@ public class ApplicationCache {
      * @param list List of ThirdPartyAccount items retrieved from current login.
      */
     public void storeThirdPartyAccounts(Context context, ArrayList<ThirdPartyAccount> list) {
-        setValue(context, FACEBOOK_SUBSCRIBED, isFacebookInThirdPartyAccountList(list) + "");
-        setValue(context, HYVES_SUBSCRIBED, isHyvesInThirdPartyAccountList(list) + "");
+        setValue(context, FACEBOOK_SUBSCRIBED, EngineManager.getInstance().getIdentityEngine().isFacebookInThirdPartyAccountList() + "");
+        setValue(context, HYVES_SUBSCRIBED, EngineManager.getInstance().getIdentityEngine().isHyvesInThirdPartyAccountList() + "");
         mThirdPartyAccountsCache = list;
     }
 
@@ -382,58 +383,6 @@ public class ApplicationCache {
         return mThirdPartyAccountsCache;
     }
 
-    /***
-     * Return TRUE if the given ThirdPartyAccount contains a Facebook account.
-     * 
-     * @param list List of ThirdPartyAccount objects, can be NULL.
-     * @return TRUE if the given ThirdPartyAccount contains a Facebook account.
-     */
-    private static boolean isFacebookInThirdPartyAccountList(ArrayList<ThirdPartyAccount> list) {
-        if (list != null) {
-            for (ThirdPartyAccount thirdPartyAccount : list) {
-                if (thirdPartyAccount.getDisplayName().toLowerCase().startsWith("facebook")) {
-                    if (thirdPartyAccount.isVerified()) {
-                        LogUtils.logV("ApplicationCache."
-                                + "isFacebookInThirdPartyAccountList() Facebook is verified");
-                        return true;
-                    } else {
-                        LogUtils.logV("ApplicationCache."
-                                + "isFacebookInThirdPartyAccountList() Facebook is not verified");
-                        return false;
-                    }
-                }
-            }
-        }
-        LogUtils.logV("ApplicationCache."
-                + "isFacebookInThirdPartyAccountList() Facebook not found in list");
-        return false;
-    }
-
-    /***
-     * Return TRUE if the given ThirdPartyAccount contains a Hyves account.
-     * 
-     * @param list List of ThirdPartyAccount objects, can be NULL.
-     * @return TRUE if the given ThirdPartyAccount contains a Hyves account.
-     */
-    private static boolean isHyvesInThirdPartyAccountList(ArrayList<ThirdPartyAccount> list) {
-        if (list != null) {
-            for (ThirdPartyAccount thirdPartyAccount : list) {
-                if (thirdPartyAccount.getDisplayName().toLowerCase().startsWith("hyves")) {
-                    if (thirdPartyAccount.isVerified()) {
-                        LogUtils
-                                .logV("ApplicationCache.isHyvesInThirdPartyAccountList() Hyves is verified");
-                        return true;
-                    } else {
-                        LogUtils
-                                .logV("ApplicationCache.isHyvesInThirdPartyAccountList() Hyves is not verified");
-                        return false;
-                    }
-                }
-            }
-        }
-        LogUtils.logV("ApplicationCache.isHyvesInThirdPartyAccountList() Hyves not found in list");
-        return false;
-    }
 
     /**
      * Get list of IDs of Home-screen widgets.
@@ -515,8 +464,8 @@ public class ApplicationCache {
                     + "context cannot be NULL");
         }
 
-        boolean facebook = getValue(context, FACEBOOK_SUBSCRIBED, "").equals("true");
-        boolean hyves = getValue(context, HYVES_SUBSCRIBED, "").equals("true");
+        boolean facebook = EngineManager.getInstance().getIdentityEngine().isFacebookInThirdPartyAccountList();
+        boolean hyves =EngineManager.getInstance().getIdentityEngine().isHyvesInThirdPartyAccountList();
 
         if (facebook && hyves) {
             return R.string.ContactStatusListActivity_update_status_on_hyves_and_facebook;
