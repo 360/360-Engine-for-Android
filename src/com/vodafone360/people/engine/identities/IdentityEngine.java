@@ -899,11 +899,11 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     public boolean isFacebookInThirdPartyAccountList() {
         if (mMyIdentityList != null) {
             for (Identity identity : mMyIdentityList) {
-           if (identity.mName.toLowerCase().contains("facebook")){
-               return true;
+                if (identity.mName.toLowerCase().contains("facebook")) {
+                    return true;
+                }
             }
-            }
-        
+
         }
         LogUtils.logV("ApplicationCache."
                 + "isFacebookInThirdPartyAccountList() Facebook not found in list");
@@ -919,11 +919,11 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     public boolean isHyvesInThirdPartyAccountList() {
         if (mMyIdentityList != null) {
             for (Identity identity : mMyIdentityList) {
-           if (identity.mName.toLowerCase().contains("hyves")){
-               return true;
+                if (identity.mName.toLowerCase().contains("hyves")) {
+                    return true;
+                }
             }
-            }
-        
+
         }
         LogUtils.logV("ApplicationCache."
                 + "isFacebookInThirdPartyAccountList() Hyves not found in list");
