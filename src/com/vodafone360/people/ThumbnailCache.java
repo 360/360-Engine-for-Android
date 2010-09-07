@@ -26,6 +26,7 @@
 package com.vodafone360.people;
 
 import java.lang.ref.SoftReference;
+import java.lang.reflect.Field;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +41,7 @@ import android.widget.ImageView;
 import com.vodafone360.people.utils.LRUHashMap;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.ThumbnailUtils;
+
 
 /***
  * Unified thumbnail cache with asynchronous file reading, intended to be
@@ -347,7 +349,28 @@ public class ThumbnailCache {
                         item.getContactId());
                 if (path != null) {
                     try {
-                        final Bitmap bitmap = BitmapFactory.decodeFile(path);
+                        /* Using reflection to set inPurgeable flag as it is not available on 1.5 */
+                        Class bitmapFactoryOptionsClass = BitmapFactory.Options.class;
+                        BitmapFactory.Options bitmapFactoryOptionsInstance = new BitmapFactory.Options();
+                        Field field;
+                        try {
+                            field = bitmapFactoryOptionsClass.getField("inPurgeable");
+                            field.setBoolean(bitmapFactoryOptionsInstance, true);
+                        } catch (SecurityException e) {
+                            LogUtils.logW("ThumbnailCache.loadThumbnails() "
+                                    + "Security Exception");
+                        } catch (NoSuchFieldException e) {
+                            LogUtils.logW("ThumbnailCache.loadThumbnails() "
+                                    + "Field not found");
+                        } catch (IllegalArgumentException e) {
+                            LogUtils.logW("ThumbnailCache.loadThumbnails() "
+                                    + "Illegal Argument");
+                        } catch (IllegalAccessException e) {
+                            LogUtils.logW("ThumbnailCache.loadThumbnails() "
+                                    + "Illegal Access");
+                        }
+
+                        final Bitmap bitmap = BitmapFactory.decodeFile(path, bitmapFactoryOptionsInstance);
                         mThumbnailCache.put(item.getContactId(),
                                 new SoftReference<Bitmap>(bitmap));
 
