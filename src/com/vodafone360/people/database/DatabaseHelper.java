@@ -1837,7 +1837,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param db Writable SQLite database for the update
      */
     private void updateTimelineNames(ContactDetail cd, SQLiteDatabase db) {
-        updateTimelineNames(cd, null, null, db);
+    		updateTimelineNames(cd, null, null, db);
     }
 
     /**
@@ -2735,5 +2735,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static boolean isNullOrBlank(String input) {
         return input == null || input.length() == 0;
     }
+
+    /**
+     * This method updates the timeline event for the contact for the provided
+     * Phone number.
+     *
+     * @param oldPhoneNumber Phone number for which timeline entries
+     * need to be updated.
+     * @param localContactId Given contact ID.
+     */
+	public void updateTimelineEntryForPhone(String oldPhoneNumber,
+			Long localContactID) {
+		final SQLiteDatabase db = getWritableDatabase();
+		ActivitiesTable.updateTimelineContactData(oldPhoneNumber, localContactID, db);
+	}
 }
 

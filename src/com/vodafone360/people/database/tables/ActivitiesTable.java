@@ -47,7 +47,6 @@ import com.vodafone360.people.database.SQLKeys;
 import com.vodafone360.people.database.utils.SqlUtils;
 import com.vodafone360.people.datatypes.ActivityContact;
 import com.vodafone360.people.datatypes.ActivityItem;
-import com.vodafone360.people.engine.meprofile.SyncMeDbUtils;
 import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.utils.CloseUtils;
@@ -955,6 +954,7 @@ public abstract class ActivitiesTable {
                 + " AND ("
                 + Field.LATEST_CONTACT_STATUS + " & " + andVal
                 + ") ORDER BY " + Field.TIMESTAMP + " DESC";
+      
             return readableDb.rawQuery(query, null);
         } catch (SQLiteException e) {
             LogUtils.logE("ActivitiesTable.fetchLastUpdateTime() "
@@ -1233,7 +1233,7 @@ public abstract class ActivitiesTable {
         }
         if (prevTime != null && newUpdateTime != null) {
             if (newUpdateTime >= prevTime) {
-                ContentValues cv = new ContentValues();
+            	ContentValues cv = new ContentValues();
                 cv.put(Field.LATEST_CONTACT_STATUS.toString(),
                         prevLatestContactStatus & (~andVal));
                 if (writableDb.update(TABLE_NAME, cv, Field.LOCAL_ACTIVITY_ID
@@ -1448,6 +1448,7 @@ public abstract class ActivitiesTable {
                 + Field.FLAG + "&" + ActivityItem.TIMELINE_ITEM + ")"
                 + typesQuery + networkQuery + whereAppend
                 + " ORDER BY " + Field.TIMESTAMP + " ASC";
+            
             return readableDb.rawQuery(query, null);
         } catch (SQLiteException e) {
             LogUtils.logE("ActivitiesTable.fetchTimelineEventsForContact() "
@@ -1966,5 +1967,267 @@ public abstract class ActivitiesTable {
             writeableDb.update(TABLE_NAME, values, StringBufferPool.toStringThenRelease(where2), null);
         }
     }
+
+    /**
+     * This method returns the total number of timeline entries
+     * for a particular contact.
+     *
+     * @param localContactId Given contact ID.
+     * @param readableDb Readable SQLite database.
+     * @return Timeline entry count or -1 incase of error. 
+     */
+    public static final int getTimelineEntriesCount(Long localContactId,
+    		SQLiteDatabase readableDb) {
+		DatabaseHelper.trace(false, "DatabaseHelper."
+                + "getTimelineEntriesCount()");
+        if (localContactId == null) {
+            LogUtils.logE("getTimelineEntriesCount() localContactId is NULL");
+            return -1;
+        }
+
+        int timelineEntryCount = -1;
+        Cursor cursor = null;
+
+    	try {
+			 // Get the count of Timeline entries marked as latest for the localcontactId.
+    		final StringBuffer latestTimelineQuery = StringBufferPool.getStringBuffer();
+    		
+			 latestTimelineQuery.append("SELECT COUNT(*) ").append(" FROM ").append(TABLE_NAME)
+			 .append(" WHERE (").append(Field.FLAG).append("&").append(ActivityItem.TIMELINE_ITEM)
+			 .append(") AND ").append(Field.LOCAL_CONTACT_ID).append("=").append(localContactId)
+			 .append(" AND ").append(Field.LATEST_CONTACT_STATUS).append(" >0");
+
+			 cursor = readableDb.rawQuery(
+					 StringBufferPool.toStringThenRelease(latestTimelineQuery), null);
+
+			 if (cursor != null) {
+			     if (cursor.moveToFirst()) {
+			         if (!cursor.isNull(0)) {
+			             timelineEntryCount = cursor.getInt(0);
+			         }
+			     }
+			 }
+		} finally {
+            CloseUtils.close(cursor);
+        }
+
+    	return timelineEntryCount;
+    }
+
+    /**
+     * This method updates the timeline entry for changed number.
+     *
+     * @param localContactId Given contact ID.
+     * @param number The old number whose entry needs to be updated. 
+     * @param writeableDb Writable SQLite database.
+     */
+    public static void updateTimeLineEntryForContact(Long localContactId,
+    		String number, SQLiteDatabase writableDb) {
+		DatabaseHelper.trace(false, "DatabaseHelper."
+                + "updateTimeLineEntryForContact()");
+        if (localContactId == null) {
+            LogUtils.logE("updateTimeLineEntryForContact() localContactId is NULL");
+            return;
+        }
+
+    	try {
+    		// Update the Timeline Entry to make localContactId, contactId NULL
+            String[] args = {
+            	localContactId.toString(), number
+            };
+            
+            final StringBuffer query = StringBufferPool.getStringBuffer();
+
+            query.append("UPDATE ").append(TABLE_NAME).append(" SET ")
+            .append(Field.LOCAL_CONTACT_ID).append("=NULL, ")
+            .append(Field.CONTACT_ID).append("=NULL, ").append(Field.CONTACT_NAME)
+            .append("=").append(Field.CONTACT_ADDRESS).append(" WHERE ")
+            .append(Field.LOCAL_CONTACT_ID).append("=? AND (").append(Field.FLAG)
+            .append("&").append(ActivityItem.TIMELINE_ITEM).append(") AND ")
+            .append(Field.CONTACT_ADDRESS).append("=?");
+
+            writableDb.execSQL(StringBufferPool.toStringThenRelease(query), args);
+		} catch (SQLException e) {
+            LogUtils.logE("ActivitiesTable.updateTimeLineEntryForContact() "
+                    + "Unable to update Activities table", e);
+        }
+    }
+
+    /**
+     * This method updates the latest contact status entry for a timeline
+     * entry identified by localContactId and timestamp value.
+     *
+     * @param localContactId Given contact ID.
+     * @param latestContactStatus latest contact status.
+     * @param timeStamp the timeStamp value for a timeline.
+     * @param whereClause whereclause for update query.
+     * @param writeableDb Writable SQLite database.
+     */
+    public static void updateTimeLineStatusEntryForContact(Long localContactId,
+    		int latestContactStatus, Long timeStamp, String whereClause,
+    		SQLiteDatabase writableDb) {
+		DatabaseHelper.trace(false, "DatabaseHelper."
+                + "updateTimeLineStatusEntryForContact()");
+        if (localContactId == null) {
+            LogUtils.logE("updateTimeLineStatusEntryForContact()"
+            		+" localContactId is NULL");
+            return;
+        }
+
+        try {
+			String[] args = {
+				 	localContactId.toString(), timeStamp.toString()
+				};
+
+            final StringBuffer query = StringBufferPool.getStringBuffer();
+
+			query.append("UPDATE ").append(TABLE_NAME).append(" SET ")
+			.append(Field.LATEST_CONTACT_STATUS).append("=")
+			.append(latestContactStatus +" WHERE ").append(Field.LOCAL_CONTACT_ID)
+			.append("=? AND (").append(Field.FLAG).append("&")
+			.append(ActivityItem.TIMELINE_ITEM).append(") AND ")
+			.append(Field.TIMESTAMP).append("=?");
+
+			if (whereClause != null) {
+				query.append(whereClause);
+			}
+
+			writableDb.execSQL(StringBufferPool.toStringThenRelease(query), args);
+		} catch (SQLException e) {
+            LogUtils.logE("ActivitiesTable.updateTimeLineStatusEntryForContact() "
+                    + "Unable to update Activities table", e);
+        }
+    }
+
+    /**
+     * Fetches timeline events for a specific contact identified by local
+     * contact ID in chronological order. 
+     * @param localContactId The local contact ID.
+     * @param readableDb Readable SQLite database.
+     * @return The cursor that can be read using
+     *         {@link #getTimelineData(Cursor)}.
+     */
+    public static Cursor fetchTimelineEventsForContactById(
+    		final Long localContactId, final SQLiteDatabase readableDb) {
+        DatabaseHelper.trace(false, "DatabaseHelper."
+                + "fetchTimelineEventsForContact()");
+
+        Cursor cursor = null;
+        try {
+            final StringBuffer query = StringBufferPool.getStringBuffer();
+        	
+            query.append("SELECT ").append(Field.LOCAL_ACTIVITY_ID).append(",")
+           .append(Field.TIMESTAMP).append(",").append(Field.CONTACT_NAME).append(",")
+           .append(Field.CONTACT_AVATAR_URL).append(",").append(Field.LOCAL_CONTACT_ID)
+           .append(",").append(Field.TITLE).append(",").append(Field.DESCRIPTION).append(",")
+           .append(Field.CONTACT_NETWORK).append(",").append(Field.NATIVE_ITEM_TYPE).append(",")
+           .append(Field.NATIVE_ITEM_ID).append(",").append(Field.TYPE).append(",")
+           .append(Field.CONTACT_ID).append(",").append(Field.USER_ID).append(",")
+           .append(Field.NATIVE_THREAD_ID).append(",").append(Field.CONTACT_ADDRESS).append(",")
+           .append(Field.INCOMING).append(" FROM ").append(TABLE_NAME).append(" WHERE (")
+           .append(Field.FLAG).append("&").append(ActivityItem.TIMELINE_ITEM).append(") AND ")
+           .append(Field.LOCAL_CONTACT_ID).append("=").append(localContactId)
+           .append(" ORDER BY ").append(Field.TIMESTAMP).append(" DESC");
+        
+	        cursor = readableDb.rawQuery(StringBufferPool.toStringThenRelease(query), null);
+        } catch (SQLiteException e) {
+            LogUtils.logE("ActivitiesTable.fetchTimelineEventsForContactById() "
+                    + "Unable to fetch timeline event for contact", e);
+        }
+
+        return cursor;
+    }
+    /**
+     * This method updates the timeline event for the contact for the provided
+     * Phone number.
+     *
+     * @param oldPhoneNumber Phone number for which timeline entries
+     * need to be updated.
+     * @param localContactId Given contact ID.
+     * @param writeableDb Writable SQLite database.
+     */
+	public static void updateTimelineContactData(String oldPhoneNumber,
+           Long localContactId, SQLiteDatabase writeableDb) {
+		DatabaseHelper.trace(false, "DatabaseHelper."
+                + "updateTimelineContactData()");
+        if (localContactId == null) {
+            LogUtils.logE("updateTimelineContactData() localContactId is NULL");
+            return;
+        }
+
+        int timelineEntryCount = -1;
+        Cursor cursor = null;
+        try {
+        	timelineEntryCount = getTimelineEntriesCount(localContactId, writeableDb);
+
+        	cursor = fetchTimelineEventsForContactById(localContactId, writeableDb);
+            // Merge the different timeline entries for same localcontactId.
+        	if (timelineEntryCount > 1) {
+		        if (cursor != null && cursor.getCount() > 0) {
+					cursor.moveToFirst();
+					TimelineSummaryItem timelineItem = null;
+
+					// Skip the first latest timeline Entry and update the remaining.
+					while (cursor.moveToNext()) {
+					timelineItem = getTimelineData(cursor);
+					if (timelineItem != null) {
+						updateTimeLineStatusEntryForContact(localContactId,
+								0, timelineItem.mTimestamp, null, writeableDb);
+						}
+					}
+		        }
+        	} else {
+        		// Split the latest timeline entries from the previous same localcontactId.
+	        	
+		        if (cursor != null && cursor.getCount() > 1) {
+					TimelineSummaryItem item = null;
+
+					boolean isLatestTimelinePreferred = false;
+					boolean isLatestTimeline = false;
+					while(cursor.moveToNext()) {
+						item = getTimelineData(cursor);
+						if (item != null && item.mLocalContactId != null) {
+
+							int latestContactStatus = 3;
+							// Update the LatestContactStatus for Latest Timeline
+							if (item.mContactAddress.equals(oldPhoneNumber)) {
+								if(isLatestTimelinePreferred) {
+									latestContactStatus = 0;
+								}
+
+								final String whereClause = " AND " + Field.CONTACT_ADDRESS
+								 + "='" + oldPhoneNumber + "'";
+
+								updateTimeLineStatusEntryForContact(localContactId,
+										latestContactStatus, item.mTimestamp,
+										whereClause, writeableDb);
+
+								isLatestTimelinePreferred = true;
+							} else {
+								if(isLatestTimeline) {
+									latestContactStatus = 0;
+								}
+
+								// Update the remaining timeline entries for entries
+								// other than the number changed. 
+								final String whereClause = " AND " + Field.CONTACT_ADDRESS
+								 + "!='" + oldPhoneNumber + "'";
+
+								updateTimeLineStatusEntryForContact(localContactId,
+										latestContactStatus, item.mTimestamp,
+										whereClause, writeableDb);
+
+								isLatestTimeline = true;
+							}
+						}
+					}
+		        }
+        	}
+        	updateTimeLineEntryForContact(localContactId, oldPhoneNumber, writeableDb);
+
+        } finally {
+            CloseUtils.close(cursor);
+        }
+	}
  
 }
