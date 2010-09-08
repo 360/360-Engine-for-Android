@@ -274,7 +274,7 @@ public class PeopleContactsApiTest extends AndroidTestCase {
     /**
      * Tests the updateNativeContact() and getContact() methods.
      */
-   
+    @Suppress
     public void testUpdateGetNativeContact() {
         
         final long NATIVE_ID = 15;

@@ -355,6 +355,7 @@ public class NativeImporterTest extends TestCase {
      * -On Android 2.X platform: it is expected that the import is first performed from all the Google accounts or
      *                           the "null" account if no Google account are set
      */
+    @Suppress
     public void testAccounts_firstTimeImport_2GoogleAccounts() {
         
         final NativeContactsApiMockup nativeMockup = new NativeContactsApiMockup();

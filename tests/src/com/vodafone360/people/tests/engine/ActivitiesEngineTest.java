@@ -218,7 +218,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    
+    @Suppress
     public void testGetActivitiesServerErr() {
         boolean testPass = true;
         mState = ActivityTestState.GET_ACTIVITIES_SERVER_ERR;
@@ -238,7 +238,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    
+    @Suppress
     public void testGetActivitiesUnexpectedResponse() {
         boolean testPass = true;
         mState = ActivityTestState.GET_ACTIVITIES_UNEXPECTED_RESPONSE;

@@ -164,7 +164,6 @@ public class HeartbeatSenderThreadTest extends InstrumentationTestCase {
 		
 	}
 	
-
 	@MediumTest
 	public void testSetOutputStream() {
 		MockTcpConnectionThread connThread = new MockTcpConnectionThread(new DecoderThread(), null);
@@ -177,9 +176,8 @@ public class HeartbeatSenderThreadTest extends InstrumentationTestCase {
 		assertEquals(baos, hbSender.getOutputStream());
 	}
 	
-	
-	@MediumTest
 	@Suppress
+	@MediumTest
 	public void testStartConnection() {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		MockTcpConnectionThread connThread = new MockTcpConnectionThread(new DecoderThread(), null);
