@@ -197,13 +197,13 @@ public class ApplicationCache {
     /**
      * Setter for the selected filter
      */
-    public void setSelectedFilterTimeLine(int filter) {
+    public void setSelectedTimelineFilter(int filter) {
     	mSelectedFilterType = filter;
     }
     /**
      * Getter for the selected filter
      */
-    public int getSelectedFilter() {
+    public int getSelectedTimelineFilter() {
     	return mSelectedFilterType;
     }
     /***
