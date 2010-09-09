@@ -30,6 +30,7 @@ import java.util.Hashtable;
 import java.util.List;
 
 import com.vodafone360.people.database.DatabaseHelper;
+import com.vodafone360.people.database.tables.MePresenceCacheTable;
 import com.vodafone360.people.database.tables.ActivitiesTable.TimelineSummaryItem;
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.ChatMessage;
@@ -633,6 +634,8 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         User me = new User(String.valueOf(PresenceDbUtils.getMeProfileUserId(mDbHelper)),
                 presenceList);
         
+        MePresenceCacheTable.updateCache(me.getPayload(), mDbHelper.getWritableDatabase());
+        
         // set the DB values for myself
         me.setLocalContactId(SyncMeDbUtils.getMeProfileLocalContactId(mDbHelper));
         updateMyPresenceInDatabase(me);
@@ -654,7 +657,8 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
             return;
         }
         
-        LogUtils.logV("PresenceEngine setMyAvailability() called with status:"+ presenceHash.toString());
+        LogUtils.logV("PresenceEngine setMyAvailability() called with status:"
+                + presenceHash.toString());
         if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED) {
             LogUtils.logD("PresenceEnfgine.setMyAvailability(): skip - NO NETWORK CONNECTION");
             return;
@@ -666,6 +670,8 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         // set the DB values for myself
         me.setLocalContactId(SyncMeDbUtils.getMeProfileLocalContactId(mDbHelper));
         updateMyPresenceInDatabase(me);
+        
+        MePresenceCacheTable.updateCache(me.getPayload(), mDbHelper.getWritableDatabase());
 
         // set the engine to run now
         
@@ -680,7 +686,8 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
      */
     public void setMyAvailability(SocialNetwork network, OnlineStatus status) {
         
-        LogUtils.logV("PresenceEngine setMyAvailability() called with network presence: "+network + "=" + status);
+        LogUtils.logV("PresenceEngine setMyAvailability() called with network presence: "+
+                network + "=" + status);
         if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED) {
             LogUtils.logD("PresenceEnfgine.setMyAvailability(): skip - NO NETWORK CONNECTION");
             return;
@@ -690,11 +697,16 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
 
         String userId = String.valueOf(PresenceDbUtils.getMeProfileUserId(mDbHelper));
         
-        presenceList.add(new NetworkPresence(userId, network.ordinal(), status.ordinal()));
+        final NetworkPresence newPresence = new 
+            NetworkPresence(userId, network.ordinal(), status.ordinal());
+        
+        presenceList.add(newPresence);
         
         User me = new User(userId, null);
         
         me.setPayload(presenceList);
+        
+        MePresenceCacheTable.updateCache(newPresence, mDbHelper.getWritableDatabase());
         
         // set the DB values for myself
         me.setLocalContactId(SyncMeDbUtils.getMeProfileLocalContactId(mDbHelper));
@@ -766,7 +778,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
             switch (state) {
                 case STATE_CONNECTED:
                     getPresenceList();
-                    initSetMyAvailabilityRequest(getMyAvailabilityStatusFromDatabase());
+                    initializeAvailabilityFromDb();
                     break;
                 case STATE_CONNECTING:
                 case STATE_DISCONNECTED:
@@ -777,8 +789,23 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
             }    
         }
     }
+    
+    /**
+     * Initializes or re-initializes availability from the Database.
+     * If there are cached presences then these will be used 
+     * instead of values from the presence table.
+     */
+    private void initializeAvailabilityFromDb() {
+        final User user = getMyAvailabilityStatusFromDatabase();
+        ArrayList<NetworkPresence> cachedPresences = 
+            MePresenceCacheTable.getCache(mDbHelper.getReadableDatabase());
+        if(cachedPresences != null) {
+            user.setPayload(cachedPresences);
+        }
         
-
+        initSetMyAvailabilityRequest(user);
+    }
+    
     /**
      * This method gets the availability information for Me Profile from the Presence
      * table and updates the same to the server.

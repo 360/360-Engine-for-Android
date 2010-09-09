@@ -60,6 +60,7 @@ import com.vodafone360.people.database.tables.ContactSummaryTable;
 import com.vodafone360.people.database.tables.ContactsTable;
 import com.vodafone360.people.database.tables.ConversationsTable;
 import com.vodafone360.people.database.tables.GroupsTable;
+import com.vodafone360.people.database.tables.MePresenceCacheTable;
 import com.vodafone360.people.database.tables.NativeChangeLogTable;
 import com.vodafone360.people.database.tables.PresenceTable;
 import com.vodafone360.people.database.tables.StateTable;
@@ -267,9 +268,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             ContactGroupsTable.create(db);
             ContactSourceTable.create(db);
             ActivitiesTable.create(db);
-
             ConversationsTable.create(db);
-
+            MePresenceCacheTable.create(db);
         } catch (SQLException e) {
             LogUtils.logE("DatabaseHelper.onCreate() SQLException: Unable to create DB table", e);
         }
@@ -286,7 +286,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         db.execSQL("ATTACH DATABASE ':memory:' AS " + DATABASE_PRESENCE + ";");
         PresenceTable.create(db);
-
     }
 
     /***

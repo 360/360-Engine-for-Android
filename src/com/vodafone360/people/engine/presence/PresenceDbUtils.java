@@ -31,11 +31,13 @@ import java.util.List;
 
 import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.database.tables.ContactDetailsTable;
 import com.vodafone360.people.database.tables.ContactSummaryTable;
 import com.vodafone360.people.database.tables.ContactsTable;
+import com.vodafone360.people.database.tables.MePresenceCacheTable;
 import com.vodafone360.people.database.tables.PresenceTable;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactDetail;
@@ -50,17 +52,22 @@ import com.vodafone360.people.utils.LogUtils;
 
 public class PresenceDbUtils {
     /**
+     * Invalid general purpose id
+     * TODO: Move this and all other values like this to a common place
+     */
+    private static final long INVALID_ID = -1L;
+    /**
      * the user id of the me profile contact
      */
-    private static long sMeProfileUserId = -1L;
+    private static long sMeProfileUserId = INVALID_ID;
     /**
      * the local contact id of the me profile contact
      */
-    private static long sMeProfileLocalContactId = -1L;
+    private static long sMeProfileLocalContactId = INVALID_ID;
 
     public static void resetMeProfileIds() {
-        sMeProfileUserId = -1L;
-        sMeProfileLocalContactId = -1L;
+        sMeProfileUserId = INVALID_ID;
+        sMeProfileLocalContactId = INVALID_ID;
     }
     
     /**
@@ -76,7 +83,7 @@ public class PresenceDbUtils {
      * @return
      */
     protected static Long getMeProfileUserId(DatabaseHelper databaseHelper) {
-        if (sMeProfileUserId == -1L) {
+        if (sMeProfileUserId == INVALID_ID) {
             Contact meProfile = new Contact();
             if (SyncMeDbUtils.fetchMeProfile(databaseHelper, meProfile) != ServiceStatus.ERROR_NOT_FOUND) {
                 sMeProfileUserId = meProfile.userID;
@@ -96,21 +103,28 @@ public class PresenceDbUtils {
         // if
         // (!sMeProfileLocalContactId.equals(databaseHelper.getMeProfileId())) {
         Long meProfileId = SyncMeDbUtils.getMeProfileLocalContactId(databaseHelper);
-        sMeProfileLocalContactId = (meProfileId == null || meProfileId.intValue() == -1) ? -1
+        sMeProfileLocalContactId = 
+            (meProfileId == null || meProfileId.intValue() == INVALID_ID) ? INVALID_ID
                 : meProfileId;
         // LogUtils.logE("The DB Helper and Utils IDs are not synchronized");
         // }
+        if(meProfileId == INVALID_ID) {
+            LogUtils.logW(
+                    "PresenceDbUtils.getMeProfilePresenceStatus() No local me contact id!");
+        }
+        
         User user = PresenceTable.getUserPresenceByLocalContactId(
-                getMeProfileUserId(databaseHelper), databaseHelper.getWritableDatabase());
+                meProfileId, databaseHelper.getWritableDatabase());
         if (user == null || (user.getPayload() == null)) { // the table is
-            // empty, need to set
-            // the status for the
-            // 1st time
-            // Get presence list constructed from identities
+            /* empty, need to set the status for the 1st time 
+             * Get presence list constructed from identities
+             */
             Hashtable<String, String> status =             
-                EngineManager.getInstance().getPresenceEngine().getPresencesForStatus(OnlineStatus.ONLINE);
+                EngineManager.getInstance().getPresenceEngine().
+                    getPresencesForStatus(OnlineStatus.ONLINE);
             user = new User(String.valueOf(getMeProfileUserId(databaseHelper)), status);
         }
+                
         return user;
     }
 
