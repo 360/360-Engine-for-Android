@@ -64,7 +64,7 @@ public abstract class ActivitiesTable {
     /***
      * The name of the table as it appears in the database.
      */
-    private static final String TABLE_NAME = "Activities";
+    public static final String TABLE_NAME = "Activities";
     
     private static final String TABLE_INDEX_NAME = "ActivitiesIndex";
 

@@ -103,6 +103,17 @@
 			</intent-filter>
 		</receiver>
  
+   		<!--  Provides API access to other processes -->
+		<provider
+			android:name="com.vodafone360.people.service.aidl.DatabaseProvider" 
+			android:authorities="com.vodafone360.people.service.aidl.databaseaccess"/>
+
+		<service android:name="com.vodafone360.people.service.aidl.IdlPeopleInterface">
+			<intent-filter>
+				<action android:name="com.vodafone360.people.service.aidl.IDatabaseSubscriptionService" />
+				<category android:name="android.intent.category.DEFAULT" />
+			</intent-filter>
+		</service>
     </application>
     <uses-sdk android:minSdkVersion="3" />
 </manifest>

@@ -44,7 +44,7 @@ public abstract class ConversationsTable {
      * The name of the table as it appears in the database. TODO: methods
      * signatures might change
      */
-    private static final String TABLE_NAME = "Conversations"; // it is used in
+    public static final String TABLE_NAME = "Conversations"; // it is used in
 
     // the tests
 

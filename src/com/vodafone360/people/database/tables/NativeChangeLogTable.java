@@ -53,7 +53,7 @@ public abstract class NativeChangeLogTable {
     /**
      * Name of the table as it appears in the database
      */
-    private static final String TABLE_NAME = "NativeChangeLog";
+    public static final String TABLE_NAME = "NativeChangeLog";
 
     /**
      * Name of a temporary table created and used to batch the deletion of sync

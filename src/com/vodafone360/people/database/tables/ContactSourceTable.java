@@ -49,7 +49,7 @@ public abstract class ContactSourceTable {
     /**
      * Name of the table as it appears in the database
      */
-    private static final String TABLE_NAME = "ContactSources";
+    public static final String TABLE_NAME = "ContactSources";
 
     /**
      * Represents the data stored in a record

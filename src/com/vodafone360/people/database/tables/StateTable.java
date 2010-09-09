@@ -56,7 +56,7 @@ public abstract class StateTable {
     /**
      * Name of the table as it appears in the database.
      */
-    private static final String TABLE_NAME = "State";
+    public static final String TABLE_NAME = "State";
 
     /**
      * The state table only has one record with the primary key set to the

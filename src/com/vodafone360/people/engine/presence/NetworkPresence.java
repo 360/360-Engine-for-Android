@@ -25,12 +25,15 @@
 
 package com.vodafone360.people.engine.presence;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.vodafone360.people.utils.ThirdPartyAccount;
 
 /**
  * A wrapper for the user presence state on certain web or IM account
  */
-public class NetworkPresence {
+public class NetworkPresence implements Parcelable {
 
     private String mUserId;
 
@@ -117,7 +120,7 @@ public class NetworkPresence {
     /**
      * Hard coded networks with enable IM list
      */
-    public static enum SocialNetwork {
+    public static enum SocialNetwork implements Parcelable {
         FACEBOOK_COM("facebook.com"),
         HYVES_NL("hyves.nl"),
         GOOGLE("google"),
@@ -202,5 +205,80 @@ public class NetworkPresence {
             }
             return null;
         }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(final Parcel dest, final int flags) {
+            dest.writeString(mSocialNetwork);
+        }
+
+        /***
+         * Parcelable.Creator for SocialNetwork.
+         */
+        Parcelable.Creator<SocialNetwork> CREATOR
+            = new Parcelable.Creator<SocialNetwork>() {
+
+            @Override
+            public SocialNetwork createFromParcel(final Parcel source) {
+                return getNetworkBasedOnString(source.readString());
+            }
+
+            @Override
+            public SocialNetwork[] newArray(final int size) {
+                return new SocialNetwork[size];
+            }
+        };
     }
+
+    @Override
+    public final int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public final void writeToParcel(final Parcel parcel, final int flags) {
+        parcel.writeString(mUserId);
+        parcel.writeInt(mNetworkId);
+        parcel.writeInt(mOnlineStatusId);
+    }
+
+    /***
+     * Read in NetworkPresence data from Parcel.
+     *
+     * @param in NetworkPresence Parcel.
+     */
+    public final void readFromParcel(final Parcel in) {
+        mUserId = in.readString();
+        mNetworkId = in.readInt();
+        mOnlineStatusId = in.readInt();
+        return;
+    }
+
+    /***
+     * Parcelable constructor for NetworkPresence.
+     *
+     * @param source NetworkPresence Parcel.
+     */
+    public NetworkPresence(final Parcel source) {
+        this.readFromParcel(source);
+    }
+
+    /***
+     * Parcelable.Creator for NetworkPresence.
+     */
+    public static final Parcelable.Creator<NetworkPresence> CREATOR
+        = new Parcelable.Creator<NetworkPresence>(){
+        public NetworkPresence createFromParcel(final Parcel in) {
+            return new NetworkPresence(in);
+        }
+
+        @Override
+        public NetworkPresence[] newArray(final int size) {
+            return new NetworkPresence[size];
+        }
+    };
 }

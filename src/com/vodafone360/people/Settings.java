@@ -182,6 +182,12 @@ public final class Settings {
 
     /** Key for Hessian URL setting. **/
     public static final String SERVER_URL_HESSIAN_KEY = "hessian-url";
+    
+    /** Key for enabling 3rd party applications to access data via AIDL. **/
+    public static final String ENABLE_AIDL_KEY = "allow-aidl";
+
+    /** Default setting ENABLE_AIDL_KEY. **/
+    public static final String ENABLE_AIDL_DEFAULT = "false";
 
 
     /*

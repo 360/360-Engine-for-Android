@@ -304,4 +304,23 @@ public class RegistrationDetails implements Parcelable {
         dest.writeBooleanArray(validDataList); // Real array.
         dest.setDataPosition(currentPos);
     }
+
+    /***
+     * Parcelable creator for RegistrationDetails.
+     */
+    public static Parcelable.Creator<RegistrationDetails> CREATOR
+        = new Parcelable.Creator<RegistrationDetails>() {
+
+        @Override
+        public RegistrationDetails createFromParcel(final Parcel source) {
+            RegistrationDetails result =  new RegistrationDetails();
+            result.readFromParcel(source);
+            return result;
+        }
+
+        @Override
+        public RegistrationDetails[] newArray(final int size) {
+            return new RegistrationDetails[size];
+        }
+    };
 }

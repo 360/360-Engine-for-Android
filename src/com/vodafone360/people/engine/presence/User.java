@@ -25,10 +25,14 @@
 
 package com.vodafone360.people.engine.presence;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
+
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import com.vodafone360.people.datatypes.ContactSummary;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
@@ -37,19 +41,21 @@ import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 /**
  * User is a class encapsulating the information about a user's presence state.
  */
-public class User {
+public class User implements Parcelable {
 
     private static final String COLUMNS = "::";
 
-    private long mLocalContactId; // the database id of the contact, which
-                                  // corresponds to, e.g. "userid@gmail.com"
+    /** Database ID of the contact (e.g. "userid@gmail.com"). **/
+    private long mLocalContactId;
 
-    private int mOverallOnline; // the overall presence state displayed in the
-                                // common contact list
+    /** Overall presence state displayed in the common contact list. **/
+    private int mOverallOnline;
 
-    private ArrayList<NetworkPresence> mPayload; // communities presence status
-                                                 // {google:online, pc:online,
-                                                 // mobile:online}
+    /**
+     * Communities presence status:
+     * {google:online, pc:online, mobile:online}.
+     */
+    private ArrayList<NetworkPresence> mPayload;
 
     /**
      * Default Constructor.
@@ -75,7 +81,7 @@ public class User {
     /**
      * This method returns the localContactId for this contact in DB across the
      * application .
-     * 
+     *
      * @return the localContactId for this contact in DB
      */
     public long getLocalContactId() {
@@ -272,4 +278,82 @@ public class User {
         }
     }
 
+    @Override
+    public final int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public final void writeToParcel(final Parcel dest, final int flags) {
+        dest.writeLong(mLocalContactId);
+        dest.writeInt(mOverallOnline);
+
+        writePayloadToParcel(dest, flags);
+    }
+
+    /***
+     * Parcelable constructor for User.
+     *
+     * @param source User Parcel.
+     */
+    private void readFromParcel(final Parcel source) {
+        mLocalContactId = source.readLong();
+        mOverallOnline = source.readInt();
+        readPayloadFromParcel(source);
+    }
+
+    /**
+     * Helper function to get the payload into & out of a parcel.
+     * Keeping this code in a helper function should help maintenance.
+     * Doing it this way seems to be the only way to avoid constant
+     * ClassNotFoundExceptions even with proper classloaders in place.
+     *
+     * @param dest User Parcel.
+     * @param flags Flags.
+     */
+    public final void writePayloadToParcel(final Parcel dest, final int flags) {
+        // Locals more efficient than members on Dalvik VM
+        ArrayList<NetworkPresence> payload = mPayload;
+        dest.writeInt(payload.size());
+        for (NetworkPresence netPres : payload) {
+            netPres.writeToParcel(dest, flags);
+        }
+    }
+
+    /**
+     * Helper function to get the payload into & out of a parcel.
+     * Keeping this code in a helper function should help maintenance.
+     * Doing it this way seems to be the only way to avoid constant
+     * ClassNotFoundExceptions even with proper classloaders in place.
+     *
+     * @param source User Parcel.
+     */
+    private void readPayloadFromParcel(final Parcel source) {
+        // Could do this directly into mPayload but locals are more efficient
+        ArrayList<NetworkPresence> payload = new ArrayList<NetworkPresence>();
+        for (int i = 0; i < source.readInt(); i++) {
+            payload.add(new NetworkPresence(source));
+        }
+
+        mPayload = payload;
+    }
+
+    /***
+     * Parcelable.Creator for User.
+     */
+    public static final Parcelable.Creator<User> CREATOR
+        = new Parcelable.Creator<User>() {
+
+        @Override
+        public User createFromParcel(final Parcel source) {
+            User newUser = new User();
+            newUser.readFromParcel(source);
+            return newUser;
+        }
+
+        @Override
+        public User[] newArray(final int size) {
+            return new User[size];
+        }
+    };
 }

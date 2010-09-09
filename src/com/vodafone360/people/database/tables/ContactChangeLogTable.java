@@ -52,7 +52,7 @@ public abstract class ContactChangeLogTable {
     /**
      * Name of the table as it appears in the database
      */
-    private static final String TABLE_NAME = "ContactChangeLog";
+    public static final String TABLE_NAME = "ContactChangeLog";
 
     /**
      * Name of a temporary table created and used to batch the deletion of sync
