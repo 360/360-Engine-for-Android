@@ -51,7 +51,7 @@ public class LoginDetails implements Parcelable {
         final StringBuilder sb = new StringBuilder("Name: ");
         sb.append(mUsername); 
         sb.append("\nPassword: "); sb.append(mPassword);
-        sb.append("Mobile No: "); sb.append(mMobileNo); 
+        sb.append("\nMobile No: "); sb.append(mMobileNo); 
         sb.append("\nRemember Me: ");  sb.append(mRememberMe);
         sb.append("\nAuto Connect: "); sb.append(mAutoConnect); 
         sb.append("\nSubscriber ID: "); sb.append(mSubscriberId);

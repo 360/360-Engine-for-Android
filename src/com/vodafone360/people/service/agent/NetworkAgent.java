@@ -509,7 +509,7 @@ public class NetworkAgent {
             setNewState(AgentState.DISCONNECTED);
             return;
         }
-        if (mIsRoaming && !mDataRoaming) {
+        if (mIsRoaming && !mDataRoaming && !mWifiNetworkAvailable) {
             LogUtils.logV("NetworkAgent.onConnectionStateChanged() "
                     + "Connect while roaming not allowed");
             mDisconnectReason = AgentDisconnectReason.DATA_ROAMING_DISABLED;
