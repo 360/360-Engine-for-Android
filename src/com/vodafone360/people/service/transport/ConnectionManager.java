@@ -151,11 +151,7 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
             mDecoder.stopThread();
         }
 
-        if (null != mConnection) {
-            mConnection.stopThread();
-            mConnection = null;
-            unsubscribeFromQueueEvents();
-        }
+        stopActiveConnection();
     }
 
     @Override
@@ -163,12 +159,7 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
         HttpConnectionThread.logI("ConnectionManager.onLoginStateChanged()", "Is logged in: "
                 + loggedIn);
 
-        if (null != mConnection) {
-            mConnection.stopThread();
-            mConnection = null;
-
-            unsubscribeFromQueueEvents();
-        }
+        stopActiveConnection();
 
         if (loggedIn) {
             mConnection = getAutodetectedConnection(mService);
@@ -180,6 +171,22 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
         mConnection.startThread();
     }
 
+    /**
+     * 
+     * Stops the connection if it was currently running.
+     * 
+     */
+    private void stopActiveConnection() {
+    	if (null != mConnection) {
+    		synchronized (mConnection) {
+	            mConnection.stopThread();
+	            mConnection = null;
+	
+	            unsubscribeFromQueueEvents();
+	        }
+    	}
+    }
+    
     @Override
     public synchronized void notifyOfItemInRequestQueue() {
         mConnection.notifyOfItemInRequestQueue();
@@ -199,14 +206,6 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
     }
 
     /**
-     * TODO: remove this singleton model and call
-     */
-    /*
-     * public boolean isRPGEnabled(){ if (null != mConnection) { return
-     * mConnection.getIsRpgConnectionActive(); } return false; }
-     */
-
-    /***
      * Note: only called from tests.
      */
     public void free() {

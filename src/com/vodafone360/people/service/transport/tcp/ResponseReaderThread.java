@@ -54,7 +54,7 @@ public class ResponseReaderThread implements Runnable {
     /**
      * Sleep time (in milliseconds) of the thread in between reads.
      */
-    private static final long THREAD_SLEEP_TIME = 300; // ms
+    private static final long THREAD_SLEEP_TIME = 1000; // ms
 
     /**
      * The ResponseReaderThread that was created by the TcpConnectionThread. It
@@ -136,7 +136,7 @@ public class ResponseReaderThread implements Runnable {
      * Stops the connection by closing the input stream and setting it to null.
      * Attempts to stop the thread and sets it to null.
      */
-    public void stopConnection() {
+    public synchronized void stopConnection() {
     	HttpConnectionThread.logD("ResponseReaderThread.stopConnection()", "Stopping connection...");
         mIsConnectionRunning = false;
 
@@ -160,11 +160,6 @@ public class ResponseReaderThread implements Runnable {
             } finally {
                 mIs = null;
             }
-        }
-        
-        try {
-            mThread.join(60); // give it 60 millis max
-        } catch (InterruptedException ie) {
         }
     }
 

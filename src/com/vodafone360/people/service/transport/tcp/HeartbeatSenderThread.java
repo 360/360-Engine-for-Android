@@ -182,13 +182,6 @@ public class HeartbeatSenderThread implements Runnable, IWakeupListener {
                 mOs = null;
             }
         }
-
-        if (null != mThread) {
-            try {
-                mThread.join(60); // give it 60 millis max
-            } catch (InterruptedException ie) {
-            }
-        }
     }
 
     /**
