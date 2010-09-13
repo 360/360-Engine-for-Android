@@ -33,9 +33,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.SettingsManager;
@@ -75,9 +73,10 @@ public class TcpConnectionThread implements Runnable, IConnection {
      * Settings.TCP_RETRY_BROKEN_CONNECTION_INTERVAL calls another retry.
      */
     private static final int MAX_NUMBER_RETRIES = 3;
-
+    private static final int FIRST_ATTEMPT = 1;
+    
     private static final int BYTE_ARRAY_OUTPUT_STREAM_SIZE = 2048; // bytes
-
+    
     private Thread mThread;
 
     private RemoteService mService;
@@ -102,7 +101,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
 
     private ResponseReaderThread mResponseReader;
 
-    private long mLastErrorRetryTime, mLastErrorTimestamp;
+    private long mLastErrorRetryTime;
 
     private ByteArrayOutputStream mBaos;
 
@@ -116,7 +115,6 @@ public class TcpConnectionThread implements Runnable, IConnection {
         mService = service;
 
         mLastErrorRetryTime = System.currentTimeMillis();
-        mLastErrorTimestamp = 0;
 
         try {
             mRpgTcpUrl = SettingsManager.getProperty(Settings.TCP_RPG_URL_KEY);
@@ -150,9 +148,9 @@ public class TcpConnectionThread implements Runnable, IConnection {
                     ITcpConnectionListener.STATE_CONNECTED);
 
         } catch (IOException e) {
-            haltAndRetryConnection(1);
+            haltAndRetryConnection(FIRST_ATTEMPT);
         } catch (Exception e) {
-            haltAndRetryConnection(1);
+            haltAndRetryConnection(FIRST_ATTEMPT);
         }
 
         while (mConnectionShouldBeRunning) {
@@ -266,7 +264,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
                         }
                         
                         if (mConnectionShouldBeRunning) {
-                            haltAndRetryConnection(1);
+                            haltAndRetryConnection(FIRST_ATTEMPT);
                         }
                     }
                 }
@@ -313,7 +311,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
     protected synchronized void notifyOfNetworkProblems() {
         HttpConnectionThread.logE("TcpConnectionThread.notifyOfNetworkProblems()",
                 "Houston, we have a network problem!", null);
-        haltAndRetryConnection(1);
+        haltAndRetryConnection(FIRST_ATTEMPT);
     }
 
     /**
@@ -336,27 +334,31 @@ public class TcpConnectionThread implements Runnable, IConnection {
     }
 
     /**
+     * 
      * <p>
      * Retries to establish a network connection after a network error has
      * occurred or the coverage of the network was lost. The amount of retries
-     * depends on MAX_NUMBER_RETRIES.
+     * depends on MAX_NUMBER_RETRIES. This method is recursive!
+     * 
      * </p>
      * <p>
      * A new retry is carried out each time an exception is thrown until the
      * limit of retries has been reached.
      * </p>
      * 
-     * @param numberOfRetries The amount of retries carried out until the
-     *            connection is given up.
+     * @param retryIteration Shows the number of iterations we have gone through thus far.
+     * 
      */
-    private void haltAndRetryConnection(int numberOfRetries) {
-        HttpConnectionThread.logI("TcpConnectionThread.haltAndRetryConnection()",
-                "\n \n \nRETRYING CONNECTION: " + numberOfRetries + " tries.");
+    private void haltAndRetryConnection(int retryIteration) {
+    	if (retryIteration < MAX_NUMBER_RETRIES) {
+    		HttpConnectionThread.logI("TcpConnectionThread.haltAndRetryConnection()",
+                "\n \n \nRETRYING CONNECTION: " + retryIteration + " retries");
+    	}
 
         ConnectionManager.getInstance().onConnectionStateChanged(
                 ITcpConnectionListener.STATE_CONNECTING);
 
-        if (!mConnectionShouldBeRunning) { // connection was killed by service agent
+        if (!mConnectionShouldBeRunning) { // connection was killed by network agent
             HttpConnectionThread.logI("TcpConnectionThread.haltAndRetryConnection()", "Connection "
                     + "was disconnected by Service Agent. Stopping retries!");
             return;
@@ -365,10 +367,8 @@ public class TcpConnectionThread implements Runnable, IConnection {
         stopConnection(); // stop to kill anything that might cause further IOEs
 
         // if we retried enough, we just return and end further retries
-        if (numberOfRetries > MAX_NUMBER_RETRIES) {
-            mDidCriticalErrorOccur = true;
-            mLastErrorTimestamp = System.currentTimeMillis();
-            
+        if (retryIteration > MAX_NUMBER_RETRIES) {
+            mDidCriticalErrorOccur = true;            
             invalidateRequests();
             
             synchronized (requestLock) {
@@ -387,7 +387,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
         }
 
         try { // sleep a while to let the connection recover
-            int sleepVal = (ERROR_RETRY_INTERVAL / 2) * numberOfRetries;
+            int sleepVal = (ERROR_RETRY_INTERVAL / 2) * retryIteration;
             Thread.sleep(sleepVal);
         } catch (InterruptedException ie) {
         }
@@ -412,18 +412,11 @@ public class TcpConnectionThread implements Runnable, IConnection {
 
             // TODO add this once the BE supports it!
             /*
-             * ConnectionTester connTester = new ConnectionTester(mIs, mOs); if
-             * (connTester.runTest()) { mDidCriticalErrorOccur = false;
-             * startHelperThreads(); // restart our connections Map<String,
-             * String> map = new HashMap<String, String>();
-             * map.put("Last Error Timestamp", "" + mLastErrorTimestamp);
-             * map.put("Last Error Retry Timestamp", "" + mLastErrorRetryTime);
-             * map.put("Current Timestamp", "" + System.currentTimeMillis());
-             * map.put("Number of Retries", "" + numberOfRetries);
-             * FlurryAgent.onEvent("RecoveredFromTCPError", map); } else {
-             * HttpConnectionThread
-             * .log("TcpConnectionThread.haltAndRetryConnection()",
-             * "Could not receive TCP test response. need to retry...");
+             * ConnectionTester connTester = new ConnectionTester(mIs, mOs);
+             * if (connTester.runTest()) {
+             * mDidCriticalErrorOccur = false;
+             * startHelperThreads(); // restart our connections Map<String, 
+             * } else {
              * haltAndRetryConnection(++numberOfRetries); }
              */
 
@@ -432,11 +425,11 @@ public class TcpConnectionThread implements Runnable, IConnection {
         } catch (IOException ioe) {
             HttpConnectionThread.logI("TcpConnectionThread.haltAndRetryConnection()",
                     "Failed sending heartbeat. Need to retry...");
-            haltAndRetryConnection(++numberOfRetries);
+            haltAndRetryConnection(++retryIteration);
         } catch (Exception e) {
             HttpConnectionThread.logE("TcpConnectionThread.haltAndRetryConnection()",
                     "An unknown error occured: ", e);
-            haltAndRetryConnection(++numberOfRetries);
+            haltAndRetryConnection(++retryIteration);
         }
     }
 
