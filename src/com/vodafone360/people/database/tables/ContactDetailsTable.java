@@ -27,7 +27,6 @@ package com.vodafone360.people.database.tables;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
