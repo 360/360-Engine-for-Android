@@ -115,7 +115,7 @@ public class GroupPrivacy {
         }
 
         Request request = new Request(FUNCTION_DELETE_CONTACT_GROUP_RELATIONS_EXT,
-                Request.Type.STATUS, engine.engineId(), false,
+                Request.Type.DELETE_CONTACT_GROUP_RELATIONS, engine.engineId(), false,
                 Settings.API_REQUESTS_TIMEOUT_GROUP_PRIVACY);
         request.addData("groupid", groupid);
         request.addData("contactidlist", new Vector<Object>(contactidlist));

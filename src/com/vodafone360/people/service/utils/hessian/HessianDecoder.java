@@ -414,7 +414,20 @@ public class HessianDecoder {
                 clist.add(groupRelationsList);
                 responseType = DecodedResponse.ResponseType.GET_CONTACT_GROUP_RELATIONS_RESPONSE.ordinal();
                 break;
-
+                
+            case DELETE_CONTACT_GROUP_RELATIONS:
+            // The hessian data sent by the backend is of the form
+            // r{1}{0}Mt{0}{0}zz. The MicroHessianInput always skips the 2 bytes
+            // after the type. This doesn't seem to be handling the case where
+            // the type is of length zero. Due to this, after decoding, the hash
+            // doesn't contain any elements/keys. Due to this, we are hardcoding
+            // the status to true here.
+                StatusMsg statusMsg = new StatusMsg();
+                statusMsg.mStatus = true;
+                clist.add(statusMsg);
+                responseType = DecodedResponse.ResponseType.UNKNOWN.ordinal();
+                break;
+                
             case GROUP_LIST:
                 ItemList zyblist = new ItemList(ItemList.Type.group_privacy);
                 zyblist.populateFromHashtable(hash);
