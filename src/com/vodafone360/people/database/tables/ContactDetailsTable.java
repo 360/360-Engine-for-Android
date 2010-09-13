@@ -36,8 +36,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
 import android.text.TextUtils;
-import antlr.Version;
-
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.database.SQLKeys;
