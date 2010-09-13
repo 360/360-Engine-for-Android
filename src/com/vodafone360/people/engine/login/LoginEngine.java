@@ -1027,14 +1027,11 @@ public class LoginEngine extends BaseEngine {
         // Update notification
         switch (mState) {
             case LOGIN_FAILED_WRONG_CREDENTIALS:
-                /*intent = new Intent();
+                intent = new Intent();
                 intent.setAction(Intents.START_LOGIN_ACTIVITY);
                 mContext.sendBroadcast(intent);
 
-                setRegistrationComplete(false);*/
-            	
-            	startLogout();
-            	
+                setRegistrationComplete(false);            	
                 break;
             // here should be no break
             case NOT_REGISTERED:
@@ -1233,8 +1230,7 @@ public class LoginEngine extends BaseEngine {
                 mAreLoginDetailsValid = false;
                 newState(State.LOGIN_FAILED_WRONG_CREDENTIALS);
             } else {
-                // newState(State.LOGIN_FAILED);
-                newState(State.LOGIN_FAILED_WRONG_CREDENTIALS);
+                newState(State.LOGIN_FAILED);
             }
             // }
         }
