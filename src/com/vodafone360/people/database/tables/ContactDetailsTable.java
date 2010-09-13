@@ -36,6 +36,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
 import android.text.TextUtils;
+import antlr.Version;
 
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.database.DatabaseHelper;
@@ -47,12 +48,14 @@ import com.vodafone360.people.datatypes.ContactDetail;
 import com.vodafone360.people.datatypes.VCardHelper;
 import com.vodafone360.people.datatypes.ContactDetail.DetailKeyTypes;
 import com.vodafone360.people.datatypes.ContactDetail.DetailKeys;
+import com.vodafone360.people.datatypes.VCardHelper.Name;
 import com.vodafone360.people.engine.contactsync.ContactChange;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.utils.CloseUtils;
 import com.vodafone360.people.utils.CursorUtils;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.StringBufferPool;
+import com.vodafone360.people.utils.VersionUtils;
 
 /**
  * Provides a wrapper for all the operations on the Contact Details Table. Class
@@ -652,7 +655,26 @@ public abstract class ContactDetailsTable {
      */
     public static ServiceStatus modifyDetail(ContactDetail detail, boolean syncToServer,
             boolean syncToNative, SQLiteDatabase writeableDb) {
-        try {
+        try { 
+            
+            // Sometimes we get surname duplicated in first name (Max Mustermann
+            // Mustermann) on a VCARD_NAME
+            // To fix this we will remove surnames from first names and sync
+            // back to server if we change anything
+            if (VersionUtils.is2XPlatform() == false && detail.key == DetailKeys.VCARD_NAME) {
+                Name name = VCardHelper.getName(detail.value);
+                if (name.surname.length() > 0) {
+                    name.firstname = name.firstname.replace(name.surname, "").trim();
+                    name.midname = name.midname.replace(name.surname, "").trim();
+                }
+                String vcardName = VCardHelper.makeName(name);
+                if (!detail.value.equals(vcardName)) {
+                    syncToServer = true;
+                    detail.value = vcardName;
+                }
+
+            }
+            
             ContentValues contactDetailValues = fillUpdateData(detail, syncToServer, syncToNative);
             if (writeableDb.update(TABLE_NAME, contactDetailValues, Field.DETAILLOCALID + " = "
                     + detail.localDetailID, null) <= 0) {
