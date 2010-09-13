@@ -398,10 +398,17 @@ public class LoginEngine extends BaseEngine {
                 break;
             case LOGGED_OFF:
             case LOGGED_OFF_WAITING_FOR_NETWORK:
-                // AA mCurrentNoOfRetries = 0;
-                if (retryAutoLogin()) {
-                    return;
-                }
+            	AuthSessionHolder session = StateTable.fetchSession(mDb.getReadableDatabase());
+            	
+                // if session is null we try to login automatically again
+            	if (null == session) {
+            		if (retryAutoLogin()) {
+                        return;
+                    }
+            	} else {	// otherwise we try to reuse the session
+            		sActivatedSession = session;
+            		newState(State.LOGGED_ON);
+            	}
             default: // do nothing.
                 break;
         }
@@ -1024,7 +1031,7 @@ public class LoginEngine extends BaseEngine {
                 intent.setAction(Intents.START_LOGIN_ACTIVITY);
                 mContext.sendBroadcast(intent);
 
-                setRegistrationComplete(false);
+                setRegistrationComplete(false);            	
                 break;
             // here should be no break
             case NOT_REGISTERED:

@@ -208,6 +208,11 @@ public class ApplicationCache {
     private int mSelectedFilterType = 0;
     
     /**
+     * For storing the filter type in timeline status of history details.
+     */
+    private int mSelectedHistoryFilterType;
+    
+    /**
      * Setter for the selected filter
      */
     public void setSelectedTimelineFilter(int filter) {
@@ -219,6 +224,20 @@ public class ApplicationCache {
     public int getSelectedTimelineFilter() {
     	return mSelectedFilterType;
     }
+    
+    /**
+     * Setter for the selected filter
+     */
+    public void setSelectedHistoryTimelineFilter(int filter) {
+        mSelectedHistoryFilterType = filter;
+    }
+    /**
+     * Getter for the selected filter
+     */
+    public int getSelectedHistoryTimelineFilter() {
+        return mSelectedHistoryFilterType;
+    }
+    
     /***
      * GETTER Whether "add Account" activity is opened
      * 
