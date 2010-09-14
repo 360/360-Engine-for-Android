@@ -113,8 +113,8 @@ public abstract class MePresenceCacheTable {
         }
         
         final StringBuffer sb = new StringBuffer();
-        sb.append("CREATE TABLE IF NOT EXISTS "); /*sb.append(DatabaseHelper.DATABASE_PRESENCE); 
-        sb.append(".");*/ sb.append(TABLE_NAME); sb.append(" ("); sb.append(ID_STRING);
+        sb.append("CREATE TABLE IF NOT EXISTS "); 
+        sb.append(TABLE_NAME); sb.append(" ("); sb.append(ID_STRING);
         sb.append(" INTEGER PRIMARY KEY AUTOINCREMENT, ");
         sb.append(USER_ID_STRING); sb.append(" STRING, ");
         sb.append(NETWORK_ID_STRING); sb.append(" INT, ");

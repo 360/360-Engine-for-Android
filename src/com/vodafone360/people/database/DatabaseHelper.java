@@ -269,7 +269,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             ContactSourceTable.create(db);
             ActivitiesTable.create(db);
             ConversationsTable.create(db);
-            MePresenceCacheTable.create(db);
         } catch (SQLException e) {
             LogUtils.logE("DatabaseHelper.onCreate() SQLException: Unable to create DB table", e);
         }
@@ -283,7 +282,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onOpen(SQLiteDatabase db) {
         super.onOpen(db);
-
+        // Adding the creation code for the MePresenceCacheTable here because this older
+        // versions of the client do not contain this table
+        MePresenceCacheTable.create(db);
         db.execSQL("ATTACH DATABASE ':memory:' AS " + DATABASE_PRESENCE + ";");
         PresenceTable.create(db);
     }
