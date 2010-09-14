@@ -26,7 +26,6 @@
 package com.vodafone360.people;
 
 import android.app.Application;
-import android.content.ContentResolver;
 import android.os.Handler;
 
 import com.vodafone360.people.database.DatabaseHelper;
@@ -36,8 +35,8 @@ import com.vodafone360.people.service.PersistSettings;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.PersistSettings.InternetAvail;
 import com.vodafone360.people.service.interfaces.IPeopleService;
-import com.vodafone360.people.utils.LoginPreferences;
 import com.vodafone360.people.utils.LogUtils;
+import com.vodafone360.people.utils.LoginPreferences;
 import com.vodafone360.people.utils.WidgetUtils;
 
 /**
