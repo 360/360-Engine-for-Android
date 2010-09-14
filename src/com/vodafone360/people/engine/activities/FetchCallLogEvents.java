@@ -70,6 +70,12 @@ public class FetchCallLogEvents implements ISyncHelper {
 
     // "-1" means number is unknown
     private static final String NATIVE_NUMBER_UNKNOWN_STRING = "-1";
+    
+    /**
+     * Private phone number String used in Motorola Milestone
+     * perhaps also used on other devices.
+     */
+    private static final String NATIVE_NUMBER_PRIVATE_STRING = "-2";
 
     private Context mContext;
 
@@ -329,7 +335,8 @@ public class FetchCallLogEvents implements ISyncHelper {
         item.mTitle = DateFormat.getDateInstance().format(new Date(item.mTimestamp));
         item.mDescription = null;
 
-        if (phoneNo.compareToIgnoreCase(NATIVE_NUMBER_UNKNOWN_STRING) != 0) {
+        if (phoneNo.compareToIgnoreCase(NATIVE_NUMBER_UNKNOWN_STRING) != 0
+                && phoneNo.compareToIgnoreCase(NATIVE_NUMBER_PRIVATE_STRING) != 0) {
             item.mContactName = PhoneNumberUtils.formatNumber(phoneNo);
             item.mContactAddress = phoneNo;
         } else {
