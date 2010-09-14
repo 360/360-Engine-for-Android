@@ -40,6 +40,7 @@ import com.vodafone360.people.datatypes.ContactSummary;
 import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.contactsync.SyncStatus;
 import com.vodafone360.people.service.ServiceStatus;
+import com.vodafone360.people.ui.widget.WidgetProvider;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.LoginPreferences;
 import com.vodafone360.people.utils.ThirdPartyAccount;
@@ -156,8 +157,6 @@ public class ApplicationCache {
      * Current state of the Activities engine fetching newer time line logic.
      */
     private static boolean sFetchingOlderStatuses = false;
-
-    public static String sWidgetProviderClassName = null;
 
     public static String sIsNewMessage = "isNewMessage";
 
@@ -443,12 +442,9 @@ public class ApplicationCache {
      * @return list of IDs of Home-screen widgets.
      */
     public int[] getWidgetIdList(Context context) {
-        if(sWidgetProviderClassName != null) {
+    	
         return AppWidgetManager.getInstance(context).getAppWidgetIds(
-                new ComponentName(context, sWidgetProviderClassName));
-        }
-        
-        return null;
+                new ComponentName(context, WidgetProvider.class.getName()));
     }
 
     /***
