@@ -37,7 +37,8 @@ public class Intents {
     
     public static final String ROAMING_OFF = "com.vodafone360.people.Intents.ROAMING_OFF";
 
-    public static final String START_LOGIN_ACTIVITY = 
-        "com.vodafone360.people.Intents.START_LOGIN_ACTIVITY";
-    
+    public static final String START_LOGIN_ACTIVITY =  "com.vodafone360.people.Intents.START_LOGIN_ACTIVITY";
+
+    public static final String UPDATE_WIDGET =  "com.vodafone360.people.Intents.UPDATE_WIDGET";
+
 }

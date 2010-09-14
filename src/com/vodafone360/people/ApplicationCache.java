@@ -29,8 +29,6 @@ import java.lang.ref.SoftReference;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 
-import android.appwidget.AppWidgetManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -40,7 +38,6 @@ import com.vodafone360.people.datatypes.ContactSummary;
 import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.contactsync.SyncStatus;
 import com.vodafone360.people.service.ServiceStatus;
-import com.vodafone360.people.ui.widget.WidgetProvider;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.LoginPreferences;
 import com.vodafone360.people.utils.ThirdPartyAccount;
@@ -432,19 +429,6 @@ public class ApplicationCache {
      */
     public ArrayList<ThirdPartyAccount> getThirdPartyAccounts() {
         return mThirdPartyAccountsCache;
-    }
-
-
-    /**
-     * Get list of IDs of Home-screen widgets.
-     * 
-     * @param context Current context.
-     * @return list of IDs of Home-screen widgets.
-     */
-    public int[] getWidgetIdList(Context context) {
-    	
-        return AppWidgetManager.getInstance(context).getAppWidgetIds(
-                new ComponentName(context, WidgetProvider.class.getName()));
     }
 
     /***
