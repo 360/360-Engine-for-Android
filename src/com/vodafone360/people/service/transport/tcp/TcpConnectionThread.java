@@ -85,7 +85,9 @@ public class TcpConnectionThread implements Runnable, IConnection {
 
     private boolean mConnectionShouldBeRunning;
 
-    private boolean mDidCriticalErrorOccur;
+    private Boolean mFailedRetrying;
+    
+    private Boolean mIsRetrying;
 
     private BufferedInputStream mBufferedInputStream;
 
@@ -109,6 +111,9 @@ public class TcpConnectionThread implements Runnable, IConnection {
         mSocket = new Socket();
         mBaos = new ByteArrayOutputStream(BYTE_ARRAY_OUTPUT_STREAM_SIZE);
 
+        mIsRetrying = new Boolean(false);
+        mFailedRetrying = new Boolean(false);
+        
         mConnectionShouldBeRunning = true;
 
         mDecoder = decoder;
@@ -125,10 +130,11 @@ public class TcpConnectionThread implements Runnable, IConnection {
             mRpgTcpPort = RPG_DEFAULT_TCP_PORT;
         }
     }
-
+    
     public void run() {
         QueueManager queueManager = QueueManager.getInstance();
-        mDidCriticalErrorOccur = false;
+        setFailedRetrying(false);
+        setIsRetrying(false);
 
         try { // start the initial connection
             reconnectSocket();
@@ -155,7 +161,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
 
         while (mConnectionShouldBeRunning) {
             try {
-                if ((null != mOs) && (!mDidCriticalErrorOccur)) {
+                if ((null != mOs) && (!getFailedRetrying())) {
                     List<Request> reqs = QueueManager.getInstance().getRpgRequests();
                     int reqNum = reqs.size();
 
@@ -250,12 +256,12 @@ public class TcpConnectionThread implements Runnable, IConnection {
                     }
                 }
 
-                if (!mDidCriticalErrorOccur) {
+                if (!getFailedRetrying()) {
                 	synchronized(requestLock) {
                 		requestLock.wait();
                 	}
                 } else {
-                    while (mDidCriticalErrorOccur) { // loop until a retry
+                    while (getFailedRetrying()) { // loop until a retry
                         // succeeds
                         HttpConnectionThread.logI("TcpConnectionThread.run()",
                                 "Wait() for next connection retry has started.");
@@ -269,49 +275,13 @@ public class TcpConnectionThread implements Runnable, IConnection {
                     }
                 }
             } catch (Throwable t) {
-                // FlurryAgent.onError("ERROR_TCP_THREAD_CRASHED", "run()",
-                // "TcpConnectionThread");
                 HttpConnectionThread.logE("TcpConnectionThread.run()", "Unknown Error: ", t);
             }
         }
 
         stopConnection();
-    }
-
-    /**
-     * Gets notified whenever the user is using the UI. In this special case
-     * whenever an error occured with the connection and this method was not
-     * called a short time before
-     */
-    @Override
-    public void notifyOfUiActivity() {
-        if (mDidCriticalErrorOccur) {
-            if ((System.currentTimeMillis() - mLastErrorRetryTime) >= CONNECTION_RESTART_INTERVAL) {
-                synchronized (errorLock) {
-                	// if we are in an error state let's try to fix it
-                    errorLock.notify();
-                }
-
-                mLastErrorRetryTime = System.currentTimeMillis();
-            }
-        }
-    }
-
-    @Override
-    public void notifyOfRegainedNetworkCoverage() {
-        synchronized (errorLock) {
-            errorLock.notify();
-        }
-    }
-
-    /**
-     * Called back by the response reader, which should notice network problems
-     * first
-     */
-    protected synchronized void notifyOfNetworkProblems() {
-        HttpConnectionThread.logE("TcpConnectionThread.notifyOfNetworkProblems()",
-                "Houston, we have a network problem!", null);
-        haltAndRetryConnection(FIRST_ATTEMPT);
+        ConnectionManager.getInstance().onConnectionStateChanged(
+                ITcpConnectionListener.STATE_DISCONNECTED);
     }
 
     /**
@@ -368,7 +338,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
 
         // if we retried enough, we just return and end further retries
         if (retryIteration > MAX_NUMBER_RETRIES) {
-            mDidCriticalErrorOccur = true;            
+            setFailedRetrying(true);            
             invalidateRequests();
             
             synchronized (requestLock) {
@@ -404,7 +374,8 @@ public class TcpConnectionThread implements Runnable, IConnection {
             hbSender.setOutputStream(mOs);
             hbSender.sendHeartbeat();
             hbSender = null;
-            mDidCriticalErrorOccur = false;
+            setFailedRetrying(false);
+            setIsRetrying(false);
             if (!mConnectionShouldBeRunning) {
                 return;
             }
@@ -467,9 +438,6 @@ public class TcpConnectionThread implements Runnable, IConnection {
         HttpConnectionThread.logI("TcpConnectionThread.stopThread()", "Stop Thread was called!");
 
         mConnectionShouldBeRunning = false;
-        stopConnection();
-        ConnectionManager.getInstance().onConnectionStateChanged(
-        		ITcpConnectionListener.STATE_DISCONNECTED);
 
         synchronized (requestLock) {
             requestLock.notify();
@@ -564,7 +532,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
 
         QueueManager.getInstance().clearAllRequests();
     }
-
+    
     @Override
     public void notifyOfItemInRequestQueue() {
         HttpConnectionThread.logV("TcpConnectionThread.notifyOfItemInRequestQueue()",
@@ -577,6 +545,47 @@ public class TcpConnectionThread implements Runnable, IConnection {
         }
     }
 
+    /**
+     * Gets notified whenever the user is using the UI. In this special case
+     * whenever an error occured with the connection and this method was not
+     * called a short time before
+     */
+    @Override
+    public void notifyOfUiActivity() {
+        if (getFailedRetrying()) {
+            if ((System.currentTimeMillis() - mLastErrorRetryTime) >= CONNECTION_RESTART_INTERVAL) {
+                synchronized (errorLock) {
+                	// if we are in an error state let's try to fix it
+                    errorLock.notify();
+                }
+
+                mLastErrorRetryTime = System.currentTimeMillis();
+            }
+        }
+    }
+
+    @Override
+    public void notifyOfRegainedNetworkCoverage() {
+        synchronized (errorLock) {
+            errorLock.notify();
+        }
+    }
+
+    /**
+     * Called back by the response reader, which should notice network problems
+     * first
+     */
+    protected void notifyOfNetworkProblems() {
+    	if(getIsRetrying()) {
+    		return;
+    	}
+    	setIsRetrying(true);
+        
+        HttpConnectionThread.logE("TcpConnectionThread.notifyOfNetworkProblems()",
+                "Houston, we have a network problem!", null);
+        haltAndRetryConnection(FIRST_ATTEMPT);
+    }
+    
     @Override
     public boolean getIsConnected() {
         return mConnectionShouldBeRunning;
@@ -591,6 +600,57 @@ public class TcpConnectionThread implements Runnable, IConnection {
         return false;
     }
 
+    /**
+     * 
+     * If the connection was lost this flag indicates that we are trying to regain it.
+     * 
+     * @param isRetrying True if the connection is currently trying to be regained, false otherwise. 
+     * 
+     */
+    private void setIsRetrying(final boolean isRetrying) {
+        synchronized(mIsRetrying) {
+            mIsRetrying = isRetrying;
+        }
+    }
+    
+    /**
+     * 
+     * Sets a flag which indicates whether the connection has failed retrying to connect to the server
+     * for 3 consecutive times or not.
+     * 
+     * @param failedRetrying True if the connection failed to connect 3 times, otherwise false.
+     */
+    private void setFailedRetrying(final boolean failedRetrying) {
+        synchronized(mFailedRetrying) {
+            mFailedRetrying = failedRetrying;
+        }
+    }
+    
+    /**
+     * 
+     * Returns whether we are currently trying to regain a connection.
+     * 
+     * @return True if we are trying to regain the connection, false otherwise.
+     * 
+     */
+    private boolean getIsRetrying() {
+        synchronized(mIsRetrying) {
+            return mIsRetrying;
+        }
+    }
+    
+    /**
+     * 
+     * Returns whether we have failed trying to regain the connection (happens after 3 retries).
+     * 
+     * @return True if we have failed reconnecting, false if we are connected.
+     */
+    private boolean getFailedRetrying() {
+        synchronized(mFailedRetrying) {
+            return mFailedRetrying;
+        }
+    }
+    
     @Override
     public void onLoginStateChanged(boolean isLoggedIn) {
     }
