@@ -628,6 +628,11 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
             return;
         }
         
+        if (!isFirstTimeSyncComplete()) {
+            LogUtils.logD("PresenceEngine.setMyAvailability(): skip - First time contact sync has not finished yet");
+            return;
+        }
+        
         // Get presences
         Hashtable<String, String> presenceList = getPresencesForStatus(status);
         
@@ -657,10 +662,13 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
             return;
         }
         
-        LogUtils.logV("PresenceEngine setMyAvailability() called with status:"
-                + presenceHash.toString());
         if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED) {
-            LogUtils.logD("PresenceEnfgine.setMyAvailability(): skip - NO NETWORK CONNECTION");
+            LogUtils.logD("PresenceEngine.setMyAvailability(): skip - NO NETWORK CONNECTION");
+            return;
+        }
+        
+        if (!isFirstTimeSyncComplete()) {
+            LogUtils.logD("PresenceEngine.setMyAvailability(): skip - First time contact sync has not finished yet");
             return;
         }
         
@@ -694,6 +702,11 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         }
         
         ArrayList<NetworkPresence> presenceList = new ArrayList<NetworkPresence>();
+        
+        if (!isFirstTimeSyncComplete()) {
+            LogUtils.logD("PresenceEngine.setMyAvailability(): skip - First time contact sync has not finished yet");
+            return;
+        }
 
         String userId = String.valueOf(PresenceDbUtils.getMeProfileUserId(mDbHelper));
         
@@ -806,14 +819,6 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         initSetMyAvailabilityRequest(user);
     }
     
-    /**
-     * This method gets the availability information for Me Profile from the Presence
-     * table and updates the same to the server.
-     */
-    public final void setMyAvailability() {
-        initSetMyAvailabilityRequest(getMyAvailabilityStatusFromDatabase());
-    }
-
     /**
      * Convenience method.
      * Constructs a Hash table object containing My identities mapped against the provided status.

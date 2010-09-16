@@ -31,13 +31,11 @@ import java.util.List;
 
 import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.database.tables.ContactDetailsTable;
 import com.vodafone360.people.database.tables.ContactSummaryTable;
 import com.vodafone360.people.database.tables.ContactsTable;
-import com.vodafone360.people.database.tables.MePresenceCacheTable;
 import com.vodafone360.people.database.tables.PresenceTable;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactDetail;
