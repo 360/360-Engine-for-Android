@@ -176,7 +176,9 @@ public class EngineManager {
     
     /**
      * (Used only by JUnit)
-     * Create instance of EngineManager.
+     * Create instance of EngineManager for unit test.
+     * Since EngineManager is implemented as a singleton, implementing this
+     * part outside this file does not work as expected.
      * 
      * @param service {@link RemoteService} reference
      * @param uiCallback Provides useful engine callback functionality.
@@ -189,10 +191,11 @@ public class EngineManager {
     /**
      * (Used only by JUnit)
      * Add a new engine to the EngineManager.
+     * Only engine being tested is created during unit test.
      * 
      * @param newEngine Engine to be added.
      */
-    public void addEngineForTest(BaseEngine newEngine){
+    public void addEngineForTest(BaseEngine newEngine) {
     	
     	final String newName = newEngine.getClass().getSimpleName();
         String[] deactivatedEngines = SettingsManager
@@ -207,39 +210,35 @@ public class EngineManager {
             newEngine.onCreate();
             mEngineList.put(newEngine.mEngineId.ordinal(), newEngine);
             
-            switch(newEngine.engineId()){
-            
-            case ACTIVITIES_ENGINE:{
-            	mActivitiesEngine = (ActivitiesEngine) newEngine;
-            	break;
-            }
-            case LOGIN_ENGINE:{
+            switch(newEngine.engineId()) {            
+	            case ACTIVITIES_ENGINE: 
+	            	mActivitiesEngine = (ActivitiesEngine) newEngine;
+	            	break;
+	            
+            case LOGIN_ENGINE: 
             	mLoginEngine = (LoginEngine) newEngine;
             	break;
-            }
-            case IDENTITIES_ENGINE:{
+            
+            case IDENTITIES_ENGINE: 
             	mIdentityEngine = (IdentityEngine) newEngine;
             	break;
-            }
-            case CONTACT_SYNC_ENGINE:{
+            
+            case CONTACT_SYNC_ENGINE: 
             	mContactSyncEngine = (ContactSyncEngine) newEngine;
             	break;
-            }
-            case PRESENCE_ENGINE:{
+            
+            case PRESENCE_ENGINE: 
             	mPresenceEngine  = (PresenceEngine) newEngine;
             	break;
-            }
-            
-            case SYNCME_ENGINE:{
+               
+            case SYNCME_ENGINE: 
             	mSyncMeEngine = (SyncMeEngine) newEngine;
             	break;
-            }
-            
-            case CONTENT_ENGINE:{
+                        
+            case CONTENT_ENGINE: 
             	mContentEngine = (ContentEngine) newEngine;
             	break;
-            }
-            
+                        
             default:
             	break;
             }

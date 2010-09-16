@@ -57,7 +57,6 @@ import com.vodafone360.people.engine.contactsync.ContactSyncEngine.IContactSyncO
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine.Mode;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine.State;
 import com.vodafone360.people.engine.content.ContentEngine;
-import com.vodafone360.people.engine.identities.IdentityEngine;
 import com.vodafone360.people.engine.meprofile.SyncMeEngine;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
@@ -1494,7 +1493,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
                     contactChanges.mNumberOfPages = 0;
                     contactChanges.mVersionAnchor = 0;
                     data.add(contactChanges);
-                    respQueue.addToResponseQueueFromTest(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_CONTACTCHANGES_RESPONSE.ordinal()));
+                    respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_CONTACTCHANGES_RESPONSE.ordinal()));
                     mEngine.onCommsInMessage();
                     break;
                 case FETCHING_NATIVE_CONTACTS:
@@ -1507,7 +1506,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
                     serverContactChanges.mNumberOfPages = 0;
                     serverContactChanges.mVersionAnchor = 0;
                     data.add(serverContactChanges);
-                    respQueue.addToResponseQueueFromTest(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.BULKUPDATE_CONTACTS_RESPONSE.ordinal()));
+                    respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.BULKUPDATE_CONTACTS_RESPONSE.ordinal()));
                     mEngine.onCommsInMessage();
                     Log.d(LOG_TAG, "reportBackToEngine(): state=UPDATING_SERVER_CONTACTS");
                     break;
