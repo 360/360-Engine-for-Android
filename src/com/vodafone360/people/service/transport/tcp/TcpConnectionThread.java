@@ -438,7 +438,6 @@ public class TcpConnectionThread implements Runnable, IConnection {
         HttpConnectionThread.logI("TcpConnectionThread.stopThread()", "Stop Thread was called!");
 
         mConnectionShouldBeRunning = false;
-        //stopConnection();
 
         synchronized (requestLock) {
             requestLock.notify();
