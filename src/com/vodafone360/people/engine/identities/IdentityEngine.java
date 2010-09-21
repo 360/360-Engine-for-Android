@@ -51,6 +51,7 @@ import com.vodafone360.people.service.io.rpg.PushMessageTypes;
 import com.vodafone360.people.service.transport.ConnectionManager;
 import com.vodafone360.people.service.transport.tcp.ITcpConnectionListener;
 import com.vodafone360.people.utils.LogUtils;
+import com.vodafone360.people.utils.ThirdPartyAccount;
 
 /**
  * Engine responsible for handling retrieval and validation of Identities (e.g.
@@ -196,13 +197,21 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * 
      */
     public ArrayList<Identity> getAvailableThirdPartyIdentities() {
-    	if ((mAvailableIdentityList.size() == 0) && (
+        
+        final ArrayList<Identity> availableIdentityList;
+        
+        synchronized(mAvailableIdentityList) {
+            // make a shallow copy
+            availableIdentityList = new ArrayList<Identity>(mAvailableIdentityList);
+        }
+        
+    	if ((availableIdentityList.size() == 0) && (
     			(System.currentTimeMillis() - mLastAvailableIdentitiesRequestTimestamp)
     				> MIN_REQUEST_INTERVAL)) {
     		sendGetAvailableIdentitiesRequest();
     	}
     	    	
-    	return mAvailableIdentityList;
+    	return availableIdentityList;
     }
     
     /**
@@ -214,13 +223,21 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * 
      */
     public ArrayList<Identity> getMyThirdPartyIdentities() {
-    	if ((mMyIdentityList.size() == 0) && (
-    			(System.currentTimeMillis() - mLastMyIdentitiesRequestTimestamp)
+        
+        final ArrayList<Identity> myIdentityList;
+        
+        synchronized(mMyIdentityList) {
+            // make a shallow copy
+            myIdentityList = new ArrayList<Identity>(mMyIdentityList);
+        }
+        
+        if ((myIdentityList.size() == 0) && (
+            (System.currentTimeMillis() - mLastMyIdentitiesRequestTimestamp)
     				> MIN_REQUEST_INTERVAL)) {
     		sendGetMyIdentitiesRequest();
     	}
-    	    	
-    	return mMyIdentityList;
+        
+    	return myIdentityList;
 	}
     
     /**
@@ -262,13 +279,21 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * 
      */
     public ArrayList<Identity> getMyThirdPartyChattableIdentities() {
-    	ArrayList<Identity> chattableIdentities = new ArrayList<Identity>();
-    	int identityListSize = mMyIdentityList.size(); 
+    	final ArrayList<Identity> chattableIdentities = new ArrayList<Identity>();
+    	final ArrayList<Identity> myIdentityList;
+    	final int identityListSize;
+        
+        synchronized(mMyIdentityList) {
+            // make a shallow copy
+            myIdentityList = new ArrayList<Identity>(mMyIdentityList);
+        }
+    	
+    	identityListSize = myIdentityList.size(); 
     	
     	// checking each identity for its chat capability and adding it to the
     	// list if it does
     	for (int i = 0; i < identityListSize; i++) {
-    		Identity identity = mMyIdentityList.get(i);
+    		Identity identity = myIdentityList.get(i);
     		List<IdentityCapability> capabilities = identity.mCapabilities;
     		
     		if (null == capabilities) {
@@ -726,14 +751,17 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 		if (errorStatus == ServiceStatus.SUCCESS) {
 			for (BaseDataType item : data) {
 				if (item.getType() == BaseDataType.IDENTITY_DELETION_DATA_TYPE) {
-					// iterating through the subscribed identities
-					for (Identity identity : mMyIdentityList) {
-						if (identity.mIdentityId
-								.equals(getIdentityToBeDeleted().mIdentityId)) {
-							mMyIdentityList.remove(identity);
-							break;
-						}
-					}
+					
+				    synchronized(mMyIdentityList) {
+				        // iterating through the subscribed identities
+    					for (Identity identity : mMyIdentityList) {
+    						if (identity.mIdentityId
+    								.equals(getIdentityToBeDeleted().mIdentityId)) {
+    							mMyIdentityList.remove(identity);
+    							break;
+    						}
+    					}
+				    }
 
 					completeUiRequest(ServiceStatus.SUCCESS);
 					return;
@@ -759,10 +787,16 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     	ArrayList<Identity> idBundle = null;
     	if (request == ServiceUiRequest.GET_AVAILABLE_IDENTITIES) {
     		requestKey = KEY_AVAILABLE_IDS;
-    		idBundle = mAvailableIdentityList;
+    		synchronized (mAvailableIdentityList) {
+    		    // provide a shallow copy
+    		    idBundle = new ArrayList<Identity>(mAvailableIdentityList);
+    		}
     	} else {
     		requestKey = KEY_MY_IDS;
-    		idBundle = mMyIdentityList;
+    		synchronized (mMyIdentityList) {
+    		    // provide a shallow copy
+    		    idBundle = new ArrayList<Identity>(mMyIdentityList);
+    		}
     	}
     	
         // send update to 3rd party identities ui if it is up
@@ -910,12 +944,13 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      */
     public boolean isFacebookInThirdPartyAccountList() {
         if (mMyIdentityList != null) {
-            for (Identity identity : mMyIdentityList) {
-                if (identity.mName.toLowerCase().contains("facebook")) {
-                    return true;
+            synchronized(mMyIdentityList) {
+                for (Identity identity : mMyIdentityList) {
+                    if (identity.mName.toLowerCase().contains(ThirdPartyAccount.SNS_TYPE_FACEBOOK)) {
+                        return true;
+                    }
                 }
             }
-
         }
         LogUtils.logV("ApplicationCache."
                 + "isFacebookInThirdPartyAccountList() Facebook not found in list");
@@ -930,12 +965,13 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      */
     public boolean isHyvesInThirdPartyAccountList() {
         if (mMyIdentityList != null) {
-            for (Identity identity : mMyIdentityList) {
-                if (identity.mName.toLowerCase().contains("hyves")) {
-                    return true;
+            synchronized(mMyIdentityList) {
+                for (Identity identity : mMyIdentityList) {
+                    if (identity.mName.toLowerCase().contains(ThirdPartyAccount.SNS_TYPE_HYVES)) {
+                        return true;
+                    }
                 }
             }
-
         }
         LogUtils.logV("ApplicationCache."
                 + "isFacebookInThirdPartyAccountList() Hyves not found in list");
