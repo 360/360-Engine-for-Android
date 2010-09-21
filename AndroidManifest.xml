@@ -106,14 +106,24 @@
    		<!--  Provides API access to other processes -->
 		<provider
 			android:name="com.vodafone360.people.service.aidl.DatabaseProvider" 
-			android:authorities="com.vodafone360.people.service.aidl.databaseaccess"/>
+			android:authorities="com.vodafone360.people.service.aidl.databaseaccess"
+			android:permission="com.vodafone360.people.service.aidl.permission.FullAccess"/>
 
-		<service android:name="com.vodafone360.people.service.aidl.IdlPeopleInterface">
+		<service android:name="com.vodafone360.people.service.aidl.IdlPeopleInterface"
+		  android:permission="com.vodafone360.people.service.aidl.permission.FullAccess">
 			<intent-filter>
-				<action android:name="com.vodafone360.people.service.aidl.IDatabaseSubscriptionService" />
+				<action android:name="com.vodafone360.people.service.aidl.IdlPeopleInterface" />
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</service>
     </application>
+    
     <uses-sdk android:minSdkVersion="3" />
+    
+	<permission
+		android:protectionLevel="signature"
+		android:label="Access Vodafone 360 People"
+		android:name="com.vodafone360.people.service.aidl.permission.FullAccess"
+	/> 
+
 </manifest>

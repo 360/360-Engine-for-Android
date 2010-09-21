@@ -45,16 +45,16 @@ import com.vodafone360.people.MainApplication;
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.SettingsManager;
 import com.vodafone360.people.datatypes.ContactSummary;
-import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.LoginDetails;
 import com.vodafone360.people.datatypes.RegistrationDetails;
-import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
+import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.presence.PresenceDbUtils;
 import com.vodafone360.people.engine.presence.User;
+import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.PersistSettings;
-import com.vodafone360.people.service.PersistSettings.InternetAvail;
 import com.vodafone360.people.service.RemoteService;
+import com.vodafone360.people.service.PersistSettings.InternetAvail;
 import com.vodafone360.people.service.agent.NetworkAgentState;
 import com.vodafone360.people.service.interfaces.IPeopleService;
 import com.vodafone360.people.utils.LogUtils;
@@ -193,10 +193,10 @@ public class IdlPeopleInterface extends Service {
 
         for (Iterator<String> subscribersIterator
                 = mListeners.keySet().iterator();
-                subscribersIterator.hasNext();) {
+        subscribersIterator.hasNext();) {
             final String listenerIdentifier = subscribersIterator.next();
             final IDatabaseSubscriber listener
-                = mListeners.get(listenerIdentifier);
+            = mListeners.get(listenerIdentifier);
             try {
                 listener.onServiceReady();
             } catch (RemoteException e) {
@@ -275,7 +275,11 @@ public class IdlPeopleInterface extends Service {
                     } catch (RemoteException e){
                         LogUtils.logE("IdlPeopleInterface.handleMessage() "
                                 + "RemoteException while contacting listener", e);
-
+                    } catch (NullPointerException e){
+                        LogUtils.logE("IdlPeopleInterface.handleMessage() "
+                                + "NullPointerException while contacting" +
+                                " listenter. Possibly they have the wrong" +
+                                " dependencies.", e);
                     } catch (java.lang.RuntimeException e) {
                         /** Something in the message was not Parcelable. **/
                         if ("Can't marshal non-Parcelable objects across processes."
@@ -345,24 +349,22 @@ public class IdlPeopleInterface extends Service {
      * which takes the action.  The reason for this model is that this service
      * must track any and all changes made to the original service, so that
      * clients can continue to integrate with the latest changes.
+     * 
+     * This class is defined in four sections:
+     * <li> Functions currently implemented & available through AIDL.
+     * <li> Functions implemented, but available in a slightly different
+     *          form via AIDL.
+     * <li> Functions not yet implemented.
+     * <li> Functions that will not be implemented in AIDL.
+     *
+     * Except where otherwise noted, all methods perform exactly the same
+     * operations as the equivalents in
+     * com.vodafone360.people.interfaces.IPeopleService
      */
 
     public class IPeopleSubscriptionService extends
-        IDatabaseSubscriptionService.Stub implements IPeopleService,
-        ThirdPartyUtils {
-
-        /**********************************
-         * This class is defined in four sections:
-         * <li> Functions currently implemented & available through AIDL.
-         * <li> Functions implemented, but available in a slightly different
-         *          form via AIDL.
-         * <li> Functions not yet implemented.
-         * <li> Functions that will not be implemented in AIDL.
-         *
-         * Except where otherwise noted, all methods perform exactly the same
-         * operations as the equivalents in
-         * com.vodafone360.people.interfaces.IPeopleService
-         */
+    IDatabaseSubscriptionService.Stub implements IPeopleService,
+    ThirdPartyUtils {
 
         /**
          * Subscribe to find out about any events the 360 Services would like
@@ -384,6 +386,11 @@ public class IdlPeopleInterface extends Service {
                 final IDatabaseSubscriber subscriber) {
             LogUtils.logV("IdlPeopleInterface.subscribe() "
                     + "Adding subscriber to get push notifications");
+            
+            if (identifier == null || subscriber == null) {
+                // Null is not a valid option for either argument
+                return false;
+            }
 
             boolean boundAndReady = false;
 
@@ -597,12 +604,19 @@ public class IdlPeopleInterface extends Service {
          */
         public User getUserPresenceStatusByLocalContactId(long localContactId) {
             LogUtils.logV("IdlPeopleInterface.getUserPresenceStatusByLocalContactId() "
-                    + "localContactId" + localContactId + ")");
+                    + "(localContactId: " + localContactId + ")");
             return PresenceDbUtils.getUserPresenceStatusByLocalContactId(
                     localContactId, mApplication.getDatabase());
         }
 
-
+        /***
+         * @param loginDetails for user
+         * @see com.vodafone360.people.service.interfaces.logon()
+         */
+        @Override
+        public final void logon(final LoginDetails loginDetails) {
+            mPeopleService.logon(loginDetails);
+        }
 
         /***
          * This is a workaround - The client must pass in the ordinal of the
@@ -622,6 +636,14 @@ public class IdlPeopleInterface extends Service {
             mPeopleService.pingUserActivity();
         }
 
+        /***
+         * @see com.vodafone360.people.service.interfaces.register()
+         */
+        @Override
+        public final void register(final RegistrationDetails details) {
+            mPeopleService.register(details);
+        }
+
         /**
          * @see com.vodafone360.people.service.interfaces.sendMessage()
          */
@@ -629,7 +651,19 @@ public class IdlPeopleInterface extends Service {
         public final void sendMessage(final long toLocalContactId,
                 final String body, final int socialNetworkId) {
             LogUtils.logI("IdlPeopleInterface.sendMessage()");
-            mPeopleService.sendMessage(toLocalContactId, body, socialNetworkId);
+            try {
+                mPeopleService.sendMessage(toLocalContactId, body, socialNetworkId);
+            } catch (ArrayIndexOutOfBoundsException e) {
+                /*
+                 * If the user passes in an invalid socialNetworkId then it can
+                 * cause this exception in 
+                 * NetworkPresence.SocialNetwork.getPresenceValue(int)
+                 * 
+                 * (No stack trace as the user doesn't need to know about the
+                 * internals in this instance).
+                 */
+                LogUtils.logE("Tried to send message to invalid social network.");
+            }
         }
 
         /***
@@ -798,25 +832,6 @@ public class IdlPeopleInterface extends Service {
             return null;
         }
 
-        /***
-         * Not currently supported! class LoginDetails does not properly
-         * implement the Parcelable interface (more specifically, it does not
-         * provide the CREATOR field required by AIDL).
-         */
-        @Override
-        public final void logon(final LoginDetails loginDetails) {
-            mPeopleService.logon(loginDetails);
-        }
-
-        /***
-         * Not currently supported! Class LoginDetails does not properly
-         * implement the Parcelable interface (more specifically, it does not
-         * provide the CREATOR field required by AIDL).
-         */
-        @Override
-        public final void register(final RegistrationDetails details) {
-            mPeopleService.register(details);
-        }
 
         /***
          * NetworkAgentState does not implement the Parcelable interface.

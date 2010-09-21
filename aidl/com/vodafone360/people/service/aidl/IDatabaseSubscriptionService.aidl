@@ -85,9 +85,4 @@ interface IDatabaseSubscriptionService {
 	boolean subscribe(String identifier, IDatabaseSubscriber subscriber);
 	boolean unsubscribe(String identifier);
 	
-	/**
-	 * Class com.vodafone360.people.datatypes.LoginDetails does not properly
-	 * implement Parcelable.
-	 */
-	//void logon(in LoginDetails loginDetails);
 }
