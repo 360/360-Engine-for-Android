@@ -536,6 +536,7 @@ public class PeopleContactsApi {
          || nativeIds.length != contact.length) {
 
             // we expect an array with exactly the same size
+            LogUtils.logE("PeopleContactApi.syncBackUpdatedNativeContact() - ContactChange arrays do not have the same size!");
             return false;
         }
         
