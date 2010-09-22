@@ -54,6 +54,7 @@ interface IDatabaseSubscriptionService {
 	boolean getLoginRequired();
 	void getMoreTimelines();
 	void getOlderStatuses();
+	int getPresence(long localContactID);
 	void getPresenceList(long contactId);
 	boolean getRoamingDeviceSetting();
 	int getRoamingNotificationType();

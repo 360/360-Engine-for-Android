@@ -38,5 +38,18 @@ public interface ThirdPartyUtils {
      * @param localContactId ID for contact.
      * @return User presence.
      */
-    User getUserPresenceStatusByLocalContactId(long localContactId);
+    public User getUserPresenceStatusByLocalContactId(final long localContactId);
+    
+    /**
+     * Return the ordinal of the given user's OnlineStatus
+     * @param localContactID
+     * @return The ordinal of the user's OnlineStatus:
+     * <ol>
+     * <li>Offline</li>
+     * <li>Invisible</li>
+     * <li>Idle</li>
+     * <li>Online</li>
+     * </ol>
+     */
+    public int getPresence(final long localContactID);
 }

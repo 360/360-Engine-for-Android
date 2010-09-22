@@ -561,6 +561,14 @@ public class IdlPeopleInterface extends Service {
         public final void getOlderStatuses() {
             mPeopleService.getOlderStatuses();
         }
+        
+        /**
+         * @see com.vodafone360.people.database.tables
+         */
+        public int getPresence(final long localContactID){
+            return com.vodafone360.people.database.tables.ContactSummaryTable.
+                        getPresence(localContactID).ordinal();
+        }
 
         /**
          * @see com.vodafone360.people.service.interfaces.getPresenceList()
