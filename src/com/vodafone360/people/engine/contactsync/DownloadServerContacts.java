@@ -27,7 +27,7 @@ package com.vodafone360.people.engine.contactsync;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 
 import com.vodafone360.people.Settings;
@@ -151,11 +151,11 @@ public class DownloadServerContacts extends BaseSyncProcessor {
     private int mLastPageSize = -1;
     
     /**
-     * List of contact server IDs from the NowPlus database in ascending order.
+     * Set of contact server IDs from the NowPlus database.
      * Used to quickly determine if a contact received from the server is a new
      * or modified contact.
      */
-    private final ArrayList<Long> mOrderedServerIdList = new ArrayList<Long>();
+    private final HashSet<Long> mServerIdSet = new HashSet<Long>();
 
     /**
      * List of all contacts received from server which are also present in the
@@ -278,8 +278,7 @@ public class DownloadServerContacts extends BaseSyncProcessor {
         mTotalContactsAdded = 0;
         mInternalState = InternalState.FETCHING_SERVER_ID_LIST;
         long startTime = System.nanoTime();
-        ServiceStatus status = ContactsTable.fetchContactServerIdList(mOrderedServerIdList, mDb
-                .getReadableDatabase());
+        ServiceStatus status = ContactsTable.fetchContactServerIdList(mServerIdSet, mDb.getReadableDatabase());
         if (ServiceStatus.SUCCESS != status) {
             complete(status);
         }
@@ -480,7 +479,7 @@ public class DownloadServerContacts extends BaseSyncProcessor {
                             + detail.deleted);
                 }
             }
-            if (findIdInOrderedList(contact.contactID, mOrderedServerIdList) > -1) {
+            if (mServerIdSet.contains(contact.contactID)) {
                 mContactsChangedList.add(contact);
                 
             } else {
@@ -651,39 +650,6 @@ public class DownloadServerContacts extends BaseSyncProcessor {
             }
         }
         return ServiceStatus.SUCCESS;
-    }
-
-    /**
-     * Binary search function to find a contact server ID in an ordered list.
-     * 
-     * @param id The server ID to find
-     * @param list An ordered list of server IDs from the database
-     * @return index of server ID if found, otherwise -1.
-     */
-    private static int findIdInOrderedList(long id, List<Long> list) {
-        // Binary search through list
-        if (list.size() == 0) {
-            return -1;
-        }
-        int i = 0;
-        int j = list.size() - 1;
-        while (i < j) {
-            int m = (i + j) >> 1;
-            if (id > list.get(m).longValue()) {
-                i = m + 1;
-            } else {
-                j = m;
-            }
-        }
-        if (id == list.get(i).longValue()) {
-            for (; i >= 0; i--) {
-                if (id != list.get(i).longValue()) {
-                    return i + 1;
-                }
-            }
-            return 0;
-        }
-        return -1;
     }
 
     /**

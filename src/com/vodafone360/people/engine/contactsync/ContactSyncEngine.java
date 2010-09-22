@@ -901,17 +901,17 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         }
     }
 
-    /**
-     * Called by the run function when the {@link #mCancelSync} flag is set to
-     * true. Cancels the active processor and completes the current UI request.
-     */
-    private void cancelSync() {
-        if (mActiveProcessor != null) {
-            mActiveProcessor.cancel();
-            mActiveProcessor = null;
-        }
-        completeSync(ServiceStatus.USER_CANCELLED);
-    }
+//    /**
+//     * Called by the run function when the {@link #mCancelSync} flag is set to
+//     * true. Cancels the active processor and completes the current UI request.
+//     */
+//    private void cancelSync() {
+//        if (mActiveProcessor != null) {
+//            mActiveProcessor.cancel();
+//            mActiveProcessor = null;
+//        }
+//        completeSync(ServiceStatus.USER_CANCELLED);
+//    }
 
     /**
      * Clears the current sync and make sure that if we cancel a previous sync,

@@ -569,17 +569,18 @@ public class ContactDetail extends BaseDataType implements Parcelable {
         sb.append(" Date: "); sb.append(time.toGMTString()); 
         sb.append("\n\t\tUnique ID: "); sb.append(unique_id);
         sb.append("\n\t\tserverContactId: "); sb.append(serverContactId);
-        sb.append("\n\t\tsyncNativeContactId: "); sb.append(syncNativeContactId);;
+        sb.append("\n\t\tsyncNativeContactId: "); sb.append(syncNativeContactId);
         
         if (location != null) {
-            sb.append("\n\t\tLocation: "); sb.append(location.toString());;
+            sb.append("\n\t\tLocation: "); sb.append(location.toString());
         }
 
         if (photo != null) {
             sb.append("\n\t\tPhoto BYTE[] is present");
         }
-        sb.append("\n\t\tPhoto MIME type: "); sb.append(photo_mime_type);;
-        sb.append("\n\t\tPhoto URL: "); sb.append(photo_url);;
+        sb.append("\n\t\tPhoto MIME type: "); sb.append(photo_mime_type);
+        sb.append("\n\t\tPhoto URL: "); sb.append(photo_url);
+        sb.append("\n");
 
         return sb.toString();
     }

@@ -1213,8 +1213,7 @@ public abstract class ContactDetailsTable {
      * @param writableDb A writable SQLite database object
      * @return SUCCESS or a suitable error code.
      */
-    public static ServiceStatus mergeContactDetails(ContactIdInfo info,
-            List<ContactDetail> nativeInfoList, SQLiteDatabase writableDb) {
+    public static ServiceStatus mergeContactDetails(ContactIdInfo info, List<ContactDetail> nativeInfoList, SQLiteDatabase writableDb) {
 
         DatabaseHelper.trace(true, "ContactDetailsTable.mergeContactDetails()");
 
@@ -1248,8 +1247,8 @@ public abstract class ContactDetailsTable {
             // Retrieve a list of detail local IDs from the merged contact
             // (original one)
             final String[] args = {String.valueOf(info.mergedLocalId)}; 
-            cursor = writableDb.rawQuery(
-                    QUERY_DETAIL_LOCAL_AND_SERVER_IDS_BY_LOCAL_CONTACT_ID, args);
+            cursor = writableDb.rawQuery(QUERY_DETAIL_LOCAL_AND_SERVER_IDS_BY_LOCAL_CONTACT_ID, args);
+            
             while (cursor.moveToNext()) {
                 if (!cursor.isNull(0) && !cursor.isNull(1)) {
                     // only adding details with a detailServerId (Name and
@@ -1258,14 +1257,13 @@ public abstract class ContactDetailsTable {
                             .getLong(1)));
                 }
             }
-            DatabaseHelper.trace(true,
-                    "ContactDetailsTable.mergeContactDetails(): detailLocalIds.size()="
-                            + detailLocalIds.size());
-        } catch (Exception e) {
-            LogUtils.logE("ContactDetailsTable.mergeContactDetails() Exception - "
-                    + "Unable to query merged contact details list", e);
+            DatabaseHelper.trace(true, "ContactDetailsTable.mergeContactDetails(): detailLocalIds.size()=" + detailLocalIds.size());
+        } 
+        catch (Exception e) {
+            LogUtils.logE("ContactDetailsTable.mergeContactDetails() Exception - " + "Unable to query merged contact details list", e);
             return ServiceStatus.ERROR_DATABASE_CORRUPT;
-        } finally {
+        } 
+        finally {
             if (cursor != null) {
                 cursor.close();
                 cursor = null;
@@ -1291,13 +1289,11 @@ public abstract class ContactDetailsTable {
                         cv.put(Field.NATIVEDETAILVAL1.toString(), detailInfo.nativeVal1);
                         cv.put(Field.NATIVEDETAILVAL2.toString(), detailInfo.nativeVal2);
                         cv.put(Field.NATIVEDETAILVAL3.toString(), detailInfo.nativeVal3);
-                        cv
-                                .put(Field.NATIVESYNCCONTACTID.toString(),
-                                        detailInfo.syncNativeContactId);
+                        cv.put(Field.NATIVESYNCCONTACTID.toString(), detailInfo.syncNativeContactId);
+                        
                         DatabaseHelper.trace(true, "ContactDetailsTable.mergeContactDetails():"
                                 + " changing ownership for duplicated detail: " + detailInfo);
-                        writableDb.update(TABLE_NAME, cv, Field.DETAILLOCALID + "="
-                                + currentDetails.localId, null);
+                        writableDb.update(TABLE_NAME, cv, Field.DETAILLOCALID + "=" + currentDetails.localId, null);
                         cv.clear();
                         detailLocalIds.remove(detailsIndex);
                         break;
@@ -1306,7 +1302,8 @@ public abstract class ContactDetailsTable {
             }
 
             return ServiceStatus.SUCCESS;
-        } catch (SQLException e) {
+        } 
+        catch (SQLException e) {
             LogUtils.logE("ContactDetailsTable.mergeContactDetails() SQLException - "
                     + "Unable to merge contact detail native info", e);
             return ServiceStatus.ERROR_DATABASE_CORRUPT;

@@ -121,7 +121,7 @@ public class ContactChanges extends BaseDataType {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer("Contact Changes:");
+        final StringBuilder sb = new StringBuilder("Contact Changes:");
         if (mCurrentServerVersion != null) {
             sb.append("\n Version on server: "); sb.append(mCurrentServerVersion.toString());
         }

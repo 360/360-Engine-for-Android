@@ -163,19 +163,6 @@ public abstract class ContactSummaryTable {
      * information. The {@link #getQueryData(Cursor)} method can be used to
      * obtain the data from the query.
      * 
-     * @return The query string
-     * @see #getQueryData(Cursor).
-     */
-    private static String getOrderedQueryStringSql() {
-        return "SELECT " + getFullQueryList() + " FROM " + TABLE_NAME + " ORDER BY LOWER("
-                + Field.DISPLAYNAME + ")";
-    }
-
-    /**
-     * Returns a full SQL query statement to fetch the contact summary
-     * information. The {@link #getQueryData(Cursor)} method can be used to
-     * obtain the data from the query.
-     * 
      * @param whereClause An SQL where clause (without the "WHERE"). Cannot be
      *            null.
      * @return The query string
@@ -185,22 +172,6 @@ public abstract class ContactSummaryTable {
         return "SELECT " + getFullQueryList() + " FROM " + TABLE_NAME + " WHERE " + whereClause;
     }
 
-    /**
-     * Returns a full SQL query statement to fetch the contact summary
-     * information in alphabetical order of contact name. The
-     * {@link #getQueryData(Cursor)} method can be used to obtain the data from
-     * the query.
-     * 
-     * @param whereClause An SQL where clause (without the "WHERE"). Cannot be
-     *            null.
-     * @return The query string
-     * @see #getQueryData(Cursor).
-     */
-    private static String getOrderedQueryStringSql(String whereClause) {
-        return "SELECT " + getFullQueryList() + " FROM " + TABLE_NAME + " WHERE " + whereClause
-                + " ORDER BY LOWER(" + Field.DISPLAYNAME + ")";
-    }
-    
     /**
      * UPDATE ContactSummary SET
      * NativeId = ?
@@ -221,7 +192,6 @@ public abstract class ContactSummaryTable {
 
     public static final int STATUS_TEXT = 3;
 
-    @SuppressWarnings("unused")
     @Deprecated
     public static final int ONLINE_STATUS = 4;
 
@@ -307,8 +277,7 @@ public abstract class ContactSummaryTable {
         }
         Cursor c1 = null;
         try {
-            c1 = readableDb.rawQuery(
-                    getQueryStringSql(Field.LOCALCONTACTID + "=" + localContactId), null);
+            c1 = readableDb.rawQuery(getQueryStringSql(Field.LOCALCONTACTID + "=" + localContactId), null);
             if (!c1.moveToFirst()) {
                 LogUtils.logW("ContactSummeryTable.fetchSummaryItem() localContactId["
                         + localContactId + "] not found in ContactSummeryTable.");
@@ -316,13 +285,12 @@ public abstract class ContactSummaryTable {
             }
             summary.copy(getQueryData(c1));
             return ServiceStatus.SUCCESS;
-        } catch (SQLiteException e) {
-            LogUtils
-                    .logE(
-                            "ContactSummeryTable.fetchSummaryItem() Exception - Unable to fetch contact summary",
-                            e);
+        } 
+        catch (SQLiteException e) {
+            LogUtils.logE("ContactSummeryTable.fetchSummaryItem() Exception - Unable to fetch contact summary", e);
             return ServiceStatus.ERROR_DATABASE_CORRUPT;
-        } finally {
+        } 
+        finally {
             CloseUtils.close(c1);
             c1 = null;
         }
@@ -359,37 +327,6 @@ public abstract class ContactSummaryTable {
             values.put(Field.ALTDETAILTYPE.toString(), altDetail.keyType.ordinal());
         }
     }
-
-    /**
-     * Processes a ContentValues object to handle a missing name or missing
-     * status.
-     * <ol>
-     * <li>If type is NAME, the name will be set to the alternative detail.</li>
-     * <li>If type is STATUS, the status will be set to the alternative detail</li>
-     * <li>Otherwise, the alternative detail is not used</li>
-     * </ol>
-     * In any case the {@link Field#ALTFIELDTYPE} value will be updated to
-     * reflect how the alternative detail is being used.
-     * 
-     * @param values The ContentValues object to be updated
-     * @param altDetail The must suitable alternative detail (see
-     *            {@link #fetchNewAltDetail(long, ContactDetail, SQLiteDatabase)}
-     * @param type Specifies how the alternative detail should be used
-     */
-    /*
-     * private static void updateAltValues(ContentValues values, ContactDetail
-     * altDetail, ContactSummary.AltFieldType type) { switch (type) { case NAME:
-     * values.put(Field.DISPLAYNAME.toString(), altDetail.getValue());
-     * values.put(Field.ALTFIELDTYPE.toString(),
-     * ContactSummary.AltFieldType.NAME .ordinal()); break; case STATUS:
-     * values.put(Field.STATUSTEXT.toString(), altDetail.getValue());
-     * values.put(Field.ALTFIELDTYPE.toString(),
-     * ContactSummary.AltFieldType.STATUS .ordinal()); break; default:
-     * values.put(Field.ALTFIELDTYPE.toString(),
-     * ContactSummary.AltFieldType.UNUSED .ordinal()); } if (altDetail.keyType
-     * != null) { values.put(Field.ALTDETAILTYPE.toString(),
-     * altDetail.keyType.ordinal()); } }
-     */
 
     /**
      * Adds contact summary information to the table for a new contact. If the
@@ -501,8 +438,7 @@ public abstract class ContactSummaryTable {
      */
     public static ServiceStatus modifyContact(Contact contact, SQLiteDatabase writableDb) {
         if (Settings.ENABLED_DATABASE_TRACE) {
-            DatabaseHelper.trace(true, "ContactSummeryTable.modifyContact() contactID["
-                    + contact.contactID + "]");
+            DatabaseHelper.trace(true, "ContactSummeryTable.modifyContact() contactID[" + contact.contactID + "]");
         }
         if (contact.localContactID == null) {
             LogUtils.logE("ContactSummeryTable.modifyContact() Invalid parameters");
@@ -510,20 +446,21 @@ public abstract class ContactSummaryTable {
         }
         try {
             final ContentValues values = new ContentValues();
-            values.put(Field.LOCALCONTACTID.toString(), contact.localContactID);
+
             values.put(Field.NATIVEID.toString(), contact.nativeContactId);
             values.put(Field.FRIENDOFMINE.toString(), contact.friendOfMine);
             values.put(Field.SYNCTOPHONE.toString(), contact.synctophone);
-            String[] args = {
-                String.format("%d", contact.localContactID)
-            };
+            
+            String[] args = { contact.localContactID.toString() };
+            
             if (writableDb.update(TABLE_NAME, values, Field.LOCALCONTACTID + "=?", args) < 0) {
                 LogUtils.logE("ContactSummeryTable.modifyContact() "
                         + "Unable to update contact summary");
                 return ServiceStatus.ERROR_NOT_FOUND;
             }
             return ServiceStatus.SUCCESS;
-        } catch (SQLException e) {
+        } 
+        catch (SQLException e) {
             LogUtils.logE("ContactSummeryTable.modifyContact() "
                     + "SQLException - Unable to update contact summary", e);
             return ServiceStatus.ERROR_DATABASE_CORRUPT;
@@ -797,9 +734,9 @@ public abstract class ContactSummaryTable {
      * @return The cursor or null if an error occurred
      * @see #getQueryData(Cursor)
      */
-    public static Cursor openContactSummaryCursor(Long groupFilterId, CharSequence constraint,
-            Long meProfileId, SQLiteDatabase readableDb) {
-        if (Settings.ENABLED_DATABASE_TRACE) {
+    public static Cursor openContactSummaryCursor(Long groupFilterId, CharSequence constraint, Long meProfileId, SQLiteDatabase readableDb) {
+        
+    	if (Settings.ENABLED_DATABASE_TRACE) {
             DatabaseHelper.trace(false, "ContactSummeryTable.fetchContactList() "
                     + "groupFilterId[" + groupFilterId + "] constraint[" + constraint + "]"
                     + " meProfileId[" + meProfileId + "]");
@@ -807,139 +744,60 @@ public abstract class ContactSummaryTable {
 
         try {
             if (meProfileId == null) {
-                // Ensure that when the profile is not available the function
-                // doesn't fail
+                // Ensure that when the profile is not available the function doesn't fail
                 // Since "Field <> null" always returns false
                 meProfileId = -1L;
             }
-            if (groupFilterId == null) {
-                if (constraint == null) {
-                    // Fetch all contacts
-                    return openContactSummaryCursor(groupFilterId, meProfileId, readableDb);
-                } else {
-                    return openContactSummaryCursor(constraint, meProfileId, readableDb);
-                }
-            } else {
-                // filtering by group id
-                if (constraint == null) {
-                    return openContactSummaryCursor(groupFilterId, meProfileId, readableDb);
-                } else {
-                    // filter by both group and constraint
-                    final String dbSafeConstraint = DatabaseUtils.sqlEscapeString("%" + constraint
-                            + "%");
-                    return readableDb.rawQuery("SELECT " + ContactSummaryTable.getFullQueryList()
-                            + " FROM " + ContactSummaryTable.TABLE_NAME
-                            + getGroupConstraint(groupFilterId) + " AND "
-                            + ContactSummaryTable.Field.DISPLAYNAME + " LIKE " + dbSafeConstraint
-                            + " AND " + ContactSummaryTable.TABLE_NAME + "."
-                            + ContactSummaryTable.Field.LOCALCONTACTID + "<>" + meProfileId
-                            + " ORDER BY LOWER(" + ContactSummaryTable.Field.DISPLAYNAME + ")",
-                            null);
-                }
-            }
-        } catch (SQLException e) {
-            LogUtils.logE("ContactSummeryTable.fetchContactList() "
-                    + "SQLException - Unable to fetch filtered summary cursor", e);
-            return null;
-        }
-    }
-
-    /**
-     * Fetches a contact list cursor for a given filter
-     * 
-     * @param groupFilterId The server group ID or null to fetch all groups
-     * @param meProfileId The current me profile Id which should be excluded
-     *            from the returned list.
-     * @param readableDb Readable SQLite database
-     * @return The cursor or null if an error occurred
-     * @see #getQueryData(Cursor)
-     */
-    private static Cursor openContactSummaryCursor(Long groupFilterId, Long meProfileId,
-            SQLiteDatabase readableDb) {
-        if (Settings.ENABLED_DATABASE_TRACE) {
-            DatabaseHelper.trace(false, "ContactSummeryTable.fetchContactList() groupFilterId["
-                    + groupFilterId + "] meProfileId[" + meProfileId + "]");
-        }
-        try {
-            if (groupFilterId == null) {
-                // Fetch all contacts
-                return readableDb.rawQuery(getOrderedQueryStringSql(ContactSummaryTable.TABLE_NAME
-                        + "." + ContactSummaryTable.Field.LOCALCONTACTID + "<>" + meProfileId),
-                        null);
-            }
-            return readableDb.rawQuery("SELECT " + ContactSummaryTable.getFullQueryList()
-                    + " FROM " + ContactSummaryTable.TABLE_NAME + getGroupConstraint(groupFilterId)
-                    + " AND " + ContactSummaryTable.TABLE_NAME + "."
-                    + ContactSummaryTable.Field.LOCALCONTACTID + "!=" + meProfileId
-                    + " ORDER BY LOWER(" + ContactSummaryTable.Field.DISPLAYNAME + ")", null);
-
-        } catch (SQLException e) {
-            LogUtils.logE("ContactSummeryTable.fetchContactList() "
-                    + "SQLException - Unable to fetch filtered summary cursor", e);
-            return null;
-        }
-    }
-
-    /**
-     * Fetches a contact list cursor for a given search constraint
-     * 
-     * @param constraint A search string or null to fetch without constraint
-     * @param meProfileId The current me profile Id which should be excluded
-     *            from the returned list.
-     * @param readableDb Readable SQLite database
-     * @return The cursor or null if an error occurred
-     * @see #getQueryData(Cursor)
-     */
-    private static Cursor openContactSummaryCursor(CharSequence constraint, Long meProfileId,
-            SQLiteDatabase readableDb) {
-        if (Settings.ENABLED_DATABASE_TRACE) {
-            DatabaseHelper.trace(false, "ContactSummeryTable.fetchContactList() constraint["
-                    + constraint + "] meProfileId[" + meProfileId + "]");
-        }
-        try {
+            
+            String queryString;
+            
             if (constraint == null) {
-                // Fetch all contacts
-                return readableDb.rawQuery(getOrderedQueryStringSql(), null);
+            	
+            	if (groupFilterId == null) {
+            		           	
+            		// Fetch all contacts
+                	queryString = "SELECT " + getFullQueryList() + " FROM " + TABLE_NAME + " WHERE "
+                		+ TABLE_NAME + "." + Field.LOCALCONTACTID + "!=" + meProfileId
+                		+ " ORDER BY LOWER(" + Field.DISPLAYNAME + ")";
+            	}
+            	else {
+            		 
+            		queryString = "SELECT " + getFullQueryList() + " FROM " + TABLE_NAME 
+            			+ getGroupConstraint(groupFilterId)
+            			+ " AND " + TABLE_NAME + "." + Field.LOCALCONTACTID + "!=" + meProfileId
+            			+ " ORDER BY LOWER(" + Field.DISPLAYNAME + ")";
+            	}
             }
-            final String dbSafeConstraint = DatabaseUtils.sqlEscapeString("%" + constraint + "%");
-            return readableDb.rawQuery("SELECT " + ContactSummaryTable.getFullQueryList()
-                    + " FROM " + ContactSummaryTable.TABLE_NAME + " WHERE "
-                    + ContactSummaryTable.Field.DISPLAYNAME + " LIKE " + dbSafeConstraint + " AND "
-                    + ContactSummaryTable.TABLE_NAME + "."
-                    + ContactSummaryTable.Field.LOCALCONTACTID + "!=" + meProfileId
-                    + " ORDER BY LOWER(" + ContactSummaryTable.Field.DISPLAYNAME + ")", null);
-        } catch (SQLException e) {
+            else {
+            	
+            	final String dbSafeConstraint = DatabaseUtils.sqlEscapeString("%" + constraint + "%");
+            	
+            	if (groupFilterId == null) {
+            		 
+            		queryString = "SELECT " + getFullQueryList() + " FROM " + TABLE_NAME + " WHERE "
+                    	+ Field.DISPLAYNAME + " LIKE " + dbSafeConstraint
+                    	+ " AND " + TABLE_NAME + "." + Field.LOCALCONTACTID + "!=" + meProfileId
+                    	+ " ORDER BY LOWER(" + Field.DISPLAYNAME + ")";
+            	}
+            	else {
+            		 
+            		queryString = "SELECT " + getFullQueryList() + " FROM " + TABLE_NAME 
+            			+ getGroupConstraint(groupFilterId)
+                    	+ " AND " + Field.DISPLAYNAME + " LIKE " + dbSafeConstraint
+                    	+ " AND " + TABLE_NAME + "." + Field.LOCALCONTACTID + "!=" + meProfileId
+                    	+ " ORDER BY LOWER(" + Field.DISPLAYNAME + ")";
+            	}
+            }
+            	
+            return readableDb.rawQuery(queryString, null);
+            
+        } 
+        catch (SQLException e) {
             LogUtils.logE("ContactSummeryTable.fetchContactList() "
                     + "SQLException - Unable to fetch filtered summary cursor", e);
             return null;
         }
     }
-
-    /**
-     * Fetches the current alternative field type for a contact This value
-     * determines how the alternative detail is currently being used for the
-     * record.
-     * 
-     * @param localContactID The primary key ID of the contact
-     * @param readableDb Readable SQLite database
-     * @return The alternative field type or null if a database error occurred
-     */
-    /*
-     * private static AltFieldType fetchAltFieldType(long localContactId,
-     * SQLiteDatabase readableDb) { if (Settings.ENABLED_DATABASE_TRACE) {
-     * DatabaseHelper.trace(false,
-     * "ContactSummeryTable.FetchAltFieldType() localContactId[" +
-     * localContactId + "]"); } Cursor c = null; try { c =
-     * readableDb.rawQuery("SELECT " + Field.ALTFIELDTYPE + " FROM " +
-     * ContactSummaryTable.TABLE_NAME + " WHERE " + Field.LOCALCONTACTID + "=" +
-     * localContactId, null); AltFieldType type = AltFieldType.UNUSED; if
-     * (c.moveToFirst() && !c.isNull(0)) { int val = c.getInt(0); if (val <
-     * AltFieldType.values().length) { type = AltFieldType.values()[val]; } }
-     * return type; } catch (SQLException e) {
-     * LogUtils.logE("ContactSummeryTable.fetchContactList() " +
-     * "SQLException - Unable to fetch alt field type", e); return null; }
-     * finally { CloseUtils.close(c); c = null; } }
-     */
 
     /**
      * Fetches an SQLite statement object which can be used to merge the native
@@ -953,9 +811,11 @@ public abstract class ContactSummaryTable {
              writableDb) { 
          if (Settings.ENABLED_DATABASE_TRACE) {
             DatabaseHelper.trace(true, "ContactSummeryTable.mergeContact()"); 
-         } try {
+         } 
+         try {
             return writableDb.compileStatement(UPDATE_NATIVE_ID_BY_LOCAL_CONTACT_ID); 
-         } catch (SQLException e) {
+         } 
+         catch (SQLException e) {
             LogUtils.logE("ContactSummaryTable.mergeContactStatement() compile error:\n", e); 
             return null; 
         } 
@@ -979,11 +839,16 @@ public abstract class ContactSummaryTable {
             return ServiceStatus.ERROR_DATABASE_CORRUPT;
         }
         try {
-            statement.bindLong(1, info.nativeId);
-            statement.bindLong(2, info.mergedLocalId);
+        	if (info.nativeId == null)
+        		statement.bindNull(1);
+        	else
+        		statement.bindLong(1, info.nativeId);
+
+        	statement.bindLong(2, info.mergedLocalId);
             statement.execute();
             return ServiceStatus.SUCCESS;
-        } catch (SQLException e) {
+        } 
+        catch (SQLException e) {
             LogUtils.logE("ContactSummeryTable.mergeContact() "
                     + "SQLException - Unable to merge contact summary native info:\n", e);
             return ServiceStatus.ERROR_DATABASE_CORRUPT;
@@ -1329,5 +1194,4 @@ public abstract class ContactSummaryTable {
             c1 = null;
         }
     }
-
 }

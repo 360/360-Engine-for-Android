@@ -1463,8 +1463,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      *            native phonebook
      * @return SUCCESS or a suitable error code
      */
-    public ServiceStatus syncModifyContactList(List<Contact> contactList, boolean syncToServer,
-            boolean syncToNative) {
+    public ServiceStatus syncModifyContactList(List<Contact> contactList, boolean syncToServer, boolean syncToNative) {
+    	
         if (Settings.ENABLED_DATABASE_TRACE)
             trace(false, "DatabaseHelper.syncModifyContactList() syncToServer[" + syncToServer
                     + "] syncToNative[" + syncToNative + "]");
@@ -1484,10 +1484,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             try {
                 mDb.beginTransaction();
+                
                 ServiceStatus mStatus = ContactsTable.modifyContact(mContact, mDb);
                 if (ServiceStatus.SUCCESS != mStatus) {
-                    LogUtils
-                            .logE("DatabaseHelper.syncModifyContactList() Unable to modify contact, due to a database error");
+                    LogUtils.logE("DatabaseHelper.syncModifyContactList() Unable to modify contact, due to a database error");
                     return mStatus;
                 }
 
@@ -1644,24 +1644,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public ServiceStatus syncMergeContactList(List<ContactsTable.ContactIdInfo> contactIdList) {
         if (Settings.ENABLED_DATABASE_TRACE)
             trace(false, "DatabaseHelper.syncMergeContactList()");
+        
         List<ContactDetail> detailInfoList = new ArrayList<ContactDetail>();
         SQLiteDatabase writableDb = getWritableDatabase();
-        SQLiteStatement contactStatement = null, 
-                        contactSummaryStatement = null,
-                        contactFetchNativeIdStatement = null;
+        SQLiteStatement contactStatement = null, contactSummaryStatement = null;
+        
         try {
             contactStatement = ContactsTable.mergeContactStatement(writableDb);
             contactSummaryStatement = ContactSummaryTable.mergeContactStatement(writableDb);
-            contactFetchNativeIdStatement = ContactsTable
-                .fetchNativeFromLocalIdStatement(writableDb);
+            
             writableDb.beginTransaction();
             for (int i = 0; i < contactIdList.size(); i++) {
                 ContactsTable.ContactIdInfo contactIdInfo = contactIdList.get(i);
                 if (contactIdInfo.mergedLocalId != null) {
-                    contactIdInfo.nativeId = ContactsTable.fetchNativeFromLocalId(
-                            contactIdInfo.localId, contactFetchNativeIdStatement);
-                    LogUtils
-                            .logI("DatabaseHelper.syncMergeContactList - Copying native Ids from duplicate to original contact: Dup ID "
+                    contactIdInfo.nativeId = ContactsTable.fetchNativeFromLocalId(writableDb, contactIdInfo.localId);
+                    
+                    LogUtils.logI("DatabaseHelper.syncMergeContactList - Copying native Ids from duplicate to original contact: Dup ID "
                                     + contactIdInfo.localId
                                     + ", Org ID "
                                     + contactIdInfo.mergedLocalId
@@ -1669,34 +1667,29 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                                     + contactIdInfo.nativeId);
     
                     ServiceStatus status = ContactsTable.mergeContact(contactIdInfo, contactStatement);
-
-                    if(ServiceStatus.SUCCESS != status) {
+                    if(status != ServiceStatus.SUCCESS) {
                         return status;
                     }
                     
                     status = ContactSummaryTable.mergeContact(contactIdInfo, contactSummaryStatement);
-                    
-                    if(ServiceStatus.SUCCESS != status) {
+                    if(status != ServiceStatus.SUCCESS) {
                         return status;
                     }
 
-                    status = ContactDetailsTable.fetchNativeInfo(contactIdInfo.localId,
-                            detailInfoList, writableDb);
-                    
-                    if(ServiceStatus.SUCCESS != status) {
+                    status = ContactDetailsTable.fetchNativeInfo(contactIdInfo.localId, detailInfoList, writableDb);
+                    if(status != ServiceStatus.SUCCESS) {
                         return status;
                     }
                     
-                    status = ContactDetailsTable.mergeContactDetails(contactIdInfo, detailInfoList,
-                                writableDb);
-                    
-                    if(ServiceStatus.SUCCESS != status) {
+                    status = ContactDetailsTable.mergeContactDetails(contactIdInfo, detailInfoList, writableDb);
+                    if(status != ServiceStatus.SUCCESS) {
                         return status;
                     }
                 }
             }
             writableDb.setTransactionSuccessful();
-        } finally {
+        } 
+        finally {
             writableDb.endTransaction();
             if(contactStatement != null) {
                 contactStatement.close();
@@ -1707,13 +1700,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 contactSummaryStatement.close();
                 contactSummaryStatement = null;
             }
-            
-            if(contactFetchNativeIdStatement != null) {
-                contactFetchNativeIdStatement.close();
-                contactFetchNativeIdStatement = null;
-            }
         }
-        
       
         LogUtils.logI("DatabaseHelper.syncMergeContactList - Deleting duplicate contacts");
         return syncDeleteContactList(contactIdList, false, true);
