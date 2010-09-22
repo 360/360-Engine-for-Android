@@ -153,21 +153,21 @@ public class NativeImporter {
      * 
      * @see #mNativeContactsIds
      */
-    private int mCurrentNativeId = 0;
+    private int mCurrentNativeIndex = 0;
 
     /**
      * The index in the current people id.
      * 
      * @see #mPeopleNativeContactsIds
      */
-    private int mCurrentPeopleId = 0;
+    private int mCurrentPeopleIndex = 0;
 
     /**
      * The index of the current deleted people id.
      * 
      * @see #mDeletedIds
      */
-    private int mCurrentDeletedId = 0;
+    private int mCurrentDeletedIndex = 0;
 
     /**
      * Array to store the people ids of contacts to delete.
@@ -423,60 +423,60 @@ public class NativeImporter {
 
         LogUtils.logD("NativeImporter.iterateThroughNativeIds()");
 
-        final int limit = Math.min(mNativeContactsIds.length, mCurrentNativeId
+        final int limit = Math.min(mNativeContactsIds.length, mCurrentNativeIndex
                 + Math.round(mContactsPerTick));
 
         // TODO: remove the deleted state / queuing to deleted ids array and
         // loop with while (mProcessedIds < limit)
-        while (mCurrentNativeId < limit) {
+        while (mCurrentNativeIndex < limit) {
 
             if (mPeopleNativeContactsIds == null) {
 
                 // no native contacts on people side, just add it
                 LogUtils.logD("NativeImporter.iterateThroughNativeIds(): found a new contact");
-                addNewContact(mNativeContactsIds[mCurrentNativeId]);
+                addNewContact(mNativeContactsIds[mCurrentNativeIndex]);
                 mProcessedIds++;
             } else {
 
                 // both ids lists are ordered by ascending ids so
                 // every people ids that are before the current native ids
                 // are simply deleted contacts
-                while ((mCurrentPeopleId < mPeopleNativeContactsIds.length)
-                        && (mPeopleNativeContactsIds[mCurrentPeopleId] < mNativeContactsIds[mCurrentNativeId])) {
+                while ((mCurrentPeopleIndex < mPeopleNativeContactsIds.length)
+                        && (mPeopleNativeContactsIds[mCurrentPeopleIndex] < mNativeContactsIds[mCurrentNativeIndex])) {
                     LogUtils
                             .logD("NativeImporter.iterateThroughNativeIds(): found a contact to delete");
-                    mDeletedIds.add(mPeopleNativeContactsIds[mCurrentPeopleId++]);
+                    mDeletedIds.add(mPeopleNativeContactsIds[mCurrentPeopleIndex++]);
                 }
 
-                if (mCurrentPeopleId == mPeopleNativeContactsIds.length
-                        || mPeopleNativeContactsIds[mCurrentPeopleId] > mNativeContactsIds[mCurrentNativeId]) {
+                if (mCurrentPeopleIndex == mPeopleNativeContactsIds.length
+                        || mPeopleNativeContactsIds[mCurrentPeopleIndex] > mNativeContactsIds[mCurrentNativeIndex]) {
                     // has to be a new contact
                     LogUtils.logD("NativeImporter.iterateThroughNativeIds(): found a new contact");
-                    addNewContact(mNativeContactsIds[mCurrentNativeId]);
+                    addNewContact(mNativeContactsIds[mCurrentNativeIndex]);
                     mProcessedIds++;
                 } else {
                     // has to be an existing contact or one that will be deleted
                     LogUtils
                             .logD("NativeImporter.iterateThroughNativeIds(): check existing contact");
-                    checkExistingContact(mNativeContactsIds[mCurrentNativeId]);
+                    checkExistingContact(mNativeContactsIds[mCurrentNativeIndex]);
                     mProcessedIds++;
-                    mCurrentPeopleId++;
+                    mCurrentPeopleIndex++;
                 }
             }
 
-            mCurrentNativeId++;
+            mCurrentNativeIndex++;
         }
 
         // check if we are done with ids list from native
-        if (mCurrentNativeId == mNativeContactsIds.length) {
+        if (mCurrentNativeIndex == mNativeContactsIds.length) {
 
             // we've gone through the native list, any remaining ids from the
             // people list are deleted ones
             if (mPeopleNativeContactsIds != null) {
-                while (mCurrentPeopleId < mPeopleNativeContactsIds.length) {
+                while (mCurrentPeopleIndex < mPeopleNativeContactsIds.length) {
                     LogUtils
                             .logD("NativeImporter.iterateThroughNativeIds(): found a contact to delete");
-                    mDeletedIds.add(mPeopleNativeContactsIds[mCurrentPeopleId++]);
+                    mDeletedIds.add(mPeopleNativeContactsIds[mCurrentPeopleIndex++]);
                 }
             }
 
@@ -497,22 +497,22 @@ public class NativeImporter {
 
         LogUtils.logD("NativeImporter.processDeleted()");
 
-        final int limit = Math.min(mDeletedIds.size(), mCurrentDeletedId
+        final int limit = Math.min(mDeletedIds.size(), mCurrentDeletedIndex
                 + Math.round(mContactsPerTick));
 
-        while (mCurrentDeletedId < limit) {
+        while (mCurrentDeletedIndex < limit) {
 
             // we now delete the contacts on people client side
             // on the 2.X platform, the contact deletion has to be synced back
             // to native once completed because the
             // contact is still there on native, just marked as deleted and
             // waiting for its explicit removal
-            mPeopleContactsApi.deleteNativeContact(mDeletedIds.get(mCurrentDeletedId++),
+            mPeopleContactsApi.deleteNativeContact(mDeletedIds.get(mCurrentDeletedIndex++),
                     VersionUtils.is2XPlatform());
             mProcessedIds++;
         }
 
-        if (mCurrentDeletedId == mDeletedIds.size()) {
+        if (mCurrentDeletedIndex == mDeletedIds.size()) {
 
             complete(RESULT_OK);
         }

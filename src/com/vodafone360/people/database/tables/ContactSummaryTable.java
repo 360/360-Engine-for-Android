@@ -986,14 +986,14 @@ public abstract class ContactSummaryTable {
     public static ServiceStatus updateContactDisplayName(Contact contact, SQLiteDatabase writableDb) {
         // These two Arrays contains the order in which the details are queried.
         // First valid (not empty or unknown) detail is taken
-        ContactDetail.DetailKeys prefferredNameDetails[] = {
+        ContactDetail.DetailKeys preferredNameDetails[] = {
                 ContactDetail.DetailKeys.VCARD_NAME, ContactDetail.DetailKeys.VCARD_ORG,
                 ContactDetail.DetailKeys.VCARD_EMAIL, ContactDetail.DetailKeys.VCARD_PHONE
         };
         ContactDetail name = null;
 
         // Query the details for the name field
-        for (ContactDetail.DetailKeys key : prefferredNameDetails) {
+        for (ContactDetail.DetailKeys key : preferredNameDetails) {
             if ((name = contact.getContactDetail(key)) != null) {
                 // Some contacts have only email but the name detail!=null
                 // (gmail for example)

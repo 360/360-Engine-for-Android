@@ -84,11 +84,10 @@ public abstract class ContactDetailsTable {
     /**
      * SELECT DISTINCT LocalId
      * FROM ContactDetails
-     * WHERE NativeSyncId IS NULL OR NativeSyncId <> -1
+     * WHERE NativeSyncId <> -1
      */
     public final static String QUERY_NATIVE_SYNCABLE_CONTACTS_LOCAL_IDS = "SELECT " + Field.LOCALCONTACTID + " FROM " + TABLE_NAME
-                                                                        + " WHERE " + Field.NATIVESYNCCONTACTID + " IS NULL OR " + Field.NATIVESYNCCONTACTID
-                                                                        + " <> -1";
+                                                                        + " WHERE " + Field.NATIVESYNCCONTACTID + " <> -1";
     
     /**
      * SELECT DetailLocalId, DetailServerId

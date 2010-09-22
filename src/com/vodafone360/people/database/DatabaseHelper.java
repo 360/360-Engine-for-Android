@@ -143,6 +143,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private final Timer mDbEventTimer = new Timer();
     
     /**
+     * SELECT DISTINCT LocalId FROM NativeChangeLog UNION SELECT DISTINCT
+     * LocalId FROM ContactDetails WHERE NativeSyncId IS NULL OR NativeSyncId <>
+     * -1 ORDER BY 1
+     */
+    private final static String QUERY_NATIVE_SYNCABLE_CONTACTS_LOCAL_IDS = 
+    		NativeChangeLogTable.QUERY_MODIFIED_CONTACTS_LOCAL_IDS_NO_ORDERBY 
+    		+ " UNION "
+            + ContactDetailsTable.QUERY_NATIVE_SYNCABLE_CONTACTS_LOCAL_IDS
+            + " ORDER BY 1";
+
+    /**
      * Datatype holding a database change event. This datatype is used to collect unique
      * events for a certain period before sending them to the UI to avoid clogging of the
      * event queue.
@@ -391,9 +402,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         ContactsTable.ContactIdInfo mContactIdInfo = ContactsTable.validateContactId(
                 localContactID, getWritableDatabase());
-        List<ContactsTable.ContactIdInfo> mIdList = new ArrayList<ContactsTable.ContactIdInfo>();
-        mIdList.add(mContactIdInfo);
-        ServiceStatus mStatus = syncDeleteContactList(mIdList, true, true);
+        List<ContactsTable.ContactIdInfo> idList = new ArrayList<ContactsTable.ContactIdInfo>();
+        idList.add(mContactIdInfo);
+        ServiceStatus mStatus = syncDeleteContactList(idList, true, true);
         if (ServiceStatus.SUCCESS == mStatus) {
             fireDatabaseChangedEvent(DatabaseChangeType.CONTACTS, false);
         }
@@ -1330,35 +1341,34 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         String contactDetailFriendyName = null;
 
-        SQLiteDatabase mDb = getWritableDatabase();
+        SQLiteDatabase writableDb = getWritableDatabase();
 
-        for (Contact mContact : contactList) {
-            mContact.deleted = null;
-            mContact.localContactID = null;
+        for (Contact contact : contactList) {
+            contact.deleted = null;
+            contact.localContactID = null;
             if (syncToNative) {
-                mContact.nativeContactId = null;
+                contact.nativeContactId = null;
             }
             if (syncToServer) {
-                mContact.contactID = null;
-                mContact.updated = null;
-                mContact.synctophone = true;
+                contact.contactID = null;
+                contact.updated = null;
+                contact.synctophone = true;
             }
 
             try {
 
-                mDb.beginTransaction();
-                ServiceStatus mStatus = ContactsTable.addContact(mContact, mDb);
-                if (ServiceStatus.SUCCESS != mStatus) {
-                    LogUtils
-                            .logE("DatabaseHelper.syncAddContactList() Unable to add contact to contacts table, due to a database error");
-                    return mStatus;
+                writableDb.beginTransaction();
+                ServiceStatus status = ContactsTable.addContact(contact, writableDb);
+                if (ServiceStatus.SUCCESS != status) {
+                    LogUtils.logE("DatabaseHelper.syncAddContactList() Unable to add contact to contacts table, due to a database error");
+                    return status;
                 }
 
                 List<ContactDetail.DetailKeys> orderList = new ArrayList<ContactDetail.DetailKeys>();
-                for (int i = 0; i < mContact.details.size(); i++) {
-                    final ContactDetail detail = mContact.details.get(i);
+                for (int i = 0; i < contact.details.size(); i++) {
+                    final ContactDetail detail = contact.details.get(i);
                     
-                    detail.localContactID = mContact.localContactID;
+                    detail.localContactID = contact.localContactID;
                     detail.localDetailID = null;
                     if (syncToServer) {
                         detail.unique_id = null;
@@ -1371,13 +1381,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                             orderList.add(detail.key);
                         }
                     }
-                    mStatus = ContactDetailsTable.addContactDetail(detail, syncToServer,
-                            (syncToNative && mContact.synctophone), mDb);
-                    if (ServiceStatus.SUCCESS != mStatus) {
-                        LogUtils
-                                .logE("DatabaseHelper.syncAddContactList() Unable to add contact detail (for new contact), due to a database error. Contact ID["
-                                        + mContact.localContactID + "]");
-                        return mStatus;
+                    status = ContactDetailsTable.addContactDetail(detail, syncToServer,
+                            (syncToNative && contact.synctophone), writableDb);
+                    if (ServiceStatus.SUCCESS != status) {
+                        LogUtils.logE("DatabaseHelper.syncAddContactList() Unable to add contact detail (for new contact), " +
+                        			  "due to a database error. Contact ID[" + contact.localContactID + "]");
+                        return status;
                     }
 
                     // getting name for timeline updates
@@ -1391,38 +1400,38 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 // AA: added the check to make sure that contacts with empty
                 // contact
                 // details are not stored
-                if (!mContact.details.isEmpty()) {
-                    mStatus = ContactSummaryTable.addContact(mContact, mDb);
-                    if (ServiceStatus.SUCCESS != mStatus) {
+                if (!contact.details.isEmpty()) {
+                    status = ContactSummaryTable.addContact(contact, writableDb);
+                    if (ServiceStatus.SUCCESS != status) {
 
-                        return mStatus;
+                        return status;
                     }
                 }
 
-                if (mContact.groupList != null) {
-                    for (Long groupId : mContact.groupList) {
+                if (contact.groupList != null) {
+                    for (Long groupId : contact.groupList) {
                         if (groupId != -1
-                                && !ContactGroupsTable.addContactToGroup(mContact.localContactID,
-                                        groupId, mDb)) {
+                                && !ContactGroupsTable.addContactToGroup(contact.localContactID,
+                                        groupId, writableDb)) {
                             return ServiceStatus.ERROR_DATABASE_CORRUPT;
                         }
                     }
                 }
 
-                if (mContact.sources != null) {
-                    for (String source : mContact.sources) {
-                        if (!ContactSourceTable.addContactSource(mContact.localContactID, source,
-                                mDb)) {
+                if (contact.sources != null) {
+                    for (String source : contact.sources) {
+                        if (!ContactSourceTable.addContactSource(contact.localContactID, source,
+                                writableDb)) {
                             return ServiceStatus.ERROR_DATABASE_CORRUPT;
                         }
                     }
                 }
 
                 if (syncToServer) {
-                    if (mContact.groupList != null) {
-                        for (Long mGroupId : mContact.groupList) {
-                            if (!ContactChangeLogTable.addGroupRel(mContact.localContactID,
-                                    mContact.contactID, mGroupId, mDb)) {
+                    if (contact.groupList != null) {
+                        for (Long mGroupId : contact.groupList) {
+                            if (!ContactChangeLogTable.addGroupRel(contact.localContactID,
+                                    contact.contactID, mGroupId, writableDb)) {
                                 return ServiceStatus.ERROR_DATABASE_CORRUPT;
                             }
                         }
@@ -1430,24 +1439,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 }
 
                 // updating timeline
-                for (ContactDetail detail : mContact.details) {
+                for (ContactDetail detail : contact.details) {
                     // we already have name, don't need to get it again
                     if (detail.key != ContactDetail.DetailKeys.VCARD_NAME) {
-                        detail.localContactID = mContact.localContactID;
-                        detail.nativeContactId = mContact.nativeContactId;
-                        updateTimelineNames(detail, contactDetailFriendyName, mContact.contactID,
-                                mDb);
+                        detail.localContactID = contact.localContactID;
+                        detail.nativeContactId = contact.nativeContactId;
+                        updateTimelineNames(detail, contactDetailFriendyName, contact.contactID,
+                                writableDb);
                     }
                 }
 
                 // Update the summary with the new contact
-                mStatus = updateNameAndStatusInSummary(mDb, mContact.localContactID);
-                if (ServiceStatus.SUCCESS != mStatus) {
+                status = updateNameAndStatusInSummary(writableDb, contact.localContactID);
+                if (ServiceStatus.SUCCESS != status) {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
-                mDb.setTransactionSuccessful();
+                writableDb.setTransactionSuccessful();
             } finally {
-                mDb.endTransaction();
+                writableDb.endTransaction();
             }
         }
         return ServiceStatus.SUCCESS;
@@ -1475,41 +1484,40 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             syncToNative = false;
         }
         String contactDetailFriendyName = null;
-        SQLiteDatabase mDb = getWritableDatabase();
+        SQLiteDatabase writableDb = getWritableDatabase();
 
-        for (Contact mContact : contactList) {
+        for (Contact contact : contactList) {
             if (syncToServer) {
-                mContact.updated = null;
+                contact.updated = null;
             }
 
             try {
-                mDb.beginTransaction();
-                
-                ServiceStatus mStatus = ContactsTable.modifyContact(mContact, mDb);
-                if (ServiceStatus.SUCCESS != mStatus) {
+                writableDb.beginTransaction();
+                ServiceStatus status = ContactsTable.modifyContact(contact, writableDb);
+                if (ServiceStatus.SUCCESS != status) {
                     LogUtils.logE("DatabaseHelper.syncModifyContactList() Unable to modify contact, due to a database error");
-                    return mStatus;
+                    return status;
                 }
 
-                mStatus = ContactSummaryTable.modifyContact(mContact, mDb);
-                if (ServiceStatus.SUCCESS != mStatus) {
+                status = ContactSummaryTable.modifyContact(contact, writableDb);
+                if (ServiceStatus.SUCCESS != status) {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
 
-                if (mContact.groupList != null) {
-                    mStatus = ContactGroupsTable.modifyContact(mContact, mDb);
-                    if (ServiceStatus.SUCCESS != mStatus) {
-                        return mStatus;
+                if (contact.groupList != null) {
+                    status = ContactGroupsTable.modifyContact(contact, writableDb);
+                    if (ServiceStatus.SUCCESS != status) {
+                        return status;
                     }
                 }
 
-                if (mContact.sources != null) {
-                    if (!ContactSourceTable.deleteAllContactSources(mContact.localContactID, mDb)) {
+                if (contact.sources != null) {
+                    if (!ContactSourceTable.deleteAllContactSources(contact.localContactID, writableDb)) {
                         return ServiceStatus.ERROR_DATABASE_CORRUPT;
                     }
-                    for (String source : mContact.sources) {
-                        if (!ContactSourceTable.addContactSource(mContact.localContactID, source,
-                                mDb)) {
+                    for (String source : contact.sources) {
+                        if (!ContactSourceTable.addContactSource(contact.localContactID, source,
+                                writableDb)) {
                             return ServiceStatus.ERROR_DATABASE_CORRUPT;
                         }
                     }
@@ -1517,7 +1525,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
                 // updating timeline events
                 // getting name
-                for (ContactDetail detail : mContact.details) {
+                for (ContactDetail detail : contact.details) {
                     if (detail.key == ContactDetail.DetailKeys.VCARD_NAME) {
                         VCardHelper.Name name = detail.getName();
                         if (name != null) {
@@ -1526,21 +1534,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     }
                 }
                 // updating phone no
-                for (ContactDetail detail : mContact.details) {
-                    detail.localContactID = mContact.localContactID;
-                    detail.nativeContactId = mContact.nativeContactId;
-                    updateTimelineNames(detail, contactDetailFriendyName, mContact.contactID, mDb);
+                for (ContactDetail detail : contact.details) {
+                    detail.localContactID = contact.localContactID;
+                    detail.nativeContactId = contact.nativeContactId;
+                    updateTimelineNames(detail, contactDetailFriendyName, contact.contactID, writableDb);
                 }
                 // END updating timeline events
 
                 // Update the summary with the new contact
-                mStatus = updateNameAndStatusInSummary(mDb, mContact.localContactID);
-                if (ServiceStatus.SUCCESS != mStatus) {
+                status = updateNameAndStatusInSummary(writableDb, contact.localContactID);
+                if (ServiceStatus.SUCCESS != status) {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
-                mDb.setTransactionSuccessful();
+                writableDb.setTransactionSuccessful();
             } finally {
-                mDb.endTransaction();
+                writableDb.endTransaction();
             }
         }
 
@@ -1572,59 +1580,59 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             syncToNative = false;
         }
 
-        SQLiteDatabase mDb = getWritableDatabase();
+        SQLiteDatabase writableDb = getWritableDatabase();
 
-        for (ContactsTable.ContactIdInfo mInfo : contactIdList) {
+        for (ContactsTable.ContactIdInfo contactIdInfo : contactIdList) {
 
             try {
-                mDb.beginTransaction();
-                if (syncToNative && mInfo.mergedLocalId == null) {
-                    if (!NativeChangeLogTable.addDeletedContactChange(mInfo.localId,
-                            mInfo.nativeId, mDb)) {
+                writableDb.beginTransaction();
+                if (syncToNative && contactIdInfo.mergedLocalId == null) {
+                    if (!NativeChangeLogTable.addDeletedContactChange(contactIdInfo.localId,
+                            contactIdInfo.nativeId, writableDb)) {
                         return ServiceStatus.ERROR_DATABASE_CORRUPT;
                     }
                 }
 
                 if (syncToServer) {
-                    if (!ContactChangeLogTable.addDeletedContactChange(mInfo.localId,
-                            mInfo.serverId, syncToServer, mDb)) {
+                    if (!ContactChangeLogTable.addDeletedContactChange(contactIdInfo.localId,
+                            contactIdInfo.serverId, syncToServer, writableDb)) {
                         return ServiceStatus.ERROR_DATABASE_CORRUPT;
                     }
                 }
-                if (!ContactGroupsTable.deleteContact(mInfo.localId, mDb)) {
+                if (!ContactGroupsTable.deleteContact(contactIdInfo.localId, writableDb)) {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
                 if (SyncMeDbUtils.getMeProfileLocalContactId(this) != null
-                        && SyncMeDbUtils.getMeProfileLocalContactId(this).longValue() == mInfo.localId) {
-                    ServiceStatus status = StateTable.modifyMeProfileID(null, mDb);
+                        && SyncMeDbUtils.getMeProfileLocalContactId(this).longValue() == contactIdInfo.localId) {
+                    ServiceStatus status = StateTable.modifyMeProfileID(null, writableDb);
                     if (ServiceStatus.SUCCESS != status) {
                         return status;
                     }
                     SyncMeDbUtils.setMeProfileId(null);
                     PresenceDbUtils.resetMeProfileIds();
                 }
-                ServiceStatus mStatus = ContactSummaryTable.deleteContact(mInfo.localId, mDb);
-                if (ServiceStatus.SUCCESS != mStatus) {
-                    return mStatus;
+                ServiceStatus status = ContactSummaryTable.deleteContact(contactIdInfo.localId, writableDb);
+                if (ServiceStatus.SUCCESS != status) {
+                    return status;
                 }
-                mStatus = ContactDetailsTable.deleteDetailByContactId(mInfo.localId, mDb);
-                if (ServiceStatus.SUCCESS != mStatus && ServiceStatus.ERROR_NOT_FOUND != mStatus) {
-                    return mStatus;
+                status = ContactDetailsTable.deleteDetailByContactId(contactIdInfo.localId, writableDb);
+                if (ServiceStatus.SUCCESS != status && ServiceStatus.ERROR_NOT_FOUND != status) {
+                    return status;
                 }
-                mStatus = ContactsTable.deleteContact(mInfo.localId, mDb);
-                if (ServiceStatus.SUCCESS != mStatus) {
-                    return mStatus;
+                status = ContactsTable.deleteContact(contactIdInfo.localId, writableDb);
+                if (ServiceStatus.SUCCESS != status) {
+                    return status;
                 }
 
-                if (!deleteThumbnail(mInfo.localId))
-                    LogUtils.logE("Not able to delete thumbnail for: " + mInfo.localId);
+                if (!deleteThumbnail(contactIdInfo.localId))
+                    LogUtils.logE("Not able to delete thumbnail for: " + contactIdInfo.localId);
 
                 // timeline
-                ActivitiesTable.removeTimelineContactData(mInfo.localId, mDb);
+                ActivitiesTable.removeTimelineContactData(contactIdInfo.localId, writableDb);
 
-                mDb.setTransactionSuccessful();
+                writableDb.setTransactionSuccessful();
             } finally {
-                mDb.endTransaction();
+                writableDb.endTransaction();
             }
         }
 
@@ -2581,16 +2589,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return detail;
     }
-
-    /**
-     * SELECT DISTINCT LocalId FROM NativeChangeLog UNION SELECT DISTINCT
-     * LocalId FROM ContactDetails WHERE NativeSyncId IS NULL OR NativeSyncId <>
-     * -1 ORDER BY 1
-     */
-    private final static String QUERY_NATIVE_SYNCABLE_CONTACTS_LOCAL_IDS = NativeChangeLogTable.QUERY_MODIFIED_CONTACTS_LOCAL_IDS_NO_ORDERBY
-            + " UNION "
-            + ContactDetailsTable.QUERY_NATIVE_SYNCABLE_CONTACTS_LOCAL_IDS
-            + " ORDER BY 1";
 
     /**
      * Gets the local IDs of the Contacts that are syncable to native.

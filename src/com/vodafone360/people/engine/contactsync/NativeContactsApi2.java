@@ -49,7 +49,6 @@ import android.provider.ContactsContract.RawContacts;
 import android.provider.ContactsContract.Settings;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Event;
-import android.provider.ContactsContract.CommonDataKinds.GroupMembership;
 import android.provider.ContactsContract.CommonDataKinds.Nickname;
 import android.provider.ContactsContract.CommonDataKinds.Note;
 import android.provider.ContactsContract.CommonDataKinds.Organization;
@@ -116,13 +115,6 @@ public class NativeContactsApi2 extends NativeContactsApi {
     private static final String MY_CONTACTS_GROUP_WHERE_CLAUSE = Groups.SYSTEM_ID + "=\"Contacts\"";
 
     /**
-     * 'My Contacts' System Group Membership where in clause (Multiple 'My
-     * Contacts' IDs)
-     */
-    private static final String MY_CONTACTS_MULTI_GROUP_MEMBERSHIP = Data.MIMETYPE + "=\""
-            + GroupMembership.CONTENT_ITEM_TYPE + "\" AND " + Data.DATA1 + " IN (";
-
-    /**
      * Selection where clause for a NULL Account
      */
     private static final String NULL_ACCOUNT_WHERE_CLAUSE = RawContacts.ACCOUNT_NAME
@@ -154,44 +146,31 @@ public class NativeContactsApi2 extends NativeContactsApi {
 
     static {
         sFromNabContentTypeToKeyMap = new HashMap<String, Integer>(9, 1);
-        sFromNabContentTypeToKeyMap.put(StructuredName.CONTENT_ITEM_TYPE,
-                ContactChange.KEY_VCARD_NAME);
-        sFromNabContentTypeToKeyMap.put(Nickname.CONTENT_ITEM_TYPE,
-                ContactChange.KEY_VCARD_NICKNAME);
+        sFromNabContentTypeToKeyMap.put(StructuredName.CONTENT_ITEM_TYPE, ContactChange.KEY_VCARD_NAME);
+        sFromNabContentTypeToKeyMap.put(Nickname.CONTENT_ITEM_TYPE, ContactChange.KEY_VCARD_NICKNAME);
         sFromNabContentTypeToKeyMap.put(Phone.CONTENT_ITEM_TYPE, ContactChange.KEY_VCARD_PHONE);
         sFromNabContentTypeToKeyMap.put(Email.CONTENT_ITEM_TYPE, ContactChange.KEY_VCARD_EMAIL);
-        sFromNabContentTypeToKeyMap.put(StructuredPostal.CONTENT_ITEM_TYPE,
-                ContactChange.KEY_VCARD_ADDRESS);
-        sFromNabContentTypeToKeyMap
-                .put(Organization.CONTENT_ITEM_TYPE, ContactChange.KEY_VCARD_ORG);
+        sFromNabContentTypeToKeyMap.put(StructuredPostal.CONTENT_ITEM_TYPE, ContactChange.KEY_VCARD_ADDRESS);
+        sFromNabContentTypeToKeyMap.put(Organization.CONTENT_ITEM_TYPE, ContactChange.KEY_VCARD_ORG);
         sFromNabContentTypeToKeyMap.put(Website.CONTENT_ITEM_TYPE, ContactChange.KEY_VCARD_URL);
         sFromNabContentTypeToKeyMap.put(Note.CONTENT_ITEM_TYPE, ContactChange.KEY_VCARD_NOTE);
         sFromNabContentTypeToKeyMap.put(Event.CONTENT_ITEM_TYPE, ContactChange.KEY_VCARD_DATE);
-        // sFromNabContentTypeToKeyMap.put(
-        // Photo.CONTENT_ITEM_TYPE, ContactChange.KEY_PHOTO);
+        // sFromNabContentTypeToKeyMap.put(Photo.CONTENT_ITEM_TYPE, ContactChange.KEY_PHOTO);
 
         sFromKeyToNabContentTypeArray = new SparseArray<String>(10);
-        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_NAME,
-                StructuredName.CONTENT_ITEM_TYPE);
-        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_NICKNAME,
-                Nickname.CONTENT_ITEM_TYPE);
-        sFromKeyToNabContentTypeArray
-                .append(ContactChange.KEY_VCARD_PHONE, Phone.CONTENT_ITEM_TYPE);
-        sFromKeyToNabContentTypeArray
-                .append(ContactChange.KEY_VCARD_EMAIL, Email.CONTENT_ITEM_TYPE);
-        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_ADDRESS,
-                StructuredPostal.CONTENT_ITEM_TYPE);
-        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_ORG,
-                Organization.CONTENT_ITEM_TYPE);
+        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_NAME, StructuredName.CONTENT_ITEM_TYPE);
+        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_NICKNAME, Nickname.CONTENT_ITEM_TYPE);
+        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_PHONE, Phone.CONTENT_ITEM_TYPE);
+        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_EMAIL, Email.CONTENT_ITEM_TYPE);
+        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_ADDRESS, StructuredPostal.CONTENT_ITEM_TYPE);
+        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_ORG, Organization.CONTENT_ITEM_TYPE);
+        
         // Special case: VCARD_TITLE maps to the same NAB type as
-        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_TITLE,
-                Organization.CONTENT_ITEM_TYPE);
-        sFromKeyToNabContentTypeArray
-                .append(ContactChange.KEY_VCARD_URL, Website.CONTENT_ITEM_TYPE);
+        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_TITLE, Organization.CONTENT_ITEM_TYPE);
+        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_URL, Website.CONTENT_ITEM_TYPE);
         sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_NOTE, Note.CONTENT_ITEM_TYPE);
         sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_DATE, Event.CONTENT_ITEM_TYPE);
-        // sFromKeyToNabContentTypeArray.append(
-        // ContactChange.KEY_PHOTO, Photo.CONTENT_ITEM_TYPE);
+        // sFromKeyToNabContentTypeArray.append(ContactChange.KEY_PHOTO, Photo.CONTENT_ITEM_TYPE);
     }
 
     /**
