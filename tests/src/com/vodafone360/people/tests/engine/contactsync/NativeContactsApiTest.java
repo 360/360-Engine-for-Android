@@ -486,6 +486,7 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 	
 	
 	@MediumTest
+	@Suppress
 	public void testAddGetRemoveContacts() {
 		Account account = null;
 		if(mUsing2xApi) {
