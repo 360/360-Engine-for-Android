@@ -2033,7 +2033,7 @@ public abstract class ActivitiesTable {
     	try {
     		// Update the Timeline Entry to make localContactId, contactId NULL
             String[] args = {
-            	localContactId.toString(), number
+            	localContactId.toString(), number,localContactId.toString(), number
             };
             
             final StringBuffer query = StringBufferPool.getStringBuffer();
@@ -2044,8 +2044,16 @@ public abstract class ActivitiesTable {
             .append("=").append(Field.CONTACT_ADDRESS).append(" WHERE ")
             .append(Field.LOCAL_CONTACT_ID).append("=? AND (").append(Field.FLAG)
             .append("&").append(ActivityItem.TIMELINE_ITEM).append(") AND ")
-            .append(Field.CONTACT_ADDRESS).append("=?");
-
+            .append(Field.CONTACT_ADDRESS).append("=?")
+            .append(" and not exists (select * from ")
+            .append(ContactDetailsTable.TABLE_NAME)
+            .append(" where ")
+            .append(ContactDetailsTable.Field.LOCALCONTACTID)
+            .append("=? and ")
+            .append(ContactDetailsTable.Field.STRINGVAL)
+            .append("=?)");
+          
+            
             writableDb.execSQL(StringBufferPool.toStringThenRelease(query), args);
 		} catch (SQLException e) {
             LogUtils.logE("ActivitiesTable.updateTimeLineEntryForContact() "
