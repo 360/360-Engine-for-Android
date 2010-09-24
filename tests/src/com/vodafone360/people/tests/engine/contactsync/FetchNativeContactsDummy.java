@@ -29,7 +29,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 
 import com.vodafone360.people.database.DatabaseHelper;
-import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.contactsync.BaseSyncProcessor;
 import com.vodafone360.people.engine.contactsync.IContactSyncCallback;
 import com.vodafone360.people.engine.contactsync.NativeContactsApi;

@@ -98,9 +98,9 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
                     long mCurrentTime = System.currentTimeMillis();
                     long nextRunTime = -1;
                     try {
-                    	if (mEngine.engineId() == EngineId.ACTIVITIES_ENGINE){
+                    	if (mEngine.engineId() == EngineId.ACTIVITIES_ENGINE) {
                     		nextRunTime = mEngine.getNextRunTimeForTest();
-                    	}else {
+                    	} else {
                     		nextRunTime = mEngine.getNextRunTime();
                     	}
                     } catch (Exception e) {

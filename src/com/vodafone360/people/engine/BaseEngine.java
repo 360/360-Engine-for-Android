@@ -128,9 +128,8 @@ public abstract class BaseEngine {
     /**
      * To be used only by JUnit test
      */
-    public long getNextRunTimeForTest(){
-    	long testRuntime = 0;
-    	return testRuntime;
+    public long getNextRunTimeForTest() {
+    	return 0;
     };
 
     /**

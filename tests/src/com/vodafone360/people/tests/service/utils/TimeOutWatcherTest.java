@@ -52,7 +52,6 @@ public class TimeOutWatcherTest extends InstrumentationTestCase {
     
     private TimeOutWatcher mWatcher = null;
     private MainApplication mApplication;
-    private EngineManager mEngineManager;
     protected void setUp() throws Exception {
         super.setUp();
         mApplication = (MainApplication)Instrumentation.newApplication(MainApplication.class, getInstrumentation().getTargetContext());

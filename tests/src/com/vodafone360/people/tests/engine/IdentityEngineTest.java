@@ -85,7 +85,7 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
         mEngineTester.setEngine(mEng);
         mState = IdentityTestState.IDLE;
         
-        mEngineManager = EngineManager.createEngineManagerForTest(null ,mEngineTester);
+        mEngineManager = EngineManager.createEngineManagerForTest(null , mEngineTester);
         mEngineManager.addEngineForTest(mEng);
         
         mLoginEngine = new LoginEngine(getInstrumentation().getTargetContext(), mEngineTester, mApplication.getDatabase());
@@ -268,10 +268,9 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
         		hash.put("name", "Google");
                 Identity newId = id.createFromHashtable(hash);
                 data.add(newId);
-                respQueue.addToResponseQueueFromTest(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_AVAILABLE_IDENTITIES_RESPONSE.ordinal()));
+                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_AVAILABLE_IDENTITIES_RESPONSE.ordinal()));
                 Log.d("TAG", "IdentityEngineTest.reportBackToEngine add to Q");
                 
-                mEng.onCommsInMessage();
                 break;
             case GET_MY_IDENTITIES:
                 Log.d("TAG", "IdentityEngineTest.reportBackToEngine Get ids");
@@ -280,16 +279,14 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
         		hash1.put("name", "Google");
                 Identity newId1 = myId.createFromHashtable(hash1);
                 data.add(newId1);
-                respQueue.addToResponseQueueFromTest(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_AVAILABLE_IDENTITIES_RESPONSE.ordinal()));
+                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_AVAILABLE_IDENTITIES_RESPONSE.ordinal()));
                 Log.d("TAG", "IdentityEngineTest.reportBackToEngine add to Q "+mEng);
-                mEng.onCommsInMessage();
                 break;
             case FETCH_IDENTITIES_FAIL:
                 ServerError err = new ServerError("Catastrophe");
                 err.errorDescription = "Fail";
                 data.add(err);
-                respQueue.addToResponseQueueFromTest(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
-                mEng.onCommsInMessage();
+                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
                 break;
             case SET_IDENTITY_CAPABILTY:
                 StatusMsg msg = new StatusMsg();
@@ -297,8 +294,7 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
                 msg.mDryRun = false;
                 msg.mStatus = true;
                 data.add(msg);
-                respQueue.addToResponseQueueFromTest(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SET_IDENTITY_CAPABILITY_RESPONSE.ordinal()));
-                mEng.onCommsInMessage();
+                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SET_IDENTITY_CAPABILITY_RESPONSE.ordinal()));
                 break;
             case VALIDATE_ID_CREDENTIALS_SUCCESS:
                 StatusMsg msg2 = new StatusMsg();
@@ -306,15 +302,13 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
                 msg2.mDryRun = false;
                 msg2.mStatus = true;
                 data.add(msg2);
-                respQueue.addToResponseQueueFromTest(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.VALIDATE_IDENTITY_CREDENTIALS_RESPONSE.ordinal()));
-                mEng.onCommsInMessage();
+                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.VALIDATE_IDENTITY_CREDENTIALS_RESPONSE.ordinal()));
                 break;
             case VALIDATE_ID_CREDENTIALS_FAIL:
                 ServerError err2 = new ServerError("Catastrophe");
                 err2.errorDescription = "Fail";
                 data.add(err2);
-                respQueue.addToResponseQueueFromTest(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
-                mEng.onCommsInMessage();
+                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
                 break;
             case GET_NEXT_RUNTIME:
                 break;
@@ -361,9 +355,8 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
                 id2.mCapabilities = capList;
                 data.add(id2);
 
-                respQueue.addToResponseQueueFromTest(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_AVAILABLE_IDENTITIES_RESPONSE.ordinal()));
+                respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_AVAILABLE_IDENTITIES_RESPONSE.ordinal()));
                 Log.d("TAG", "IdentityEngineTest.reportBackToEngine add to Q");
-                mEng.onCommsInMessage();
                 break;
             default:
         }

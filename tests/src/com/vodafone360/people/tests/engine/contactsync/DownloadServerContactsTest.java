@@ -268,8 +268,7 @@ public class DownloadServerContactsTest extends InstrumentationTestCase implemen
             data.clear();
             data.add(serverError);
         }
-        //respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
-        respQueue.addToResponseQueueFromTest(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
+        respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
         
         mEng.onCommsInMessage();
         Log.d(LOG_TAG, "reportBackToEngine - message added to response queue");
