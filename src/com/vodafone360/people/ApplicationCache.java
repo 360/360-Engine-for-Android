@@ -453,7 +453,10 @@ public class ApplicationCache {
     /***
      * Gets the current sync state, or NULL if the state has not been set in
      * this JVM instance.
-     * 
+     *
+     * Note: The sync state is an in memory condition.  If this is not NULL
+     * then the UI should be redirected to the SyncingYourAddressBookActivity.
+     *
      * @return SyncStatus or NULL.
      */
     public SyncStatus getSyncStatus() {

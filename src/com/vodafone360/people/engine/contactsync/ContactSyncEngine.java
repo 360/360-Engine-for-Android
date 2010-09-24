@@ -1504,6 +1504,9 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
                     "ContactSyncEngine.setSyncStatus() SyncStatus cannot be NULL");
         }
 
+        /** Indicate that this is a first time sync in progress. **/
+        syncStatus.firstTimeSync(mMode == Mode.FULL_SYNC_FIRST_TIME);
+
         mCache.setSyncStatus(syncStatus);
         mUiAgent.sendUnsolicitedUiEvent(ServiceUiRequest.UPDATE_SYNC_STATE, null);
 
