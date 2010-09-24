@@ -174,7 +174,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         }
         if (firstRun) {
             getPresenceList();
-            initSetMyAvailabilityRequest(getMyAvailabilityStatusFromDatabase());
+            initSetMyAvailabilityRequestAfterLogin();
             firstRun = false;
         }
         return getCurrentTimeout();
@@ -227,7 +227,6 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         if (mLoggedIn) {
             if (isFirstTimeSyncComplete()) {
                 getPresenceList();
-                initSetMyAvailabilityRequest(getMyAvailabilityStatusFromDatabase());
                 setTimeout(CHECK_FREQUENCY);    
             }
         } else {
@@ -607,6 +606,60 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         updateMyPresenceInDatabase(me);
 
         addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, availability);
+    }
+
+     /**
+     * Method used to set availability of me profile when user logs in. 
+     * This is primarily used for reacting to login/connection state changes.
+     */
+    private void initSetMyAvailabilityRequestAfterLogin() {
+
+        if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED 
+                || !isFirstTimeSyncComplete()) {
+          LogUtils.logD("PresenceEngine.initSetMyAvailabilityRequest():"
+                  + " return NO NETWORK CONNECTION or not ready");
+          return;
+        }
+
+        String meProfileUserId = Long.toString(PresenceDbUtils.getMeProfileUserId(mDbHelper));
+        Hashtable<String, String> availability = new Hashtable<String, String>();
+
+        ArrayList<Identity> identityList = EngineManager.getInstance().getIdentityEngine().getMy360AndThirdPartyChattableIdentities();
+        ArrayList<NetworkPresence> presenceList = new ArrayList<NetworkPresence>();
+
+        if ((identityList.size() != 0)) {
+            for (int i=0; i<identityList.size(); i++) {
+                Identity myIdentity = identityList.get(i);
+                if(myIdentity.mNetwork.equals(SocialNetwork.GOOGLE.toString())) {
+                    NetworkPresence networkPresence = new NetworkPresence(meProfileUserId, SocialNetwork.GOOGLE.ordinal(), OnlineStatus.ONLINE.ordinal());
+                    presenceList.add(networkPresence);
+                    availability.put(SocialNetwork.GOOGLE.toString(), OnlineStatus.ONLINE.toString());
+                } else if(myIdentity.mNetwork.equals(SocialNetwork.HYVES_NL.toString())) {
+                    NetworkPresence networkPresence = new NetworkPresence(meProfileUserId, SocialNetwork.HYVES_NL.ordinal(), OnlineStatus.ONLINE.ordinal());
+                    presenceList.add(networkPresence);
+                    availability.put(SocialNetwork.HYVES_NL.toString(), OnlineStatus.ONLINE.toString());
+                } else if(myIdentity.mNetwork.equals(SocialNetwork.FACEBOOK_COM.toString())) {
+                    NetworkPresence networkPresence = new NetworkPresence(meProfileUserId, SocialNetwork.FACEBOOK_COM.ordinal(), OnlineStatus.ONLINE.ordinal());
+                    presenceList.add(networkPresence);
+                    availability.put(SocialNetwork.FACEBOOK_COM.toString(), OnlineStatus.ONLINE.toString());
+                } else if(myIdentity.mNetwork.equals(SocialNetwork.MICROSOFT.toString())) {
+                    NetworkPresence networkPresence = new NetworkPresence(meProfileUserId, SocialNetwork.MICROSOFT.ordinal(), OnlineStatus.ONLINE.ordinal());
+                    presenceList.add(networkPresence);
+                    availability.put(SocialNetwork.MICROSOFT.toString(), OnlineStatus.ONLINE.toString());
+                } else if(myIdentity.mNetwork.equals(SocialNetwork.MOBILE.toString())) {
+                    NetworkPresence networkPresence = new NetworkPresence(meProfileUserId, SocialNetwork.MOBILE.ordinal(), OnlineStatus.ONLINE.ordinal());
+                    presenceList.add(networkPresence);
+                    availability.put(SocialNetwork.MOBILE.toString(), OnlineStatus.ONLINE.toString());
+                }
+            }
+       }
+
+       User meUser = new User();
+       meUser.setLocalContactId(Long.valueOf(meProfileUserId));
+       meUser.setPayload(presenceList);
+       updateMyPresenceInDatabase(meUser);
+
+       addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, availability);
     }
 
     /**
