@@ -108,7 +108,7 @@ public class LoginEngineTest extends InstrumentationTestCase implements
         mState = LoginTestState.IDLE;
 
         mEng.addListener(this);
-        mEngineManager = EngineManager.createEngineManagerForTest(null ,mEngineTester);
+        mEngineManager = EngineManager.createEngineManagerForTest(null , mEngineTester);
         mEngineManager.addEngineForTest(mEng);
         
     }
@@ -548,8 +548,7 @@ public class LoginEngineTest extends InstrumentationTestCase implements
                 StatusMsg msg = new StatusMsg();
                 data.add(msg);
                 respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.LOGIN_RESPONSE.ordinal()));
-                if(mEng != null)
-                {
+                if (mEng != null) {
                 	mEng.onCommsInMessage();
                 }
                 mState = LoginTestState.LOGIN_REQUEST_VALID;
@@ -559,8 +558,7 @@ public class LoginEngineTest extends InstrumentationTestCase implements
                 AuthSessionHolder sesh = new AuthSessionHolder();
                 data.add(sesh);
                 respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.LOGIN_RESPONSE.ordinal()));
-                if(mEng != null)
-                {
+                if (mEng != null) {
                 	mEng.onCommsInMessage();
                 }
                 mState = LoginTestState.SMS_RESPONSE_SIGNIN;
@@ -569,16 +567,14 @@ public class LoginEngineTest extends InstrumentationTestCase implements
                 Log.d("TAG", "IdentityEngineTest.reportBackToEngine Registration");
                 data.add(mTestModule.createDummyContactData());
                 respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SIGNUP_RESPONSE.ordinal()));
-                if(mEng != null)
-                {
+                if (mEng != null) {
                 	mEng.onCommsInMessage();
                 }
                 break;
             case REGISTRATION_ERROR:
                 data.add(new ServerError(ServerError.ErrorType.UNKNOWN));
                 respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
-                if(mEng != null)
-                {
+                if (mEng != null) {
                 	mEng.onCommsInMessage();
                 }
                 break;
@@ -589,16 +585,14 @@ public class LoginEngineTest extends InstrumentationTestCase implements
                 txt.addText("Simple text");
                 data.add(txt);
                 respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_T_AND_C_RESPONSE.ordinal()));
-                if(mEng != null)
-                {
+                if (mEng != null) {
                 	mEng.onCommsInMessage();
                 }
                 break;
             case SERVER_ERROR:
                 data.add(new ServerError(ServerError.ErrorType.UNKNOWN));
                 respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
-                if(mEng != null)
-                {
+                if (mEng != null) {
                 	mEng.onCommsInMessage();
                 }
                 break;

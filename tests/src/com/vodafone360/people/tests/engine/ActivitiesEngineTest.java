@@ -109,7 +109,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
         mEngineTester.setEngine(mEng);
         mState = ActivityTestState.IDLE;
         
-        mEngineManager = EngineManager.createEngineManagerForTest(null ,mEngineTester);
+        mEngineManager = EngineManager.createEngineManagerForTest(null , mEngineTester);
         mEngineManager.addEngineForTest(mEng);
         
     }
@@ -198,7 +198,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
         mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
         // re-test with valid Me profile
         Contact meProfile = mTestModule.createDummyContactData();
-        assertEquals("Could not access db", ServiceStatus.SUCCESS, SyncMeDbUtils.setMeProfile(mApplication.getDatabase(),meProfile));
+        assertEquals("Could not access db", ServiceStatus.SUCCESS, SyncMeDbUtils.setMeProfile(mApplication.getDatabase(), meProfile));
       
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
         mEng.addStatusesSyncRequest();

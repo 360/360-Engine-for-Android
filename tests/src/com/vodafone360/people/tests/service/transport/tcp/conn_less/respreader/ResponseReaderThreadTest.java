@@ -33,7 +33,6 @@ import java.util.Arrays;
 
 import android.test.InstrumentationTestCase;
 import android.test.suitebuilder.annotation.MediumTest;
-import android.test.suitebuilder.annotation.Suppress;
 
 import com.vodafone360.people.service.transport.DecoderThread;
 import com.vodafone360.people.tests.service.transport.tcp.conn_less.hb_tests.MockTcpConnectionThread;
@@ -158,7 +157,6 @@ public class ResponseReaderThreadTest extends InstrumentationTestCase {
 		
 		// IO Exception test
 		try {
-			//mIs.close();
 			respReader.closeIpStream();
 		}
 		catch (IOException e) {}

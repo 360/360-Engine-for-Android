@@ -269,7 +269,9 @@ public class NativeExporter {
                 // add the contact on Native side
                 
                 //the account can be null (theoretically)
-                if (mAccount != null) {
+            	//mAccount is expected to be null on 1.x devices and not null on 2.x devices
+                if (VersionUtils.is2XPlatform() && mAccount != null
+                			|| !VersionUtils.is2XPlatform() && mAccount == null) {
                     nativeResponse = mNativeContactsApi.addContact(mAccount, changes);
                     // sync back the native IDs on People side
                     if (!mPeopleContactsApi.syncBackNewNativeContact(changes, nativeResponse)) {
