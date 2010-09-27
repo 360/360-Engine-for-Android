@@ -937,7 +937,9 @@ public abstract class ActivitiesTable {
                 typesQuery += DatabaseHelper.createWhereClauseFromList(
                         Field.NATIVE_ITEM_TYPE.toString(), nativeTypes, "OR");
                 typesQuery += " AND ";
-                andVal = 2;
+                if (nativeTypes[0] != TimelineNativeTypes.CallLog){
+                  andVal = 2;
+                }
             }
 
             String query = "SELECT " + Field.LOCAL_ACTIVITY_ID + ","
