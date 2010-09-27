@@ -59,6 +59,7 @@ import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.io.api.Contacts;
 import com.vodafone360.people.service.io.api.GroupPrivacy;
 import com.vodafone360.people.utils.LogUtils;
+import com.vodafone360.people.utils.VersionUtils;
 
 /**
  * Processor handling upload of contacts to the People server.
@@ -805,7 +806,17 @@ public class UploadServerContacts extends BaseSyncProcessor {
                 LogUtils.logV("UploadServerContacts.processNewContactsResp() Found "
                         +dupList.size()+ " duplicate contacts. Trying to remove them...");
                 
-               	status = mDb.syncMergeContactList(dupList);
+                if(VersionUtils.is2XPlatform()) {
+                	// This is a very important distinction for 2.X devices!
+                	// the NAB IDs from the contacts we first import are stripped away
+                	// So we won't have the correct ID if syncMergeContactList() is executed
+                	// This is critical because a chain reaction will cause a Contact Delete in the end
+                	// Instead we can syncDeleteContactList() which should be safe on 2.X!
+                	status = mDb.syncDeleteContactList(dupList, false, true);
+                } 
+                else {
+                	status = mDb.syncMergeContactList(dupList);
+                }
 
                 if (status != ServiceStatus.SUCCESS) {
                     complete(status);
