@@ -2197,7 +2197,12 @@ public abstract class ActivitiesTable {
 					while(cursor.moveToNext()) {
 						item = getTimelineData(cursor);
 						if (item != null && item.mLocalContactId != null) {
-
+						    /** Debug added to catch bug causing PAND-2331. **/
+						    LogUtils.logD("ActivitiesTable.updateTimelineContactData() "
+						            + "Neither mContactAddress[" + item.mContactAddress
+						            + "] mTimestamp[" + item.mTimestamp
+						            + "] should be NULL");
+						    
 							int latestContactStatus = 3;
 							// Update the LatestContactStatus for Latest Timeline
 							if (item.mContactAddress.equals(oldPhoneNumber)) {
