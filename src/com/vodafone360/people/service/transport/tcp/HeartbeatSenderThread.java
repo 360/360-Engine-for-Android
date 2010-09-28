@@ -36,8 +36,10 @@ import android.os.PowerManager;
 
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.datatypes.AuthSessionHolder;
+import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.login.LoginEngine;
 import com.vodafone360.people.service.RemoteService;
+import com.vodafone360.people.service.transport.ConnectionManager;
 import com.vodafone360.people.service.transport.IWakeupListener;
 import com.vodafone360.people.service.transport.http.HttpConnectionThread;
 import com.vodafone360.people.service.utils.AuthUtils;
@@ -264,7 +266,18 @@ public class HeartbeatSenderThread implements Runnable, IWakeupListener {
      *             writing to the output-stream.
      */
     public void sendHeartbeat() throws IOException, Exception {
-        byte[] rpgMsg = getHeartbeatHessianPayload();
+    	 byte[] rpgMsg = null;
+    	try {
+             rpgMsg = getHeartbeatHessianPayload();
+    	} catch(NullPointerException e) {
+    		EngineManager eng = EngineManager.getInstance();
+        	LoginEngine lg = eng.getLoginEngine();
+        	lg.logoutAndRemoveUser();
+        	
+    		/* mConnThread.stopThread();
+    		 ConnectionManager mconn = ConnectionManager.getInstance();
+    		 mconn.onLoginStateChanged(false);*/
+    	}
 
         try {
             // Try and issue the request
@@ -315,6 +328,9 @@ public class HeartbeatSenderThread implements Runnable, IWakeupListener {
 
         final String timestamp = "" + ((long)System.currentTimeMillis() / MILLIS_PER_SEC);
         final AuthSessionHolder auth = LoginEngine.getSession();
+        if(auth == null) {
+        	throw new NullPointerException();
+        }
         ht.put("auth", AuthUtils
                 .calculateAuth("", new Hashtable<String, Object>(), timestamp, auth));
         ht.put("userid", auth.userID);
