@@ -376,6 +376,11 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * True if changes on 360 contacts shall be forwarded to native contacts.
      */
     private final boolean mUpdateNativeContacts;
+    
+    /**
+     * True if the menu "Sync Now" request is being processed.
+     */
+    private boolean isFullSyncRequestPlaced = false;
 
     /**
      * Used to listen for NowPlus database change events. Such events will be
@@ -469,13 +474,18 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     public void addUiStartFullSync() {
         // reset last status to enable synchronization of contacts again
         mLastStatus = ServiceStatus.SUCCESS;
-        
+        if (isFullSyncRequestPlaced) {
+            return;
+        }
+        isFullSyncRequestPlaced = true;
         LogUtils.logI("ContactSyncEngine.addUiStartFullSync()");
         final SyncParams params = new SyncParams(true, 0);
         emptyUiRequestQueue();
         addUiRequestToQueue(ServiceUiRequest.NOWPLUSSYNC, params);
     }
 
+
+    
     /**
      * Triggers a server contact sync from the UI (via service interface). Only
      * the contacts will be updated, not the me profile.
@@ -874,8 +884,13 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     @Override
     protected void processUiRequest(ServiceUiRequest requestId, Object data) {        
         switch (requestId) {
-            case NOWPLUSSYNC:                
+            case NOWPLUSSYNC:  
                 final SyncParams params = (SyncParams)data;
+//                if (isFullSyncRequestPlaced) {
+//                    completeSync(ServiceUiRequest.UI_REQUEST_COMPLETE);
+//                }
+//                isFullSyncRequestPlaced = true;
+                
                 if (params.isFull) {
                     // delayed full sync is not supported currently, start it
                     // immediately
@@ -926,7 +941,8 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
             // this will reset it to null even if we didn't start to process it.
             ServiceUiRequest newActiveUiRequest = mActiveUiRequest;
             mActiveUiRequest = mActiveUiRequestBackup;
-            mActiveProcessor.cancel();
+//            mActiveProcessor.cancel();
+            cancelSync();
             // restore the active UI request...
             mActiveUiRequest = newActiveUiRequest;
             mActiveProcessor = null;
@@ -1274,9 +1290,11 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
                 mThumbnailSyncRequired = true;
                 mLastServerSyncTime = System.currentTimeMillis();
                 setFirstTimeSyncComplete(true);
+                isFullSyncRequestPlaced = false;
                 completeSync(ServiceStatus.SUCCESS);
                 return;
             default:
+                isFullSyncRequestPlaced = false;
                 LogUtils.logE("ContactSyncEngine.nextTaskFullSyncNormal - Unexpected state: "
                         + mState);
                 completeSync(ServiceStatus.ERROR_SYNC_FAILED);
@@ -1724,6 +1742,8 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
             mCurrentProgressPercent = 0;
             mDbChangedByProcessor = false;
             mActiveUiRequestBackup = null;
+            
+            isFullSyncRequestPlaced = false;
         }
         super.onReset();
         ThumbnailHandler.getInstance().reset();
@@ -1739,5 +1759,9 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         // changes detected on native side, start the timer for the
         // FetchNativeContacts processor.
         startFetchNativeContactSyncTimer();
+    }
+
+    public boolean isFirstTimeSyncStarted() {
+        return mFirstTimeSyncStarted;
     }
 }
