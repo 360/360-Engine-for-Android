@@ -377,10 +377,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      */
     private final boolean mUpdateNativeContacts;
     
-    /**
-     * True if the menu "Sync Now" request is being processed.
-     */
-    private boolean isFullSyncRequestPlaced = false;
+
 
     /**
      * Used to listen for NowPlus database change events. Such events will be
@@ -474,10 +471,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     public void addUiStartFullSync() {
         // reset last status to enable synchronization of contacts again
         mLastStatus = ServiceStatus.SUCCESS;
-        if (isFullSyncRequestPlaced) {
-            return;
-        }
-        isFullSyncRequestPlaced = true;
+        
         LogUtils.logI("ContactSyncEngine.addUiStartFullSync()");
         final SyncParams params = new SyncParams(true, 0);
         emptyUiRequestQueue();
@@ -885,12 +879,8 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     protected void processUiRequest(ServiceUiRequest requestId, Object data) {        
         switch (requestId) {
             case NOWPLUSSYNC:  
-                final SyncParams params = (SyncParams)data;
-//                if (isFullSyncRequestPlaced) {
-//                    completeSync(ServiceUiRequest.UI_REQUEST_COMPLETE);
-//                }
-//                isFullSyncRequestPlaced = true;
                 
+                final SyncParams params = (SyncParams)data;
                 if (params.isFull) {
                     // delayed full sync is not supported currently, start it
                     // immediately
@@ -1290,11 +1280,11 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
                 mThumbnailSyncRequired = true;
                 mLastServerSyncTime = System.currentTimeMillis();
                 setFirstTimeSyncComplete(true);
-                isFullSyncRequestPlaced = false;
+//TODO:                isFullSyncRequestPlaced = false;
                 completeSync(ServiceStatus.SUCCESS);
                 return;
             default:
-                isFullSyncRequestPlaced = false;
+//TODO:                isFullSyncRequestPlaced = false;
                 LogUtils.logE("ContactSyncEngine.nextTaskFullSyncNormal - Unexpected state: "
                         + mState);
                 completeSync(ServiceStatus.ERROR_SYNC_FAILED);
@@ -1413,8 +1403,14 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
                 return;
             }
             mState = newState;
+            if (mState == State.IDLE) {
+                ApplicationCache.setSyncBusy(false);
+            } else {
+                ApplicationCache.setSyncBusy(true);
+            }
         }
-        LogUtils.logV("ContactSyncEngine.newState: " + oldState + " -> " + mState);
+        LogUtils.logE("ContactSyncEngine.newState: " + oldState + " -> " + mState + "," +
+        		" sync is " + (ApplicationCache.isSyncBusy()? "BUSY":"IDLE"));
         fireStateChangeEvent(mMode, oldState, mState);
     }
 
@@ -1435,7 +1431,9 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
             mDatabaseChanged = false;
         }
         mActiveProcessor = null;
+        
         newState(State.IDLE);
+        
         mMode = Mode.NONE;
         completeUiRequest(status, mFailureList);
 
@@ -1743,7 +1741,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
             mDbChangedByProcessor = false;
             mActiveUiRequestBackup = null;
             
-            isFullSyncRequestPlaced = false;
+            ApplicationCache.setSyncBusy(false);
         }
         super.onReset();
         ThumbnailHandler.getInstance().reset();
@@ -1759,9 +1757,5 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         // changes detected on native side, start the timer for the
         // FetchNativeContacts processor.
         startFetchNativeContactSyncTimer();
-    }
-
-    public boolean isFirstTimeSyncStarted() {
-        return mFirstTimeSyncStarted;
     }
 }
