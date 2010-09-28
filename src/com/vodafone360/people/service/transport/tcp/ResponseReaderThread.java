@@ -54,7 +54,7 @@ public class ResponseReaderThread implements Runnable {
     /**
      * Sleep time (in milliseconds) of the thread in between reads.
      */
-    private static final long THREAD_SLEEP_TIME = 1000; // ms
+    private static final long THREAD_SLEEP_TIME = 300; // ms
 
     /**
      * The ResponseReaderThread that was created by the TcpConnectionThread. It

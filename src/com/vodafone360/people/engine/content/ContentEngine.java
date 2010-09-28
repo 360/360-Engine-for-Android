@@ -31,8 +31,6 @@ import java.util.List;
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.ExternalResponseObject;
-import com.vodafone360.people.datatypes.ServerError;
-import com.vodafone360.people.datatypes.SystemNotification;
 import com.vodafone360.people.engine.BaseEngine;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.service.ServiceUiRequest;
@@ -45,6 +43,11 @@ import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
  * videos, files)
  */
 public class ContentEngine extends BaseEngine {
+    
+    /**
+     * The amount of time in milliseconds that the engine is allowed to run.
+     */
+    private final static int ALLOWED_RUNNING_TIME_MS = 150;
 
     /**
      * Constructor for the ContentEngine.
@@ -226,12 +229,24 @@ public class ContentEngine extends BaseEngine {
      */
     @Override
     public final void run() {
-        if (isCommsResponseOutstanding() && processCommsInQueue()) {
-            return;
+
+        // set it to true so at least one response is treated per call to run()
+        boolean carryOn = true;
+        final long runStartTime = System.currentTimeMillis();
+
+        while (isCommsResponseOutstanding() && carryOn) {
+            // process as many responses as we can during the allowed time slot
+            processCommsInQueue();
+            carryOn = System.currentTimeMillis() - runStartTime < ALLOWED_RUNNING_TIME_MS;
         }
 
-        ContentObject co; 
+        // do not send more requests if we are still struggling with
+        // outstanding responses
+        if (isCommsResponseOutstanding()) return;
+        
+        ContentObject co;
         boolean queueChanged = false;
+        
         while ((co = mDownloadQueue.poll()) != null) {
             queueChanged = true;
             // set the status of this contentobject to transferring
