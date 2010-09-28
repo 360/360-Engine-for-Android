@@ -715,6 +715,11 @@ public class DownloadServerContacts extends BaseSyncProcessor {
                 contactModified = true;
             }
         }
+        if (srcContact.synctophone != null && !srcContact.synctophone.equals(destContact.synctophone)) {
+            destContact.synctophone = srcContact.synctophone;
+            contactModified = true;
+        }
+
         return contactModified;
     }
 
