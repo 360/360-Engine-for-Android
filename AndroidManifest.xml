@@ -118,7 +118,7 @@
 		</service>
     </application>
     
-    <uses-sdk android:minSdkVersion="3" />
+    <uses-sdk android:minSdkVersion="7" />
 
     <!-- Full access to Vodafone 360 People -->
 	<permission
