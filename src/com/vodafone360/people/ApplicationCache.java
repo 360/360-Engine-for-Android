@@ -209,6 +209,11 @@ public class ApplicationCache {
     private int mSelectedHistoryFilterType;
     
     /**
+     * True if the menu "Sync Now" request is being processed.
+     */
+    private static boolean sIsContactSyncBusy = false;
+    
+    /**
      * Setter for the selected filter
      */
     public void setSelectedTimelineFilter(int filter) {
@@ -715,5 +720,22 @@ public class ApplicationCache {
     public static void setFetchingOlderStatuses(
             final boolean fetchingOlderStatuses) {
         sFetchingOlderStatuses = fetchingOlderStatuses;
+    }
+    
+    /**
+     * This method is used by menu "Sync Now" to check if the current BG sync
+     * has finished to place a new BG sync request.
+     * @return TRUE if the background sync is still on-going
+     */
+    synchronized public static boolean isSyncBusy() {
+        return sIsContactSyncBusy;
+    }
+    
+    /**
+     * This flag is set by ContactSyncEngine to indicate his state synchronizing the account.
+     * @param isSyncBusy must be TRUE if state of ContactSync is State.IDLE, false otherwise. 
+     */
+    synchronized public static void setSyncBusy(boolean isSyncBusy) {
+        ApplicationCache.sIsContactSyncBusy = isSyncBusy;
     }
 }
