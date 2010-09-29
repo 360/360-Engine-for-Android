@@ -270,13 +270,14 @@ public class HeartbeatSenderThread implements Runnable, IWakeupListener {
     	try {
              rpgMsg = getHeartbeatHessianPayload();
     	} catch(NullPointerException e) {
-    		EngineManager eng = EngineManager.getInstance();
-        	LoginEngine lg = eng.getLoginEngine();
-        	lg.logoutAndRemoveUser();
+    		EngineManager engManager = EngineManager.getInstance();
+        	LoginEngine loginEngine = engManager.getLoginEngine();
+        	mConnThread.stopThread();
+   		 	ConnectionManager mconn = ConnectionManager.getInstance();
+   		 	mconn.onLoginStateChanged(false);
+        	loginEngine.logoutAndRemoveUser();
         	
-    		/* mConnThread.stopThread();
-    		 ConnectionManager mconn = ConnectionManager.getInstance();
-    		 mconn.onLoginStateChanged(false);*/
+    		 
     	}
 
         try {
