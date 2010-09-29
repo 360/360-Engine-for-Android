@@ -724,15 +724,15 @@ public class ApplicationCache {
      * has finished to place a new BG sync request.
      * @return TRUE if the background sync is still on-going
      */
-    public static boolean isSyncBusy() {
+    synchronized public static boolean isSyncBusy() {
         return sIsContactSyncBusy;
     }
     
     /**
      * This flag is set by ContactSyncEngine to indicate his state synchronizing the account.
-     * @param isSyncBusy must be TRUE if State of ContactSync is States.IDLE 
+     * @param isSyncBusy must be TRUE if state of ContactSync is State.IDLE, false otherwise. 
      */
-    public static void setSyncBusy(boolean isSyncBusy) {
+    synchronized public static void setSyncBusy(boolean isSyncBusy) {
         ApplicationCache.sIsContactSyncBusy = isSyncBusy;
     }
 }

@@ -1280,11 +1280,9 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
                 mThumbnailSyncRequired = true;
                 mLastServerSyncTime = System.currentTimeMillis();
                 setFirstTimeSyncComplete(true);
-//TODO:                isFullSyncRequestPlaced = false;
                 completeSync(ServiceStatus.SUCCESS);
                 return;
             default:
-//TODO:                isFullSyncRequestPlaced = false;
                 LogUtils.logE("ContactSyncEngine.nextTaskFullSyncNormal - Unexpected state: "
                         + mState);
                 completeSync(ServiceStatus.ERROR_SYNC_FAILED);
