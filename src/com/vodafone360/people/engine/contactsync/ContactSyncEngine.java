@@ -919,8 +919,8 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
             // this will reset it to null even if we didn't start to process it.
             ServiceUiRequest newActiveUiRequest = mActiveUiRequest;
             mActiveUiRequest = mActiveUiRequestBackup;
-//            mActiveProcessor.cancel();
-            cancelSync();
+            mActiveProcessor.cancel();
+//            cancelSync();
             // restore the active UI request...
             mActiveUiRequest = newActiveUiRequest;
             mActiveProcessor = null;
