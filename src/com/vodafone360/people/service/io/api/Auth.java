@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.vodafone360.people.ApplicationCache;
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.SettingsManager;
 import com.vodafone360.people.engine.BaseEngine;
@@ -374,16 +375,18 @@ public class Auth {
         if (engine == null) {
             throw new NullPointerException("Auth.getPublicKey() engine cannot be NULL");
         }
-
+        
+        String localString=getLocalString();
         Request request = new Request(FUNCTION_GET_TERMS_AND_CONDITIONS,
                 Request.Type.TEXT_RESPONSE_ONLY, engine.engineId(), false,
                 Settings.API_REQUESTS_TIMEOUT_AUTH);
-        request.addData(LANGUAGE_CULTURE, getLocalString());
+        request.addData(LANGUAGE_CULTURE, localString);
         request.addData(FLAGS, "0");
 
         QueueManager queue = QueueManager.getInstance();
         int requestId = queue.addRequest(request);
         queue.fireQueueStateChanged();
+        ApplicationCache.setTermsLanguage(localString);
         return requestId;
     }
 
@@ -400,15 +403,17 @@ public class Auth {
             throw new NullPointerException("Auth.getPublicKey() engine cannot be NULL");
         }
 
+        String localString=getLocalString();
         Request request = new Request(FUNCTION_GET_PRIVACY_STATEMENT,
                 Request.Type.TEXT_RESPONSE_ONLY, engine.engineId(), false,
                 Settings.API_REQUESTS_TIMEOUT_AUTH);
-        request.addData(LANGUAGE_CULTURE, getLocalString());
+        request.addData(LANGUAGE_CULTURE, localString);
         request.addData(FLAGS, "0");
 
         QueueManager queue = QueueManager.getInstance();
         int requestId = queue.addRequest(request);
         queue.fireQueueStateChanged();
+        ApplicationCache.setPrivacyLanguage(localString);
         return requestId;
     }
 
@@ -417,7 +422,7 @@ public class Auth {
      * 
      * @return Local as a String
      */
-    private static String getLocalString() {
+    public static String getLocalString() {
         return Locale.getDefault().toString().replace('_', '-');
     }
 }

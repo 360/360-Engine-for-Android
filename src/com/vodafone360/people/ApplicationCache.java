@@ -38,6 +38,7 @@ import com.vodafone360.people.datatypes.ContactSummary;
 import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.contactsync.SyncStatus;
 import com.vodafone360.people.service.ServiceStatus;
+import com.vodafone360.people.service.io.api.Auth;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.LoginPreferences;
 import com.vodafone360.people.utils.ThirdPartyAccount;
@@ -59,6 +60,8 @@ public class ApplicationCache {
     private final static String PRIVACY = "PRIVACY";
     /** Text key for Privacy last updated time. **/
     private final static String PRIVACY_TIME = "PRIVACY_TIME";
+    
+    
     /**
      * Refresh any cached terms of service or privacy content after 10 minutes.
      */
@@ -161,6 +164,9 @@ public class ApplicationCache {
     private static boolean sFetchingOlderStatuses = false;
 
     public static String sIsNewMessage = "isNewMessage";
+    
+    private static String mPrivacyLanguage;
+    private static String mTermsLanguage;
 
     // Frequency setting descriptions and defaults
     public final static long[] FREQUENCY_SETTING_LONG = {
@@ -317,6 +323,25 @@ public class ApplicationCache {
         return mAcceptedTermsAndConditions;
     }
 
+    
+    /**
+     * Sets the language for the cached terms string.
+     * If the language of the device changes, the cache becomes invalid
+     * @param privacyLanguage language of last fetched terms string
+     */
+    public static void setTermsLanguage(String termsLanguage){
+        mTermsLanguage=termsLanguage;    
+    }
+    
+    /**
+     * Sets the language for the cached privacy string.
+     * If the language of the device changes, the cache becomes invalid
+     * @param privacyLanguage language of last fetched privacy string
+     */
+    public static void setPrivacyLanguage(String privacyLanguage){
+        mPrivacyLanguage=privacyLanguage;
+    }
+    
     /**
      * Clear all cached data currently stored in People application.
      */
@@ -601,7 +626,7 @@ public class ApplicationCache {
         SharedPreferences sharedPreferences = context.getSharedPreferences(
                 ApplicationCache.PREFS_FILE, 0);
         long time = sharedPreferences.getLong(TERMS_OF_SERVICE_TIME, -1);
-        if (time == -1 || time < System.currentTimeMillis() - REFRESH_TIME) {
+        if (time == -1 || time < System.currentTimeMillis() - REFRESH_TIME || !Auth.getLocalString().equals(mTermsLanguage)) {
             return null;
         } else {
             return sharedPreferences.getString(TERMS_OF_SERVICE, null);
@@ -619,7 +644,7 @@ public class ApplicationCache {
         SharedPreferences sharedPreferences = context.getSharedPreferences(
                 ApplicationCache.PREFS_FILE, 0);
         long time = sharedPreferences.getLong(PRIVACY_TIME, -1);
-        if (time == -1 || time < System.currentTimeMillis() - REFRESH_TIME) {
+        if (time == -1 || time < System.currentTimeMillis() - REFRESH_TIME || !Auth.getLocalString().equals(mPrivacyLanguage) ) {
             return null;
         } else {
             return sharedPreferences.getString(PRIVACY, null);
