@@ -72,7 +72,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
      * This waiting time is necessary because in case it is our sync adapter authority setting 
      * that changes we cannot query in the callback because the value is not yet changed!
      */
-    private static final int SYNC_SETTING_CHECK_DELAY = 500;
+    private static final int SYNC_SETTING_CHECK_DELAY = 2000;
     
     /**
      * Same as ContentResolver.SYNC_OBSERVER_TYPE_SETTINGS
