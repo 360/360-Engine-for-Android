@@ -325,21 +325,23 @@ public class ApplicationCache {
 
     
     /**
-     * Sets the language for the cached terms string.
-     * If the language of the device changes, the cache becomes invalid
+     * Sets the language for the cached terms string. If the language of the
+     * device changes, the cache becomes invalid
+     * 
      * @param privacyLanguage language of last fetched terms string
      */
-    public static void setTermsLanguage(String termsLanguage){
-        mTermsLanguage=termsLanguage;    
+    public static void setTermsLanguage(String termsLanguage) {
+        mTermsLanguage = termsLanguage;
     }
-    
+
     /**
-     * Sets the language for the cached privacy string.
-     * If the language of the device changes, the cache becomes invalid
+     * Sets the language for the cached privacy string. If the language of the
+     * device changes, the cache becomes invalid
+     * 
      * @param privacyLanguage language of last fetched privacy string
      */
-    public static void setPrivacyLanguage(String privacyLanguage){
-        mPrivacyLanguage=privacyLanguage;
+    public static void setPrivacyLanguage(String privacyLanguage) {
+        mPrivacyLanguage = privacyLanguage;
     }
     
     /**
