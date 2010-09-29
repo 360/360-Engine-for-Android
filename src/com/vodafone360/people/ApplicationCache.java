@@ -92,6 +92,11 @@ public class ApplicationCache {
     public static final String STARTUP_LAUNCH_PATH_KEY = "LAUNCHED_FROM";
     
     public static final String ADD_ACCOUNT_CLICKED = "ADD_ACCOUNT_CLICKED";
+    
+    /***
+     * New String ID for Opening a chat from contextual menu, always opens the first connected (first in list) chat account.
+     */
+    public static final String PREFERRED_ONLINE_SNS = "PREFERRED_ONLINE_SNS";
 
     public static final int RESULT_DELETE = -100;
 
