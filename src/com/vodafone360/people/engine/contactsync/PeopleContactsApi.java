@@ -422,6 +422,7 @@ public class PeopleContactsApi {
 
             // we expect an array containing +1 elements as the first element contains the
             // new native contact id
+            LogUtils.logE("PeopleContactsApi.syncBackNewNativeContact() - the contact was not created on native side");
             return false;
         }
         
@@ -455,6 +456,11 @@ public class PeopleContactsApi {
                             if (nativeIds[i+1] == null
                              || nativeIds[i+1].getNabDetailId() == ContactChange.INVALID_ID) {
                                 
+                                if (nativeIds[i+1] == null) {
+                                    
+                                    // log the failure
+                                    LogUtils.logE("PeopleContactsApi.syncBackNewNativeContact() - the following ContactChange was not exported to native: "+contact[i]);
+                                }
                                 nativeDetailId = nativeContactId;
                             } else {
                                 
@@ -474,7 +480,7 @@ public class PeopleContactsApi {
             }
         } catch (Exception e) {
             
-            LogUtils.logE("PeopleContactApi.syncBackNewNativeContact() - Error: " + e);
+            LogUtils.logE("PeopleContactsApi.syncBackNewNativeContact() - Error: " + e);
         } finally {
             
             if (writableDb != null) {
@@ -510,7 +516,7 @@ public class PeopleContactsApi {
             
         } catch (Exception e) {
             
-            LogUtils.logE("PeopleContactApi.syncBackDeletedNativeContact() - Error: " + e);
+            LogUtils.logE("PeopleContactsApi.syncBackDeletedNativeContact() - Error: " + e);
         } finally {
             
             if (writableDb != null) {
@@ -532,11 +538,10 @@ public class PeopleContactsApi {
      */
     public boolean syncBackUpdatedNativeContact(ContactChange[] contact, ContactChange[] nativeIds) {
         
-        if (nativeIds == null
-         || nativeIds.length != contact.length) {
+        if (nativeIds != null && nativeIds.length != contact.length) {
 
             // we expect an array with exactly the same size
-            LogUtils.logE("PeopleContactApi.syncBackUpdatedNativeContact() - ContactChange arrays do not have the same size!");
+            LogUtils.logE("PeopleContactsApi.syncBackUpdatedNativeContact() - ContactChange arrays do not have the same size!");
             return false;
         }
         
@@ -547,7 +552,7 @@ public class PeopleContactsApi {
             writableDb = mDbh.getWritableDatabase();
             writableDb.beginTransaction();
             
-            final int length = nativeIds.length;
+            final int length = contact.length;
             
             for (int i = 0; i < length; i++) {
                 
@@ -562,9 +567,15 @@ public class PeopleContactsApi {
                         final long nativeContactId = contact[0].getNabContactId();
                         final long nativeDetailId;
                         
-                        if (nativeIds[i] == null
+                        if (nativeIds == null
+                         || nativeIds[i] == null
                          || nativeIds[i].getNabDetailId() == ContactChange.INVALID_ID) {
                             
+                            if (nativeIds == null || nativeIds[i] == null) {
+                                
+                                // log the failure
+                                LogUtils.logE("PeopleContactsApi.syncBackUpdatedNativeContact() - the following ContactChange was not exported to native: "+change);
+                            }
                             nativeDetailId = nativeContactId;
                         } else {
                             
@@ -572,21 +583,21 @@ public class PeopleContactsApi {
                         }
                         
                         if (!ContactDetailsTable.setDetailSyncedWithNative(localDetailId, nativeContactId, nativeDetailId, true, writableDb)) {
-                            LogUtils.logE("PeopleContactApi.syncBackUpdatedNativeContact() - error while adding a detail");
+                            LogUtils.logE("PeopleContactsApi.syncBackUpdatedNativeContact() - error while adding a detail: "+change);
                             return false;
                         }
                         break;
                     case ContactChange.TYPE_UPDATE_DETAIL:
                         // we set the native ids as -1 because we don't need them in that case (update, not an add that generates new ids)
                         if (!ContactDetailsTable.setDetailSyncedWithNative(localDetailId, -1, -1, false, writableDb)) {
-                            LogUtils.logE("PeopleContactApi.syncBackUpdatedNativeContact() - error while updating a detail");
+                            LogUtils.logE("PeopleContactsApi.syncBackUpdatedNativeContact() - error while updating a detail: "+change);
                             return false;
                         }
                         break;
                     case ContactChange.TYPE_DELETE_DETAIL:
                         // detail removed on native side, finally remove it's deleted log from people database
                         if (!NativeChangeLogTable.removeContactDetailChanges(localDetailId, writableDb)) {
-                            LogUtils.logE("PeopleContactApi.syncBackUpdatedNativeContact() - error while deleting a detail");
+                            LogUtils.logE("PeopleContactsApi.syncBackUpdatedNativeContact() - error while deleting a detail: "+change);
                             return false;
                         }
                         break;
@@ -599,7 +610,7 @@ public class PeopleContactsApi {
             
         } catch (Exception e) {
             
-            LogUtils.logE("PeopleContactApi.syncBackUpdatedNativeContact() - Error: " + e);
+            LogUtils.logE("PeopleContactsApi.syncBackUpdatedNativeContact() - Error: " + e);
         } finally {
             
             if (writableDb != null) {

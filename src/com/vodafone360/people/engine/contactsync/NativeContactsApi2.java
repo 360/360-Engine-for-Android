@@ -1416,6 +1416,7 @@ public class NativeContactsApi2 extends NativeContactsApi {
             case ContactChange.KEY_VCARD_DATE:
                 // Date only means Birthday currently
                 putBirthday(cc);
+                break;
             default:
                 break;
         }
@@ -1781,6 +1782,7 @@ public class NativeContactsApi2 extends NativeContactsApi {
     private ContactChange[] executeNewContactBatch(ContactChange[] ccList) {
         if (mBatch.size() == 0) {
             // Nothing to execute
+            LogUtils.logW("NativeContactsApi2.executeNewContactBatch() - the batch is empty, probably none of the changes are supported");
             return null;
         }
         final ContentProviderResult[] results = mBatch.execute();
@@ -1873,12 +1875,15 @@ public class NativeContactsApi2 extends NativeContactsApi {
     private ContactChange[] executeUpdateContactBatch(ContactChange[] ccList) {
         if (mBatch.size() == 0) {
             // Nothing to execute
+            LogUtils.logW("NativeContactsApi2.executeUpdateContactBatch() - the batch is empty, probably none of the changes are supported");
             return null;
         }
         final ContentProviderResult[] results = mBatch.execute();
         final int resultsSize = results.length;
         if (results == null || resultsSize == 0) {
             // Assuming this can happen in case of no added details
+            LogUtils.logE("NativeContactsApi2.executeUpdateContactBatch()"
+                    + "Batch execution result is null or empty!");
             return null;
         }
 
