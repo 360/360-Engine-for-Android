@@ -1811,6 +1811,28 @@ public abstract class ActivitiesTable {
             CloseUtils.close(cursor);
         }
     }
+    
+    /***
+     * Sets all chat messages to already read
+     *
+     * @param readableDb Reference to a readable database.
+     * @return void.
+     */
+    public static void setAllChatMessagesToRead(
+              final SQLiteDatabase readableDb) {
+        final String query = "UPDATE " + TABLE_NAME + " SET "+Field.FLAG +" = "+ ActivityItem.ALREADY_READ
+        + " WHERE "  + Field.NATIVE_ITEM_TYPE + " = "  + TimelineNativeTypes.ChatLog.ordinal();
+                
+        Cursor cursor = null;
+        try {
+            cursor = readableDb.rawQuery(query, null);
+            cursor.getCount();
+
+        } finally {
+            CloseUtils.close(cursor);
+        }
+    }
+
 
     /***
      * Returns the newest unread chat message.
