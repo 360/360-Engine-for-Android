@@ -2205,34 +2205,38 @@ public abstract class ActivitiesTable {
 						    
 							int latestContactStatus = 3;
 							// Update the LatestContactStatus for Latest Timeline
-							if (item.mContactAddress.equals(oldPhoneNumber)) {
-								if(isLatestTimelinePreferred) {
-									latestContactStatus = 0;
-								}
+							// Actually for chat timelines this item.mContactAddress will be null, 
+                            // and it makes no sense to  update it as well.
+							if (item.mContactAddress != null) {
+							    if (item.mContactAddress.equals(oldPhoneNumber)) {
+	                                if(isLatestTimelinePreferred) {
+	                                    latestContactStatus = 0;
+	                                }
 
-								final String whereClause = " AND " + Field.CONTACT_ADDRESS
-								 + "='" + oldPhoneNumber + "'";
+	                                final String whereClause = " AND " + Field.CONTACT_ADDRESS
+	                                 + "='" + oldPhoneNumber + "'";
 
-								updateTimeLineStatusEntryForContact(localContactId,
-										latestContactStatus, item.mTimestamp,
-										whereClause, writeableDb);
+	                                updateTimeLineStatusEntryForContact(localContactId,
+	                                        latestContactStatus, item.mTimestamp,
+	                                        whereClause, writeableDb);
 
-								isLatestTimelinePreferred = true;
-							} else {
-								if(isLatestTimeline) {
-									latestContactStatus = 0;
-								}
+	                                isLatestTimelinePreferred = true;
+	                            } else {
+	                                if(isLatestTimeline) {
+	                                    latestContactStatus = 0;
+	                                }
 
-								// Update the remaining timeline entries for entries
-								// other than the number changed. 
-								final String whereClause = " AND " + Field.CONTACT_ADDRESS
-								 + "!='" + oldPhoneNumber + "'";
+	                                // Update the remaining timeline entries for entries
+	                                // other than the number changed. 
+	                                final String whereClause = " AND " + Field.CONTACT_ADDRESS
+	                                 + "!='" + oldPhoneNumber + "'";
 
-								updateTimeLineStatusEntryForContact(localContactId,
-										latestContactStatus, item.mTimestamp,
-										whereClause, writeableDb);
+	                                updateTimeLineStatusEntryForContact(localContactId,
+	                                        latestContactStatus, item.mTimestamp,
+	                                        whereClause, writeableDb);
 
-								isLatestTimeline = true;
+	                                isLatestTimeline = true;
+	                            }
 							}
 						}
 					}
