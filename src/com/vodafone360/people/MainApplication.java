@@ -198,6 +198,9 @@ public class MainApplication extends Application {
                 !NativeContactsApi.getInstance().getMasterSyncAutomatically()) {
             // FIXME: Perhaps an abusive use of this error code for when 
             //        Master Sync Automatically is OFF, should have a different
+        	
+        	LogUtils.logW("ServiceStatus.setInternetAvail() [master sync is off]");
+        	
             return ServiceStatus.ERROR_NO_AUTO_CONNECT;
         }
         

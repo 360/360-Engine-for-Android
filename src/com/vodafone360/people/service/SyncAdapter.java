@@ -46,6 +46,7 @@ import com.vodafone360.people.engine.contactsync.ContactSyncEngine.IContactSyncO
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine.Mode;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine.State;
 import com.vodafone360.people.service.PersistSettings.InternetAvail;
+import com.vodafone360.people.utils.LogUtils;
 
 /**
  * SyncAdapter implementation which basically just ties in with
@@ -243,9 +244,13 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
             // just say true to avoid any issues with the application.
             return true;
         }
-        return ContentResolver.getMasterSyncAutomatically()
-            && ContentResolver.getSyncAutomatically(account,
-               ContactsContract.AUTHORITY);
+        
+        boolean masterSyncAuto = ContentResolver.getMasterSyncAutomatically();
+        boolean syncAuto = ContentResolver.getSyncAutomatically(account, ContactsContract.AUTHORITY); 
+        
+        LogUtils.logD("SyncAdapter.canSyncAutomatically() [masterSync=" + masterSyncAuto + ", syncAuto=" + syncAuto + "]");
+        
+        return masterSyncAuto && syncAuto;
     }
     
     /**
