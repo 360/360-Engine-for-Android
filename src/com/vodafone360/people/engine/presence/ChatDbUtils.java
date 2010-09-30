@@ -34,18 +34,18 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.database.tables.ActivitiesTable;
+import com.vodafone360.people.database.tables.ActivitiesTable.TimelineNativeTypes;
+import com.vodafone360.people.database.tables.ActivitiesTable.TimelineSummaryItem;
 import com.vodafone360.people.database.tables.ContactDetailsTable;
 import com.vodafone360.people.database.tables.ContactSummaryTable;
 import com.vodafone360.people.database.tables.ContactsTable;
 import com.vodafone360.people.database.tables.ConversationsTable;
-import com.vodafone360.people.database.tables.ActivitiesTable.TimelineNativeTypes;
-import com.vodafone360.people.database.tables.ActivitiesTable.TimelineSummaryItem;
 import com.vodafone360.people.datatypes.ActivityItem;
 import com.vodafone360.people.datatypes.ChatMessage;
 import com.vodafone360.people.datatypes.ContactDetail;
+import com.vodafone360.people.datatypes.ContactDetail.DetailKeys;
 import com.vodafone360.people.datatypes.ContactSummary;
 import com.vodafone360.people.datatypes.VCardHelper;
-import com.vodafone360.people.datatypes.ContactDetail.DetailKeys;
 import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.utils.LogUtils;
@@ -56,8 +56,7 @@ public class ChatDbUtils {
 
     protected static void convertUserIds(ChatMessage msg, DatabaseHelper databaseHelper) {
         String userId = msg.getUserId();
-        // TODO: remove hardcode
-        String network = "vodafone";
+        String network = SocialNetwork.VODAFONE.name();
         int columnsIndex = userId.indexOf(COLUMNS);
         if (columnsIndex > -1) {
             network = userId.substring(0, columnsIndex);
@@ -72,14 +71,18 @@ public class ChatDbUtils {
         msg.setUserId(userId);
         int networkId = msg.getNetworkId();
         if (networkId == SocialNetwork.VODAFONE.ordinal()) {
-            msg.setLocalContactId(ContactsTable.fetchLocalIdFromUserId(Long
-                    .valueOf(msg.getUserId()), databaseHelper.getReadableDatabase()));
+            try {
+                Long id = Long.valueOf(msg.getUserId());
+                msg.setLocalContactId(ContactsTable.fetchLocalIdFromUserId(id, databaseHelper.getReadableDatabase()));
+            } catch (NumberFormatException e) {
+                LogUtils.logE("ChatDbUtils.convertUserIds() "
+                        + " Invalid vodafone userid: " + msg.getUserId());
+            }
         } else {
-            msg
-                    .setLocalContactId(ContactDetailsTable.findLocalContactIdByKey(SocialNetwork
-                            .getChatValue(networkId).toString(), msg.getUserId(),
-                            ContactDetail.DetailKeys.VCARD_IMADDRESS, databaseHelper
-                                    .getReadableDatabase()));
+            msg.setLocalContactId(ContactDetailsTable.findLocalContactIdByKey(SocialNetwork
+                    .getChatValue(networkId).toString(), msg.getUserId(),
+                    ContactDetail.DetailKeys.VCARD_IMADDRESS, databaseHelper
+                    .getReadableDatabase()));
         }
     }
 
