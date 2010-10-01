@@ -40,5 +40,6 @@ public class Intents {
     public static final String START_LOGIN_ACTIVITY =  "com.vodafone360.people.Intents.START_LOGIN_ACTIVITY";
 
     public static final String UPDATE_WIDGET =  "com.vodafone360.people.Intents.UPDATE_WIDGET";
-
+    
+    public static final String CLEARALL_NOTIFICATION =  "com.vodafone360.people.Intents.CLEAR_ALL";
 }
