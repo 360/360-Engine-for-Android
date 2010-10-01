@@ -127,8 +127,9 @@ public class NetworkPresence implements Parcelable {
         MICROSOFT("microsoft"),
         MOBILE("mobile"),
         PC("pc"),
-        VODAFONE("vodafone"); // the aggregated status for "pc" and "mobile"
+        VODAFONE("vodafone"), // the aggregated status for "pc" and "mobile"
                               // only used by - UI - Contact Profile View
+        INVALID("invalid"); 
         private String mSocialNetwork; // / The name of the field as it appears
                                        // in the database
 

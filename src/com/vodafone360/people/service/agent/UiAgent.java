@@ -329,13 +329,15 @@ public class UiAgent {
      *            localContact ID only.
      * @param isNewChatMessage True if this is a new chat message that we are notifying
      * for. False if we are for instance just deleting a notification.
+     * @param networkId the ordinal value of the SocialNetwork from which the chat 
+     * message has been received
      */
-    public final void updateChat(final long contactId, final boolean isNewChatMessage) {
+    public final void updateChat(final long contactId, final boolean isNewChatMessage, final int networkId) {
         if (mHandler != null && mShouldHandleChat && mLocalContactId == contactId) {
             LogUtils.logV("UiAgent.updateChat() Send message to UI (i.e. "
                     + "update the screen)");
             mHandler.sendMessage(mHandler.obtainMessage(
-                    ServiceUiRequest.UNSOLICITED_CHAT.ordinal(), null));
+                    ServiceUiRequest.UNSOLICITED_CHAT.ordinal(), networkId, 0, null));
             /*
              * Note: Do not update the chat notification at this point, as the
              * UI must update the database (e.g. mark messages as read) before
@@ -350,7 +352,7 @@ public class UiAgent {
              * localIds (i.e. localContactId = -1)
              */
             mHandler.sendMessage(mHandler.obtainMessage(
-                    ServiceUiRequest.UNSOLICITED_CHAT.ordinal(), null));
+                    ServiceUiRequest.UNSOLICITED_CHAT.ordinal(), networkId, 0, null));
             updateChatNotification(isNewChatMessage);
 
         } else {
