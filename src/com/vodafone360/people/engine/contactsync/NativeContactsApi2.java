@@ -64,6 +64,7 @@ import com.vodafone360.people.datatypes.VCardHelper;
 import com.vodafone360.people.datatypes.VCardHelper.Name;
 import com.vodafone360.people.datatypes.VCardHelper.Organisation;
 import com.vodafone360.people.datatypes.VCardHelper.PostalAddress;
+import com.vodafone360.people.service.SyncAdapter;
 import com.vodafone360.people.utils.CursorUtils;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.VersionUtils;
@@ -500,7 +501,9 @@ public class NativeContactsApi2 extends NativeContactsApi {
                 if (VersionUtils.isHtcSenseDevice(mContext)) {
                     createSettingsEntryForAccount(username);
                     requestSyncAdapterInitialization(account);
-                }        
+                }
+                // Need to do our Sync Adapter initialization logic here
+                SyncAdapter.initialize(account, ContactsContract.AUTHORITY);
             }
         } catch (Exception ex) {
             LogUtils.logE("People Account creation failed because of exception:\n", ex);

@@ -135,14 +135,14 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
     };
             
     public SyncAdapter(Context context, MainApplication application) {
-        // No automatic initialization (false)
-        super(context, false);
+        // Automatically initialized (true) due to PAND-2304
+        super(context, true);
         mApplication = application;
         context.registerReceiver(mAutoSyncChangeBroadcastReceiver, new IntentFilter(
             "com.android.sync.SYNC_CONN_STATUS_CHANGED"));
         ContentResolver.addStatusChangeListener(
                 SYNC_OBSERVER_TYPE_SETTINGS, mSyncStatusObserver);
-        // Necessary in case of Application udpate
+        // Necessary in case of Application update
         forceSyncSettingsInCaseOfAppUpdate();
 
         // Register for sync event callbacks
@@ -157,7 +157,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
     public void onPerformSync(Account account, Bundle extras, String authority,
         ContentProviderClient provider, SyncResult syncResult) {
         if(extras.getBoolean(ContentResolver.SYNC_EXTRAS_INITIALIZE, false)) {
-            initializeSyncAdapter(account, authority);
+            initialize(account, authority);
             return;
         } 
 
@@ -226,8 +226,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
      * @param account The account associated with the initialization
      * @param authority The authority of the content
      */
-    private void initializeSyncAdapter(Account account, String authority) {
-        ContentResolver.setIsSyncable(account, authority, 1);
+    public static void initialize(Account account, String authority) {
+        ContentResolver.setIsSyncable(account, authority, 1); // > 0 means syncable
         ContentResolver.setSyncAutomatically(account, authority, true);
     }
       
@@ -248,7 +248,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
         boolean masterSyncAuto = ContentResolver.getMasterSyncAutomatically();
         boolean syncAuto = ContentResolver.getSyncAutomatically(account, ContactsContract.AUTHORITY); 
         
-        LogUtils.logD("SyncAdapter.canSyncAutomatically() [masterSync=" + masterSyncAuto + ", syncAuto=" + syncAuto + "]");
+        LogUtils.logD("SyncAdapter.canSyncAutomatically() [masterSync=" + 
+                masterSyncAuto + ", syncAuto=" + syncAuto + "]");
         
         return masterSyncAuto && syncAuto;
     }
