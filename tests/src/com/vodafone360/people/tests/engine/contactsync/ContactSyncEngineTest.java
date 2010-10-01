@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Instrumentation;
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -44,7 +45,7 @@ import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.ContactChanges;
 import com.vodafone360.people.engine.EngineManager;
-import com.vodafone360.people.engine.BaseEngine.IEngineEventCallback;
+import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.engine.contactsync.BaseSyncProcessor;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine;
@@ -54,7 +55,6 @@ import com.vodafone360.people.engine.contactsync.ProcessorFactory;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine.IContactSyncObserver;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine.Mode;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine.State;
-import com.vodafone360.people.engine.content.ContentEngine;
 import com.vodafone360.people.engine.meprofile.SyncMeEngine;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
@@ -93,7 +93,6 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
     private ApplicationCache mCache;
     
     private SyncMeEngine mSyncMeEngine;
-    private ContentEngine mContentEngine;
 
     @Override
     protected void setUp() throws Exception {
@@ -180,8 +179,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
     		mContactSyncEngine = null;
     	}
         NativeContactsApi.createInstance(mContext);
-        mContactSyncEngine = new ContactSyncEngine(mEngineTester, mApplication, mApplication
-                .getDatabase(), factory);
+        mContactSyncEngine = new ContactSyncEngine(mEngineTester, mApplication.getDatabase(), factory);
         mContactSyncEngine.setTestMode(true);
         
         mEngineManager.addEngineForTest(mContactSyncEngine);
@@ -202,8 +200,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
     	}
     	
     	NativeContactsApi.createInstance(mContext);
-        mContactSyncEngine = new ContactSyncEngine(eventCallback, mApplication, mApplication
-                .getDatabase(), factory);
+        mContactSyncEngine = new ContactSyncEngine(eventCallback, mApplication.getDatabase(), factory);
         mContactSyncEngine.setTestMode(true);
         mEngineManager.addEngineForTest(mContactSyncEngine);
     }
@@ -261,8 +258,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
         final ProcessorFactory factory = new ProcessorFactory() {
 
             @Override
-            public BaseSyncProcessor create(int type, IContactSyncCallback callback,
-                    DatabaseHelper dbHelper, Context context, ContentResolver cr) {
+            public BaseSyncProcessor create(int type, IContactSyncCallback callback, DatabaseHelper dbHelper) {
 
                 Log.i(LOG_TAG, "create(), type=" + type);
 
@@ -271,7 +267,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
         };
 
         final FirstTimeSyncFrameworkHandler handler = new FirstTimeSyncFrameworkHandler();
-        setUpContactSyncEngineTestFramework(factory, handler);
+        setUpContactSyncEngineTestFramework(handler, factory);
         handler.setContactSyncEngine(mContactSyncEngine);
 
         NetworkAgent.setAgentState(AgentState.CONNECTED);
@@ -491,14 +487,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
         assertEquals(ServiceUiRequest.UI_REQUEST_COMPLETE.ordinal(), uiEventCall.event);
         assertEquals(uiEventCall.status, ServiceStatus.SUCCESS.ordinal());
 
-        // ask for a server sync
-        uiEventCall.reset();
-        mContactSyncEngine.addUiStartServerSync(0);
-        nextRuntime = mContactSyncEngine.getNextRunTime();
-        assertEquals(0, nextRuntime);
-
-        mContactSyncEngine.run();
-        
+     
         // check that first time sync is completed
         assertEquals(ServiceUiRequest.UI_REQUEST_COMPLETE.ordinal(), uiEventCall.event);
         assertEquals(uiEventCall.status, ServiceStatus.SUCCESS.ordinal());
@@ -575,7 +564,6 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
         // perform the sync
         mContactSyncEngine.run();
         
-        final ArrayList<ContactSyncObserver.ContactSyncStateChanged> expectedCssc1 = observer.mCsscList;
         // compare the retrieved events with the expected ones
         assertTrue(expectedCssc == observer.mCsscList);
         assertTrue(expectedPe == observer.mPeList);

@@ -187,7 +187,7 @@ public class FetchNativeContactsTest extends InstrumentationTestCase implements
     
         FetchNativeContactsProcessorTest(IContactSyncCallback callback, DatabaseHelper db,
                 Context context, ContentResolver cr) {
-            super(callback, db);
+            super(callback, db, context, cr);
         }
     }
 

@@ -154,7 +154,6 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
 
     public ServiceStatus waitForEvent(int ts) {
         Log.d("TAG", "EngineTestFramework waitForEvent");
-        NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
         kickWorkerThread();
 
         long endTime = System.nanoTime() + (((long)ts) * 1000000);
@@ -236,7 +235,10 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
             mActive = false;
             mObjectLock.notify();
         }
-        mConnThread.stopThread();
+        if(mConnThread != null)
+        {
+        	mConnThread.stopThread();
+        }
     }
 
     private void onEngineException(Exception e) {

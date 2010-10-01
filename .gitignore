@@ -6,3 +6,4 @@ gen
 .project
 output/*
 tests/coverage/*
+build_property_files

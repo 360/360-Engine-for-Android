@@ -419,6 +419,7 @@ public class FetchSmsLogEvents implements ISyncHelper {
                     || (count < MAX_ITEMS_PER_PAGE) || (mPageCount == MAX_PAGES_TO_LOAD_AT_ONCE)) {
                 ServiceStatus status = mDb.addTimelineEvents(mSyncItemList, false);
                 updateTimestamps();
+                saveTimeStampMms();
                 mSyncItemList.clear();
                 if (ServiceStatus.SUCCESS != status) {
                     complete(mStatus);

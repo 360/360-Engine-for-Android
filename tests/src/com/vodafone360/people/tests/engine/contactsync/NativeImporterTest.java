@@ -804,17 +804,7 @@ public class NativeImporterTest extends TestCase {
     public static class NativeContactsApiMockup extends NativeContactsApi {
         
     	
-    	public void setSyncable(boolean syncable) {
-        }
-    	
-    	public boolean getMasterSyncAutomatically() {
-    		return false;
-    	}
-    	
-    	public void setSyncAutomatically(boolean syncAutomatically) {
-    		
-    	}
-    	
+    
         /**
          * A Hashtable of contacts where the key is the contact id.
          */

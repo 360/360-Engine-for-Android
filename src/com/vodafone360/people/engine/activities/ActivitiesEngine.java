@@ -200,8 +200,10 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
         mEngineId = EngineId.ACTIVITIES_ENGINE;
         mDb = db;
         mContext = context;
-        if (isContactSyncReady()) {
-            EngineManager.getInstance().getContactSyncEngine().addEventCallback(this);
+        if (!mJUnitTestMode){
+            if (isContactSyncReady()) {
+                EngineManager.getInstance().getContactSyncEngine().addEventCallback(this);
+            }
         }
         mTimelineEventWatcher = new TimelineEventWatcher(mContext, this);
     }
@@ -212,10 +214,12 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
      */
     @Override
     public long getNextRunTime() {
-        if (!isContactSyncReady()
-                || !EngineManager.getInstance().getContactSyncEngine().isFirstTimeSyncComplete()) {
-            return -1;
-        }
+    	if (!mJUnitTestMode){
+            if (!isContactSyncReady()
+                    || !EngineManager.getInstance().getContactSyncEngine().isFirstTimeSyncComplete()) {
+                return -1;
+            }
+    	}
         if (mNextCleanup < System.currentTimeMillis()) {
             return 0;
         }
@@ -266,8 +270,10 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
     @Override
     public void onDestroy() {
         mTimelineEventWatcher.stopWatching();
-        if (isContactSyncReady()) {
-            EngineManager.getInstance().getLoginEngine().removeListener(this);
+        if (!mJUnitTestMode){
+            if (isContactSyncReady()) {
+                EngineManager.getInstance().getLoginEngine().removeListener(this);
+            }
         }
     }
 

@@ -472,7 +472,6 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 		mNabApi.unregisterObserver();
 	}
 	
-	@Suppress
 	@MediumTest
 	@Suppress
 	public void testAddGetRemoveContacts() {
