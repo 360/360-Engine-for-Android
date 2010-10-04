@@ -324,7 +324,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      */
     @Override
     public void getPresenceList(long contactId) {
-        EngineManager.getInstance().getPresenceEngine().getPresenceList();
+//        EngineManager.getInstance().getPresenceEngine().getPresenceList();
     }
 
     /***
