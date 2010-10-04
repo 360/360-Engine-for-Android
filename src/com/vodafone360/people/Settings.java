@@ -104,7 +104,7 @@ public final class Settings {
     public static final boolean ENABLED_PROFILE_ENGINES = false;    
 
     /** Trace output for protocol (i.e. network IO) components. **/
-    public static boolean sEnableProtocolTrace = false;
+    public static boolean sEnableProtocolTrace = true;
     
     
     /**
@@ -299,4 +299,9 @@ public final class Settings {
      */
     private Settings() {
     }
+    
+    /**
+     * a debug flag to see what's coming with availability state change push messages. 
+     */
+    public static boolean LOG_PRESENCE_PUSH_ON_LOGCAT = false;
 }

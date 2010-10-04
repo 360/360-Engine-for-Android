@@ -370,6 +370,8 @@ public class ApplicationCache {
         sFetchingOlderTimeline = false;
         sUpdatingStatuses = false;
         sFetchingOlderStatuses = false;
+        
+        Settings.LOG_PRESENCE_PUSH_ON_LOGCAT = false;
     }
 
     /**

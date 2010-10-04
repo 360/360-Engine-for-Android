@@ -76,6 +76,10 @@ public class Presence {
             LogUtils.logE("Presence.setAvailability() No session, so return");
             return;
         }
+        
+        if (Settings.LOG_PRESENCE_PUSH_ON_LOGCAT) {
+            LogUtils.logE("SET MY AVAILABILITY: " + status);
+        }
         Request request = new Request(EMPTY, Request.Type.AVAILABILITY, EngineId.UNDEFINED, true,
                 Settings.API_REQUESTS_TIMEOUT_PRESENCE_SET_AVAILABILITY);
         request.addData("availability", status);
