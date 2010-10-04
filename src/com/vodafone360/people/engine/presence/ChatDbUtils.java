@@ -55,8 +55,13 @@ public class ChatDbUtils {
     protected static final String COLUMNS = "::";
 
     protected static void convertUserIds(ChatMessage msg, DatabaseHelper databaseHelper) {
-        String userId = msg.getUserId();
-        String network = SocialNetwork.VODAFONE.name();
+
+    	String userId = msg.getUserId();
+    	String network = SocialNetwork.VODAFONE.name();
+
+    	// TODO: PAND-2356: log original userID, in case of NumberFormatException
+    	String originalUserId = userId;
+
         int columnsIndex = userId.indexOf(COLUMNS);
         if (columnsIndex > -1) {
             network = userId.substring(0, columnsIndex);
@@ -75,8 +80,7 @@ public class ChatDbUtils {
                 Long id = Long.valueOf(msg.getUserId());
                 msg.setLocalContactId(ContactsTable.fetchLocalIdFromUserId(id, databaseHelper.getReadableDatabase()));
             } catch (NumberFormatException e) {
-                LogUtils.logE("ChatDbUtils.convertUserIds() "
-                        + " Invalid vodafone userid: " + msg.getUserId());
+                LogUtils.logE("ChatDbUtils.convertUserIds()  Original userid: " + originalUserId);
             }
         } else {
             msg.setLocalContactId(ContactDetailsTable.findLocalContactIdByKey(SocialNetwork
