@@ -115,7 +115,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     /**
      * True if the engine runs for the 1st time.
      */
-    private boolean firstRun = true;
+    private boolean mFirstRun = true;
 
     /**
      * 
@@ -172,10 +172,10 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
             LogUtils.logV("PresenceEngine getNextRunTime() comms response outstanding");
             return 0;
         }
-        if (firstRun) {
+        if (mFirstRun) {
             getPresenceList();
             initSetMyAvailabilityRequestAfterLogin();
-            firstRun = false;
+            mFirstRun = false;
         }
         return getCurrentTimeout();
     }
@@ -224,13 +224,8 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     public void onLoginStateChanged(boolean loggedIn) {
         LogUtils.logI("PresenceEngine.onLoginStateChanged() loggedIn[" + loggedIn + "]");
         mLoggedIn = loggedIn;
-        if (mLoggedIn) {
-            if (isFirstTimeSyncComplete()) {
-                getPresenceList();
-                setTimeout(CHECK_FREQUENCY);    
-            }
-        } else {
-            firstRun = true;
+        if (!mLoggedIn) {
+            mFirstRun = true;
             mFailedMessagesList.clear();
             mSendMessagesHash.clear();
             
@@ -277,6 +272,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
                         setTimeout(CHECK_FREQUENCY / 20);
                     }    
                 }
+                break;
         }
     }
 
@@ -569,7 +565,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
      * 
      * @return
      */
-    public void getPresenceList() {
+    synchronized public void getPresenceList() {
         addUiRequestToQueue(ServiceUiRequest.GET_PRESENCE_LIST, null);
     }
 
@@ -625,38 +621,16 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         Hashtable<String, String> availability = new Hashtable<String, String>();
 
         ArrayList<Identity> identityList = EngineManager.getInstance().getIdentityEngine().getMy360AndThirdPartyChattableIdentities();
-        ArrayList<NetworkPresence> presenceList = new ArrayList<NetworkPresence>();
 
         if ((identityList.size() != 0)) {
             for (int i=0; i<identityList.size(); i++) {
                 Identity myIdentity = identityList.get(i);
-                if(myIdentity.mNetwork.equals(SocialNetwork.GOOGLE.toString())) {
-                    NetworkPresence networkPresence = new NetworkPresence(meProfileUserId, SocialNetwork.GOOGLE.ordinal(), OnlineStatus.ONLINE.ordinal());
-                    presenceList.add(networkPresence);
-                    availability.put(SocialNetwork.GOOGLE.toString(), OnlineStatus.ONLINE.toString());
-                } else if(myIdentity.mNetwork.equals(SocialNetwork.HYVES_NL.toString())) {
-                    NetworkPresence networkPresence = new NetworkPresence(meProfileUserId, SocialNetwork.HYVES_NL.ordinal(), OnlineStatus.ONLINE.ordinal());
-                    presenceList.add(networkPresence);
-                    availability.put(SocialNetwork.HYVES_NL.toString(), OnlineStatus.ONLINE.toString());
-                } else if(myIdentity.mNetwork.equals(SocialNetwork.FACEBOOK_COM.toString())) {
-                    NetworkPresence networkPresence = new NetworkPresence(meProfileUserId, SocialNetwork.FACEBOOK_COM.ordinal(), OnlineStatus.ONLINE.ordinal());
-                    presenceList.add(networkPresence);
-                    availability.put(SocialNetwork.FACEBOOK_COM.toString(), OnlineStatus.ONLINE.toString());
-                } else if(myIdentity.mNetwork.equals(SocialNetwork.MICROSOFT.toString())) {
-                    NetworkPresence networkPresence = new NetworkPresence(meProfileUserId, SocialNetwork.MICROSOFT.ordinal(), OnlineStatus.ONLINE.ordinal());
-                    presenceList.add(networkPresence);
-                    availability.put(SocialNetwork.MICROSOFT.toString(), OnlineStatus.ONLINE.toString());
-                } else if(myIdentity.mNetwork.equals(SocialNetwork.MOBILE.toString())) {
-                    NetworkPresence networkPresence = new NetworkPresence(meProfileUserId, SocialNetwork.MOBILE.ordinal(), OnlineStatus.ONLINE.ordinal());
-                    presenceList.add(networkPresence);
-                    availability.put(SocialNetwork.MOBILE.toString(), OnlineStatus.ONLINE.toString());
-                }
+                availability.put(myIdentity.mNetwork, OnlineStatus.ONLINE.toString());
             }
        }
 
-       User meUser = new User();
+       User meUser = new User(meProfileUserId, availability);
        meUser.setLocalContactId(Long.valueOf(meProfileUserId));
-       meUser.setPayload(presenceList);
        updateMyPresenceInDatabase(meUser);
 
        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, availability);
@@ -738,8 +712,8 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         
         addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presenceHash);
     }
-        
-    /**
+
+     /**
      * Changes the user's availability.
      * 
      * @param network - SocialNetwork to set presence on.
@@ -903,7 +877,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         
         // reset the engine as if it was just created
         super.onReset();
-        firstRun = true;
+        mFirstRun = true;
         mLoggedIn = false;
         mIterations = 0;
         mState = IDLE;

@@ -34,9 +34,11 @@ import java.util.Iterator;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.vodafone360.people.Settings;
 import com.vodafone360.people.datatypes.ContactSummary;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
+import com.vodafone360.people.utils.LogUtils;
 
 /**
  * User is a class encapsulating the information about a user's presence state.
@@ -73,6 +75,9 @@ public class User implements Parcelable {
      */
     public User(String userId, Hashtable<String, String> payload) {
         if (payload != null) {
+            if (Settings.LOG_PRESENCE_PUSH_ON_LOGCAT) {
+                LogUtils.logE("user id:"+ userId + ", " + payload);
+            }
             mOverallOnline = isOverallOnline(payload);
             mPayload = createPayload(userId, payload);
         }

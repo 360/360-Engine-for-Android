@@ -37,9 +37,7 @@ import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.IdentityCapability;
 import com.vodafone360.people.datatypes.PushEvent;
 import com.vodafone360.people.datatypes.StatusMsg;
-import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.BaseEngine;
-import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.ServiceStatus;
@@ -643,30 +641,20 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         LogUtils.logD("IdentityEngine: handleGetMyIdentitiesResponse");
         ServiceStatus errorStatus = getResponseStatus(BaseDataType.MY_IDENTITY_DATA_TYPE, data);
         
+        
         if (errorStatus == ServiceStatus.SUCCESS) {  
         	synchronized (mMyIdentityList) {
-                // check if any chat identities were added to set them to "online"
-                Hashtable<String, String> presenceHash = new Hashtable<String, String>();
-        	    List<String> cachedNetworkNames = new ArrayList<String>();
-        	    for (Identity identity: mMyIdentityList) {
-        	        cachedNetworkNames.add(identity.mNetwork);
-        	    }
+
 	            mMyIdentityList.clear();
 	            
 	            for (BaseDataType item : data) {
 	                Identity identity = (Identity)item;
 	            	mMyIdentityList.add(identity);
-              	    if (!cachedNetworkNames.contains(identity.mNetwork)) {
-	                    presenceHash.put(identity.mNetwork, OnlineStatus.ONLINE.toString());
-	                }
-	            }
-	            if (!presenceHash.isEmpty()) {
-	                EngineManager.getInstance().getPresenceEngine().setMyAvailability(presenceHash);    
 	            }
         	}
         }
         pushIdentitiesToUi(ServiceUiRequest.GET_MY_IDENTITIES);
-        
+         
         LogUtils.logD("IdentityEngine: handleGetMyIdentitiesResponse complete request.");
     }
 
@@ -843,7 +831,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 	        emptyUiRequestQueue();
 	        sendGetAvailableIdentitiesRequest();
 	        sendGetMyIdentitiesRequest();
-		}
+		} 
 	}
 	
     /**
