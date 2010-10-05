@@ -105,7 +105,8 @@ public final class Settings {
 
     /** Trace output for protocol (i.e. network IO) components. **/
     public static boolean sEnableProtocolTrace = false;
-            
+    
+    
     /**
      * This is a list of strings containing the names of engines to be
      * deactivated in the build. A de-activated engine is constructed but will

@@ -857,7 +857,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         ArrayList<Identity> identities = 
             EngineManager.getInstance().getIdentityEngine().getMy360AndThirdPartyChattableIdentities();
     
-        if(identities == null) {
+        if (identities == null) {
             // No identities, just return null
             return null;
         }
@@ -865,8 +865,8 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         Hashtable<String, String> presences = new Hashtable<String, String>();
     
         String statusString = status.toString();
-        for(Identity identity : identities) {
-                presences.put(identity.mNetwork, statusString);
+        for (Identity identity : identities) {
+            presences.put(identity.mNetwork, statusString);
         }
         
         return presences;
