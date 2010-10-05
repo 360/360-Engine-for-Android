@@ -644,7 +644,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         
         if (errorStatus == ServiceStatus.SUCCESS) {  
         	synchronized (mMyIdentityList) {
-                // check if any chat identities were added to set them to "online"
+
 	            mMyIdentityList.clear();
 	            
 	            for (BaseDataType item : data) {
@@ -654,9 +654,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         	}
         }
         pushIdentitiesToUi(ServiceUiRequest.GET_MY_IDENTITIES);
-        
-        
-        
+         
         LogUtils.logD("IdentityEngine: handleGetMyIdentitiesResponse complete request.");
     }
 

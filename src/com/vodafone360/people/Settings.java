@@ -104,9 +104,8 @@ public final class Settings {
     public static final boolean ENABLED_PROFILE_ENGINES = false;    
 
     /** Trace output for protocol (i.e. network IO) components. **/
-    public static boolean sEnableProtocolTrace = true;
-    
-    
+    public static boolean sEnableProtocolTrace = false;
+            
     /**
      * This is a list of strings containing the names of engines to be
      * deactivated in the build. A de-activated engine is constructed but will

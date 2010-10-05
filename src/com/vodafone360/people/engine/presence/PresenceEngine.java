@@ -621,7 +621,6 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         Hashtable<String, String> availability = new Hashtable<String, String>();
 
         ArrayList<Identity> identityList = EngineManager.getInstance().getIdentityEngine().getMy360AndThirdPartyChattableIdentities();
-        ArrayList<NetworkPresence> presenceList = new ArrayList<NetworkPresence>();
 
         if ((identityList.size() != 0)) {
             for (int i=0; i<identityList.size(); i++) {
@@ -630,9 +629,8 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
             }
        }
 
-       User meUser = new User();
+       User meUser = new User(meProfileUserId, availability);
        meUser.setLocalContactId(Long.valueOf(meProfileUserId));
-       meUser.setPayload(presenceList);
        updateMyPresenceInDatabase(meUser);
 
        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, availability);
@@ -824,7 +822,6 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
                     break;
                 case STATE_CONNECTING:
                 case STATE_DISCONNECTED:
-                    mFirstRun = true;
                     setPresenceOffline();
                     mFailedMessagesList.clear();
                     mSendMessagesHash.clear();
