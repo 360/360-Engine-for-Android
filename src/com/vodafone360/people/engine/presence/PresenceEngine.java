@@ -869,9 +869,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     
         String statusString = status.toString();
         for (Identity identity : identities) {
-            presences.put(identity.mNetwork, status.equals(OnlineStatus.INVISIBLE)? 
-                    (identity.mNetwork.trim().equals(SocialNetwork.MOBILE.toString())? statusString: OnlineStatus.OFFLINE.toString())
-                            :statusString);
+            presences.put(identity.mNetwork, statusString);
         }
         
         return presences;
