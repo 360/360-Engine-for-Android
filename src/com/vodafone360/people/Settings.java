@@ -104,7 +104,7 @@ public final class Settings {
     public static final boolean ENABLED_PROFILE_ENGINES = false;    
 
     /** Trace output for protocol (i.e. network IO) components. **/
-    public static boolean sEnableProtocolTrace = true;
+    public static boolean sEnableProtocolTrace = false;
     
     
     /**
