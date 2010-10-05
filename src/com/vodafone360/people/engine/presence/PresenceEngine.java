@@ -260,18 +260,18 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
                 break;
             case IDLE:
             default:
-//                if (mLoggedIn) {
-//                    if (isFirstTimeSyncComplete()) {
-//                        getPresenceList();
-//                        initSetMyAvailabilityRequest(getMyAvailabilityStatusFromDatabase());
-//                        // Request to update the UI
-//                        setTimeout(CHECK_FREQUENCY);
-//                    } else { // check after 30 seconds
-//                        LogUtils.logE("Can't run PresenceEngine before the contact"
-//                                + " list is downloaded:3 - set next runtime in 30 seconds");
-//                        setTimeout(CHECK_FREQUENCY / 20);
-//                    }    
-//                }
+                if (mLoggedIn) {
+                    if (isFirstTimeSyncComplete()) {
+                        getPresenceList();
+                        initSetMyAvailabilityRequest(getMyAvailabilityStatusFromDatabase());
+                        // Request to update the UI
+                        setTimeout(CHECK_FREQUENCY);
+                    } else { // check after 30 seconds
+                        LogUtils.logE("Can't run PresenceEngine before the contact"
+                                + " list is downloaded:3 - set next runtime in 30 seconds");
+                        setTimeout(CHECK_FREQUENCY / 20);
+                    }    
+                }
                 break;
         }
     }
