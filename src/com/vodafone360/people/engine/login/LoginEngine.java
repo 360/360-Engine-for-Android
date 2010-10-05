@@ -701,7 +701,7 @@ public class LoginEngine extends BaseEngine {
     private void startSignUpCrypted(byte[] theBytes, long timestamp) {
         LogUtils.logD("startSignUpCrypted()");
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            completeUiRequest(ServiceStatus.ERROR_COMMS, null);
+        	completeUiRequest(NetworkAgent.getServiceStatusfromDisconnectReason(), null);
             return;
         }
         mActivationCode = null;
@@ -758,7 +758,7 @@ public class LoginEngine extends BaseEngine {
     public void getNewPublicKey() {
         LogUtils.logD("LoginEngine.getNewPublicKey");
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            completeUiRequest(ServiceStatus.ERROR_COMMS, null);
+        	completeUiRequest(NetworkAgent.getServiceStatusfromDisconnectReason(), null);
             return;
         }
         mActivationCode = null;
@@ -809,7 +809,7 @@ public class LoginEngine extends BaseEngine {
     private void startFetchUsernameState(String username) {
         LogUtils.logD("LoginEngine.startFetchUsernameState()");
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            completeUiRequest(ServiceStatus.ERROR_COMMS, null);
+        	completeUiRequest(NetworkAgent.getServiceStatusfromDisconnectReason(), null);
             return;
         }
         mLoginDetails.mUsername = username;
@@ -851,7 +851,7 @@ public class LoginEngine extends BaseEngine {
     private void startRequestActivationCode() {
         LogUtils.logD("LoginEngine.startRequestActivationCode()");
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            completeUiRequest(ServiceStatus.ERROR_COMMS, null);
+        	completeUiRequest(NetworkAgent.getServiceStatusfromDisconnectReason(), null);
             return;
         }
         mActivationCode = null;
@@ -868,8 +868,9 @@ public class LoginEngine extends BaseEngine {
      */
     private void startGetSessionManual() {
         LogUtils.logD("LoginEngine.startGetSessionManual()");
+        
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            completeUiRequest(ServiceStatus.ERROR_COMMS, null);
+        	completeUiRequest(NetworkAgent.getServiceStatusfromDisconnectReason(), null);
             return;
         }
         newState(State.CREATING_SESSION_MANUAL);
@@ -886,7 +887,7 @@ public class LoginEngine extends BaseEngine {
     private void startActivateAccount() {
         LogUtils.logD("LoginEngine.startActivateAccount()");
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            completeUiRequest(ServiceStatus.ERROR_COMMS, null);
+        	completeUiRequest(NetworkAgent.getServiceStatusfromDisconnectReason(), null);
             return;
         }
         if (Settings.ENABLE_ACTIVATION) {

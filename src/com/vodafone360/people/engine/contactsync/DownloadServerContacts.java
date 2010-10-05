@@ -293,7 +293,7 @@ public class DownloadServerContacts extends BaseSyncProcessor {
      */
     private ServiceStatus fetchFirstBatch() {
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            return ServiceStatus.ERROR_COMMS;
+            return NetworkAgent.getServiceStatusfromDisconnectReason();
         }
         mInternalState = InternalState.FETCHING_FIRST_PAGE;
         LogUtils.logD("DownloadServerContacts.fetchFirstBatch - from rev " + mFromRevision
@@ -316,7 +316,7 @@ public class DownloadServerContacts extends BaseSyncProcessor {
         }
         mBatchPageReceivedCount = 0;
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            return ServiceStatus.ERROR_COMMS;
+            return NetworkAgent.getServiceStatusfromDisconnectReason();
         }
 
         mPageReqIds.clear();

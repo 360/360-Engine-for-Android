@@ -46,6 +46,7 @@ import com.vodafone360.people.Intents;
 import com.vodafone360.people.MainApplication;
 import com.vodafone360.people.service.PersistSettings;
 import com.vodafone360.people.service.RemoteService;
+import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.PersistSettings.InternetAvail;
 import com.vodafone360.people.service.interfaces.IConnectionManagerInterface;
 import com.vodafone360.people.service.interfaces.IWorkerThreadControl;
@@ -73,7 +74,7 @@ public class NetworkAgent {
 
     private ContentResolver mContentResolver;
 
-    private AgentDisconnectReason mDisconnectReason = AgentDisconnectReason.UNKNOWN;
+    private static AgentDisconnectReason mDisconnectReason = AgentDisconnectReason.UNKNOWN;
 
     private SettingsContentObserver mDataRoamingSettingObserver;
 
@@ -474,18 +475,6 @@ public class NetworkAgent {
      * access
      */
     private void onConnectionStateChanged() {
-        if (!mInternetConnected) {
-            LogUtils.logV("NetworkAgent.onConnectionStateChanged() No internet connection");
-            mDisconnectReason = AgentDisconnectReason.NO_INTERNET_CONNECTION;
-            setNewState(AgentState.DISCONNECTED);
-            return;
-        } else {
-            if (mWifiNetworkAvailable) {
-                LogUtils.logV("NetworkAgent.onConnectionStateChanged() WIFI connected");
-            } else {
-                LogUtils.logV("NetworkAgent.onConnectionStateChanged() Cellular connected");
-            }
-        }
         if (mContext != null) {
             MainApplication app = (MainApplication)((RemoteService)mContext).getApplication();
             if ((app.getInternetAvail() == InternetAvail.MANUAL_CONNECT)/*
@@ -517,12 +506,24 @@ public class NetworkAgent {
             return;
         }
         if (mIsInBackground && !mBackgroundData) {
-            LogUtils
-                    .logV("NetworkAgent.onConnectionStateChanged() Background connection not allowed");
+            LogUtils.logV("NetworkAgent.onConnectionStateChanged() Background connection not allowed");
             mDisconnectReason = AgentDisconnectReason.BACKGROUND_CONNECTION_DISABLED;
             setNewState(AgentState.DISCONNECTED);
             return;
         }
+        if (!mInternetConnected) {
+            LogUtils.logV("NetworkAgent.onConnectionStateChanged() No internet connection");
+            mDisconnectReason = AgentDisconnectReason.NO_INTERNET_CONNECTION;
+            setNewState(AgentState.DISCONNECTED);
+            return;
+        } 
+        
+        if (mWifiNetworkAvailable) {
+            LogUtils.logV("NetworkAgent.onConnectionStateChanged() WIFI connected");
+        } else {
+            LogUtils.logV("NetworkAgent.onConnectionStateChanged() Cellular connected");
+        }
+        
         LogUtils.logV("NetworkAgent.onConnectionStateChanged() Connection available");
         setNewState(AgentState.CONNECTED);
     }
@@ -530,6 +531,29 @@ public class NetworkAgent {
     public static AgentState getAgentState() {
         LogUtils.logV("NetworkAgent.getAgentState() mAgentState[" + mAgentState.name() + "]");
         return mAgentState;
+    }
+
+    public static ServiceStatus getServiceStatusfromDisconnectReason() {
+        
+        if (mDisconnectReason != null)
+	    	switch (mDisconnectReason)
+	    	{
+				case AGENT_IS_CONNECTED:
+					return ServiceStatus.SUCCESS;
+	    		case NO_WORKING_NETWORK:
+	    			return ServiceStatus.ERROR_NO_INTERNET;
+	    		case NO_INTERNET_CONNECTION:
+	    			return ServiceStatus.ERROR_NO_INTERNET;
+	    		case DATA_ROAMING_DISABLED:
+	    			return ServiceStatus.ERROR_ROAMING_INTERNET_NOT_ALLOWED;
+	    		case DATA_SETTING_SET_TO_MANUAL_CONNECTION:
+	    			return ServiceStatus.ERROR_NO_AUTO_CONNECT;
+	    		case BACKGROUND_CONNECTION_DISABLED:
+	    			// TODO: define appropriate ServiceStatus
+	    			return ServiceStatus.ERROR_COMMS;
+	    	}
+        
+        return ServiceStatus.ERROR_COMMS;
     }
 
     private void setNewState(AgentState newState) {

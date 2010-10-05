@@ -290,7 +290,7 @@ public class UploadServerContacts extends BaseSyncProcessor {
             return;
         }
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            complete(ServiceStatus.ERROR_COMMS);
+            complete(NetworkAgent.getServiceStatusfromDisconnectReason());
             return;
         }
 
@@ -342,7 +342,7 @@ public class UploadServerContacts extends BaseSyncProcessor {
         /** End debug output. **/
 
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            complete(ServiceStatus.ERROR_COMMS);
+            complete(NetworkAgent.getServiceStatusfromDisconnectReason());
             return;
         }
 
@@ -396,7 +396,7 @@ public class UploadServerContacts extends BaseSyncProcessor {
         /** Debug output. **/
 
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            complete(ServiceStatus.ERROR_COMMS);
+            complete(NetworkAgent.getServiceStatusfromDisconnectReason());
             return;
         }
 
@@ -479,7 +479,7 @@ public class UploadServerContacts extends BaseSyncProcessor {
         /** Debug output. **/
 
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            complete(ServiceStatus.ERROR_COMMS);
+            complete(NetworkAgent.getServiceStatusfromDisconnectReason());
             return;
         }
 
@@ -551,7 +551,7 @@ public class UploadServerContacts extends BaseSyncProcessor {
         mGroupList.add(group);
 
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            complete(ServiceStatus.ERROR_COMMS);
+            complete(NetworkAgent.getServiceStatusfromDisconnectReason());
             return;
         }
 
@@ -612,7 +612,7 @@ public class UploadServerContacts extends BaseSyncProcessor {
         }
 
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            complete(ServiceStatus.ERROR_COMMS);
+            complete(NetworkAgent.getServiceStatusfromDisconnectReason());
             return;
         }
 
