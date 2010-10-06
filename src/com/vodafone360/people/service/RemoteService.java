@@ -149,6 +149,10 @@ public class RemoteService extends Service implements IWorkerThreadControl,
      */
     @Override
     public void onStart(Intent intent, int startId) {
+        if(intent == null) {
+            LogUtils.logV("RemoteService.onStart() intent is null. Returning.");
+            return;
+        }
         Bundle mBundle = intent.getExtras();
         LogUtils.logI("RemoteService.onStart() Intent action["
                 + intent.getAction() + "] data[" + mBundle + "]");

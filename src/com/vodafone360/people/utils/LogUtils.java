@@ -271,9 +271,14 @@ public final class LogUtils {
                     fos = new FileOutputStream(binaryFile);
                     fos.write(data);
                     fos.flush();
+                } else {
+                    logE("LogUtils.logToFile() Could not write to SD card. Missing a permission? " +
+                    		"SC Card is currently "+
+                            Environment.getExternalStorageState());
                 }
             } catch (IOException e) {
-                logE("LogUtils.logToFile() Could not write " + fileName + " to SD card!");
+                logE("LogUtils.logToFile() Could not write " + fileName +
+                        " to SD card! Exception: "+e);
             } finally {
                 if (null != fos) {
                     try {
