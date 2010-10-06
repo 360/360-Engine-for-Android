@@ -422,6 +422,10 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     protected void processUiRequest(ServiceUiRequest requestType, Object data) {
         LogUtils.logD("IdentityEngine.processUiRequest() - reqID = " + requestType);
         switch (requestType) {
+            case GET_MY_IDENTITIES:
+                sendGetMyIdentitiesRequest();
+                completeUiRequest(ServiceStatus.SUCCESS);
+                break;
             case VALIDATE_IDENTITY_CREDENTIALS:
                 executeValidateIdentityCredentialsRequest(data);
                 break;
@@ -691,6 +695,10 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         completeUiRequest(errorStatus, bu);
 
         newState(State.IDLE);
+        
+        if (errorStatus == ServiceStatus.SUCCESS) {
+            addUiRequestToQueue(ServiceUiRequest.GET_MY_IDENTITIES, null);
+        }
 
     }
 
