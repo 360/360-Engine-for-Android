@@ -144,29 +144,6 @@ public class ThumbnailHandler implements TransferListener {
     }
 
     /**
-     * Returns a ThumbanailInfo for a given Contact ID from a list of
-     * ThumbnailInfos. When we fetch ThumbnailInfos for a big group of Contacts
-     * we will get an List with available ThumbnailInfos. Because not every
-     * Contact has a thumbnail mostly this List will be smaller then the given
-     * list of contacts. This method is then called to determine matching
-     * ThumbnailInfo for a Contact.
-     * 
-     * @param thumbnailInfoList List with all available Thumbnails
-     * @param contactId The contact ID for which the ThumbnailInfo is to be
-     *            searched for
-     * @return Matching ThumbnailInfo for the given Contact
-     */
-    private ThumbnailInfo getThumbnailForContact(final List<ThumbnailInfo> thumbnailInfoList,
-            final Long contactId) {
-        for (ThumbnailInfo thumbnailInfo : thumbnailInfoList) {
-            if (thumbnailInfo.localContactId.equals(contactId)) {
-                return thumbnailInfo;
-            }
-        }
-        return null;
-    }
-
-    /**
      * Puts the contactlist in to a queue and starts downloading the thumbnails
      * for them.
      */
@@ -222,11 +199,9 @@ public class ThumbnailHandler implements TransferListener {
         // response yet are also added into the queue of the COntent Engine.
         List<ContentObject> contentList = new ArrayList<ContentObject>();
 
-        // iterate over the given contactList
-        for (Long contactId : contactList) {
+        // iterate over the given thumbnailInfoList
+        for (ThumbnailInfo thumbnailInfo : thumbnailInfoList) {
 
-            // find an ThumbnailUrl for a contact
-            ThumbnailInfo thumbnailInfo = getThumbnailForContact(thumbnailInfoList, contactId);
             // not every contact has a thumbnail, so continue in this case
             if (thumbnailInfo == null) {
                 continue;
@@ -234,7 +209,7 @@ public class ThumbnailHandler implements TransferListener {
             try {
                 // create a ContentObject for downloading the particular
                 // Thumbnail...
-                ContentObject contentObject = new ContentObject(null, contactId, this,
+                ContentObject contentObject = new ContentObject(null, thumbnailInfo.localContactId, this,
                         ContentObject.TransferDirection.DOWNLOAD, ContentObject.Protocol.RPG);
                 // ... set the right URL and params...
                 contentObject.setUrl(new URL(thumbnailInfo.photoServerUrl));

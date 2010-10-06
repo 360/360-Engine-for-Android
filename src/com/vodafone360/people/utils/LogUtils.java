@@ -266,7 +266,7 @@ public final class LogUtils {
             
             try {
                 File root = Environment.getExternalStorageDirectory();
-                if (root.canWrite()){
+                if (root.canWrite()) {
                     File binaryFile = new File(root, fileName);
                     fos = new FileOutputStream(binaryFile);
                     fos.write(data);

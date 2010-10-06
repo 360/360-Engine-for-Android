@@ -291,8 +291,7 @@ public final class Settings {
      * response no matter if gzipped or not to the SD card under the given
      * request ID.
      */
-    public static boolean sEnableSuperExpensiveResponseFileLogging
-        = false;
+    public static boolean sEnableSuperExpensiveResponseFileLogging = false;
 
     /**
      * Private constructor to prevent instantiation.

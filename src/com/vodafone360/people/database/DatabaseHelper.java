@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -805,23 +806,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                             + ContactDetailsTable.Field.KEY + "="
                             + ContactDetail.DetailKeys.PHOTO.ordinal(), null);
 
-            ArrayList<String> urls = new ArrayList<String>();
+            HashSet<String> urlSet = new HashSet<String>();
             ThumbnailInfo mThumbnailInfo = null;
             while (cursor.moveToNext()) {
                 mThumbnailInfo = new ThumbnailInfo();
-                if (!cursor
-                        .isNull(cursor
-                                .getColumnIndexOrThrow(ContactDetailsTable.Field.LOCALCONTACTID
-                                        .toString()))) {
-                    mThumbnailInfo.localContactId = cursor.getLong(cursor
-                            .getColumnIndexOrThrow(ContactDetailsTable.Field.LOCALCONTACTID
-                                    .toString()));
+                if (!cursor.isNull(cursor.getColumnIndexOrThrow(
+                		ContactDetailsTable.Field.LOCALCONTACTID.toString()))) {
+                    mThumbnailInfo.localContactId = cursor.getLong(cursor.getColumnIndexOrThrow(
+                    		ContactDetailsTable.Field.LOCALCONTACTID.toString()));
                 }
-                mThumbnailInfo.photoServerUrl = cursor.getString(cursor
-                        .getColumnIndexOrThrow(ContactDetailsTable.Field.STRINGVAL.toString()));
+                mThumbnailInfo.photoServerUrl = cursor.getString(cursor.getColumnIndexOrThrow(
+                		ContactDetailsTable.Field.STRINGVAL.toString()));
+                
                 // TODO: Investigate if this is really needed
-                if (!urls.contains(mThumbnailInfo.photoServerUrl)) {
-                    urls.add(mThumbnailInfo.photoServerUrl);
+                if (urlSet.add(mThumbnailInfo.photoServerUrl)) {
                     thumbInfoList.add(mThumbnailInfo);
                 }
             }
