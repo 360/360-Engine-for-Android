@@ -74,7 +74,7 @@ public class NetworkAgent {
 
     private ContentResolver mContentResolver;
 
-    private static AgentDisconnectReason mDisconnectReason = AgentDisconnectReason.UNKNOWN;
+    private static AgentDisconnectReason sDisconnectReason = AgentDisconnectReason.UNKNOWN;
 
     private SettingsContentObserver mDataRoamingSettingObserver;
 
@@ -487,33 +487,33 @@ public class NetworkAgent {
                                                                          */) {
                 LogUtils.logV("NetworkAgent.onConnectionStateChanged()"
                         + " Internet allowed only in manual mode");
-                mDisconnectReason = AgentDisconnectReason.DATA_SETTING_SET_TO_MANUAL_CONNECTION;
+                sDisconnectReason = AgentDisconnectReason.DATA_SETTING_SET_TO_MANUAL_CONNECTION;
                 setNewState(AgentState.DISCONNECTED);
                 return;
             }
         }
         if (!mNetworkWorking) {
             LogUtils.logV("NetworkAgent.onConnectionStateChanged() Network is not working");
-            mDisconnectReason = AgentDisconnectReason.NO_WORKING_NETWORK;
+            sDisconnectReason = AgentDisconnectReason.NO_WORKING_NETWORK;
             setNewState(AgentState.DISCONNECTED);
             return;
         }
         if (mIsRoaming && !mDataRoaming && !mWifiNetworkAvailable) {
             LogUtils.logV("NetworkAgent.onConnectionStateChanged() "
                     + "Connect while roaming not allowed");
-            mDisconnectReason = AgentDisconnectReason.DATA_ROAMING_DISABLED;
+            sDisconnectReason = AgentDisconnectReason.DATA_ROAMING_DISABLED;
             setNewState(AgentState.DISCONNECTED);
             return;
         }
         if (mIsInBackground && !mBackgroundData) {
             LogUtils.logV("NetworkAgent.onConnectionStateChanged() Background connection not allowed");
-            mDisconnectReason = AgentDisconnectReason.BACKGROUND_CONNECTION_DISABLED;
+            sDisconnectReason = AgentDisconnectReason.BACKGROUND_CONNECTION_DISABLED;
             setNewState(AgentState.DISCONNECTED);
             return;
         }
         if (!mInternetConnected) {
             LogUtils.logV("NetworkAgent.onConnectionStateChanged() No internet connection");
-            mDisconnectReason = AgentDisconnectReason.NO_INTERNET_CONNECTION;
+            sDisconnectReason = AgentDisconnectReason.NO_INTERNET_CONNECTION;
             setNewState(AgentState.DISCONNECTED);
             return;
         } 
@@ -535,8 +535,8 @@ public class NetworkAgent {
 
     public static ServiceStatus getServiceStatusfromDisconnectReason() {
         
-        if (mDisconnectReason != null)
-	    	switch (mDisconnectReason)
+        if (sDisconnectReason != null)
+	    	switch (sDisconnectReason)
 	    	{
 				case AGENT_IS_CONNECTED:
 					return ServiceStatus.SUCCESS;
@@ -564,7 +564,7 @@ public class NetworkAgent {
         mAgentState = newState;
 
         if (newState == AgentState.CONNECTED) {
-            mDisconnectReason = AgentDisconnectReason.AGENT_IS_CONNECTED;
+            sDisconnectReason = AgentDisconnectReason.AGENT_IS_CONNECTED;
             onConnected();
         } else if (newState == AgentState.DISCONNECTED) {
             onDisconnected();
@@ -690,7 +690,7 @@ public class NetworkAgent {
         state.setNetworkWorking(mNetworkWorking);
         state.setWifiActive(mWifiNetworkAvailable);
 
-        state.setDisconnectReason(mDisconnectReason);
+        state.setDisconnectReason(sDisconnectReason);
         state.setAgentState(mAgentState);
 
         LogUtils.logD("NetworkAgent.getNetworkAgentState() state[" + state + "]");
