@@ -477,14 +477,7 @@ public class NetworkAgent {
     private void onConnectionStateChanged() {
         if (mContext != null) {
             MainApplication app = (MainApplication)((RemoteService)mContext).getApplication();
-            if ((app.getInternetAvail() == InternetAvail.MANUAL_CONNECT)/*
-                                                                         * AA: I
-                                                                         * commented
-                                                                         * it -
-                                                                         * TBD
-                                                                         * &&!
-                                                                         * mWifiNetworkAvailable
-                                                                         */) {
+            if ((app.getInternetAvail() == InternetAvail.MANUAL_CONNECT)) {
                 LogUtils.logV("NetworkAgent.onConnectionStateChanged()"
                         + " Internet allowed only in manual mode");
                 sDisconnectReason = AgentDisconnectReason.DATA_SETTING_SET_TO_MANUAL_CONNECTION;

@@ -100,7 +100,7 @@ public class PersistSettings implements Parcelable {
         // before login and triggers the correct computation of the 
         // AgentState in the NetworkAgentState class. For details see
         // PAND-2305.
-        INTERNETAVAIL("internetavail", OptionType.INTEGER, InternetAvail.MANUAL_CONNECT.ordinal()),
+        INTERNETAVAIL("internetavail", OptionType.INTEGER, InternetAvail.ALWAYS_CONNECT.ordinal()),
         FIRST_TIME_SYNC_STARTED("ftsstarted", OptionType.BOOLEAN, false),
         FIRST_TIME_MESYNC_STARTED("ftmesyncstarted", OptionType.BOOLEAN, false),
         FIRST_TIME_SYNC_COMPLETE("ftscomplete", OptionType.BOOLEAN, false),

@@ -890,6 +890,7 @@ public class LoginEngine extends BaseEngine {
         	completeUiRequest(NetworkAgent.getServiceStatusfromDisconnectReason(), null);
             return;
         }
+        
         if (Settings.ENABLE_ACTIVATION) {
             newState(State.ACTIVATING_ACCOUNT);
             if (!setReqId(Auth.activate(this, mActivationCode))) {
@@ -1413,8 +1414,6 @@ public class LoginEngine extends BaseEngine {
         mRegistrationDetails = new RegistrationDetails();
         mActivationCode = null;
         onLoginStateChanged(false);
-        // Remove NAB Account at this point (does nothing on 1.X)
-        NativeContactsApi.getInstance().removePeopleAccount();
     }
 
     /**

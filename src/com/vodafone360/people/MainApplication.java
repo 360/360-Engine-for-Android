@@ -108,7 +108,14 @@ public class MainApplication extends Application {
             // have been reset.
             mEngineManager.resetAllEngines();
         }
+        // Remove NAB Account at this point (does nothing on 1.X)
+        NativeContactsApi.getInstance().removePeopleAccount();
+        
+        // the same action as in NetworkSettingsActivity onChecked()
+        setInternetAvail(InternetAvail.ALWAYS_CONNECT, false);
+        
         mDatabaseHelper.removeUserData();
+        
         // Before clearing the Application cache, kick the widget update. Pref's
         // file contain the widget ID.
         WidgetUtils.kickWidgetUpdateNow(this);
@@ -190,7 +197,10 @@ public class MainApplication extends Application {
     public ServiceStatus setInternetAvail(InternetAvail internetAvail, boolean forwardToSyncAdapter) {
 
         if(getInternetAvail() == internetAvail) {
-            // Nothing to do
+            // FIXME: This is a hack in order to set the system auto sync on/off depending on our data settings
+            if (forwardToSyncAdapter) {
+                NativeContactsApi.getInstance().setSyncAutomatically(internetAvail == InternetAvail.ALWAYS_CONNECT);
+            }
             return ServiceStatus.SUCCESS;
         }
         
@@ -228,7 +238,8 @@ public class MainApplication extends Application {
      * 
      * @return current Internet availability setting.
      */
-    public InternetAvail getInternetAvail() {
-        return mDatabaseHelper.fetchOption(PersistSettings.Option.INTERNETAVAIL).getInternetAvail();
+    public synchronized InternetAvail getInternetAvail() {
+        InternetAvail internetAvail = mDatabaseHelper.fetchOption(PersistSettings.Option.INTERNETAVAIL).getInternetAvail();
+        return internetAvail;
     }
 }
