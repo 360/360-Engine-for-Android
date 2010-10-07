@@ -34,7 +34,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.telephony.TelephonyManager;
 
 import com.vodafone360.people.ApplicationCache;
 import com.vodafone360.people.Intents;
@@ -61,6 +60,7 @@ import com.vodafone360.people.service.io.api.Auth;
 import com.vodafone360.people.service.receivers.SmsBroadcastReceiver;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.LoginPreferences;
+import com.vodafone360.people.utils.SimCard;
 
 /**
  * Engine handling sign in to existing accounts and sign up to new accounts.
@@ -128,16 +128,6 @@ public class LoginEngine extends BaseEngine {
      * Database used for fetching/storing state information
      */
     private DatabaseHelper mDb;
-
-    /**
-     * Subscriber ID fetched from SIM card
-     */
-    private String mCurrentSubscriberId;
-
-    /**
-     * Android telephony manager used for fetching subscriber ID
-     */
-    private TelephonyManager mTelephonyManager;
 
     /**
      * Contains the authenticated session information while the user is logged
@@ -218,7 +208,6 @@ public class LoginEngine extends BaseEngine {
         super(eventCallback);
         LogUtils.logD("LoginEngine.LoginEngine()");
         mContext = context;
-        mTelephonyManager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
         mDb = db;
 
         mEngineId = EngineId.LOGIN_ENGINE;
@@ -232,10 +221,10 @@ public class LoginEngine extends BaseEngine {
     public void onCreate() {
         LogUtils.logD("LoginEngine.OnCreate()");
         mState = State.NOT_INITIALISED;
-        mCurrentSubscriberId = mTelephonyManager.getSubscriberId();
         IntentFilter filter = new IntentFilter(SmsBroadcastReceiver.ACTION_ACTIVATION_CODE);
         mContext.registerReceiver(mEventReceiver, filter);
         mIsRegistrationComplete = StateTable.isRegistrationComplete(mDb.getReadableDatabase());
+        initializeEngine();
     }
 
     /**
@@ -385,7 +374,7 @@ public class LoginEngine extends BaseEngine {
         }
         switch (mState) {
             case NOT_INITIALISED:
-                initialiseEngine();
+                initializeEngine();
                 return;
             case REQUESTING_ACTIVATION_CODE:
             case SIGNING_UP:
@@ -587,16 +576,11 @@ public class LoginEngine extends BaseEngine {
      * Called by the run() function the first time it is executed to perform
      * non-trivial initialisation such as auto login.
      */
-    private void initialiseEngine() {
+    private void initializeEngine() {
         LogUtils.logD("LoginEngine.initialiseEngine()");
         if (ServiceStatus.SUCCESS == mDb.fetchLogonCredentialsAndPublicKey(mLoginDetails,
                 mPublicKey)) {
-            if (mLoginDetails.mSubscriberId != null
-                    && !mLoginDetails.mSubscriberId.equals(mCurrentSubscriberId)) {
-                LogUtils.logW("SIM card has changed.  Login session invalid");
-            } else {
-                sActivatedSession = StateTable.fetchSession(mDb.getReadableDatabase());
-            }
+            sActivatedSession = StateTable.fetchSession(mDb.getReadableDatabase());
         }
         mAreLoginDetailsValid = true;
         restoreLoginState();
@@ -629,7 +613,7 @@ public class LoginEngine extends BaseEngine {
             mLoginDetails.mAutoConnect = true;
             mLoginDetails.mRememberMe = true;
             mLoginDetails.mMobileNo = mRegistrationDetails.mMsisdn;
-            mLoginDetails.mSubscriberId = mCurrentSubscriberId;
+            mLoginDetails.mSubscriberId = SimCard.getSubscriberId(mContext);
             mDb.modifyCredentialsAndPublicKey(mLoginDetails, mPublicKey);
 
             startSignUpCrypted(theBytes, timestampInSeconds);
@@ -835,7 +819,7 @@ public class LoginEngine extends BaseEngine {
             return;
         }
         mLoginDetails.copy(details);
-        mLoginDetails.mSubscriberId = mCurrentSubscriberId;
+        mLoginDetails.mSubscriberId = SimCard.getSubscriberId(mContext);
         mDb.modifyCredentialsAndPublicKey(mLoginDetails, mPublicKey);
 
         if (Settings.ENABLE_ACTIVATION) {
@@ -950,11 +934,12 @@ public class LoginEngine extends BaseEngine {
         // AA: the old version if (mCurrentSubscriberId == null ||
         // !mCurrentSubscriberId.equals(mLoginDetails.mSubscriberId)) { //
         // logging off/fail will be done in another way according to bug 8288
-        if (mCurrentSubscriberId != null
-                && !mCurrentSubscriberId.equals(mLoginDetails.mSubscriberId)) {
+        final String currentSubscriberId = SimCard.getSubscriberId(mContext);
+        if (currentSubscriberId != null
+                && !currentSubscriberId.equals(mLoginDetails.mSubscriberId)) {
             LogUtils.logV("LoginEngine.retryAutoLogin() -"
                     + " SIM card has changed or is missing (old subId = "
-                    + mLoginDetails.mSubscriberId + ", new subId = " + mCurrentSubscriberId + ")");
+                    + mLoginDetails.mSubscriberId + ", new subId = " + currentSubscriberId + ")");
             mAreLoginDetailsValid = false;
             newState(State.LOGIN_FAILED);
             return false;

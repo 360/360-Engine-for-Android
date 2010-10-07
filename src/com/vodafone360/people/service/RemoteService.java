@@ -47,6 +47,7 @@ import com.vodafone360.people.service.interfaces.IPeopleServiceImpl;
 import com.vodafone360.people.service.interfaces.IWorkerThreadControl;
 import com.vodafone360.people.service.transport.ConnectionManager;
 import com.vodafone360.people.service.transport.IWakeupListener;
+import com.vodafone360.people.service.utils.UserDataProtection;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.VersionUtils;
 
@@ -136,11 +137,15 @@ public class RemoteService extends Service implements IWorkerThreadControl,
         mIsStarted = true;
         kickWorkerThread();
 
-        ((MainApplication)getApplication()).setServiceInterface(mIPeopleServiceImpl);
+        final MainApplication mainApp = (MainApplication)getApplication();
+        mainApp.setServiceInterface(mIPeopleServiceImpl);
         if(VersionUtils.is2XPlatform()) {
             mAccountsObjectsHolder = new 
             NativeAccountObjectsHolder(((MainApplication)getApplication()));
         }
+        
+        final UserDataProtection userDataProtection = new UserDataProtection(this, mainApp.getDatabase());
+        userDataProtection.performStartupChecks();
     }
 
     /**
@@ -153,20 +158,20 @@ public class RemoteService extends Service implements IWorkerThreadControl,
             LogUtils.logV("RemoteService.onStart() intent is null. Returning.");
             return;
         }
-        Bundle mBundle = intent.getExtras();
+    	final Bundle bundle = intent.getExtras();
         LogUtils.logI("RemoteService.onStart() Intent action["
-                + intent.getAction() + "] data[" + mBundle + "]");
+    		+ intent.getAction() + "] data[" + bundle + "]");
 
-        if ((null == mBundle) || (null == mBundle.getString(ALARM_KEY))) {
+        if ((null == bundle) || (null == bundle.getString(ALARM_KEY))) {
             LogUtils.logV("RemoteService.onStart() mBundle is null. Returning.");
             return;
         }
 
-        if (mBundle.getString(ALARM_KEY).equals(WorkerThread.ALARM_WORKER_THREAD)) {
+        if (bundle.getString(ALARM_KEY).equals(WorkerThread.ALARM_WORKER_THREAD)) {
             LogUtils.logV("RemoteService.onStart() ALARM_WORKER_THREAD Alarm thrown");
             kickWorkerThread();
 
-        } else if (mBundle.getString(ALARM_KEY).equals(IWakeupListener.ALARM_HB_THREAD)) {
+        } else if (bundle.getString(ALARM_KEY).equals(IWakeupListener.ALARM_HB_THREAD)) {
             LogUtils.logV("RemoteService.onStart() ALARM_HB_THREAD Alarm thrown");
             if (null != mWakeListener) {
                 mWakeListener.notifyOfWakeupAlarm();
