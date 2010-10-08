@@ -78,7 +78,7 @@ public class Presence {
         }
         
         if (Settings.LOG_PRESENCE_PUSH_ON_LOGCAT) {
-            LogUtils.logE("SET MY AVAILABILITY: " + status);
+            LogUtils.logWithName(LogUtils.PRESENCE_INFO_TAG,"SET MY AVAILABILITY: " + status);
         }
         Request request = new Request(EMPTY, Request.Type.AVAILABILITY, EngineId.UNDEFINED, true,
                 Settings.API_REQUESTS_TIMEOUT_PRESENCE_SET_AVAILABILITY);

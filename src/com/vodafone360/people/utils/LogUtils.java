@@ -46,6 +46,10 @@ import com.vodafone360.people.Settings;
  * name and current thread name prepended to logged data.
  */
 public final class LogUtils {
+    
+    /** Special tag postfix for LogCat to print presence infos. **/
+    public static final String PRESENCE_INFO_TAG = "PRESENCE_INFO";
+    
     /** Application tag prefix for LogCat. **/
     private static final String APP_NAME_PREFIX = "People_";
     
@@ -203,14 +207,14 @@ public final class LogUtils {
 
     /**
      * Write info log string with specific component name.
-     *
+     * This method should be only used from the code, that is run after being enabled
+     * with a special TwelveKeyDialer cheat code combination.
+     *  
      * @param name String name string to prepend to log data.
      * @param data String containing data to be logged.
      */
     public static void logWithName(final String name, final String data) {
-        if (mEnabled) {
-            Log.v(APP_NAME_PREFIX + name, data);
-        }
+        Log.v(APP_NAME_PREFIX + name, data);
     }
 
     /**

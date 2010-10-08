@@ -25,7 +25,6 @@
 
 package com.vodafone360.people.engine.presence;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -76,7 +75,7 @@ public class User implements Parcelable {
     public User(String userId, Hashtable<String, String> payload) {
         if (payload != null) {
             if (Settings.LOG_PRESENCE_PUSH_ON_LOGCAT) {
-                LogUtils.logE("user id:"+ userId + ", " + payload);
+                LogUtils.logWithName(LogUtils.PRESENCE_INFO_TAG, "user id:"+ userId + ", " + payload);
             }
             mOverallOnline = isOverallOnline(payload);
             mPayload = createPayload(userId, payload);

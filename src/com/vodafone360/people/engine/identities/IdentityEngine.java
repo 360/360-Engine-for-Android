@@ -524,7 +524,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     	LogUtils.logD("IdentityEngine.processCommsResponse() - resp = " + resp);
     	
     	if ((null == resp) || (null == resp.mDataTypes)) {
-    		LogUtils.logWithName("IdentityEngine.processCommsResponse()", "Response objects or its contents were null. Aborting...");
+    		LogUtils.logE("Response objects or its contents were null. Aborting...");
     		return;
     	}
         
