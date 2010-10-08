@@ -193,7 +193,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         final List<String> capabilities = new ArrayList<String>();
         capabilities.add(IdentityCapability.CapabilityID.chat.name());
         capabilities.add(IdentityCapability.CapabilityID.get_own_status.name());
-        mCapabilitiesFilter.put("capability", capabilities);
+        mCapabilitiesFilter.put(Identities.CAPABILITY, capabilities);
     }
     
     /**
