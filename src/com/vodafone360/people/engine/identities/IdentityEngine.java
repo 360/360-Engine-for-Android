@@ -167,6 +167,11 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 	 * maintained cache.
 	 **/
 	private DeleteIdentityRequest identityToBeDeleted;
+	
+    /**
+     * The hard coded list of capabilities we use to getAvailable~/MyIdentities(): chat and status.
+     */
+    private final Map<String, List<String>> mCapabilitiesFilter;
 
     /**
      * Constructor
@@ -179,9 +184,16 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         
         mMyIdentityList = new ArrayList<Identity>();
         mAvailableIdentityList = new ArrayList<Identity>();
-        
+                
         mLastMyIdentitiesRequestTimestamp = 0;
         mLastAvailableIdentitiesRequestTimestamp = 0;
+        
+        // initialize identity capabilities filter
+        mCapabilitiesFilter = new Hashtable<String, List<String>>();
+        final List<String> capabilities = new ArrayList<String>();
+        capabilities.add(IdentityCapability.CapabilityID.chat.name());
+        capabilities.add(IdentityCapability.CapabilityID.get_own_status.name());
+        mCapabilitiesFilter.put("capability", capabilities);
     }
     
     /**
@@ -323,7 +335,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * by onProcessCommsResponse once a response comes in.
      */
     private void sendGetMyIdentitiesRequest() {
-    	Identities.getMyIdentities(this, prepareStringFilter(getIdentitiesFilter()));
+        Identities.getMyIdentities(this, mCapabilitiesFilter);
     }
     
     /**
@@ -331,7 +343,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * handled by onProcessCommsResponse once a response comes in.
      */
     private void sendGetAvailableIdentitiesRequest() {
-    	Identities.getAvailableIdentities(this, prepareStringFilter(getIdentitiesFilter()));
+    	Identities.getAvailableIdentities(this, mCapabilitiesFilter);
     }
 
     /**
@@ -353,6 +365,9 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     }
 
     /**
+     * TODO: re-factor the method in the way that the UI doesn't pass the Bundle with capabilities
+     * list to the Engine, but the Engine makes the list itself (UI/Engine separation).
+     *  
      * Add request to validate user credentials for a specified identity.
      * 
      * @param dryRun True if this is a dry-run.
@@ -815,24 +830,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     	int connState = ConnectionManager.getInstance().getConnectionState();
         return (connState == ITcpConnectionListener.STATE_CONNECTED);
     }
-    
-    /**
-     * 
-     * Retrieves the filter for the getAvailableIdentities and getMyIdentities
-     * calls.
-     * 
-     * @return The identities filter in form of a bundle.
-     * 
-     */
-    private Bundle getIdentitiesFilter() {
-    	Bundle b = new Bundle();
-        ArrayList<String> l = new ArrayList<String>();
-        l.add(IdentityCapability.CapabilityID.chat.name());
-        l.add(IdentityCapability.CapabilityID.get_own_status.name());
-        b.putStringArrayList("capability", l);
-        return b;
-    }
-
+   
 	@Override
 	public void onConnectionStateChanged(int state) {
 		if (state == ITcpConnectionListener.STATE_CONNECTED) {
@@ -896,25 +894,6 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
             objectFilter = null;
         }
         return objectFilter;
-    }
-
-    /**
-     * Generate Map containing String capability filters for m supplied Bundle.
-     * 
-     * @param filter Bundle containing filter.
-     * @return Map containing set of capabilities.
-     */
-    private static Map<String, List<String>> prepareStringFilter(Bundle filter) {
-        Map<String, List<String>> returnFilter = null;
-        if (filter != null && filter.keySet().size() > 0) {
-            returnFilter = new Hashtable<String, List<String>>();
-            for (String key : filter.keySet()) {
-                returnFilter.put(key, filter.getStringArrayList(key));
-            }
-        } else {
-            returnFilter = null;
-        }
-        return returnFilter;
     }
     
     /**
