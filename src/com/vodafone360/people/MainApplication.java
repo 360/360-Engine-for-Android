@@ -196,11 +196,7 @@ public class MainApplication extends Application {
      */
     public ServiceStatus setInternetAvail(InternetAvail internetAvail, boolean forwardToSyncAdapter) {
 
-        if(getInternetAvail() == internetAvail) {
-            // FIXME: This is a hack in order to set the system auto sync on/off depending on our data settings
-            if (forwardToSyncAdapter) {
-                NativeContactsApi.getInstance().setSyncAutomatically(internetAvail == InternetAvail.ALWAYS_CONNECT);
-            }
+        if (getInternetAvail() == internetAvail) {
             return ServiceStatus.SUCCESS;
         }
         
@@ -238,8 +234,7 @@ public class MainApplication extends Application {
      * 
      * @return current Internet availability setting.
      */
-    public synchronized InternetAvail getInternetAvail() {
-        InternetAvail internetAvail = mDatabaseHelper.fetchOption(PersistSettings.Option.INTERNETAVAIL).getInternetAvail();
-        return internetAvail;
+    public InternetAvail getInternetAvail() {
+        return mDatabaseHelper.fetchOption(PersistSettings.Option.INTERNETAVAIL).getInternetAvail();
     }
 }

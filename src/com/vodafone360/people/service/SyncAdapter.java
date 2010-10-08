@@ -248,7 +248,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
         boolean masterSyncAuto = ContentResolver.getMasterSyncAutomatically();
         boolean syncAuto = ContentResolver.getSyncAutomatically(account, ContactsContract.AUTHORITY); 
         
-        LogUtils.logE("SyncAdapter.canSyncAutomatically() [masterSync=" + 
+        LogUtils.logD("SyncAdapter.canSyncAutomatically() [masterSync=" + 
                 masterSyncAuto + ", syncAuto=" + syncAuto + "]");
         
         return masterSyncAuto && syncAuto;

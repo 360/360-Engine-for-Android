@@ -94,12 +94,6 @@ public class PersistSettings implements Parcelable {
      * contact sync status.
      */
     public static enum Option {
-        // Note: Currently it is crucial that default value for Option
-        // INTERNETAVAIL remains MANUAL_CONNECT. The LandingPageActivity
-        // sets the value to ALWAYS_CONNECT in its onCreate() method 
-        // before login and triggers the correct computation of the 
-        // AgentState in the NetworkAgentState class. For details see
-        // PAND-2305.
         INTERNETAVAIL("internetavail", OptionType.INTEGER, InternetAvail.ALWAYS_CONNECT.ordinal()),
         FIRST_TIME_SYNC_STARTED("ftsstarted", OptionType.BOOLEAN, false),
         FIRST_TIME_MESYNC_STARTED("ftmesyncstarted", OptionType.BOOLEAN, false),
