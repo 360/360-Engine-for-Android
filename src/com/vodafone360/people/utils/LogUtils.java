@@ -214,7 +214,7 @@ public final class LogUtils {
      * @param data String containing data to be logged.
      */
     public static void logWithName(final String name, final String data) {
-        Log.v(APP_NAME_PREFIX + name, data);
+        Log.v(name, data);
     }
 
     /**
@@ -224,7 +224,7 @@ public final class LogUtils {
      * @param exception Exception associated with error.
      */
     public static void logE(final String data, final Throwable exception) {
-        // FlurryAgent.onError("Generic", data,
+        // FlurryAgent.onError("Generic", data,it 
         // exception.getClass().toString());
         if (mEnabled) {
             Thread currentThread = Thread.currentThread();
@@ -270,19 +270,14 @@ public final class LogUtils {
             
             try {
                 File root = Environment.getExternalStorageDirectory();
-                if (root.canWrite()) {
+                if (root.canWrite()){
                     File binaryFile = new File(root, fileName);
                     fos = new FileOutputStream(binaryFile);
                     fos.write(data);
                     fos.flush();
-                } else {
-                    logE("LogUtils.logToFile() Could not write to SD card. Missing a permission? " +
-                    		"SC Card is currently "+
-                            Environment.getExternalStorageState());
                 }
             } catch (IOException e) {
-                logE("LogUtils.logToFile() Could not write " + fileName +
-                        " to SD card! Exception: "+e);
+                logE("LogUtils.logToFile() Could not write " + fileName + " to SD card!");
             } finally {
                 if (null != fos) {
                     try {
