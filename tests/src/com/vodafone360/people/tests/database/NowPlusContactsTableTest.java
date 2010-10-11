@@ -26,6 +26,8 @@
 package com.vodafone360.people.tests.database;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -322,14 +324,14 @@ public class NowPlusContactsTableTest extends NowPlusTableTestCase {
 				writeableDb);
 		assertEquals(ServiceStatus.SUCCESS, status);
 		// fetch server ids
-		ArrayList<Long> serverIds = new ArrayList<Long>();
+		HashSet<Long> serverIds = new HashSet<Long>();
 		status = ContactsTable.fetchContactServerIdList(serverIds, readableDb);
 		assertEquals(ServiceStatus.SUCCESS, status);
 		// validate if lists have the same sizes
 		assertEquals(2, dupList.size());
 		assertEquals(contactServerIdList.size() - 2, serverIds.size());
 
-		final ListIterator<Long> serverIdsIt = serverIds.listIterator();
+		final Iterator<Long> serverIdsIt = serverIds.iterator();
 		assertEquals(Long.valueOf(dupList.get(0).localId), contactServerIdList.get(0).localId);
 		assertEquals(contactServerIdList.get(0).serverId, dupList.get(0).serverId);
 		assertEquals(duplicateContact.localContactID, Long.valueOf(dupList.get(1).localId));

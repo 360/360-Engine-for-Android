@@ -399,6 +399,13 @@ public class ThumbnailCache {
                                 }
                             }});
 
+                    } catch (NullPointerException e) {
+                        LogUtils.logE("ThumbnailCache.loadThumbnails() "
+                                + "Unexpected NullPointerException while "
+                                + "loading thumbnails, clearing Thumbnail "
+                                + "cache for safety.", e);
+                        clearThumbnailCache();
+
                     } catch (OutOfMemoryError outOfMemoryError) {
                         LogUtils.logE("ThumbnailCache.loadThumbnails() "
                                 + "Low on memory while decoding thumbnails",

@@ -50,43 +50,96 @@ import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.utils.LogUtils;
 
+/***
+ * Utilities relating to Chat messages.
+ */
 public class ChatDbUtils {
 
+    /**
+     * User ID is formated <network>::<userId>, using this as the divider.
+     */
     protected static final String COLUMNS = "::";
 
-    protected static void convertUserIds(ChatMessage msg, DatabaseHelper databaseHelper) {
+    /***
+     * Set the user ID, network ID and local contact ID values in the given
+     * ChatMessage.
+     *
+     * The original msg.getUserId() is formatted <network>::<userId>, meaning
+     * if "::" is present the values are split, otherwise the original value is
+     * used.
+     *
+     * @param chatMessage ChatMessage to be altered.
+     * @param databaseHelper DatabaseHelper with a readable database.
+     */
+    public static void convertUserIds(final ChatMessage chatMessage,
+            final DatabaseHelper databaseHelper) {
 
-    	String userId = msg.getUserId();
-    	String network = SocialNetwork.VODAFONE.name();
+        /**
+         * Use original User ID, in case of NumberFormatException (see
+         * PAND-2356).
+         */
+        final String originalUserId = chatMessage.getUserId();
 
-    	// TODO: PAND-2356: log original userID, in case of NumberFormatException
-    	String originalUserId = userId;
+        int index = originalUserId.indexOf(COLUMNS);
+        if (index > -1) {
+            /** Parse a <networkId>::<userId> formatted user ID. **/
+            chatMessage.setUserId(
+                    originalUserId.substring(index + COLUMNS.length()));
+            String network = originalUserId.substring(0, index);
 
-        int columnsIndex = userId.indexOf(COLUMNS);
-        if (columnsIndex > -1) {
-            network = userId.substring(0, columnsIndex);
-            userId = userId.substring(columnsIndex + COLUMNS.length());
-        }
-        SocialNetwork sn = SocialNetwork.getValue(network);
-        if (sn != null) {
-            msg.setNetworkId(sn.ordinal());
-        } else {
-            throw new RuntimeException("ChatUtils.convertUserIds: Invalid network : " + network);
-        }
-        msg.setUserId(userId);
-        int networkId = msg.getNetworkId();
-        if (networkId == SocialNetwork.VODAFONE.ordinal()) {
-            try {
-                Long id = Long.valueOf(msg.getUserId());
-                msg.setLocalContactId(ContactsTable.fetchLocalIdFromUserId(id, databaseHelper.getReadableDatabase()));
-            } catch (NumberFormatException e) {
-                LogUtils.logE("ChatDbUtils.convertUserIds()  Original userid: " + originalUserId);
+            /** Parse the <networkId> component. **/
+            SocialNetwork sn = SocialNetwork.getValue(network);
+            if (sn != null) {
+                chatMessage.setNetworkId(sn.ordinal());
+            } else {
+                chatMessage.setNetworkId(SocialNetwork.INVALID.ordinal());
+                LogUtils.logE("ChatUtils.convertUserIds() Invalid Network ID ["
+                        + network + "] in [" + originalUserId + "]");
             }
+
         } else {
-            msg.setLocalContactId(ContactDetailsTable.findLocalContactIdByKey(SocialNetwork
-                    .getChatValue(networkId).toString(), msg.getUserId(),
-                    ContactDetail.DetailKeys.VCARD_IMADDRESS, databaseHelper
-                    .getReadableDatabase()));
+            /** Use defaults. **/
+            chatMessage.setUserId(chatMessage.getUserId());
+            chatMessage.setNetworkId(SocialNetwork.VODAFONE.ordinal());
+        }
+
+        /** Search for a Local Contact ID. **/
+        if (chatMessage.getNetworkId() == SocialNetwork.VODAFONE.ordinal()) {
+            Long userId = null;
+
+            /** Try with parsed User ID. **/
+            try {
+                userId = Long.valueOf(chatMessage.getUserId());
+
+            } catch (NumberFormatException e) {
+                LogUtils.logE("ChatDbUtils.convertUserIds() User ID not a long ["
+                        + chatMessage.getUserId() + "], trying original.");
+
+                /** Try with original User ID. **/
+                try {
+                    userId = Long.valueOf(originalUserId);
+
+                } catch (NumberFormatException ef) {
+                    LogUtils.logE("ChatDbUtils.convertUserIds() Original user ID "
+                            + "not a long [" + chatMessage.getUserId()
+                            + "], local contact ID left unset");
+                }
+            }
+
+            if (userId != null) {
+                chatMessage.setLocalContactId(ContactsTable.fetchLocalIdFromUserId(
+                        userId, databaseHelper.getReadableDatabase()));
+            }
+
+        } else {
+            chatMessage.setLocalContactId(
+                    ContactDetailsTable.findLocalContactIdByKey(
+                            SocialNetwork.getChatValue(
+                                    chatMessage.getNetworkId()).toString(),
+                                    chatMessage.getUserId(),
+                                    ContactDetail.DetailKeys.VCARD_IMADDRESS,
+                                    databaseHelper.getReadableDatabase())
+                    );
         }
     }
 
