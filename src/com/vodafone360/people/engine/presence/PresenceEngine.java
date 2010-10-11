@@ -155,10 +155,9 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
 
     @Override
     public long getNextRunTime() {
-        if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED || !mLoggedIn) {
+        if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED || !isLoggedIn()) {
             return -1;
         }
-
         if (!isFirstTimeSyncComplete()) {
             LogUtils.logV("PresenceEngine.getNextRunTime(): 1st contact sync is not finished:");
             return -1;
@@ -183,7 +182,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     @Override
     public void run() {
         LogUtils.logV("PresenceEngine.run() isCommsResponseOutstanding["
-                + isCommsResponseOutstanding() + "] mLoggedIn[" + mLoggedIn + "] mNextRuntime["
+                + isCommsResponseOutstanding() + "] mLoggedIn[" + isLoggedIn() + "] mNextRuntime["
                 + getCurrentTimeout() + "]");
         if (isCommsResponseOutstanding() && processCommsInQueue()) {
             LogUtils.logV("PresenceEngine.run() handled processCommsInQueue()");
@@ -224,7 +223,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     public void onLoginStateChanged(boolean loggedIn) {
         LogUtils.logI("PresenceEngine.onLoginStateChanged() loggedIn[" + loggedIn + "]");
         mLoggedIn = loggedIn;
-        if (!mLoggedIn) {
+        if (!isLoggedIn()) {
             mFirstRun = true;
             mFailedMessagesList.clear();
             mSendMessagesHash.clear();
@@ -260,7 +259,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
                 break;
             case IDLE:
             default:
-                if (mLoggedIn) {
+                if (isLoggedIn()) {
                     if (isFirstTimeSyncComplete()) {
                         getPresenceList();
                         initSetMyAvailabilityRequest(getMyAvailabilityStatusFromDatabase());
@@ -814,7 +813,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
 
     @Override
     public void onConnectionStateChanged(int state) {
-        if (mLoggedIn && isFirstTimeSyncComplete()) {
+        if (isLoggedIn() && isFirstTimeSyncComplete()) {
             switch (state) {
                 case STATE_CONNECTED:
                     getPresenceList();
@@ -884,5 +883,12 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         mUsers = null;
         mFailedMessagesList.clear();
         mSendMessagesHash.clear();
+    }
+    
+    private boolean isLoggedIn(){
+        if (!mLoggedIn) {
+            mLoggedIn = EngineManager.getInstance().getLoginEngine().isLoggedIn();
+        }
+        return mLoggedIn;
     }
 }
