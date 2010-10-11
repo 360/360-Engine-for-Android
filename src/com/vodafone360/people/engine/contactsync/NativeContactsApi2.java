@@ -28,6 +28,8 @@ package com.vodafone360.people.engine.contactsync;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import android.accounts.AccountManager;
 import android.content.ContentProviderOperation;
@@ -108,7 +110,8 @@ public class NativeContactsApi2 extends NativeContactsApi {
      * present. Matches the following cases: N-n-n n-n-N Where: - 'n'
      * corresponds to one or two digits - 'N' corresponds to two or 4 digits
      */
-    private static final String COMPLETE_DATE_REGEX = "(?:^\\d{2,4}-\\d{1,2}-\\d{1,2}$|^\\d{1,2}-\\d{1,2}-\\d{2,4}$)";
+    public static final String COMPLETE_DATE_REGEX = 
+        "(\\d{1,4}-\\d{1,2}-\\d{1,2}|\\d{1,2}-\\d{1,2}-\\d{1,4})";
 
     /**
      * 'My Contacts' System group where clause
@@ -508,13 +511,15 @@ public class NativeContactsApi2 extends NativeContactsApi {
         } catch (Exception ex) {
             LogUtils.logE("People Account creation failed because of exception:\n", ex);
         }
-        if (isAdded) {
-            // Updating MyContacts Group IDs here for now because it needs to be
-            // done one time just before first time sync.
-            // In the future, this code may change if we modify
-            // the way we retrieve contact IDs.
-            fetchMyContactsGroupRowIds();
-        }
+        
+//      Commented out 'My Contacts' Group Row IDs call as it is not currently used        
+//        if (isAdded) {
+//            // Updating MyContacts Group IDs here for now because it needs to be
+//            // done one time just before first time sync.
+//            // In the future, this code may change if we modify
+//            // the way we retrieve contact IDs.
+//            fetchMyContactsGroupRowIds();
+//        }
 
         return isAdded;
     }
@@ -1229,23 +1234,41 @@ public class NativeContactsApi2 extends NativeContactsApi {
      * @param ccList List of Contact Changes to add read detail data
      * @param nabContactId ID of the NAB Contact
      */
-    public void readBirthday(Cursor cursor, List<ContactChange> ccList, long nabContactId) {
+    private void readBirthday(Cursor cursor, List<ContactChange> ccList, long nabContactId) {
         final int type = CursorUtils.getInt(cursor, Event.TYPE);
-        if (type == Event.TYPE_BIRTHDAY) {
-            final String date = CursorUtils.getString(cursor, Event.START_DATE);
-            // Ignoring birthdays without year, day and month!
-            // FIXME: Remove this check when/if the backend becomes able to
-            // handle incomplete birthdays
-            if (date != null && date.matches(COMPLETE_DATE_REGEX)) {
-                final long nabDetailId = CursorUtils.getLong(cursor, Event._ID);
-                final ContactChange cc = new ContactChange(ContactChange.KEY_VCARD_DATE, date,
-                        ContactChange.FLAG_BIRTHDAY);
-                cc.setNabContactId(nabContactId);
-                cc.setNabDetailId(nabDetailId);
-                ccList.add(cc);
-                mHaveReadBirthday = true;
-            }
+        if (type != Event.TYPE_BIRTHDAY) {
+            // Not a Birthday, return
+            return;
         }
+        
+        final String date = CursorUtils.getString(cursor, Event.START_DATE);
+        
+        if(TextUtils.isEmpty(date)) {
+            // Empty date, do nothing
+            return;
+        }
+
+        // Ignoring birthdays without year, day and month!
+        // FIXME: Remove this check when/if the backend becomes able to
+        // handle incomplete birthdays
+        Matcher matcher = Pattern.compile(NativeContactsApi2.COMPLETE_DATE_REGEX).matcher(date);
+        
+        if(!matcher.find()) {
+            // No matching date, log and return
+            LogUtils.logD("NativeContactsApi2.readBirthday() - Unsupported '"+
+                    date+"' Date skipped for NAB Contact ID:"+nabContactId);
+            return;            
+        }
+        
+        final long nabDetailId = CursorUtils.getLong(cursor, Event._ID);
+        final ContactChange cc = new ContactChange(
+                                        ContactChange.KEY_VCARD_DATE, 
+                                        matcher.group(),
+                                        ContactChange.FLAG_BIRTHDAY);
+        cc.setNabContactId(nabContactId);
+        cc.setNabDetailId(nabDetailId);
+        ccList.add(cc);
+        mHaveReadBirthday = true;
     }
 
     /**

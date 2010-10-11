@@ -1230,7 +1230,6 @@ public class NativeImporterTest extends TestCase {
         copy.setNabContactId(change.getNabContactId());
         copy.setNabDetailId(change.getNabDetailId());
         copy.setType(change.getType());
-        copy.setDestinations(change.getDestinations());
         
         return copy;
     }
