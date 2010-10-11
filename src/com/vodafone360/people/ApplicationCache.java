@@ -371,7 +371,6 @@ public class ApplicationCache {
         sUpdatingStatuses = false;
         sFetchingOlderStatuses = false;
         
-        Settings.LOG_PRESENCE_PUSH_ON_LOGCAT = false;
     }
 
     /**
