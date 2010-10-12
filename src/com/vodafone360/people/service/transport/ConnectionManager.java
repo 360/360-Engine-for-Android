@@ -31,7 +31,6 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.widget.Toast;
 
-import com.vodafone360.people.R;
 import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.login.LoginEngine.ILoginEventsListener;
 import com.vodafone360.people.service.RemoteService;
@@ -40,7 +39,6 @@ import com.vodafone360.people.service.transport.http.HttpConnectionThread;
 import com.vodafone360.people.service.transport.http.authentication.AuthenticationManager;
 import com.vodafone360.people.service.transport.tcp.ITcpConnectionListener;
 import com.vodafone360.people.service.transport.tcp.TcpConnectionThread;
-import com.vodafone360.people.utils.LogUtils;
 
 /**
  * ConnectionManager - responsible for controlling the current connection

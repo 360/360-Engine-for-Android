@@ -131,7 +131,6 @@ public class RemoteService extends Service implements IWorkerThreadControl,
         EngineManager.createEngineManager(this, mIPeopleServiceImpl);
         mNetworkAgent.onCreate();
         mIPeopleServiceImpl.setNetworkAgent(mNetworkAgent);
-        ConnectionManager.getInstance().connect(this);
 
         /** The service has now been fully initialised. **/
         mIsStarted = true;

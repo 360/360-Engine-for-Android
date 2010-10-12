@@ -70,14 +70,14 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     /** Check every 24 hours **/
     private final static long CHECK_FREQUENCY = 24 * 60 * 60 * 1000;
 
-    /** Reconnecting before firing offline state to the handlers. **/
-    private boolean mLoggedIn = false;
-
     private DatabaseHelper mDbHelper;
 
     private final Hashtable<String, ChatMessage> mSendMessagesHash; // (to, message)
 
-    private final List<TimelineSummaryItem> mFailedMessagesList; // (to, network)
+    /**
+     * List of not delivered messages.
+     */
+    private final List<TimelineSummaryItem> mFailedMessagesList; 
     
     /** The list of Users still to be processed. **/
     private List<User> mUsers = null;
@@ -155,10 +155,9 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
 
     @Override
     public long getNextRunTime() {
-        if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED || !mLoggedIn) {
+        if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED || !isLoggedIn()) {
             return -1;
         }
-
         if (!isFirstTimeSyncComplete()) {
             LogUtils.logV("PresenceEngine.getNextRunTime(): 1st contact sync is not finished:");
             return -1;
@@ -183,7 +182,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     @Override
     public void run() {
         LogUtils.logV("PresenceEngine.run() isCommsResponseOutstanding["
-                + isCommsResponseOutstanding() + "] mLoggedIn[" + mLoggedIn + "] mNextRuntime["
+                + isCommsResponseOutstanding() + "] mNextRuntime["
                 + getCurrentTimeout() + "]");
         if (isCommsResponseOutstanding() && processCommsInQueue()) {
             LogUtils.logV("PresenceEngine.run() handled processCommsInQueue()");
@@ -223,8 +222,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     @Override
     public void onLoginStateChanged(boolean loggedIn) {
         LogUtils.logI("PresenceEngine.onLoginStateChanged() loggedIn[" + loggedIn + "]");
-        mLoggedIn = loggedIn;
-        if (!mLoggedIn) {
+        if (loggedIn) {
             mFirstRun = true;
             mFailedMessagesList.clear();
             mSendMessagesHash.clear();
@@ -260,7 +258,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
                 break;
             case IDLE:
             default:
-                if (mLoggedIn) {
+                if (isLoggedIn()) {
                     if (isFirstTimeSyncComplete()) {
                         getPresenceList();
                         initSetMyAvailabilityRequest(getMyAvailabilityStatusFromDatabase());
@@ -814,7 +812,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
 
     @Override
     public void onConnectionStateChanged(int state) {
-        if (mLoggedIn && isFirstTimeSyncComplete()) {
+        if (isLoggedIn() && isFirstTimeSyncComplete()) {
             switch (state) {
                 case STATE_CONNECTED:
                     getPresenceList();
@@ -878,11 +876,18 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         // reset the engine as if it was just created
         super.onReset();
         mFirstRun = true;
-        mLoggedIn = false;
         mIterations = 0;
         mState = IDLE;
         mUsers = null;
         mFailedMessagesList.clear();
         mSendMessagesHash.clear();
+    }
+    
+    /**
+     * This method returns if the LoginEngine is in the LOGGED_ON state.
+     * @return - TRUE if the LoginEngine is in the LOGGED_ON state.
+     */
+    private boolean isLoggedIn(){
+        return EngineManager.getInstance().getLoginEngine().isLoggedIn();
     }
 }

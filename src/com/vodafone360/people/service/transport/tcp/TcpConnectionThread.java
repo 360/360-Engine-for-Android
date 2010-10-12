@@ -110,7 +110,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
     public TcpConnectionThread(DecoderThread decoder, RemoteService service) {
         mSocket = new Socket();
         mBaos = new ByteArrayOutputStream(BYTE_ARRAY_OUTPUT_STREAM_SIZE);
-
+ 
         mIsRetrying = new Boolean(false);
         mFailedRetrying = new Boolean(false);
         
@@ -132,6 +132,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
     }
     
     public void run() {
+        
         QueueManager queueManager = QueueManager.getInstance();
         setFailedRetrying(false);
         setIsRetrying(false);
@@ -429,7 +430,7 @@ public class TcpConnectionThread implements Runnable, IConnection {
         }
 
         mConnectionShouldBeRunning = true;
-        mThread = new Thread(this);
+        mThread = new Thread(this, "TcpConnectionThread");
         mThread.start();
     }
 
