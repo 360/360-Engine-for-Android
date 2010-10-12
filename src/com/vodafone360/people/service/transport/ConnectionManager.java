@@ -206,17 +206,6 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
     }
 
     /**
-     * Note: only called from tests.
-     */
-    public void free() {
-        EngineManager.getInstance().getLoginEngine().removeListener(this);
-
-        disconnect();
-        mConnection = null;
-        mInstance = null;
-    }
-
-    /**
      * Enable test connection (for Unit testing purposes)
      * 
      * @param testConn handle to test connection

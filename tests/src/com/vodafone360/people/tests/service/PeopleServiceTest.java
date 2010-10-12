@@ -110,7 +110,6 @@ public class PeopleServiceTest extends ServiceTestCase<RemoteService> implements
 		if (mPeopleService != null && mHandler != null) {
 			mPeopleService.removeEventCallback(mHandler);
 		}
-		mConnMgr.free();
 		super.tearDown();
 	}
 
