@@ -32,6 +32,8 @@ import java.util.Map;
 
 import android.os.Bundle;
 
+import com.vodafone360.people.database.DatabaseHelper;
+import com.vodafone360.people.database.tables.MyIdentitiesCacheTable;
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.IdentityCapability;
@@ -173,17 +175,26 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * The hard coded list of capabilities we use to getAvailable~/MyIdentities(): chat and status.
      */
     private final Map<String, List<String>> mCapabilitiesFilter;
+    
+    /**
+     * The DatabaseHelper used to access the client database.
+     */
+    private final DatabaseHelper mDatabaseHelper;
 
     /**
      * Constructor
      * 
      * @param eventCallback IEngineEventCallback allowing engine to report back.
      */
-    public IdentityEngine(IEngineEventCallback eventCallback) {
+    public IdentityEngine(IEngineEventCallback eventCallback, DatabaseHelper databaseHelper) {
         super(eventCallback);
         mEngineId = EngineId.IDENTITIES_ENGINE;
+        mDatabaseHelper = databaseHelper;
         
         mMyIdentityList = new ArrayList<Identity>();
+        // restore cached identities
+        MyIdentitiesCacheTable.getCachedIdentities(databaseHelper.getReadableDatabase(),
+                                                   mMyIdentityList);
         mAvailableIdentityList = new ArrayList<Identity>();
                 
         mLastMyIdentitiesRequestTimestamp = 0;
@@ -671,6 +682,9 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 	                Identity identity = (Identity)item;
 	            	mMyIdentityList.add(identity);
 	            }
+	            // cache the identities
+	            MyIdentitiesCacheTable.setCachedIdentities(mDatabaseHelper.getWritableDatabase(),
+	                                                       mMyIdentityList);
         	}
         }
         pushIdentitiesToUi(ServiceUiRequest.GET_MY_IDENTITIES);
@@ -773,6 +787,9 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     							break;
     						}
     					}
+    					// cache the new set of identities
+    					MyIdentitiesCacheTable.setCachedIdentities(mDatabaseHelper.getWritableDatabase(),
+    					                                           mMyIdentityList);
 				    }
 
 					completeUiRequest(ServiceStatus.SUCCESS);
@@ -784,7 +801,6 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 			}
 		}
 		completeUiRequest(errorStatus, bu);
-
 	}
 
     /**
@@ -953,5 +969,4 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
                 + "isFacebookInThirdPartyAccountList() Hyves not found in list");
         return false;
     }
-
 }

@@ -412,7 +412,8 @@ public class EngineManager {
      * Create instance of IdentityEngine.
      */
     private synchronized void createIdentityEngine() {
-        mIdentityEngine = new IdentityEngine(mUiEventCallback);
+        final MainApplication app = (MainApplication)mService.getApplication();
+        mIdentityEngine = new IdentityEngine(mUiEventCallback, app.getDatabase());
         ConnectionManager.getInstance().addConnectionListener(mIdentityEngine);
         addEngine(mIdentityEngine);
     }

@@ -62,6 +62,7 @@ import com.vodafone360.people.database.tables.ContactsTable;
 import com.vodafone360.people.database.tables.ConversationsTable;
 import com.vodafone360.people.database.tables.GroupsTable;
 import com.vodafone360.people.database.tables.MePresenceCacheTable;
+import com.vodafone360.people.database.tables.MyIdentitiesCacheTable;
 import com.vodafone360.people.database.tables.NativeChangeLogTable;
 import com.vodafone360.people.database.tables.PresenceTable;
 import com.vodafone360.people.database.tables.StateTable;
@@ -299,6 +300,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         MePresenceCacheTable.create(db);
         db.execSQL("ATTACH DATABASE ':memory:' AS " + DATABASE_PRESENCE + ";");
         PresenceTable.create(db);
+        MyIdentitiesCacheTable.create(db); // will be created if not existing
     }
 
     /***
