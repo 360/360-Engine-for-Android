@@ -48,18 +48,17 @@ public class DefaultProcessorFactory implements ProcessorFactory {
      *      Context, ContentResolver)
      */
     @Override
-    public BaseSyncProcessor create(int type, IContactSyncCallback callback,
-            DatabaseHelper dbHelper, Context context, ContentResolver cr) {
+    public BaseSyncProcessor create(int type, IContactSyncCallback callback, DatabaseHelper dbHelper) {
 
         LogUtils.logD("DefaultProcessorFactory().create(" + type + ", " + callback + ", "
-                + dbHelper + ", " + context + ", " + cr + ")");
+                + dbHelper + ")");
         switch (type) {
             case DOWNLOAD_SERVER_CONTACTS:
                 return new DownloadServerContacts(callback, dbHelper);
             case FETCH_NATIVE_CONTACTS:
-                return new FetchNativeContacts(callback, dbHelper, context, cr);
+                return new FetchNativeContacts(callback, dbHelper);
             case UPDATE_NATIVE_CONTACTS:
-                return new UpdateNativeContacts(callback, dbHelper, cr);
+                return new UpdateNativeContacts(callback, dbHelper);
             case UPLOAD_SERVER_CONTACTS:
                 return new UploadServerContacts(callback, dbHelper);
             default:

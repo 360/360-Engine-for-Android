@@ -48,6 +48,7 @@ import com.vodafone360.people.datatypes.PublicKeyDetails;
 import com.vodafone360.people.datatypes.RegistrationDetails;
 import com.vodafone360.people.datatypes.SimpleText;
 import com.vodafone360.people.engine.BaseEngine;
+import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.engine.contactsync.NativeContactsApi;
 import com.vodafone360.people.service.ServiceStatus;

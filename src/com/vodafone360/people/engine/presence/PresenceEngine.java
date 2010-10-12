@@ -47,6 +47,7 @@ import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.datatypes.SystemNotification.Tags;
 import com.vodafone360.people.engine.BaseEngine;
 import com.vodafone360.people.engine.EngineManager;
+import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.engine.login.LoginEngine.ILoginEventsListener;
 import com.vodafone360.people.engine.meprofile.SyncMeDbUtils;

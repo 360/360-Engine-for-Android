@@ -25,9 +25,6 @@
 
 package com.vodafone360.people.engine.contactsync;
 
-import android.content.ContentResolver;
-import android.content.Context;
-
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.contactsync.SyncStatus.Task;
@@ -56,8 +53,7 @@ public class FetchNativeContacts extends BaseSyncProcessor {
      * @param context Context needed for accessing native database
      * @param cr ContentResolver used throughout people service
      */
-    protected FetchNativeContacts(IContactSyncCallback callback, DatabaseHelper db,
-            Context context, ContentResolver cr) {
+    protected FetchNativeContacts(IContactSyncCallback callback, DatabaseHelper db) {
         super(callback, db);
         
         final boolean firstTimeSync = !EngineManager.getInstance().getContactSyncEngine().isFirstTimeSyncComplete();

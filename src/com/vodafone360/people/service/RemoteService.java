@@ -43,7 +43,6 @@ import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.contactsync.NativeContactsApi;
 import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.interfaces.IConnectionManagerInterface;
-import com.vodafone360.people.service.interfaces.IPeopleServiceImpl;
 import com.vodafone360.people.service.interfaces.IWorkerThreadControl;
 import com.vodafone360.people.service.transport.ConnectionManager;
 import com.vodafone360.people.service.transport.IWakeupListener;
@@ -94,7 +93,7 @@ public class RemoteService extends Service implements IWorkerThreadControl,
      * {@link com.vodafone360.people.service.interfaces.IPeopleService}
      * interface.
      */
-    private IPeopleServiceImpl mIPeopleServiceImpl;
+    private PeopleServiceImpl mIPeopleServiceImpl;
 
     /**
      * Used by comms when waking up the CPI at regular intervals and sending a
@@ -124,7 +123,7 @@ public class RemoteService extends Service implements IWorkerThreadControl,
     public void onCreate() {
         LogUtils.logV("RemoteService.onCreate()");
         SettingsManager.loadProperties(this);
-        mIPeopleServiceImpl = new IPeopleServiceImpl(this, this);
+        mIPeopleServiceImpl = new PeopleServiceImpl(this, this);
         mNetworkAgent = new NetworkAgent(this, this, this);
         // Create NativeContactsApi here to access Application Context
         NativeContactsApi.createInstance(getApplicationContext());

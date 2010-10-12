@@ -25,8 +25,6 @@
 
 package com.vodafone360.people.engine.contactsync;
 
-import android.content.ContentResolver;
-
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
@@ -54,7 +52,7 @@ public class UpdateNativeContacts extends BaseSyncProcessor {
      * @param db Database for reading contacts for sync and fetching change log
      * @param cr {@link ContentResolver} for updating the native database.
      */
-    public UpdateNativeContacts(IContactSyncCallback callback, DatabaseHelper db, ContentResolver cr) {
+    public UpdateNativeContacts(IContactSyncCallback callback, DatabaseHelper db) {
         super(callback, db);
 
         mNativeExporter = new NativeExporter(new PeopleContactsApi(db), NativeContactsApi.getInstance());

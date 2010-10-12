@@ -28,8 +28,6 @@ package com.vodafone360.people.engine.contactsync;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 
-import android.content.ContentResolver;
-import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 
@@ -41,6 +39,7 @@ import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.PushEvent;
 import com.vodafone360.people.engine.BaseEngine;
 import com.vodafone360.people.engine.EngineManager;
+import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.engine.content.ThumbnailHandler;
 import com.vodafone360.people.service.PersistSettings;
@@ -71,7 +70,6 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         UPDATING_NATIVE_CONTACTS,
         FETCHING_SERVER_CONTACTS,
         UPDATING_SERVER_CONTACTS,
-
     }
 
     /**
@@ -81,7 +79,6 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     public static enum Mode {
         NONE,
         FULL_SYNC_FIRST_TIME,
-        FULL_SYNC,
         SERVER_SYNC,
         THUMBNAIL_SYNC,
         FETCH_NATIVE_SYNC,
@@ -99,32 +96,6 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     
     /** The last known status of the contacts sync. */
     private ServiceStatus mLastStatus = ServiceStatus.SUCCESS;
-
-    /**
-     * Holds parameters for the UI sync request
-     */
-    private static class SyncParams {
-        /**
-         * the sync type
-         */
-        public boolean isFull;
-
-        /**
-         * the delay before executing the request
-         */
-        public long delay;
-
-        /**
-         * Constructor.
-         * 
-         * @param isFull true if full sync, false if only a server sync
-         * @param delay in milliseconds before executing the request
-         */
-        public SyncParams(boolean isFull, long delay) {
-            this.isFull = isFull;
-            this.delay = delay;
-        }
-    }
 
     /**
      * Observer interface allowing interested parties to receive notification of
@@ -167,7 +138,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     /**
      * Counter for first time sync failures
      */
-    private int mFullSyncRetryCount = 0;
+    private int mServerSyncRetryCount = 0;
 
     /**
      * Current state of the contact sync engine (determines which processor is
@@ -274,17 +245,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     /**
      * Keeps track of the last time a server sync happened.
      */
-    private Long mLastServerSyncTime = 0L;
-
-    /**
-     * The content resolver object mainly used for accessing the native database
-     */
-    private ContentResolver mCr = null;
-
-    /**
-     * The context of the People service
-     */
-    private Context mContext = null;
+    private long mLastServerSyncTime = 0L;
 
     /**
      * Flag which matches the persisted equivalent in the NowPlus database state
@@ -309,11 +270,6 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * sync first time.
      */
     private volatile boolean mFirstTimeNativeSyncComplete;
-
-    /**
-     * True if a full sync should be started as soon as possible
-     */
-    private boolean mFullSyncRequired;
 
     /**
      * True if a server sync should be started as soon as possible
@@ -402,12 +358,11 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * @param db Handle to People database.
      * @param processorFactory the processor factory
      */
-    public ContactSyncEngine(IEngineEventCallback eventCallback, Context context,
-            DatabaseHelper db, ProcessorFactory processorFactory) {
+    public ContactSyncEngine(IEngineEventCallback eventCallback, DatabaseHelper db) {
         super(eventCallback);
+        
         mDb = db;
         mEngineId = EngineId.CONTACT_SYNC_ENGINE;
-        mContext = context;
 
         final boolean enableNativeSync = VersionUtils.is2XPlatform() || !Settings.DISABLE_NATIVE_SYNC_AFTER_IMPORT_ON_ANDROID_1X;
         mFetchNativeContactsOnChange = Settings.ENABLE_FETCH_NATIVE_CONTACTS_ON_CHANGE && enableNativeSync;
@@ -415,8 +370,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         mUpdateNativeContacts = Settings.ENABLE_UPDATE_NATIVE_CONTACTS && enableNativeSync;
         
         // use standard processor factory if provided one is null
-        mProcessorFactory = (processorFactory == null) ? new DefaultProcessorFactory()
-                : processorFactory;
+        mProcessorFactory = new DefaultProcessorFactory();
     }
 
     /**
@@ -425,11 +379,11 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     @Override
     public void onCreate() {
         mDb.addEventCallback(mDbChangeHandler);
-        mCr = mContext.getContentResolver();
+
         PersistSettings setting1 = mDb.fetchOption(PersistSettings.Option.FIRST_TIME_SYNC_STARTED);
         PersistSettings setting2 = mDb.fetchOption(PersistSettings.Option.FIRST_TIME_SYNC_COMPLETE);
-        PersistSettings setting3 = mDb
-                .fetchOption(PersistSettings.Option.FIRST_TIME_NATIVE_SYNC_COMPLETE);
+        PersistSettings setting3 = mDb.fetchOption(PersistSettings.Option.FIRST_TIME_NATIVE_SYNC_COMPLETE);
+        
         if (setting1 != null) {
             mFirstTimeSyncStarted = setting1.getFirstTimeSyncStarted();
         }
@@ -439,6 +393,11 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         if (setting3 != null) {
             mFirstTimeNativeSyncComplete = setting3.getFirstTimeNativeSyncComplete();
         }
+        
+        LogUtils.logI("ContactSyncEngine.onCreate() " +
+        		"[mFirstTimeSyncStarted==" + mFirstTimeSyncStarted + 
+        		", mFirstTimeSyncComplete==" + mFirstTimeSyncComplete + 
+        		", mFirstTimeNativeSyncComplete==" + mFirstTimeNativeSyncComplete + "]");
 
         if (mFetchNativeContactsOnChange) {
             mNativeContactsApi.registerObserver(this);
@@ -473,45 +432,9 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         mLastStatus = ServiceStatus.SUCCESS;
         
         LogUtils.logI("ContactSyncEngine.addUiStartFullSync()");
-        final SyncParams params = new SyncParams(true, 0);
-        emptyUiRequestQueue();
-        addUiRequestToQueue(ServiceUiRequest.NOWPLUSSYNC, params);
-    }
 
-
-    
-    /**
-     * Triggers a server contact sync from the UI (via service interface). Only
-     * the contacts will be updated, not the me profile.
-     * 
-     * @param delay the delay in milliseconds from now when the sync should
-     *            start
-     */
-    public void addUiStartServerSync(long delay) {
-        // reset last status to enable synchronization of contacts again
-        mLastStatus = ServiceStatus.SUCCESS;
-        
-        LogUtils.logI("ContactSyncEngine.addUiStartServerSync(delay=" + delay + ")");
-        synchronized (this) {
-            if ((mMode == Mode.FULL_SYNC_FIRST_TIME || mMode == Mode.FULL_SYNC || mMode == Mode.SERVER_SYNC)
-                    && mState != State.IDLE) {
-                // Already performing a server sync or full sync, just ignore
-                // the request
-                return;
-            } else if (mServerSyncTimeout != null) {
-                final long currentDelay = mServerSyncTimeout.longValue()
-                        - System.currentTimeMillis();
-                LogUtils.logD("delay=" + delay + ", currentDelay=" + currentDelay);
-                if (currentDelay < delay) {
-                    // a timer on the server sync with an earlier time is
-                    // already set, just ignore the request
-                    return;
-                }
-            }
-        }
-        final SyncParams params = new SyncParams(false, delay);
         emptyUiRequestQueue();
-        addUiRequestToQueue(ServiceUiRequest.NOWPLUSSYNC, params);
+        addUiRequestToQueue(ServiceUiRequest.NOWPLUSSYNC, null);
     }
 
     /**
@@ -524,8 +447,8 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         LogUtils.logI("ContactSyncEngine.pingUserActivity()");
         long delay;
         synchronized (this) {
-            final long currentDelay = System.currentTimeMillis() - mLastServerSyncTime.longValue();
-            if ((mMode == Mode.FULL_SYNC_FIRST_TIME || mMode == Mode.FULL_SYNC || mMode == Mode.SERVER_SYNC)
+            final long currentDelay = System.currentTimeMillis() - mLastServerSyncTime;
+            if ((mMode == Mode.FULL_SYNC_FIRST_TIME || mMode == Mode.SERVER_SYNC)
                     && mState != State.IDLE) {
                 // Already performing a sync, scheduling a new one in
                 // USER_ACTIVITY_SERVER_SYNC_TIMEOUT_MS
@@ -546,15 +469,8 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
             }
         }
 
-        // TODO: check if we should call directly
-        // startServerContactSyncTimer(delay) instead
         LogUtils.logD("Scheduling a new sync in " + delay + " milliseconds");
-        final SyncParams params = new SyncParams(false, delay);
-        if (delay == 0) { // AA: I added it
-            emptyUiRequestQueue();
-        }
-
-        addUiRequestToQueue(ServiceUiRequest.NOWPLUSSYNC, params);
+        addUiRequestToQueue(ServiceUiRequest.NOWPLUSSYNC, delay);
     }
 
     /**
@@ -565,15 +481,6 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     public synchronized boolean isFirstTimeSyncComplete() {
         return mFirstTimeSyncComplete;
     }
-
-    // TODO: RE-ENABLE SYNC VIA SYSTEM
-    // /**
-    // * Check if syncing is ongoing
-    // * @return true if syncing is ongoing, false if it is not
-    // */
-    // public synchronized boolean isSyncing() {
-    // return mMode != Mode.NONE;
-    // }
 
     /**
      * Add observer of Contact-sync.
@@ -692,12 +599,12 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
             return 0;
         }
         if (readyToStartServerSync()) {
-            if (mFullSyncRequired || mServerSyncRequired || mThumbnailSyncRequired) {
+            if (mServerSyncRequired || mThumbnailSyncRequired) {
                 return 0;
             } else if (mFirstTimeSyncStarted && !mFirstTimeSyncComplete
-                    && mFullSyncRetryCount < FULL_SYNC_RETRIES) {
-                mFullSyncRetryCount++;
-                mFullSyncRequired = true;
+                    && mServerSyncRetryCount < FULL_SYNC_RETRIES) {
+                mServerSyncRetryCount++;
+                mServerSyncRequired = true;
                 return 0;
             }
         }
@@ -733,10 +640,6 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         if (readyToStartServerSync()) {
             if (mThumbnailSyncRequired) {
                 startThumbnailSync();
-                return;
-            }
-            if (mFullSyncRequired) {
-                startFullSync();
                 return;
             }
             if (mServerSyncRequired) {
@@ -784,8 +687,8 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      */
     private void startSyncIfRequired() {
         if (mFirstTimeSyncStarted && !mFirstTimeSyncComplete) {
-            mFullSyncRequired = true;
-            mFullSyncRetryCount = 0;
+        	mServerSyncRequired = true;
+            mServerSyncRetryCount = 0;
         }
         long currentTimeMs = System.currentTimeMillis();
         if (mServerSyncTimeout != null && mServerSyncTimeout.longValue() < currentTimeMs) {
@@ -845,18 +748,14 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         LogUtils.logV("Push Event Type = " + pushEvent.mMessageType);
         switch (pushEvent.mMessageType) {
             case CONTACTS_CHANGE:
-                LogUtils
-                        .logI("ContactSyncEngine.processCommsResponse - Contacts changed push message received");
+                LogUtils.logI("ContactSyncEngine.processCommsResponse - Contacts changed push message received");
                 mServerSyncRequired = true;
-                EngineManager.getInstance().getGroupsEngine().addUiGetGroupsRequest(); // fetch
-                // the
-                // newest
-                // groups
+                // fetch the newest groups
+                EngineManager.getInstance().getGroupsEngine().addUiGetGroupsRequest(); 
                 mEventCallback.kickWorkerThread();
                 break;
             case SYSTEM_NOTIFICATION:
-                LogUtils
-                        .logI("ContactSyncEngine.processCommsResponse - System notification push message received");
+                LogUtils.logI("ContactSyncEngine.processCommsResponse - System notification push message received");
                 break;
             default:
                 // do nothing.
@@ -879,25 +778,13 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     protected void processUiRequest(ServiceUiRequest requestId, Object data) {        
         switch (requestId) {
             case NOWPLUSSYNC:  
-                
-                final SyncParams params = (SyncParams)data;
-                if (params.isFull) {
-                    // delayed full sync is not supported currently, start it
-                    // immediately
-                    clearCurrentSyncAndPatchBaseEngine();
-                    mFullSyncRetryCount = 0;
-                    startFullSync();
-                } else {
-                    if (params.delay <= 0) {
-                        clearCurrentSyncAndPatchBaseEngine();
-                        if (readyToStartServerSync()) {
-                            startServerSync();
-                        } else {
-                            mServerSyncRequired = true;
-                        }
-                    } else {
-                        startServerContactSyncTimer(params.delay);
-                    }
+                if (data ==  null) {
+                	clearCurrentSyncAndPatchBaseEngine();
+                	mServerSyncRetryCount = 0;
+                	startServerSync();
+                } 
+                else {
+                	startServerContactSyncTimer((Long) data);
                 }
                 break;
             default:
@@ -993,36 +880,22 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * a first time sync will be started, otherwise will start a normal full
      * sync. Full syncs are always initiated from the UI (via UI request).
      */
-    public void startFullSync() {
-        mFailureList = "";
+    public void startServerSync() {
+    	mFailureList = "";
         mDatabaseChanged = false;
-        setFirstTimeSyncStarted(true);
         mServerSyncTimeout = null;
-        mFullSyncRequired = false;
+        mServerSyncRequired = false;
+        setFirstTimeSyncStarted(true);
+        
         if (mFirstTimeNativeSyncComplete) {
-            LogUtils.logI("ContactSyncEngine.startFullSync - user triggered sync");
-            mMode = Mode.FULL_SYNC;
-            nextTaskFullSyncNormal();
+            LogUtils.logI("ContactSyncEngine.startServerSync - server sync");
+            mMode = Mode.SERVER_SYNC;
+            nextTaskServerSync();
         } else {
-            LogUtils.logI("ContactSyncEngine.startFullSync - first time sync");
+            LogUtils.logI("ContactSyncEngine.startServerSync - first time full sync");
             mMode = Mode.FULL_SYNC_FIRST_TIME;
             nextTaskFullSyncFirstTime();
         }
-    }
-
-    /**
-     * Starts a server sync. This will only sync contacts with the server and
-     * will not include the me profile. Thumbnails are not fetched as part of
-     * this sync, but will be fetched as part of a background sync afterwards.
-     */
-    private void startServerSync() {
-        mServerSyncRequired = false;
-        mFailureList = "";
-        mDatabaseChanged = false;
-        mMode = Mode.SERVER_SYNC;
-        mServerSyncTimeout = null;
-        setTimeoutIfRequired();
-        nextTaskServerSync();
     }
 
     /**
@@ -1071,8 +944,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     private boolean startFetchNativeContacts(boolean isFirstTimeSync) {
         if (mFetchNativeContacts || (Settings.ENABLE_FETCH_NATIVE_CONTACTS && isFirstTimeSync)) {
             newState(State.FETCHING_NATIVE_CONTACTS);
-            startProcessor(mProcessorFactory.create(ProcessorFactory.FETCH_NATIVE_CONTACTS, this,
-                    mDb, mContext, mCr));
+            startProcessor(mProcessorFactory.create(ProcessorFactory.FETCH_NATIVE_CONTACTS, this, mDb));
             return true;
         }
         return false;
@@ -1086,8 +958,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     private boolean startUpdateNativeContacts() {
         if (mUpdateNativeContacts) {
             newState(State.UPDATING_NATIVE_CONTACTS);
-            startProcessor(mProcessorFactory.create(ProcessorFactory.UPDATE_NATIVE_CONTACTS, this,
-                    mDb, null, mCr));
+            startProcessor(mProcessorFactory.create(ProcessorFactory.UPDATE_NATIVE_CONTACTS, this, mDb));
             return true;
         }
         return false;
@@ -1101,12 +972,12 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     private boolean startDownloadServerContacts() {
         if (Settings.ENABLE_SERVER_CONTACT_SYNC) {
             newState(State.FETCHING_SERVER_CONTACTS);
-            startProcessor(mProcessorFactory.create(ProcessorFactory.DOWNLOAD_SERVER_CONTACTS,
-                    this, mDb, mContext, null));
+            startProcessor(mProcessorFactory.create(ProcessorFactory.DOWNLOAD_SERVER_CONTACTS, this, mDb));
             return true;
             
         }
-        return false;
+        else
+        	return false;
     }
 
     /**
@@ -1117,11 +988,11 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     private boolean startUploadServerContacts() {
         if (Settings.ENABLE_SERVER_CONTACT_SYNC) {
             newState(State.UPDATING_SERVER_CONTACTS);
-            startProcessor(mProcessorFactory.create(ProcessorFactory.UPLOAD_SERVER_CONTACTS, this,
-                    mDb, mContext, null));
+            startProcessor(mProcessorFactory.create(ProcessorFactory.UPLOAD_SERVER_CONTACTS, this, mDb));
             return true;
         }
-        return false;
+        else
+        	return false;
     }
 
     /**
@@ -1134,7 +1005,8 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
             ThumbnailHandler.getInstance().downloadContactThumbnails();
             return true;
         }
-        return false;
+        else
+        	return false;
     }
 
     /**
@@ -1185,9 +1057,6 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         switch (mMode) {
             case FULL_SYNC_FIRST_TIME:
                 nextTaskFullSyncFirstTime();
-                break;
-            case FULL_SYNC:
-                nextTaskFullSyncNormal();
                 break;
             case SERVER_SYNC:
                 nextTaskServerSync();
@@ -1245,23 +1114,23 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     }
 
     /**
-     * Moves to the next state for the full sync normal mode, and runs the
+     * Moves to the next state for the server sync mode, and runs the
      * appropriate processor. Completes the UI request when the sync is complete
      * (if one is pending).
      */
-    private void nextTaskFullSyncNormal() {
+    private void nextTaskServerSync() {
         switch (mState) {
             case IDLE:
-                if (startDownloadServerContacts()) {
-                    return;
-                }
-                // Fall through
-            case FETCHING_SERVER_CONTACTS:
                 if (startUploadServerContacts()) {
                     return;
                 }
                 // Fall through
             case UPDATING_SERVER_CONTACTS:
+                if (startDownloadServerContacts()) {
+                    return;
+                }
+                // Fall through
+            case FETCHING_SERVER_CONTACTS:
                 // force a thumbnail sync in case nothing in the database
                 // changed but we still have failing
                 // thumbnails that we should retry to download
@@ -1271,8 +1140,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
                 completeSync(ServiceStatus.SUCCESS);
                 return;
             default:
-                LogUtils.logE("ContactSyncEngine.nextTaskFullSyncNormal - Unexpected state: "
-                        + mState);
+                LogUtils.logE("ContactSyncEngine.nextTaskServerSync - Unexpected state: " + mState);
                 completeSync(ServiceStatus.ERROR_SYNC_FAILED);
         }
     }
@@ -1315,8 +1183,6 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
                 if (startUpdateNativeContacts()) {
                     return;
                 }
-                completeSync(ServiceStatus.SUCCESS);
-                return;
                 // Fall through
             case UPDATING_NATIVE_CONTACTS:
                 completeSync(ServiceStatus.SUCCESS);
@@ -1324,37 +1190,6 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
             default:
                 LogUtils.logE("ContactSyncEngine.nextTaskUpdateNativeContacts - Unexpected state: "
                         + mState);
-                completeSync(ServiceStatus.ERROR_SYNC_FAILED);
-        }
-    }
-
-    /**
-     * Moves to the next state for the server sync mode, and runs the
-     * appropriate processor. Completes the UI request when the sync is complete
-     * (if one is pending).
-     */
-    private void nextTaskServerSync() {
-        switch (mState) {
-            case IDLE:
-                if (startDownloadServerContacts()) {
-                    return;
-                }
-                // Fall through
-            case FETCHING_SERVER_CONTACTS:
-                if (startUploadServerContacts()) {
-                    return;
-                }
-                // Fall through
-            case UPDATING_SERVER_CONTACTS:
-                // force a thumbnail sync in case nothing in the database
-                // changed but we still have failing
-                // thumbnails that we should retry to download
-                mThumbnailSyncRequired = true;
-                mLastServerSyncTime = System.currentTimeMillis();
-                completeSync(ServiceStatus.SUCCESS);
-                return;
-            default:
-                LogUtils.logE("ContactSyncEngine.nextTaskServerSync - Unexpected state: " + mState);
                 completeSync(ServiceStatus.ERROR_SYNC_FAILED);
         }
     }
@@ -1395,8 +1230,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
                 ApplicationCache.setSyncBusy(true);
             }
         }
-        LogUtils.logE("ContactSyncEngine.newState: " + oldState + " -> " + mState + "," +
-        		" sync is " + (ApplicationCache.isSyncBusy()? "BUSY":"IDLE"));
+        LogUtils.logI("ContactSyncEngine.newState: " + oldState + " -> " + mState);
         fireStateChangeEvent(mMode, oldState, mState);
     }
 
@@ -1613,9 +1447,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         setting.putFirstTimeNativeSyncComplete(value);
         ServiceStatus status = mDb.setOption(setting);
         if (ServiceStatus.SUCCESS == status) {
-            synchronized (this) {
-                mFirstTimeNativeSyncComplete = value;
-            }
+        	mFirstTimeNativeSyncComplete = value;
         }
         return status;
     }
@@ -1660,11 +1492,6 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         for (IContactSyncObserver observer : tempList) {
             observer.onContactSyncStateChange(mode, previousState, newState);
         }
-
-        if (Settings.ENABLED_DATABASE_TRACE) {
-            // DatabaseHelper.trace(false, "State newState[" + newState + "]" +
-            // mDb.copyDatabaseToSd(""));
-        }
     }
 
     /**
@@ -1707,7 +1534,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         
         synchronized (this) {
             
-            mFullSyncRetryCount = 0;
+            mServerSyncRetryCount = 0;
             mState = State.IDLE;
             mMode = Mode.NONE;
             mFailureList = null;
@@ -1721,7 +1548,6 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
             mFirstTimeSyncComplete = false;
             mFirstTimeSyncStarted = false;
             mFirstTimeNativeSyncComplete = false;
-            mFullSyncRequired = false;
             mServerSyncRequired = false;
             mNativeFetchSyncRequired = false;
             mNativeUpdateSyncRequired = false;

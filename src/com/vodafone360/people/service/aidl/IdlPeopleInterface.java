@@ -734,7 +734,6 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final void startBackgroundContactSync(final long delay) {
-            mPeopleService.startBackgroundContactSync(delay);
         }
 
         /**

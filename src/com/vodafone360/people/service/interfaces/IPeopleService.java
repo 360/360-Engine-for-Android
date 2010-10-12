@@ -151,16 +151,6 @@ public interface IPeopleService {
      */
     void startContactSync();
 
-    /***
-     * Begins the process of synchronising contacts with the Vodafone 360 back
-     * end. This is designed to run in the background and is called every time
-     * the ContactListActivity is shown to the user.
-     * 
-     * @param delay the delay in milliseconds from now when the sync should
-     *            start
-     */
-    void startBackgroundContactSync(long delay);
-
     /**
      * Pings the service about user activity.
      */

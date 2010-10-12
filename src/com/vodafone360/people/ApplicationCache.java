@@ -766,7 +766,7 @@ public class ApplicationCache {
     
     /**
      * This flag is set by ContactSyncEngine to indicate his state synchronizing the account.
-     * @param isSyncBusy must be TRUE if state of ContactSync is State.IDLE, false otherwise. 
+     * @param isSyncBusy must be FALSE if state of ContactSync is State.IDLE, TRUE otherwise. 
      */
     synchronized public static void setSyncBusy(boolean isSyncBusy) {
         ApplicationCache.sIsContactSyncBusy = isSyncBusy;
