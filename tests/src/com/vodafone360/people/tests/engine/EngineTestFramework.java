@@ -35,7 +35,7 @@ import com.vodafone360.people.datatypes.AuthSessionHolder;
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.ServerError;
 import com.vodafone360.people.engine.BaseEngine;
-import com.vodafone360.people.engine.BaseEngine.IEngineEventCallback;
+import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.engine.login.LoginEngine;
 import com.vodafone360.people.service.ServiceStatus;

@@ -498,7 +498,6 @@ public class PeopleServiceTest extends ServiceTestCase<RemoteService> implements
     	
     	try{
     		mPeopleService.startStatusesSync();
-    		mPeopleService.startBackgroundContactSync(0);
     		mPeopleService.startContactSync();
     	} catch(Exception e) {
     		testPass = false;

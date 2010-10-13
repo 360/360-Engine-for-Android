@@ -67,7 +67,7 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
     protected void setUp() throws Exception {
         super.setUp();
         mEngineTester = new EngineTestFramework(this);
-        mEng = new IdentityEngine(mEngineTester);
+        mEng = new IdentityEngine(mEngineTester, null);
         mEngineTester.setEngine(mEng);
         mState = IdentityTestState.IDLE;
     }

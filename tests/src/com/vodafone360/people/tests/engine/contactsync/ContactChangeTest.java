@@ -25,11 +25,10 @@
 
 package com.vodafone360.people.tests.engine.contactsync;
 
-import com.vodafone360.people.engine.contactsync.ContactChange;
-
 import android.test.InstrumentationTestCase;
-import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.SmallTest;
+
+import com.vodafone360.people.engine.contactsync.ContactChange;
 
 public class ContactChangeTest extends InstrumentationTestCase {
 

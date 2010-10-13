@@ -31,7 +31,7 @@ import android.util.Log;
 import com.vodafone360.people.ApplicationCache;
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.SettingsManager;
-import com.vodafone360.people.engine.BaseEngine.IEngineEventCallback;
+import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.upgrade.UpgradeEngine;
 import com.vodafone360.people.engine.upgrade.UpgradeUtils;
 import com.vodafone360.people.service.ServiceUiRequest;

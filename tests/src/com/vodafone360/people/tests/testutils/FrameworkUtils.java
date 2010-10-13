@@ -3,7 +3,7 @@ package com.vodafone360.people.tests.testutils;
 import java.lang.reflect.Field;
 
 import com.vodafone360.people.ApplicationCache;
-import com.vodafone360.people.engine.BaseEngine.IEngineEventCallback;
+import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.UiAgent;
 

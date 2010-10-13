@@ -388,7 +388,7 @@ public class EngineManager {
 
     private synchronized void createContactSyncEngine() {
         final MainApplication app = (MainApplication)mService.getApplication();
-        mContactSyncEngine = new ContactSyncEngine(mUiEventCallback, app.getDatabase());
+        mContactSyncEngine = new ContactSyncEngine(mUiEventCallback, app.getDatabase(), null);
         addEngine(mContactSyncEngine);
     }
     

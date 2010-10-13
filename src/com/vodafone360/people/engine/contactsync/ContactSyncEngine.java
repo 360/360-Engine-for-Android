@@ -358,7 +358,8 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * @param db Handle to People database.
      * @param processorFactory the processor factory
      */
-    public ContactSyncEngine(IEngineEventCallback eventCallback, DatabaseHelper db) {
+    public ContactSyncEngine(IEngineEventCallback eventCallback, DatabaseHelper db, 
+    		ProcessorFactory factory) {
         super(eventCallback);
         
         mDb = db;
@@ -370,7 +371,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         mUpdateNativeContacts = Settings.ENABLE_UPDATE_NATIVE_CONTACTS && enableNativeSync;
         
         // use standard processor factory if provided one is null
-        mProcessorFactory = new DefaultProcessorFactory();
+        mProcessorFactory = (factory != null) ? factory : new DefaultProcessorFactory();
     }
 
     /**

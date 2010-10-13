@@ -109,7 +109,7 @@ public class UpdateNativeContactsTest  extends AndroidTestCase {
      */
     public void testConstructor() {
         
-        UpdateNativeContacts processor = new UpdateNativeContacts(mContactSyncCallback, mDatabaseHelper, getContext().getContentResolver()); 
+        UpdateNativeContacts processor = new UpdateNativeContacts(mContactSyncCallback, mDatabaseHelper); 
     }
     
     /**
@@ -117,7 +117,7 @@ public class UpdateNativeContactsTest  extends AndroidTestCase {
      */
     public void testRunWithEmptyDatabase() {
         
-        UpdateNativeContacts processor = new UpdateNativeContacts(mContactSyncCallback, mDatabaseHelper, getContext().getContentResolver());
+        UpdateNativeContacts processor = new UpdateNativeContacts(mContactSyncCallback, mDatabaseHelper);
         processor.start();
         assertEquals(1, mContactSyncCallback.mProcessorComplete.size());
         ContactSyncCallback.ProcessorComplete pc = mContactSyncCallback.mProcessorComplete.get(0);
@@ -131,7 +131,7 @@ public class UpdateNativeContactsTest  extends AndroidTestCase {
         
         final int CONTACTS_COUNT = 10;
         
-        UpdateNativeContacts processor = new UpdateNativeContacts(mContactSyncCallback, mDatabaseHelper, getContext().getContentResolver());
+        UpdateNativeContacts processor = new UpdateNativeContacts(mContactSyncCallback, mDatabaseHelper);
         
         // check that there are no contacts to sync
         long[] syncableIds = mDatabaseHelper.getNativeSyncableContactsLocalIds();
@@ -171,7 +171,7 @@ public class UpdateNativeContactsTest  extends AndroidTestCase {
         
         final int CONTACTS_COUNT = 30;
         
-        UpdateNativeContacts processor = new UpdateNativeContacts(mContactSyncCallback, mDatabaseHelper, getContext().getContentResolver());
+        UpdateNativeContacts processor = new UpdateNativeContacts(mContactSyncCallback, mDatabaseHelper);
         
         // check that there are no contacts to sync
         long[] syncableIds = mDatabaseHelper.getNativeSyncableContactsLocalIds();
@@ -215,7 +215,7 @@ public class UpdateNativeContactsTest  extends AndroidTestCase {
         assertEquals(6, syncableIds.length);
         
         // run the UpdateNativeContacts processor until it finishes or it times out
-        processor = new UpdateNativeContacts(mContactSyncCallback, mDatabaseHelper, getContext().getContentResolver());
+        processor = new UpdateNativeContacts(mContactSyncCallback, mDatabaseHelper);
         mContactSyncCallback.mProcessorComplete.clear();
         runUpdateNativeContactsProcessor(processor);
         
@@ -238,7 +238,7 @@ public class UpdateNativeContactsTest  extends AndroidTestCase {
      */
     public void testExportingContactAllDetails() {
         
-        UpdateNativeContacts processor = new UpdateNativeContacts(mContactSyncCallback, mDatabaseHelper, getContext().getContentResolver());
+        UpdateNativeContacts processor = new UpdateNativeContacts(mContactSyncCallback, mDatabaseHelper);
         
         // check that there are no contacts to sync
         long[] syncableIds = mDatabaseHelper.getNativeSyncableContactsLocalIds();
