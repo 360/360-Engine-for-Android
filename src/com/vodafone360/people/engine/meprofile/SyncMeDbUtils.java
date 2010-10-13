@@ -234,7 +234,7 @@ public class SyncMeDbUtils {
                     break;
                 }
             }
-            if (!found) {
+            if (!found && !newDetail.deleted.booleanValue()) {
                 newDetail.localContactID = currentMeProfile.localContactID;
                 newDetail.nativeContactId = currentMeProfile.nativeContactId;
                 
