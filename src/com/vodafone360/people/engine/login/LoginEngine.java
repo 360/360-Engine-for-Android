@@ -1200,7 +1200,7 @@ public class LoginEngine extends BaseEngine {
     private void handleCreateSessionAutoResponse(List<BaseDataType> data) {
         LogUtils.logD("LoginEngine.handleCreateSessionResponse()");
         ServiceStatus errorStatus = getResponseStatus(BaseDataType.AUTH_SESSION_HOLDER_TYPE, data);
-        if (errorStatus == ServiceStatus.SUCCESS) {
+        if (errorStatus == ServiceStatus.SUCCESS && (data.size() > 0)) {
             clearTimeout();
             setActivatedSession((AuthSessionHolder)data.get(0));
             newState(State.LOGGED_ON);
