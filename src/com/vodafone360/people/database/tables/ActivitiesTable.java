@@ -938,8 +938,13 @@ public abstract class ActivitiesTable {
                         Field.NATIVE_ITEM_TYPE.toString(), nativeTypes, "OR");
                 typesQuery += " AND ";
                 if (nativeTypes[0] != TimelineNativeTypes.CallLog){
-                  andVal = 2;
+                    andVal = 2;
+                } else {
+                    // Francisco: FIXME: This is actually the fix for PAND-2462
+                    // But this code and this latest contact status are a mystery
+                    andVal = 3;
                 }
+                    
             }
 
             String query = "SELECT " + Field.LOCAL_ACTIVITY_ID + ","
