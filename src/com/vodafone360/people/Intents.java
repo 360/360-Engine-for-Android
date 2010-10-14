@@ -42,4 +42,9 @@ public class Intents {
     public static final String UPDATE_WIDGET =  "com.vodafone360.people.Intents.UPDATE_WIDGET";
     
     public static final String CLEARALL_NOTIFICATION =  "com.vodafone360.people.Intents.CLEAR_ALL";
+    
+    /**
+     * This is a boolean extra for the Intent, which indicates the Intent has been dismissed.
+     */
+    public static final String EXTRA_DISMISSED = "dismissed"; 
 }
