@@ -47,6 +47,7 @@ import com.vodafone360.people.engine.activities.ActivitiesEngine.ISyncHelper;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.utils.LogUtils;
+import com.vodafone360.people.utils.VersionUtils;
 
 /**
  * Fetches SMS/MMS log events from the Native message log. These are treated as
@@ -361,6 +362,18 @@ public class FetchSmsLogEvents implements ISyncHelper {
         }
         saved = StateTable.fetchLatestSmsTime(mDb.getReadableDatabase());
         if (mNewestMessage > saved) {
+            if (VersionUtils.isHtcSenseDevice(mContext)) {
+                /* 
+                 * There is apparently a sms timestamp issue on some of these devices
+                 * where received messages use the network time and the sent messages the device time.
+                 * This can cause huge time difference and storing the exact timestamp is not safe enough.
+                 * The quick and dirty hack below subtracts 12 hours in milliseconds so that even if the device is
+                 * traveling or messages are received from abroad, they should be still considered
+                 * for an import in the people client. However, this won't fix the sorting of the messages
+                 * since it is a platform issue: the sorting is also wrong within the native message app.
+                 */
+                mNewestMessage -= 12*60*60*1000;
+            }
             StateTable.modifyLatestSmsTime(mNewestMessage, mDb.getWritableDatabase());
             LogUtils.logD("FetchSMSEvents saveTimestamp: newest timeline update set to = "
                     + mNewestMessage);
