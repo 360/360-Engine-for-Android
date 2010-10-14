@@ -234,7 +234,10 @@ public class SyncMeDbUtils {
                     break;
                 }
             }
-            if (!found && !newDetail.deleted.booleanValue()) {
+            
+            // if the detail was not found in the old profile and either there was no deleted flag 
+            // in the response or the deleted flag was false we have to add the new detail to the list
+            if ( (!found) && ((null == newDetail.deleted) || (!newDetail.deleted.booleanValue())) ) {
                 newDetail.localContactID = currentMeProfile.localContactID;
                 newDetail.nativeContactId = currentMeProfile.nativeContactId;
                 
