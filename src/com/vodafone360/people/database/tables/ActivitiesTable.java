@@ -1820,22 +1820,20 @@ public abstract class ActivitiesTable {
     /***
      * Sets all chat messages to already read
      *
-     * @param readableDb Reference to a readable database.
+     * @param writableDb Reference to a writable database.
      * @return void.
      */
     public static void setAllChatMessagesToRead(
-              final SQLiteDatabase readableDb) {
-        final String query = "UPDATE " + TABLE_NAME + " SET "+Field.FLAG +" = "+ ActivityItem.ALREADY_READ
-        + " WHERE "  + Field.NATIVE_ITEM_TYPE + " = "  + TimelineNativeTypes.ChatLog.ordinal();
-                
-        Cursor cursor = null;
-        try {
-            cursor = readableDb.rawQuery(query, null);
-            cursor.getCount();
+              final SQLiteDatabase writableDb) {
+        ContentValues values = new ContentValues();
+        values.put(Field.FLAG.toString(),
+                ActivityItem.TIMELINE_ITEM | ActivityItem.ALREADY_READ);
 
-        } finally {
-            CloseUtils.close(cursor);
-        }
+        final String where = Field.NATIVE_ITEM_TYPE + "="
+            + TimelineNativeTypes.ChatLog.ordinal() + " AND ("
+            + Field.FLAG + "=" + ActivityItem.TIMELINE_ITEM + ")";
+
+        writableDb.update(TABLE_NAME, values, where, null);
     }
 
 
