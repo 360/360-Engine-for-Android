@@ -76,6 +76,11 @@ public abstract class ContactSummaryTable {
     public static final String TABLE_INDEX_NAME = "ContactSummaryIndex";
     
     /**
+     * SQL localized collate for sorting contact list. 
+     */
+    private static final String LOCALIZED_COLLATE = " COLLATE LOCALIZED ASC";
+    
+    /**
      * This holds the presence information for each contact in the ContactSummaryTable
      */
     private static HashMap<Long, Integer> sPresenceMap = new HashMap<Long, Integer>();
@@ -735,8 +740,7 @@ public abstract class ContactSummaryTable {
      * @see #getQueryData(Cursor)
      */
     public static Cursor openContactSummaryCursor(Long groupFilterId, CharSequence constraint, Long meProfileId, SQLiteDatabase readableDb) {
-        
-    	if (Settings.ENABLED_DATABASE_TRACE) {
+        if (Settings.ENABLED_DATABASE_TRACE) {
             DatabaseHelper.trace(false, "ContactSummeryTable.fetchContactList() "
                     + "groupFilterId[" + groupFilterId + "] constraint[" + constraint + "]"
                     + " meProfileId[" + meProfileId + "]");
@@ -749,47 +753,31 @@ public abstract class ContactSummaryTable {
                 meProfileId = -1L;
             }
             
-            String queryString;
+            final StringBuilder queryString = new StringBuilder("SELECT ").append(getFullQueryList())
+                                      .append(" FROM ").append(TABLE_NAME);
             
-            if (constraint == null) {
-            	
-            	if (groupFilterId == null) {
-            		           	
-            		// Fetch all contacts
-                	queryString = "SELECT " + getFullQueryList() + " FROM " + TABLE_NAME + " WHERE "
-                		+ TABLE_NAME + "." + Field.LOCALCONTACTID + "!=" + meProfileId
-                		+ " ORDER BY LOWER(" + Field.DISPLAYNAME + ")";
-            	}
-            	else {
-            		 
-            		queryString = "SELECT " + getFullQueryList() + " FROM " + TABLE_NAME 
-            			+ getGroupConstraint(groupFilterId)
-            			+ " AND " + TABLE_NAME + "." + Field.LOCALCONTACTID + "!=" + meProfileId
-            			+ " ORDER BY LOWER(" + Field.DISPLAYNAME + ")";
-            	}
+            // Add group constraint if any
+            if (groupFilterId == null) {
+            	queryString.append(" WHERE ");
             }
             else {
-            	
-            	final String dbSafeConstraint = DatabaseUtils.sqlEscapeString("%" + constraint + "%");
-            	
-            	if (groupFilterId == null) {
-            		 
-            		queryString = "SELECT " + getFullQueryList() + " FROM " + TABLE_NAME + " WHERE "
-                    	+ Field.DISPLAYNAME + " LIKE " + dbSafeConstraint
-                    	+ " AND " + TABLE_NAME + "." + Field.LOCALCONTACTID + "!=" + meProfileId
-                    	+ " ORDER BY LOWER(" + Field.DISPLAYNAME + ")";
-            	}
-            	else {
-            		 
-            		queryString = "SELECT " + getFullQueryList() + " FROM " + TABLE_NAME 
-            			+ getGroupConstraint(groupFilterId)
-                    	+ " AND " + Field.DISPLAYNAME + " LIKE " + dbSafeConstraint
-                    	+ " AND " + TABLE_NAME + "." + Field.LOCALCONTACTID + "!=" + meProfileId
-                    	+ " ORDER BY LOWER(" + Field.DISPLAYNAME + ")";
-            	}
+                queryString.append(getGroupConstraint(groupFilterId)).append(" AND ");
             }
-            	
-            return readableDb.rawQuery(queryString, null);
+            
+            // Check if this is a search request
+            if (constraint != null) {
+            	final String dbSafeConstraint = DatabaseUtils.sqlEscapeString("%" + constraint + "%");
+            	queryString.append(Field.DISPLAYNAME).append(" LIKE ").append(dbSafeConstraint).append(" AND ");
+            }
+                        
+            queryString.append(TABLE_NAME).append(".")
+                       .append(Field.LOCALCONTACTID).append("!=").append(meProfileId)
+                       .append(" ORDER BY LOWER(").append(Field.DISPLAYNAME).append(")");
+            
+            // Sort results using localized collate method
+            queryString.append(LOCALIZED_COLLATE);
+            
+            return readableDb.rawQuery(queryString.toString(), null);
             
         } 
         catch (SQLException e) {
