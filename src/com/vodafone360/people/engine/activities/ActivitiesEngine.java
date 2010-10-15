@@ -811,12 +811,12 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
     private void enqueueRequest(int requestId, ActivitiesState requestType) {
         synchronized (mQueueMutex) {
             if (!mActiveRequests.containsKey(requestId)) {
-                LogUtils.logE("ActivityEngine.enqueueRequest:" + requestId + ", " + requestType);
+                LogUtils.logI("ActivityEngine.enqueueRequest:" + requestId + ", " + requestType);
                 mActiveRequests.put(requestId, requestType);
                 cacheRequestType(requestType, true);
 
             } else {
-                LogUtils.logE("ActivityEngine.enqueueRequest: already have this type!" + requestId
+                LogUtils.logI("ActivityEngine.enqueueRequest: already have this type!" + requestId
                         + ", " + requestType);
             }
         }
@@ -859,10 +859,10 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
             ActivitiesState requestType = mActiveRequests.get(requestId);
             if (requestType != null) {
                 mActiveRequests.remove(requestId);
-                LogUtils.logE("ActivityEngine.dequeueRequest:" + requestId + ", " + requestType);
+                LogUtils.logI("ActivityEngine.dequeueRequest:" + requestId + ", " + requestType);
                 cacheRequestType(requestType, false);
             } else {
-                LogUtils.logE("ActivityEngine.dequeueRequest: the request is not in the queue!"
+                LogUtils.logI("ActivityEngine.dequeueRequest: the request is not in the queue!"
                         + requestId + ", " + requestType);
             }
         }

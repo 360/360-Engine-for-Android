@@ -26,12 +26,14 @@
 package com.vodafone360.people;
 
 import android.app.Application;
+import android.content.Intent;
 import android.os.Handler;
 
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.contactsync.NativeContactsApi;
 import com.vodafone360.people.service.PersistSettings;
+import com.vodafone360.people.service.RemoteService;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.PersistSettings.InternetAvail;
 import com.vodafone360.people.service.interfaces.IPeopleService;
@@ -63,6 +65,9 @@ public class MainApplication extends Application {
         mDatabaseHelper = new DatabaseHelper(this);
         mDatabaseHelper.start();
         LoginPreferences.getCurrentLoginActivity(this);
+        
+        /** Start the Service. **/
+        startService(new Intent(this, RemoteService.class));
     }
 
     /**
