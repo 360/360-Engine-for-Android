@@ -31,7 +31,7 @@ package com.vodafone360.people;
  */
 public class Intents {
     
-    public static final String NEW_CHAT_RECEIVED = "com.vodafone360.people.Intents.NEW_CHAT_RECEIVED";
+    public static final String UPDATE_CHAT_NOTIFICATION = "com.vodafone360.people.Intents.UPDATE_CHAT_NOTIFICATION";
     
     public static final String ROAMING_ON = "com.vodafone360.people.Intents.ROAMING_ON";
     

@@ -194,9 +194,6 @@ public class UiAgent {
         mHandler = handler;
         mLocalContactId = localContactId;
         mShouldHandleChat = shouldHandleChat;
-        if (mShouldHandleChat) {
-            updateChatNotification(false);
-        }
 
         if (mUiEventQueue != null) {
             LogUtils.logV("UiAgent.subscribe() Send pending uiEvent["
@@ -371,7 +368,7 @@ public class UiAgent {
      * 
      */
     private void updateChatNotification(final boolean isNewChatMessage) {
-        mContext.sendBroadcast(new Intent(Intents.NEW_CHAT_RECEIVED).putExtra(
+        mContext.sendBroadcast(new Intent(Intents.UPDATE_CHAT_NOTIFICATION).putExtra(
                 ApplicationCache.sIsNewMessage, isNewChatMessage));
     }
 }
