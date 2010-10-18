@@ -2214,6 +2214,7 @@ public abstract class ActivitiesTable {
 
 					boolean isLatestTimelinePreferred = false;
 					boolean isLatestTimeline = false;
+					boolean isFirstRun = true;
 					while(cursor.moveToNext()) {
 						item = getTimelineData(cursor);
 						if (item != null && item.mLocalContactId != null) {
@@ -2257,6 +2258,15 @@ public abstract class ActivitiesTable {
 
 	                                isLatestTimeline = true;
 	                            }
+							}
+							else {
+								    if(isFirstRun) {
+								      updateTimeLineStatusEntryForContact(localContactId,
+                                        latestContactStatus, item.mTimestamp,
+                                        null, writeableDb);
+								       isFirstRun = false;
+									 }
+									 
 							}
 						}
 					}
