@@ -51,7 +51,14 @@ public class ThirdPartyAccount {
     /** username */
     private String mIdentityID;
 
+    /**
+     * Hard coded SN account names.
+     */
     public static final String SNS_TYPE_FACEBOOK = "facebook";
+    
+    public static final String SNS_TYPE_VKONTAKTE = "vkontakte";
+    
+    public static final String SNS_TYPE_ODNOKLASSNIKI = "odnoklassniki";
 
     private static final String SNS_TYPE_MICROSOFT = "microsoft";
 
@@ -157,6 +164,10 @@ public class ThirdPartyAccount {
             return context.getString(R.string.Utils_sns_name_vodafone);
         } else if (sns.contains(SNS_TYPE_FACEBOOK)) {
             return context.getString(R.string.Utils_sns_name_facebook);
+        } else if (sns.contains(SNS_TYPE_ODNOKLASSNIKI)) {
+            return context.getString(R.string.Utils_sns_name_odnoklassniki);
+        } else if (sns.contains(SNS_TYPE_VKONTAKTE)) {
+            return context.getString(R.string.Utils_sns_name_vkontakte);
         } else if (sns.contains(SNS_TYPE_GOOGLE)) {
             return context.getString(R.string.Utils_sns_name_google);
         } else if (isWindowsLive(sns)) {
