@@ -28,8 +28,10 @@ package com.vodafone360.people.engine.contactsync;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
+import android.os.PowerManager;
 
 import com.vodafone360.people.ApplicationCache;
 import com.vodafone360.people.Settings;
@@ -333,6 +335,16 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      */
     private final boolean mUpdateNativeContacts;
     
+    /**
+     * WakeLock to be used during full sync.
+     */
+    private PowerManager.WakeLock mWakeLock = null;
+    
+    /**
+     * Service Context.
+     */
+    private Context mContext = null;
+    
 
 
     /**
@@ -358,12 +370,13 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * @param db Handle to People database.
      * @param processorFactory the processor factory
      */
-    public ContactSyncEngine(IEngineEventCallback eventCallback, DatabaseHelper db, 
+    public ContactSyncEngine(Context context, IEngineEventCallback eventCallback, DatabaseHelper db, 
     		ProcessorFactory factory) {
         super(eventCallback);
         
         mDb = db;
         mEngineId = EngineId.CONTACT_SYNC_ENGINE;
+        mContext = context;
 
         final boolean enableNativeSync = VersionUtils.is2XPlatform() || !Settings.DISABLE_NATIVE_SYNC_AFTER_IMPORT_ON_ANDROID_1X;
         mFetchNativeContactsOnChange = Settings.ENABLE_FETCH_NATIVE_CONTACTS_ON_CHANGE && enableNativeSync;
@@ -429,6 +442,9 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * sent to notify the UI when the sync has completed.
      */
     public void addUiStartFullSync() {
+        // acquire wake lock before full contact sync is started.
+        acquireSyncLock(); 
+    	
         // reset last status to enable synchronization of contacts again
         mLastStatus = ServiceStatus.SUCCESS;
         
@@ -1243,6 +1259,9 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * @param status The overall status of the contact sync.
      */
     private void completeSync(ServiceStatus status) {
+        // release wake lock acquired during full sync    	
+        releaseSyncLock();
+    	
         if (mState == State.IDLE) {
             return;
         }
@@ -1574,4 +1593,30 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         // FetchNativeContacts processor.
         startFetchNativeContactSyncTimer();
     }
+    
+    /**
+     * Called before full contact sync is started to acquire partial wake lock. 
+     * This will ensure that contact sync will continue even if device sleeps.
+     */
+    public void acquireSyncLock() {
+        if(mWakeLock == null) {
+            final PowerManager powerManager = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
+            mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "SyncWakeLock");
+        }
+    	    
+        if (mWakeLock != null && !mWakeLock.isHeld()) {
+            mWakeLock.acquire();
+        }
+    }
+    
+    /**
+     * Called after full sync is finished (either successfully or erroneously) to 
+     * release partial wake lock.
+     */
+    public void releaseSyncLock() {
+        if (mWakeLock != null && mWakeLock.isHeld()) {
+            mWakeLock.release();
+        }
+    } 
+    
 }
