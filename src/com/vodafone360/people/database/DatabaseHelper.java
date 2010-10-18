@@ -2698,17 +2698,39 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * This method updates the timeline event for the contact for the provided
-     * Phone number.
-     *
+     * This method updates the timeline entries.
+     * for the contact when new Phone number is added.
      * @param oldPhoneNumber Phone number for which timeline entries
      * need to be updated.
-     * @param localContactId Given contact ID.
+     * @param localContactID Given contact ID
+     *
      */
-	public void updateTimelineEntryForPhone(String oldPhoneNumber,
-			Long localContactID) {
+
+         public final void updateTimelineForPhoneNumberChange(
+        		           final String oldPhoneNumber,
+			               final Long localContactID) {
 		final SQLiteDatabase db = getWritableDatabase();
-		ActivitiesTable.updateTimelineContactData(oldPhoneNumber, localContactID, db);
+		ActivitiesTable.updateTimelineForPhoneNumberChange(
+                                                  oldPhoneNumber,
+                                                  localContactID,
+				                                  db);
+	}
+
+	/**
+     * This method updates the timeline event for the contact for the provided.
+     * Phone number.This function separates the deleted phone number entry
+     * @param oldPhoneNumber Phone number for which timeline entries need to be separated.
+     * @param localContactID Given contact ID.
+     */
+
+	public final void updateTimelineForPhoneNumberDeletion(
+                                            final String oldPhoneNumber,
+			                                final Long localContactID) {
+		             final SQLiteDatabase db = getWritableDatabase();
+		             ActivitiesTable.updateTimelineForPhoneNumberDeletion(
+		            		                    oldPhoneNumber,
+		            		                    localContactID,
+		            		                    db);
 	}
 }
 

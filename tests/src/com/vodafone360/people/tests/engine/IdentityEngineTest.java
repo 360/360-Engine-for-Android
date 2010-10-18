@@ -29,12 +29,15 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.app.Instrumentation;
 import android.os.Bundle;
 import android.test.InstrumentationTestCase;
 import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.Suppress;
 import android.util.Log;
 
+import com.vodafone360.people.MainApplication;
+import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.IdentityCapability;
@@ -62,12 +65,19 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
     IdentityEngine mEng = null;
 
     IdentityTestState mState = IdentityTestState.IDLE;
+    
+    MainApplication mApplication = null;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
+        mApplication = (MainApplication)Instrumentation.newApplication(MainApplication.class,
+                getInstrumentation().getTargetContext());
+        mApplication.onCreate();
         mEngineTester = new EngineTestFramework(this);
-        mEng = new IdentityEngine(mEngineTester, null);
+
+        mEng = new IdentityEngine(mEngineTester, mApplication.getDatabase());
+        
         mEngineTester.setEngine(mEng);
         mState = IdentityTestState.IDLE;
     }
@@ -79,7 +89,6 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
         mEngineTester.stopEventThread();
         mEngineTester = null;
         mEng = null;
-
         // call at the end!!!
         super.tearDown();
     }
