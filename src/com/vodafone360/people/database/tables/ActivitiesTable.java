@@ -2061,7 +2061,7 @@ public abstract class ActivitiesTable {
             final StringBuffer query = StringBufferPool.getStringBuffer();
 
             query.append("UPDATE ").append(TABLE_NAME).append(" SET ")
-            .append(Field.LOCAL_CONTACT_ID).append("=NULL, ")
+            .append(Field.LOCAL_CONTACT_ID).append("=NULL, ") 
             .append(Field.CONTACT_ID).append("=NULL, ").append(Field.CONTACT_NAME)
             .append("=").append(Field.CONTACT_ADDRESS).append(" WHERE ")
             .append(Field.LOCAL_CONTACT_ID).append("=? AND (").append(Field.FLAG)
@@ -2173,11 +2173,14 @@ public abstract class ActivitiesTable {
      *
      * @param oldPhoneNumber Phone number for which timeline entries
      * need to be updated.
-     * @param localContactId Given contact ID.
+     * @param localContactId Given contact 
      * @param writeableDb Writable SQLite database.
+     * @param We need different functions for adding the phone number and deleteing the number from editactivity.
+     * merge = true means,one has added new number to contact.
+     * merge = false means we need to seprate the entries,and number is deleted from contact. 
      */
 	public static void updateTimelineContactData(String oldPhoneNumber,
-           Long localContactId, SQLiteDatabase writeableDb) {
+           Long localContactId, SQLiteDatabase writeableDb ,boolean merge) {
 		DatabaseHelper.trace(false, "DatabaseHelper."
                 + "updateTimelineContactData()");
         if (localContactId == null) {
@@ -2192,7 +2195,9 @@ public abstract class ActivitiesTable {
 
         	cursor = fetchTimelineEventsForContactById(localContactId, writeableDb);
             // Merge the different timeline entries for same localcontactId.
-        	if (timelineEntryCount > 1) {
+        	//merge=true means the new number is added to contact
+        	//merge = false means new number is deleted from contact
+        	if (merge && timelineEntryCount > 1) {
 		        if (cursor != null && cursor.getCount() > 0) {
 					cursor.moveToFirst();
 					TimelineSummaryItem timelineItem = null;
