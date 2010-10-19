@@ -129,7 +129,8 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
     private void setUpContactSyncEngineTestFramework(IEngineTestFrameworkObserver observer, 
     		ProcessorFactory factory) {
         mEngineTester = new EngineTestFramework(observer);
-        mContactSyncEngine = new ContactSyncEngine(mEngineTester, mApplication.getDatabase(), factory);
+        mContactSyncEngine = new ContactSyncEngine(mApplication.getApplicationContext(),
+        		mEngineTester, mApplication.getDatabase(), factory);
         mContactSyncEngine.onCreate();
 
         mEngineTester.setEngine(mContactSyncEngine);
@@ -143,7 +144,8 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
      */
     private void minimalEngineSetup(IEngineEventCallback eventCallback, ProcessorFactory factory) {
 
-        mContactSyncEngine = new ContactSyncEngine(eventCallback, mApplication.getDatabase(), factory);
+        mContactSyncEngine = new ContactSyncEngine(mApplication.getApplicationContext(),
+        		eventCallback, mApplication.getDatabase(), factory);
         mContactSyncEngine.onCreate();
     }
 

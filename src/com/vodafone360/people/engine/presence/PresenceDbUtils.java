@@ -35,7 +35,6 @@ import android.text.TextUtils;
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.database.tables.ContactDetailsTable;
 import com.vodafone360.people.database.tables.ContactSummaryTable;
-import com.vodafone360.people.database.tables.ContactsTable;
 import com.vodafone360.people.database.tables.PresenceTable;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactDetail;
@@ -177,18 +176,8 @@ public class PresenceDbUtils {
                         if (isMeProfile(userId, dbHelper)) { 
                             localContactId = sMeProfileLocalContactId;
                             meProfile = true;
-                            // remove the PC presence, as we don't display it in me profile
-                            if (networkId == SocialNetwork.PC.ordinal()) {
-                                presenceChanged = true;
-                            } 
-                         } // 360 contact, PC or MOBILE network
-                         else if (networkId == SocialNetwork.PC.ordinal() || networkId == SocialNetwork.MOBILE.ordinal()) {
-                            localContactId = ContactsTable.fetchLocalIdFromUserId(Long
-                                    .valueOf(userId), writableDb);
-                            if (localContactId != -1) {
-                                break;
-                            }
-                        } else { // 3rd party accounts
+                            
+                         } else { // 3rd party accounts
                              localContactId = ContactDetailsTable.findLocalContactIdByKey(
                                     SocialNetwork.getPresenceValue(networkId).toString(), userId,
                                     ContactDetail.DetailKeys.VCARD_IMADDRESS, writableDb);
@@ -254,7 +243,6 @@ public class PresenceDbUtils {
      */
     private static boolean processMeProfile(boolean removePCPresence, User user, ArrayList<Integer> ignoredNetworks){
         if (removePCPresence) {
-            user.removeNetwork(SocialNetwork.PC.ordinal());
             int max = OnlineStatus.OFFLINE.ordinal();
             // calculate the new aggregated presence status
             for (NetworkPresence presence : user.getPayload()) {
@@ -278,7 +266,7 @@ public class PresenceDbUtils {
             }    
         }
         // 2. ignore the TPC networks presence state for which is unknown
-        ArrayList<Identity> identities = EngineManager.getInstance().getIdentityEngine().getMy360AndThirdPartyChattableIdentities();   
+        ArrayList<Identity> identities = EngineManager.getInstance().getIdentityEngine().getMyChattableIdentities();   
         SocialNetwork network = null;
         for (Identity identity : identities) {
             network = SocialNetwork.getValue(identity.mNetwork);

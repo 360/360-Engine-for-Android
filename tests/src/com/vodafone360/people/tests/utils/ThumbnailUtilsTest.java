@@ -125,7 +125,7 @@ public class ThumbnailUtilsTest extends AndroidTestCase {
             assertTrue("CopyAndCompressBitmap failed",
                     ThumbnailUtils.copyAndCompressBitmap(DUMMY_IMG_PATH,
                             BitmapFactory.decodeResource(getContext().
-                                    getResources(), R.drawable.vodaphone)));
+                                    getResources(), R.drawable.android_r2_background_pattern_black)));
         } catch (Exception e) {
             fail("Not expecting an Exception" + e.getMessage());
         }
@@ -166,7 +166,7 @@ public class ThumbnailUtilsTest extends AndroidTestCase {
 
         /** Create a new dummy bitmap to test. **/
         Bitmap bitmap = BitmapFactory.decodeResource(getContext().
-                getResources(), R.drawable.vodaphone);
+                getResources(), R.drawable.android_r2_background_pattern_black);
         assertNotNull("Test bitmap should not be NULL", bitmap);
 
         try {
@@ -222,7 +222,7 @@ public class ThumbnailUtilsTest extends AndroidTestCase {
         /** Generate image byte array. **/
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         InputStream is = getContext().getResources().openRawResource(
-                R.drawable.vodaphone);
+        		R.drawable.android_r2_background_pattern_black);
         int temp;
         while ((temp = is.read()) != -1) {
             os.write((char) temp);

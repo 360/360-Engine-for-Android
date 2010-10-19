@@ -165,7 +165,7 @@ public class PeopleServiceImpl implements IPeopleService, IEngineEventCallback {
      * @see com.vodafone360.people.service.interfaces.IPeopleService#getMy360AndThirdPartyChattableIdentities()
      */
     public ArrayList<Identity> getMy360AndThirdPartyChattableIdentities() {
-    	return EngineManager.getInstance().getIdentityEngine().getMy360AndThirdPartyChattableIdentities();
+    	return EngineManager.getInstance().getIdentityEngine().getMyChattableIdentities();
     }
 
     /***

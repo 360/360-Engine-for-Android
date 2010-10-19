@@ -45,6 +45,8 @@ import com.vodafone360.people.utils.LogUtils;
 public class User implements Parcelable {
 
     private static final String COLUMNS = "::";
+    private static final String PRESENCE_PC = "pc",
+    							PRESENCE_MOBILE = "mobile";
 
     /** Database ID of the contact (e.g. "userid@gmail.com"). **/
     private long mLocalContactId;
@@ -77,6 +79,16 @@ public class User implements Parcelable {
             if (Settings.LOG_PRESENCE_PUSH_ON_LOGCAT) {
                 LogUtils.logWithName(LogUtils.PRESENCE_INFO_TAG, "user id:"+ userId + ", " + payload);
             }
+            
+            if (payload.containsKey(PRESENCE_PC)) {
+            	LogUtils.logWithName(LogUtils.PRESENCE_INFO_TAG, "removed 360PC presence for " + userId);
+            	payload.remove(PRESENCE_PC);
+            }
+            if (payload.containsKey(PRESENCE_MOBILE)) {
+            	LogUtils.logWithName(LogUtils.PRESENCE_INFO_TAG, "removed 360MOBILE presence for " + userId);
+            	payload.remove(PRESENCE_MOBILE);
+            }
+            
             mOverallOnline = isOverallOnline(payload);
             mPayload = createPayload(userId, payload);
         }
@@ -112,23 +124,10 @@ public class User implements Parcelable {
         }
         OnlineStatus os = OnlineStatus.OFFLINE;
         if (mPayload != null) {
-            if (network == SocialNetwork.VODAFONE) {
-                int aggregated = 0; // aggregated state for "mobile" and "pc"
-                for (NetworkPresence np : mPayload) {
-                    if (np.getNetworkId() == SocialNetwork.MOBILE.ordinal()
-                            || (np.getNetworkId() == SocialNetwork.PC.ordinal())) {
-                        if (aggregated < np.getOnlineStatusId()) {
-                            aggregated += np.getOnlineStatusId();
-                        }
-                    }
-                }
-                os = OnlineStatus.getValue(aggregated);
-            } else {
-                for (NetworkPresence np : mPayload) {
-                    if (np.getNetworkId() == network.ordinal()) {
-                        os = OnlineStatus.getValue(np.getOnlineStatusId());
-                        break;
-                    }
+            for (NetworkPresence np : mPayload) {
+                if (np.getNetworkId() == network.ordinal()) {
+                    os = OnlineStatus.getValue(np.getOnlineStatusId());
+                    break;
                 }
             }
         }

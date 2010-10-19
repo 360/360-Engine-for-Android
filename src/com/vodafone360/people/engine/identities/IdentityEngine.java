@@ -280,42 +280,11 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     /**
      * 
      * Takes all third party identities that have a chat capability set to true.
-     * It also includes the 360 identity mobile.
-     * 
-     * @return A list of chattable 3rd party identities the user is signed in to
-     * plus the mobile 360 identity. If the retrieval identities failed the 
-     * returned list will be empty.
-     * 
-     */
-    public ArrayList<Identity> getMy360AndThirdPartyChattableIdentities() {
-    	ArrayList<Identity> chattableIdentities = getMyThirdPartyChattableIdentities();
-    	
-    	// add mobile identity to support 360 chat
-    	IdentityCapability capability = new IdentityCapability();
-    	capability.mCapability = IdentityCapability.CapabilityID.chat;
-    	capability.mValue = new Boolean(true);
-    	ArrayList<IdentityCapability> mobileCapabilities = 
-    								new ArrayList<IdentityCapability>();
-    	mobileCapabilities.add(capability);
-    	
-    	Identity mobileIdentity = new Identity();
-    	mobileIdentity.mNetwork = SocialNetwork.MOBILE.toString();
-    	mobileIdentity.mName = "Vodafone";
-    	mobileIdentity.mCapabilities = mobileCapabilities;
-    	chattableIdentities.add(mobileIdentity);
-    	// end: add mobile identity to support 360 chat
-    	
-    	return chattableIdentities;
-    }
-    
-    /**
-     * 
-     * Takes all third party identities that have a chat capability set to true.
      * 
      * @return A list of chattable 3rd party identities the user is signed in to. If the retrieval identities failed the returned list will be empty.
      * 
      */
-    public ArrayList<Identity> getMyThirdPartyChattableIdentities() {
+    public ArrayList<Identity> getMyChattableIdentities() {
     	final ArrayList<Identity> chattableIdentities = new ArrayList<Identity>();
     	final ArrayList<Identity> myIdentityList;
     	final int identityListSize;

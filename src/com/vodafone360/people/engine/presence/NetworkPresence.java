@@ -127,10 +127,7 @@ public class NetworkPresence implements Parcelable {
         MICROSOFT("microsoft"),
         VKONTAKTE_RU("vkontakte.ru"),
         ODNOKLASSNIKI_RU("odnoklassniki.ru"),
-        MOBILE("mobile"),
-        PC("pc"),
-        VODAFONE("vodafone"), // the aggregated status for "pc" and "mobile"
-                              // only used by - UI - Contact Profile View
+
         INVALID("invalid"); 
         private String mSocialNetwork; // / The name of the field as it appears
                                        // in the database
@@ -165,8 +162,6 @@ public class NetworkPresence implements Parcelable {
          * @return SocialNetwork object for the provided index.
          */
         public static SocialNetwork getPresenceValue(int index) {
-            if (index == VODAFONE.ordinal())
-                return MOBILE;
             return values()[index];
         }
 
@@ -177,16 +172,13 @@ public class NetworkPresence implements Parcelable {
          * @return SocialNetwork object for the provided index.
          */
         public static SocialNetwork getChatValue(int index) {
-            if (index == MOBILE.ordinal() || index == PC.ordinal() || index == VODAFONE.ordinal())
-                return VODAFONE;
             return values()[index];
         }
 
         /**
          * This method returns the SocialNetwork object based on the provided
          * string.
-         * This method should be called to get the SocialNetwork objects for UI purposes, i.e. 
-         * it returns Vodafone rather than MOBILE or PC if "pc" and "mobile" are passed in.
+         * 
          * @param index - integer index.
          * @return SocialNetwork object for the provided underlying string.
          */
@@ -204,10 +196,6 @@ public class NetworkPresence implements Parcelable {
                     return MICROSOFT;
                 } else if (sns.contains(ThirdPartyAccount.SNS_TYPE_GOOGLE)) {
                     return GOOGLE;
-                } else if (sns.contains(ThirdPartyAccount.SNS_TYPE_TWITTER)) {
-                    return PC;
-                } else if (ThirdPartyAccount.isVodafone(sns)) {
-                    return VODAFONE;
                 }
             }
             return null;

@@ -619,7 +619,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         String meProfileUserId = Long.toString(PresenceDbUtils.getMeProfileUserId(mDbHelper));
         Hashtable<String, String> availability = new Hashtable<String, String>();
 
-        ArrayList<Identity> identityList = EngineManager.getInstance().getIdentityEngine().getMy360AndThirdPartyChattableIdentities();
+        ArrayList<Identity> identityList = EngineManager.getInstance().getIdentityEngine().getMyChattableIdentities();
 
         if ((identityList.size() != 0)) {
             for (int i=0; i<identityList.size(); i++) {
@@ -782,24 +782,15 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         }
         ChatMessage msg = new ChatMessage();
         msg.setBody(body);
-        // TODO: remove the hard code - go to UI and check what is there
-        if (networkId == SocialNetwork.MOBILE.ordinal()
-                || (networkId == SocialNetwork.PC.ordinal())) {
-            msg.setNetworkId(SocialNetwork.VODAFONE.ordinal());
-        } else {
-            msg.setNetworkId(networkId);
-        }
+        msg.setNetworkId(networkId);
         msg.setLocalContactId(toLocalContactId);
 
         ChatDbUtils.fillMessageByLocalContactIdAndNetworkId(msg, mDbHelper);
 
         if (msg.getConversationId() != null) {
-            // TODO: re-factor this
-            if (msg.getNetworkId() != SocialNetwork.VODAFONE.ordinal()) {
-                String fullUserId = SocialNetwork.getChatValue(msg.getNetworkId()).toString()
-                        + ChatDbUtils.COLUMNS + msg.getUserId();
-                msg.setUserId(fullUserId);
-            }
+            String fullUserId = SocialNetwork.getChatValue(msg.getNetworkId()).toString()
+                    + ChatDbUtils.COLUMNS + msg.getUserId();
+            msg.setUserId(fullUserId);
             addUiRequestToQueue(ServiceUiRequest.SEND_CHAT_MESSAGE, msg);
         } else {
             // if the conversation was not found that means it didn't exist,
@@ -854,7 +845,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     public Hashtable<String, String> getPresencesForStatus(OnlineStatus status) {
         // Get cached identities from the presence engine 
         ArrayList<Identity> identities = 
-            EngineManager.getInstance().getIdentityEngine().getMy360AndThirdPartyChattableIdentities();
+            EngineManager.getInstance().getIdentityEngine().getMyChattableIdentities();
     
         if (identities == null) {
             // No identities, just return null

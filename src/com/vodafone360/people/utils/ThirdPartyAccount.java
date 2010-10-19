@@ -142,17 +142,6 @@ public class ThirdPartyAccount {
                 || snsLower.contains(SNS_TYPE_MICROSOFT) || snsLower.contains(SNS_TYPE_WINDOWS));
     }
 
-    /*
-     * Checks if the sns string contains text to identify it as Vodafone sns
-     * @param sns - the text to check
-     * @return true if this is a Vodafone sns
-     */
-    public static boolean isVodafone(String sns) {
-        String snsLower = sns.toLowerCase();
-        return (snsLower.contains(SNS_TYPE_VODAFONE) || snsLower.contains(SNS_TYPE_NOWPLUS) || snsLower
-                .contains(SNS_TYPE_ZYB));
-    }
-
     /**
      * Gets the Localised string for the given SNS.
      * 
@@ -160,7 +149,7 @@ public class ThirdPartyAccount {
      * @return Localised string for the given SNS.
      */
     public static String getSnsString(Context context, String sns) {
-        if (sns == null || isVodafone(sns)) {
+        if (sns == null) {
             return context.getString(R.string.Utils_sns_name_vodafone);
         } else if (sns.contains(SNS_TYPE_FACEBOOK)) {
             return context.getString(R.string.Utils_sns_name_facebook);

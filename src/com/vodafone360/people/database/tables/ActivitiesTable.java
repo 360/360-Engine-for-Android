@@ -1423,11 +1423,6 @@ public abstract class ActivitiesTable {
             String networkQuery = "";
             String queryNetworkName = networkName;
             if (queryNetworkName != null) {
-                if (queryNetworkName.equals(SocialNetwork.PC.toString())
-                        || queryNetworkName.equals(
-                                SocialNetwork.MOBILE.toString())) {
-                    queryNetworkName = SocialNetwork.VODAFONE.toString();
-                }
                 networkQuery = Field.CONTACT_NETWORK + "='" + queryNetworkName
                     + "' AND ";
             }

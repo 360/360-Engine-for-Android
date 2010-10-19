@@ -82,9 +82,6 @@ public class ChatDbUtilsTest extends ApplicationTestCase<MainApplication> {
 
         /** SNS test. **/
         testConvertUserId(
-                "123456", NETWORK_ID, LOCAL_CONTACT_ID,
-                "123456", SocialNetwork.VODAFONE, -1L);
-        testConvertUserId(
                 "facebook.com::123456", NETWORK_ID, LOCAL_CONTACT_ID,
                 "123456", SocialNetwork.FACEBOOK_COM, -1L);
         testConvertUserId(
@@ -96,17 +93,6 @@ public class ChatDbUtilsTest extends ApplicationTestCase<MainApplication> {
         testConvertUserId(
                 "microsoft::123456", NETWORK_ID, LOCAL_CONTACT_ID,
                 "123456", SocialNetwork.MICROSOFT, -1L);
-        
-        /** Never happens. **/
-        testConvertUserId(
-                "mobile::123456", NETWORK_ID, LOCAL_CONTACT_ID,
-                "123456", SocialNetwork.MOBILE, -1L);
-        testConvertUserId(
-                "pc::123456", NETWORK_ID, LOCAL_CONTACT_ID,
-                "123456", SocialNetwork.PC, -1L);
-        testConvertUserId(
-                "vodafone::123456", NETWORK_ID, LOCAL_CONTACT_ID,
-                "123456", SocialNetwork.VODAFONE, -1L);
 
         /** Parsing test. **/
         testConvertUserId(
@@ -143,9 +129,6 @@ public class ChatDbUtilsTest extends ApplicationTestCase<MainApplication> {
         testConvertUserId(
                 "::", NETWORK_ID, LOCAL_CONTACT_ID,
                 "", SocialNetwork.INVALID, -1L);
-        testConvertUserId(
-                "", NETWORK_ID, LOCAL_CONTACT_ID,
-                "", SocialNetwork.VODAFONE, -1L);
     }
 
     /***
