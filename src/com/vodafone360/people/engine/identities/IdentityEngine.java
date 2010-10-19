@@ -603,6 +603,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
                 sendGetAvailableIdentitiesRequest();
                 break;
             case IDENTITY_CHANGE:
+            	mMyIdentityList.clear();
                 sendGetMyIdentitiesRequest();
                 mEventCallback.kickWorkerThread();
             	break;
