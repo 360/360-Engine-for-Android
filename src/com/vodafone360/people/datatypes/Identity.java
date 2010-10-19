@@ -45,6 +45,26 @@ import com.vodafone360.people.utils.LogUtils;
 public class Identity extends BaseDataType implements Parcelable {
 
     /**
+     * The parameter in Identities#getAvailableIdentities() filter 
+     * that indicates available type of authentication for the identity. 
+     */
+    public static final String AUTH_TYPE = "authtype";
+    /**
+     * The parameter in Identities#getAvailableIdentities() filter 
+     * that indicates available type of authentication for the identity. 
+     */
+    public static final String CAPABILITY = "capability";
+    /**
+     * Type of authentication for identity.
+     */
+    public static final String AUTH_TYPE_URL = "url";
+    /**
+     * Type of authentication for identity.
+     */
+    public static final String AUTH_TYPE_CREDENTIALS = "credentials";
+
+
+    /**
      * Tags associated with Identity item.
      */
     private enum Tags {

@@ -125,6 +125,8 @@ public class NetworkPresence implements Parcelable {
         HYVES_NL("hyves.nl"),
         GOOGLE("google"),
         MICROSOFT("microsoft"),
+        VKONTAKTE_RU("vkontakte.ru"),
+        ODNOKLASSNIKI_RU("odnoklassniki.ru"),
         MOBILE("mobile"),
         PC("pc"),
         VODAFONE("vodafone"), // the aggregated status for "pc" and "mobile"
@@ -190,7 +192,11 @@ public class NetworkPresence implements Parcelable {
          */
         public static SocialNetwork getNetworkBasedOnString(String sns) {
             if (sns != null) {
-                if (sns.contains(ThirdPartyAccount.SNS_TYPE_FACEBOOK)) {
+                if (sns.contains(ThirdPartyAccount.SNS_TYPE_VKONTAKTE)) {
+                    return VKONTAKTE_RU;
+                } else if (sns.contains(ThirdPartyAccount.SNS_TYPE_ODNOKLASSNIKI)) {
+                    return ODNOKLASSNIKI_RU;
+                } else if (sns.contains(ThirdPartyAccount.SNS_TYPE_FACEBOOK)) {
                     return FACEBOOK_COM;
                 } else if (sns.contains(ThirdPartyAccount.SNS_TYPE_HYVES)) {
                     return HYVES_NL;

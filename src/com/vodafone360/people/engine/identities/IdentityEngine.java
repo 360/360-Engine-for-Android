@@ -172,9 +172,14 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 	private DeleteIdentityRequest identityToBeDeleted;
 	
     /**
-     * The hard coded list of capabilities we use to getAvailable~/MyIdentities(): chat and status.
+     * The hard coded list of capabilities we use to getAvailableIdentities(): chat and status.
      */
-    private final Map<String, List<String>> mCapabilitiesFilter;
+    private final Map<String, List<String>> mGetAvailableIdentitiesFilter;
+    
+    /**
+     * The hard coded list of capabilities we use to getMyIdentities(): chat and status.
+     */
+    private final Map<String, List<String>> mGetMyIdentitiesFilter;
     
     /**
      * The DatabaseHelper used to access the client database.
@@ -201,11 +206,21 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         mLastAvailableIdentitiesRequestTimestamp = 0;
         
         // initialize identity capabilities filter
-        mCapabilitiesFilter = new Hashtable<String, List<String>>();
+        mGetAvailableIdentitiesFilter = new Hashtable<String, List<String>>();
         final List<String> capabilities = new ArrayList<String>();
         capabilities.add(IdentityCapability.CapabilityID.chat.name());
         capabilities.add(IdentityCapability.CapabilityID.get_own_status.name());
-        mCapabilitiesFilter.put(Identities.CAPABILITY, capabilities);
+        
+        mGetAvailableIdentitiesFilter.put(Identity.CAPABILITY, capabilities);
+        
+        final List<String> authType = new ArrayList<String>();
+        authType.add(Identity.AUTH_TYPE_URL);
+        authType.add(Identity.AUTH_TYPE_CREDENTIALS);
+                
+        mGetAvailableIdentitiesFilter.put(Identity.AUTH_TYPE, authType);
+        
+        mGetMyIdentitiesFilter = new Hashtable<String, List<String>>();
+        mGetMyIdentitiesFilter.put(Identity.CAPABILITY, capabilities);
     }
     
     /**
@@ -347,7 +362,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * by onProcessCommsResponse once a response comes in.
      */
     private void sendGetMyIdentitiesRequest() {
-        Identities.getMyIdentities(this, mCapabilitiesFilter);
+        Identities.getMyIdentities(this, mGetMyIdentitiesFilter);
     }
     
     /**
@@ -355,7 +370,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * handled by onProcessCommsResponse once a response comes in.
      */
     private void sendGetAvailableIdentitiesRequest() {
-    	Identities.getAvailableIdentities(this, mCapabilitiesFilter);
+    	Identities.getAvailableIdentities(this, mGetAvailableIdentitiesFilter);
     }
 
     /**
