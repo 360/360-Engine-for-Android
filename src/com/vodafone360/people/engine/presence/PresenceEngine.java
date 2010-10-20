@@ -591,7 +591,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         Hashtable<String, String> availability = new Hashtable<String, String>();
         
         for (NetworkPresence presence : me.getPayload()) {
-            availability.put(SocialNetwork.getPresenceValue(presence.getNetworkId()).toString(),
+            availability.put(SocialNetwork.getSocialNetworkValue(presence.getNetworkId()).toString(),
                     OnlineStatus.getValue(presence.getOnlineStatusId()).toString());
         }
 
@@ -788,7 +788,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         ChatDbUtils.fillMessageByLocalContactIdAndNetworkId(msg, mDbHelper);
 
         if (msg.getConversationId() != null) {
-            String fullUserId = SocialNetwork.getChatValue(msg.getNetworkId()).toString()
+            String fullUserId = SocialNetwork.getSocialNetworkValue(msg.getNetworkId()).toString()
                     + ChatDbUtils.COLUMNS + msg.getUserId();
             msg.setUserId(fullUserId);
             addUiRequestToQueue(ServiceUiRequest.SEND_CHAT_MESSAGE, msg);

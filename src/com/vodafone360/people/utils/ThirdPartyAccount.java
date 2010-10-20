@@ -272,4 +272,14 @@ public class ThirdPartyAccount {
         return mShouldBeProcessed;
     }
 
+    /**
+     * Checks if the sns string contains text to identify it as Vodafone sns
+     * @param sns - the text to check
+     * @return true if this is a Vodafone sns
+     */	 	
+    public static boolean isVodafone(String sns) {
+    	String snsLower = sns.toLowerCase();
+    	return (snsLower.contains(SNS_TYPE_VODAFONE) || snsLower.contains(SNS_TYPE_NOWPLUS) || 
+    			snsLower.contains(SNS_TYPE_ZYB));
+    }
 }

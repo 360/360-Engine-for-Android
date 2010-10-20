@@ -155,23 +155,15 @@ public class NetworkPresence implements Parcelable {
         }
 
         /**
-         * This method returns the SocialNetwork object based on index in the SocialNetwork enum.
-         * This method should be called to get the SocialNetwork object by networkId
-         * index from {@code}NetworkPresence.   
-         * @param index - integer index.
-         * @return SocialNetwork object for the provided index.
-         */
-        public static SocialNetwork getPresenceValue(int index) {
-            return values()[index];
-        }
-
-        /**
+         * 
          * This method returns the SocialNetwork object based on index in the SocialNetwork enum.
          * This method should be called to get the SocialNetwork for a chat network id index.
+         * 
          * @param index - integer index.
          * @return SocialNetwork object for the provided index.
+         * 
          */
-        public static SocialNetwork getChatValue(int index) {
+        public static SocialNetwork getSocialNetworkValue(int index) {
             return values()[index];
         }
 

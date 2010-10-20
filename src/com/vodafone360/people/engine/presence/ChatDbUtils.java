@@ -99,7 +99,7 @@ public class ChatDbUtils {
 
         chatMessage.setLocalContactId(
                 ContactDetailsTable.findLocalContactIdByKey(
-                        SocialNetwork.getChatValue(
+                        SocialNetwork.getSocialNetworkValue(
                                 chatMessage.getNetworkId()).toString(),
                                 chatMessage.getUserId(),
                                 ContactDetail.DetailKeys.VCARD_IMADDRESS,
@@ -179,7 +179,7 @@ public class ChatDbUtils {
             }
         }
         item.mIncoming = incoming;
-        item.mContactNetwork = SocialNetwork.getChatValue(msg.getNetworkId()).toString();
+        item.mContactNetwork = SocialNetwork.getSocialNetworkValue(msg.getNetworkId()).toString();
         item.mNativeItemType = TimelineNativeTypes.ChatLog.ordinal();
     }
 
@@ -208,9 +208,9 @@ public class ChatDbUtils {
             DatabaseHelper databaseHelper) {
         List<String> tos = new ArrayList<String>();
         msg.setUserId(ContactDetailsTable.findChatIdByLocalContactIdAndNetwork(SocialNetwork
-                .getChatValue(msg.getNetworkId()).toString(), msg.getLocalContactId(),
+                .getSocialNetworkValue(msg.getNetworkId()).toString(), msg.getLocalContactId(),
                 databaseHelper.getReadableDatabase()));
-        String fullUserId = SocialNetwork.getChatValue(msg.getNetworkId()).toString() + COLUMNS
+        String fullUserId = SocialNetwork.getSocialNetworkValue(msg.getNetworkId()).toString() + COLUMNS
                 + msg.getUserId();
         tos.add(fullUserId);
         msg.setUserId(fullUserId);

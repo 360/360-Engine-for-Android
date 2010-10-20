@@ -194,7 +194,7 @@ public abstract class ConversationsTable {
                     msg.setUserId(c.getString(USER_ID));
                     msg.setConversationId(c.getString(CONVERSATION_ID));
                     tos = new ArrayList<String>();
-                    tos.add(SocialNetwork.getChatValue(msg.getNetworkId()) + COLUMNS
+                    tos.add(SocialNetwork.getSocialNetworkValue(msg.getNetworkId()) + COLUMNS
                             + msg.getUserId());
                 } else {
                     removeOldConversationByLocalContactIdAndNetworkId(msg.getLocalContactId(), msg

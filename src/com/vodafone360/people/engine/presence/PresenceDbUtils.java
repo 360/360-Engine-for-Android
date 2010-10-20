@@ -179,7 +179,7 @@ public class PresenceDbUtils {
                             
                          } else { // 3rd party accounts
                              localContactId = ContactDetailsTable.findLocalContactIdByKey(
-                                    SocialNetwork.getPresenceValue(networkId).toString(), userId,
+                                    SocialNetwork.getSocialNetworkValue(networkId).toString(), userId,
                                     ContactDetail.DetailKeys.VCARD_IMADDRESS, writableDb);
                              if (localContactId != -1) {
                                  break;
