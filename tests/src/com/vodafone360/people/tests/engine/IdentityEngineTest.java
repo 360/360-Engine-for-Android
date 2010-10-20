@@ -202,7 +202,7 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
         mState = IdentityTestState.GET_CHATABLE_IDENTITIES;
 
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
-        mEng.getMy360AndThirdPartyChattableIdentities();
+        mEng.getMyChattableIdentities();
         ServiceStatus status = mEngineTester.waitForEvent();
         assertEquals(ServiceStatus.SUCCESS, status);
 

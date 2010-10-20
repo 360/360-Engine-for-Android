@@ -69,9 +69,7 @@ public class MePresenceCacheTableTest extends NowPlusTableTestCase {
         final ArrayList<NetworkPresence> presenceList = new ArrayList<NetworkPresence>();
         
         int onlineStatus = OnlineStatus.ONLINE.ordinal();
-        for(int i = SocialNetwork.FACEBOOK_COM.ordinal(); 
-            i < SocialNetwork.VODAFONE.ordinal(); 
-            i++) {
+        for(int i = SocialNetwork.FACEBOOK_COM.ordinal(); i < SocialNetwork.MICROSOFT.ordinal(); i++) {
             NetworkPresence networkPresence = new NetworkPresence(userId, i, onlineStatus);
             presenceList.add(networkPresence);
             MePresenceCacheTable.updateCache(networkPresence, mTestDatabase.getWritableDatabase());
@@ -79,9 +77,7 @@ public class MePresenceCacheTableTest extends NowPlusTableTestCase {
         }
         
         onlineStatus = OnlineStatus.OFFLINE.ordinal();
-        for(int i = SocialNetwork.FACEBOOK_COM.ordinal(); 
-            i < SocialNetwork.VODAFONE.ordinal(); 
-            i++) {
+        for(int i = SocialNetwork.FACEBOOK_COM.ordinal(); i < SocialNetwork.MICROSOFT.ordinal(); i++) {
             NetworkPresence networkPresence = new NetworkPresence(userId, i, onlineStatus);
             presenceList.set(i, networkPresence);
             MePresenceCacheTable.updateCache(networkPresence, mTestDatabase.getWritableDatabase());
