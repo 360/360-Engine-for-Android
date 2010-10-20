@@ -2706,9 +2706,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param localContactId Given contact ID.
      */
 	public void updateTimelineEntryForPhone(String oldPhoneNumber,
-			Long localContactID) {
+			Long localContactID,boolean merge) {
 		final SQLiteDatabase db = getWritableDatabase();
-		ActivitiesTable.updateTimelineContactData(oldPhoneNumber, localContactID, db);
+		ActivitiesTable.updateTimelineContactData(oldPhoneNumber, localContactID, db,merge);
 	}
 }
 
