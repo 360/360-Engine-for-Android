@@ -137,6 +137,17 @@ public class LRUHashMap<K, V> extends HashMap<K, V> {
         mCacheOrder = new ArrayList<K>();
     }
     
+    /***
+     * Returns the value of the mapping with the specified key.
+     *
+     * @param key The key. 
+     * @return Value of the mapping with the specified key, or NULL if no
+     *          mapping for the specified key is found.
+     */
+    synchronized public V get(int key) {
+        return super.get(key);
+    }
+
     /**
      * Maps the specified key to the specified value. If adding
      * a key/value pair to the LRUHashMap would cause its size to overcome 

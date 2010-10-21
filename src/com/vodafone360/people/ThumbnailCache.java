@@ -261,13 +261,12 @@ public class ThumbnailCache {
      * been changed in the file system will be updated the next time it is
      * requested by the UI.
      */
-
     public final void invalidateThumbnailCache() {
         mInvalidatedThumbnails.clear();
-        Set<Long> x = mThumbnailCache.keySet();
-        Long[] thumbnailCacheArray = (Long[]) x.toArray(new Long[x.size()]);
-        for (Long contactId : thumbnailCacheArray) {
-            mInvalidatedThumbnails.add(contactId);
+        synchronized (mThumbnailCache) {
+            for (Long contactId : mThumbnailCache.keySet()) {
+                mInvalidatedThumbnails.add(contactId);
+            }
         }
     }
 
