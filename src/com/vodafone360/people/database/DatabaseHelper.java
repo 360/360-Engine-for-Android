@@ -1739,6 +1739,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             syncToNative = false;
         }
 
+        boolean needFireDbUpdate = false; 
         SQLiteDatabase mDb = getWritableDatabase();
 
         for (ContactDetail mContactDetail : detailList) {
@@ -1793,12 +1794,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
 
-                updateTimelineNames(mContactDetail, mDb);
+                final boolean updated = updateTimelineNames(mContactDetail, mDb);
+                if (updated) {
+                    needFireDbUpdate = true;
+                }
 
                 mDb.setTransactionSuccessful();
             } finally {
                 mDb.endTransaction();
             }
+        }
+        
+        if (needFireDbUpdate) {
+            fireDatabaseChangedEvent(DatabaseChangeType.ACTIVITIES, false);
         }
 
         return ServiceStatus.SUCCESS;
@@ -1810,9 +1818,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * 
      * @param cd The new or modified contact detail
      * @param db Writable SQLite database for the update
+     * @return true if the Activities table was updated, false otherwise
      */
-    private void updateTimelineNames(ContactDetail cd, SQLiteDatabase db) {
-    		updateTimelineNames(cd, null, null, db);
+    private boolean updateTimelineNames(ContactDetail cd, SQLiteDatabase db) {
+        return updateTimelineNames(cd, null, null, db);
     }
 
     /**
@@ -1823,8 +1832,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param contactFriendlyName Name of contact (if known)
      * @param serverId if known
      * @param db Writable SQLite database for the update
+     * @return true if the Activities table was updated, false otherwise
      */
-    private void updateTimelineNames(ContactDetail cd, String contactFriendlyName, Long serverId,
+    private boolean updateTimelineNames(ContactDetail cd, String contactFriendlyName, Long serverId,
             SQLiteDatabase db) {
         if (cd.key == ContactDetail.DetailKeys.VCARD_NAME) {
             VCardHelper.Name name = cd.getName();
@@ -1832,6 +1842,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 contactFriendlyName = name.toString();
                 ActivitiesTable.updateTimelineContactNameAndId(contactFriendlyName,
                         cd.localContactID, db);
+                return true;
             }
         }
 
@@ -1849,10 +1860,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 }
                 ActivitiesTable.updateTimelineContactNameAndId(cd.getTel(), contactFriendlyName,
                         cd.localContactID, cId, db);
+                return true;
             } else {
                 LogUtils.logE("updateTimelineNames() failed to fetch summary Item");
             }
         }
+        return false;
     }
 
     /***
@@ -1879,6 +1892,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             syncToNative = false;
         }
 
+        boolean needFireDbUpdate = false;
         SQLiteDatabase mDb = getWritableDatabase();
 
         for (ContactDetail mContactDetail : contactDetailList) {
@@ -1923,12 +1937,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 if (ServiceStatus.SUCCESS != serviceStatus) {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
-                updateTimelineNames(mContactDetail, mDb);
+
+                final boolean updated = updateTimelineNames(mContactDetail, mDb);
+                
+                if (updated) {
+                    needFireDbUpdate = true;
+                }
 
                 mDb.setTransactionSuccessful();
             } finally {
                 mDb.endTransaction();
             }
+        }
+        
+        if (needFireDbUpdate) {
+            fireDatabaseChangedEvent(DatabaseChangeType.ACTIVITIES, false);
         }
 
         return ServiceStatus.SUCCESS;

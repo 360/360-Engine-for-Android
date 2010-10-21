@@ -47,11 +47,15 @@ import com.vodafone360.people.database.SQLKeys;
 import com.vodafone360.people.database.utils.SqlUtils;
 import com.vodafone360.people.datatypes.ActivityContact;
 import com.vodafone360.people.datatypes.ActivityItem;
+import com.vodafone360.people.datatypes.ContactDetail;
+import com.vodafone360.people.datatypes.ContactSummary;
+import com.vodafone360.people.datatypes.VCardHelper;
 import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.utils.CloseUtils;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.StringBufferPool;
+import com.vodafone360.people.utils.StringUtils;
 import com.vodafone360.people.utils.WidgetUtils;
 
 /**
@@ -635,6 +639,18 @@ public abstract class ActivitiesTable {
                                 // in the database anymore otherwise they will be shown as "Blank name".
                                 // This is the same on the web but we could use the provided name instead.
                                 continue;
+                            } else {
+                                // Find a more up-to-date name as the names in the Activities are the ones
+                                // from submit time. If they changed in the meantime, this is not reflected
+                                // so we fetch the names from the ContactSummary table.
+                                final ContactSummary contactSummary = new ContactSummary();
+                                if (ContactSummaryTable.fetchSummaryItem(activityContact.mLocalContactId,
+                                                                         contactSummary,
+                                                                         writableDb) == ServiceStatus.SUCCESS) {
+                                    if (!TextUtils.isEmpty(contactSummary.formattedName)) {
+                                        activityContact.mName = contactSummary.formattedName;
+                                    }
+                                }
                             }
                             
                             int latestStatusVal = removeContactGroup(
