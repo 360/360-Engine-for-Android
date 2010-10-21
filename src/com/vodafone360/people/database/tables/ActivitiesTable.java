@@ -2168,6 +2168,110 @@ public abstract class ActivitiesTable {
         return cursor;
     }
     /**
+     * This function seprates the timeline entries of phon number and chat
+     * @param cursor pointing to the db
+     * @param timelineEntryCount Number of entries in Activities table
+     * @param writeableDb The database
+     * @param localContactId The localcontactId of the contact
+     * @param oldPhoneNumber The old phone number to be changed
+     */
+    public static void seprateTimeLineEntries(Cursor cursor
+    		                                   ,SQLiteDatabase writeableDb
+    		                                   ,Long localContactId
+    		                                   ,String oldPhoneNumber) {
+
+		// Split the latest timeline entries from the previous same localcontactId.
+    	
+        if (cursor != null && cursor.getCount() > 1) {
+			TimelineSummaryItem item = null;
+
+			boolean isLatestTimelinePreferred = false;
+			boolean isLatestTimeline = false;
+			boolean isFirstRun = true;
+			while(cursor.moveToNext()) {
+				item = getTimelineData(cursor);
+				if (item != null && item.mLocalContactId != null) {
+				    /** Debug added to catch bug causing PAND-2331. **/
+				    LogUtils.logD("ActivitiesTable.updateTimelineContactData() "
+				            + "Neither mContactAddress[" + item.mContactAddress
+				            + "] mTimestamp[" + item.mTimestamp
+				            + "] should be NULL");
+				    
+					int latestContactStatus = 3;
+					// Update the LatestContactStatus for Latest Timeline
+					// Actually for chat timelines this item.mContactAddress will be null, 
+                    // and it makes no sense to  update it as well.
+					if (item.mContactAddress != null) {
+					    if (item.mContactAddress.equals(oldPhoneNumber)) {
+                            if(isLatestTimelinePreferred) {
+                                latestContactStatus = 0;
+                            }
+
+                            final String whereClause = " AND " + Field.CONTACT_ADDRESS
+                             + "='" + oldPhoneNumber + "'";
+
+                            updateTimeLineStatusEntryForContact(localContactId,
+                                    latestContactStatus, item.mTimestamp,
+                                    whereClause, writeableDb);
+
+                            isLatestTimelinePreferred = true;
+                        } else {
+                            if(isLatestTimeline) {
+                                latestContactStatus = 0;
+                            }
+
+                            // Update the remaining timeline entries for entries
+                            // other than the number changed. 
+                            final String whereClause = " AND " + Field.CONTACT_ADDRESS
+                             + "!='" + oldPhoneNumber + "'";
+
+                            updateTimeLineStatusEntryForContact(localContactId,
+                                    latestContactStatus, item.mTimestamp,
+                                    whereClause, writeableDb);
+
+                            isLatestTimeline = true;
+                        }
+					}
+					else {
+						    if(isFirstRun) {
+						      updateTimeLineStatusEntryForContact(localContactId,
+                                latestContactStatus, item.mTimestamp,
+                                null, writeableDb);
+						       isFirstRun = false;
+							 }
+							 
+					}
+				}
+			}
+        }
+	
+    }
+    
+    /**
+     * 
+     * @param cursor
+     * @param timelineEntryCount
+     * @param writeableDb
+     * @param localContactId
+     */
+    
+    public static void mergeTimeLineEntries(Cursor cursor,int timelineEntryCount,SQLiteDatabase writeableDb,Long localContactId) {
+    	
+    	if (cursor != null && cursor.getCount() > 0) {
+			cursor.moveToFirst();
+			TimelineSummaryItem timelineItem = null;
+
+			// Skip the first latest timeline Entry and update the remaining.
+			while (cursor.moveToNext()) {
+			timelineItem = getTimelineData(cursor);
+			if (timelineItem != null) {
+				updateTimeLineStatusEntryForContact(localContactId,
+						0, timelineItem.mTimestamp, null, writeableDb);
+				}
+			}
+        }
+    }
+    /**
      * This method updates the timeline event for the contact for the provided
      * Phone number.
      *
@@ -2197,85 +2301,10 @@ public abstract class ActivitiesTable {
             // Merge the different timeline entries for same localcontactId.
         	//merge=true means the new number is added to contact
         	//merge = false means new number is deleted from contact
-        	if (merge && timelineEntryCount > 1) {
-		        if (cursor != null && cursor.getCount() > 0) {
-					cursor.moveToFirst();
-					TimelineSummaryItem timelineItem = null;
-
-					// Skip the first latest timeline Entry and update the remaining.
-					while (cursor.moveToNext()) {
-					timelineItem = getTimelineData(cursor);
-					if (timelineItem != null) {
-						updateTimeLineStatusEntryForContact(localContactId,
-								0, timelineItem.mTimestamp, null, writeableDb);
-						}
-					}
-		        }
+        	if (!merge && timelineEntryCount > 1) {
+        		mergeTimeLineEntries(cursor,timelineEntryCount,writeableDb,localContactId);
         	} else {
-        		// Split the latest timeline entries from the previous same localcontactId.
-	        	
-		        if (cursor != null && cursor.getCount() > 1) {
-					TimelineSummaryItem item = null;
-
-					boolean isLatestTimelinePreferred = false;
-					boolean isLatestTimeline = false;
-					boolean isFirstRun = true;
-					while(cursor.moveToNext()) {
-						item = getTimelineData(cursor);
-						if (item != null && item.mLocalContactId != null) {
-						    /** Debug added to catch bug causing PAND-2331. **/
-						    LogUtils.logD("ActivitiesTable.updateTimelineContactData() "
-						            + "Neither mContactAddress[" + item.mContactAddress
-						            + "] mTimestamp[" + item.mTimestamp
-						            + "] should be NULL");
-						    
-							int latestContactStatus = 3;
-							// Update the LatestContactStatus for Latest Timeline
-							// Actually for chat timelines this item.mContactAddress will be null, 
-                            // and it makes no sense to  update it as well.
-							if (item.mContactAddress != null) {
-							    if (item.mContactAddress.equals(oldPhoneNumber)) {
-	                                if(isLatestTimelinePreferred) {
-	                                    latestContactStatus = 0;
-	                                }
-
-	                                final String whereClause = " AND " + Field.CONTACT_ADDRESS
-	                                 + "='" + oldPhoneNumber + "'";
-
-	                                updateTimeLineStatusEntryForContact(localContactId,
-	                                        latestContactStatus, item.mTimestamp,
-	                                        whereClause, writeableDb);
-
-	                                isLatestTimelinePreferred = true;
-	                            } else {
-	                                if(isLatestTimeline) {
-	                                    latestContactStatus = 0;
-	                                }
-
-	                                // Update the remaining timeline entries for entries
-	                                // other than the number changed. 
-	                                final String whereClause = " AND " + Field.CONTACT_ADDRESS
-	                                 + "!='" + oldPhoneNumber + "'";
-
-	                                updateTimeLineStatusEntryForContact(localContactId,
-	                                        latestContactStatus, item.mTimestamp,
-	                                        whereClause, writeableDb);
-
-	                                isLatestTimeline = true;
-	                            }
-							}
-							else {
-								    if(isFirstRun) {
-								      updateTimeLineStatusEntryForContact(localContactId,
-                                        latestContactStatus, item.mTimestamp,
-                                        null, writeableDb);
-								       isFirstRun = false;
-									 }
-									 
-							}
-						}
-					}
-		        }
+        		seprateTimeLineEntries(cursor,writeableDb,localContactId,oldPhoneNumber);
         	}
         	updateTimeLineEntryForContact(localContactId, oldPhoneNumber, writeableDb);
 
