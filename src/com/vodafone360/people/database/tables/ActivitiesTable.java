@@ -2167,18 +2167,20 @@ public abstract class ActivitiesTable {
 
         return cursor;
     }
-    /**
-     * This function separates the timeline entries of phone number and chat
+
+     /**
+     * This function separates the timeline.
+     * entries of phone number and chat.
      * @param cursor pointing to the databases.
-     * @param timelineEntryCount Number of entries in Activities table
      * @param writeableDb The database
      * @param localContactId The localcontactId of the contact
      * @param oldPhoneNumber The old phone number to be changed
      */
-    public static void separateTimeLineEntries(Cursor cursor
-    		                                   ,SQLiteDatabase writeableDb
-    		                                   ,Long localContactId
-    		                                   ,String oldPhoneNumber) {
+    
+    public static void separateTimeLineEntries(final Cursor cursor
+                                               , final SQLiteDatabase writeableDb
+    		                                   , final Long localContactId
+                                               , final String oldPhoneNumber) {
 
 		// Split the latest timeline entries from the previous same localcontactId.
     	
@@ -2188,7 +2190,7 @@ public abstract class ActivitiesTable {
 			boolean isLatestTimelinePreferred = false;
 			boolean isLatestTimeline = false;
 			boolean isFirstRun = true;
-			while(cursor.moveToNext()) {
+			while (cursor.moveToNext()) {
 				item = getTimelineData(cursor);
 				if (item != null && item.mLocalContactId != null) {
 				    /** Debug added to catch bug causing PAND-2331. **/
@@ -2196,7 +2198,7 @@ public abstract class ActivitiesTable {
 				            + "Neither mContactAddress[" + item.mContactAddress
 				            + "] mTimestamp[" + item.mTimestamp
 				            + "] should be NULL");
-				    
+
 					int latestContactStatus = 3;
 					// Update the LatestContactStatus for Latest Timeline
 					// Actually for chat timelines this item.mContactAddress will be null, 
@@ -2216,12 +2218,12 @@ public abstract class ActivitiesTable {
 
                             isLatestTimelinePreferred = true;
                         } else {
-                            if(isLatestTimeline) {
+                            if (isLatestTimeline) {
                                 latestContactStatus = 0;
                             }
 
                             // Update the remaining timeline entries for entries
-                            // other than the number changed. 
+                            // other than the number changed.
                             final String whereClause = " AND " + Field.CONTACT_ADDRESS
                              + "!='" + oldPhoneNumber + "'";
 
@@ -2231,15 +2233,13 @@ public abstract class ActivitiesTable {
 
                             isLatestTimeline = true;
                         }
-					}
-					else {
-						    if(isFirstRun) {
+					} else {
+						    if (isFirstRun) {
 						      updateTimeLineStatusEntryForContact(localContactId,
                                 latestContactStatus, item.mTimestamp,
                                 null, writeableDb);
 						       isFirstRun = false;
 							 }
-							 
 					}
 				}
 			}
@@ -2249,70 +2249,128 @@ public abstract class ActivitiesTable {
     
     /**
      * Merges the entries when new number is added to existing contact.
-     * Merges the chat and the phone messages entries present in Activities table 
-     * @param cursor
-     * @param timelineEntryCount
-     * @param writeableDb
-     * @param localContactId
+     * Merges the chat and the phone messages entries present in Activities table.
+     * @param cursor  Cursor pointing to the Activities table.
+     * @param writeableDb  The database intance
+     * @param localContactId The unique id associated with contact.
      */
-    
-    public static void mergeTimeLineEntries(Cursor cursor,int timelineEntryCount,SQLiteDatabase writeableDb,Long localContactId) {
-    	
+
+      public static void mergeTimeLineEntries(
+    		                        final Cursor cursor,
+    		                        final SQLiteDatabase writeableDb,
+    		                        final Long localContactId) {
+
     	if (cursor != null && cursor.getCount() > 0) {
 			cursor.moveToFirst();
 			TimelineSummaryItem timelineItem = null;
-
 			// Skip the first latest timeline Entry and update the remaining.
 			while (cursor.moveToNext()) {
 			timelineItem = getTimelineData(cursor);
 			if (timelineItem != null) {
-				updateTimeLineStatusEntryForContact(localContactId,
-						0, timelineItem.mTimestamp, null, writeableDb);
+                    updateTimeLineStatusEntryForContact(localContactId,
+                    0, timelineItem.mTimestamp, null, writeableDb);
 				}
 			}
         }
     }
+
     /**
-     * This method updates the timeline event for the contact for the provided
-     * Phone number.
-     *
+     * This method updates the timeline event.
+     * for the contact for the provided.
+     * Phone number.Actually merges.
+     * the different entries into one.
      * @param oldPhoneNumber Phone number for which timeline entries
      * need to be updated.
-     * @param localContactId Given contact 
+     * @param localContactId Given contact.
      * @param writeableDb Writable SQLite database.
-     * @param We need different functions for adding the phone number and deleteing the number from editactivity.
-     * merge = true means,one has added new number to contact.
-     * merge = false means we need to separate the entries,and number is deleted from contact. 
-     */
-	public static void updateTimelineContactData(String oldPhoneNumber,
-           Long localContactId, SQLiteDatabase writeableDb ,boolean isDeleted) {
+      */
+	public static void addMultipleTimelineEntriesToOneContactData(
+                                               final String oldPhoneNumber,
+                                               final Long localContactId,
+                                               final SQLiteDatabase writeableDb) {
 		DatabaseHelper.trace(false, "DatabaseHelper."
-                + "updateTimelineContactData()");
+                + "addMultipleTimelineEntriesToOneContactData()");
         if (localContactId == null) {
-            LogUtils.logE("updateTimelineContactData() localContactId is NULL");
+            LogUtils.logE("addMultipleTimelineEntriesToOneContactData localContactId is NULL");
             return;
         }
 
         int timelineEntryCount = -1;
         Cursor cursor = null;
         try {
-        	timelineEntryCount = getTimelineEntriesCount(localContactId, writeableDb);
+        	timelineEntryCount = getTimelineEntriesCount(
+        			                 localContactId,
+        			                 writeableDb);
 
-        	cursor = fetchTimelineEventsForContactById(localContactId, writeableDb);
-            // Merge the different timeline entries for same localcontactId.
+        	cursor = fetchTimelineEventsForContactById(
+        			                localContactId,
+        			                writeableDb);
+        	// Merge the different timeline entries for same localcontactId.
         	//merge=true means the new number is added to contact&& timelineEntryCount > 1
-        	//merge = false means new number is deleted from contact
-        	if (!isDeleted ) {
-        		//It sets the latestcontactstatus = 0 for all entries except the latest one.
-        		mergeTimeLineEntries(cursor,timelineEntryCount,writeableDb,localContactId);
-        	} else {
-        		separateTimeLineEntries(cursor,writeableDb,localContactId,oldPhoneNumber);
-        	}
-        	updateTimeLineEntryForContact(localContactId, oldPhoneNumber, writeableDb);
+            	mergeTimeLineEntries(
+            			        cursor,
+            			        writeableDb,
+                                localContactId);
+
+           	   	updateTimeLineEntryForContact(
+           	   			              localContactId,
+           	   			              oldPhoneNumber,
+           	   			              writeableDb);
 
         } finally {
             CloseUtils.close(cursor);
         }
 	}
- 
+
+
+/**
+ * This method updates the timeline.Separates
+ * the deleted phone number entry from the other chat entries.
+ * @param oldPhoneNumber Phone number for which timeline entries
+ * need to be updated.
+ * @param localContactId Given contact
+ * @param writeableDb Writable SQLite database.
+ *
+ */
+
+
+public static void seprateMultipleTimelineEntriesContactData(
+                                final String oldPhoneNumber,
+                                final Long localContactId,
+                                final SQLiteDatabase writeableDb) {
+	DatabaseHelper.trace(false, "DatabaseHelper."
+            + "seprateMultipleTimelineEntriesContactData()");
+	DatabaseHelper.trace(false, "DatabaseHelper."
+            + "seprateMultipleTimelineEntriesContactData()");
+    if (localContactId == null) {
+        LogUtils.logE("seprateMultipleTimelineEntriesContactData" +
+        		" localContactId is NULL");
+        return;
+    }
+
+    int timelineEntryCount = -1;
+    Cursor cursor = null;
+    try {
+    	timelineEntryCount = getTimelineEntriesCount(
+    			              localContactId,
+    			              writeableDb);
+    	cursor = fetchTimelineEventsForContactById(
+    			              localContactId,
+    			              writeableDb);
+    	separateTimeLineEntries(
+    			             cursor,
+    			             writeableDb,
+    			             localContactId,
+    			             oldPhoneNumber);
+
+        updateTimeLineEntryForContact(
+        		        localContactId,
+        		        oldPhoneNumber,
+        		        writeableDb);
+
+    } finally {
+        CloseUtils.close(cursor);
+    }
+}
+
 }
