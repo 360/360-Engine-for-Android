@@ -42,10 +42,6 @@ public class ThirdPartyAccount {
 
     private boolean mIsVerified = false;
 
-    private boolean mChecked = true;
-
-    private boolean mShouldBeProcessed = false;
-
     private String mDisplayName;
 
     /** username */
@@ -88,35 +84,13 @@ public class ThirdPartyAccount {
      * 
      * @param userName - the username for the account.
      * @param identity - Identity details retrieved from server.
-     * @param checkedByDefault - true for the account to be enabled in the list.
      * @param isVerified -
      */
-    public ThirdPartyAccount(String userName, Identity identity, boolean checkedByDefault,
-            boolean isVerified) {
+    public ThirdPartyAccount(String userName, Identity identity, boolean isVerified) {
         mIdentityID = userName;
-        mChecked = checkedByDefault;
         mIdentity = identity;
         mIsVerified = isVerified;
         mDisplayName = identity.mName;
-    }
-
-    /**
-     * Create a new third party account object.
-     *
-     * @param userName - the username for the account.
-     * @param identity - Identity details retrieved from server.
-     * @param isVerified -
-     */
-    public ThirdPartyAccount(final String userName, final Identity identity,
-            final boolean isVerified) {
-
-        /**In ui-refresh will not have flag status of mChecked==false.
-         * Because ui-refresh remove checkBox UI of this flag.
-         * */
-        this(userName, identity, /*checkedByDefault*/true, isVerified);
-
-        /** Always TRUE for UI-Refresh. */
-        mShouldBeProcessed = true;
     }
 
     /** {@inheritDoc} */
@@ -124,10 +98,8 @@ public class ThirdPartyAccount {
     public String toString() {
         final StringBuffer sb = new StringBuffer("ThirdPartyAccount: \n\tmUsername = ");
         sb.append(getIdentityID());
-        sb.append("\n\tmDisplayName = "); sb.append(getDisplayName()); 
-        sb.append("\n\tmCheckedByDefault = "); sb.append(isChecked());
-        sb.append("\n\tmIsVerified = "); sb.append(isVerified()); 
-        sb.append("\n\tmShouldBeProcesed = "); sb.append(isShouldBeProcessed());
+        sb.append("\n\tmDisplayName = "); sb.append(getDisplayName());
+        sb.append("\n\tmIsVerified = "); sb.append(isVerified());
         return sb.toString();
     }
 
@@ -242,34 +214,6 @@ public class ThirdPartyAccount {
      */
     public String getIdentityID() {
         return mIdentityID;
-    }
-
-    /**
-     * @param mChecked the mChecked to set
-     */
-    public void setChecked(boolean mChecked) {
-        this.mChecked = mChecked;
-    }
-
-    /**
-     * @return the mChecked
-     */
-    public boolean isChecked() {
-        return mChecked;
-    }
-
-    /**
-     * @param mShouldBeProcessed the mShouldBeProcessed to set
-     */
-    public void setShouldBeProcessed(boolean mShouldBeProcessed) {
-        this.mShouldBeProcessed = mShouldBeProcessed;
-    }
-
-    /**
-     * @return the mShouldBeProcessed
-     */
-    public boolean isShouldBeProcessed() {
-        return mShouldBeProcessed;
     }
 
     /**
