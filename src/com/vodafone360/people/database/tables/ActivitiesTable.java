@@ -2284,7 +2284,7 @@ public abstract class ActivitiesTable {
      * @param localContactId Given contact.
      * @param writeableDb Writable SQLite database.
       */
-	public static void addMultipleTimelineEntriesToOneContactData(
+	public static void updateTimelineForPhoneNumberChange(
                                                final String oldPhoneNumber,
                                                final Long localContactId,
                                                final SQLiteDatabase writeableDb) {
@@ -2334,7 +2334,7 @@ public abstract class ActivitiesTable {
  */
 
 
-public static void seprateMultipleTimelineEntriesContactData(
+public static void updateTimelineForPhoneNumberDeletion(
                                 final String oldPhoneNumber,
                                 final Long localContactId,
                                 final SQLiteDatabase writeableDb) {
@@ -2347,7 +2347,11 @@ public static void seprateMultipleTimelineEntriesContactData(
         		" localContactId is NULL");
         return;
     }
-
+    //One Use case not covered:-Suppose user enters one phone number to contact
+    //But contact has not recieved any message/call from that number
+    //Then no need to separate anything.That check can be made by seeing the values in
+    //Activity table. and doing nothing as there wont be any separate entry for the number.
+    
     int timelineEntryCount = -1;
     Cursor cursor = null;
     try {

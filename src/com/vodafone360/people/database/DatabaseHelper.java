@@ -2706,11 +2706,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      *
      */
 
-         public final void addMultipleTimelineEntriesForPhoneToOneEntry(
+         public final void updateTimelineForPhoneNumberChange(
         		           final String oldPhoneNumber,
 			               final Long localContactID) {
 		final SQLiteDatabase db = getWritableDatabase();
-		ActivitiesTable.addMultipleTimelineEntriesToOneContactData(
+		ActivitiesTable.updateTimelineForPhoneNumberChange(
                                                   oldPhoneNumber,
                                                   localContactID,
 				                                  db);
@@ -2723,11 +2723,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param localContactID Given contact ID.
      */
 
-	public final void separateMultipleTimelineEntriesContactData(
+	public final void updateTimelineForPhoneNumberDeletion(
                                             final String oldPhoneNumber,
 			                                final Long localContactID) {
 		             final SQLiteDatabase db = getWritableDatabase();
-		             ActivitiesTable.seprateMultipleTimelineEntriesContactData(
+		             ActivitiesTable.updateTimelineForPhoneNumberDeletion(
 		            		                    oldPhoneNumber,
 		            		                    localContactID,
 		            		                    db);
