@@ -2168,14 +2168,14 @@ public abstract class ActivitiesTable {
         return cursor;
     }
     /**
-     * This function seprates the timeline entries of phon number and chat
-     * @param cursor pointing to the db
+     * This function separates the timeline entries of phone number and chat
+     * @param cursor pointing to the databases.
      * @param timelineEntryCount Number of entries in Activities table
      * @param writeableDb The database
      * @param localContactId The localcontactId of the contact
      * @param oldPhoneNumber The old phone number to be changed
      */
-    public static void seprateTimeLineEntries(Cursor cursor
+    public static void separateTimeLineEntries(Cursor cursor
     		                                   ,SQLiteDatabase writeableDb
     		                                   ,Long localContactId
     		                                   ,String oldPhoneNumber) {
@@ -2248,7 +2248,8 @@ public abstract class ActivitiesTable {
     }
     
     /**
-     * 
+     * Merges the entries when new number is added to existing contact.
+     * Merges the chat and the phone messages entries present in Activities table 
      * @param cursor
      * @param timelineEntryCount
      * @param writeableDb
@@ -2281,10 +2282,10 @@ public abstract class ActivitiesTable {
      * @param writeableDb Writable SQLite database.
      * @param We need different functions for adding the phone number and deleteing the number from editactivity.
      * merge = true means,one has added new number to contact.
-     * merge = false means we need to seprate the entries,and number is deleted from contact. 
+     * merge = false means we need to separate the entries,and number is deleted from contact. 
      */
 	public static void updateTimelineContactData(String oldPhoneNumber,
-           Long localContactId, SQLiteDatabase writeableDb ,boolean merge) {
+           Long localContactId, SQLiteDatabase writeableDb ,boolean delete) {
 		DatabaseHelper.trace(false, "DatabaseHelper."
                 + "updateTimelineContactData()");
         if (localContactId == null) {
@@ -2301,10 +2302,11 @@ public abstract class ActivitiesTable {
             // Merge the different timeline entries for same localcontactId.
         	//merge=true means the new number is added to contact
         	//merge = false means new number is deleted from contact
-        	if (!merge && timelineEntryCount > 1) {
+        	if (!delete && timelineEntryCount > 1) {
+        		//It sets the latestcontactstatus = 0 for all entries except the latest one.
         		mergeTimeLineEntries(cursor,timelineEntryCount,writeableDb,localContactId);
         	} else {
-        		seprateTimeLineEntries(cursor,writeableDb,localContactId,oldPhoneNumber);
+        		separateTimeLineEntries(cursor,writeableDb,localContactId,oldPhoneNumber);
         	}
         	updateTimeLineEntryForContact(localContactId, oldPhoneNumber, writeableDb);
 
