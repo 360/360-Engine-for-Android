@@ -2285,7 +2285,7 @@ public abstract class ActivitiesTable {
      * merge = false means we need to separate the entries,and number is deleted from contact. 
      */
 	public static void updateTimelineContactData(String oldPhoneNumber,
-           Long localContactId, SQLiteDatabase writeableDb ,boolean delete) {
+           Long localContactId, SQLiteDatabase writeableDb ,boolean isDeleted) {
 		DatabaseHelper.trace(false, "DatabaseHelper."
                 + "updateTimelineContactData()");
         if (localContactId == null) {
@@ -2300,9 +2300,9 @@ public abstract class ActivitiesTable {
 
         	cursor = fetchTimelineEventsForContactById(localContactId, writeableDb);
             // Merge the different timeline entries for same localcontactId.
-        	//merge=true means the new number is added to contact
+        	//merge=true means the new number is added to contact&& timelineEntryCount > 1
         	//merge = false means new number is deleted from contact
-        	if (!delete && timelineEntryCount > 1) {
+        	if (!isDeleted ) {
         		//It sets the latestcontactstatus = 0 for all entries except the latest one.
         		mergeTimeLineEntries(cursor,timelineEntryCount,writeableDb,localContactId);
         	} else {
