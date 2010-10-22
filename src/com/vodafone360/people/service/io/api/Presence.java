@@ -67,21 +67,29 @@ public class Presence {
         QueueManager.getInstance().fireQueueStateChanged();
     }
 
-    public static void setMyAvailability(Hashtable<String, String> status) {
+    /**
+     * This method adds the request to setAvailability() on the RequestQueue.
+     * @param status Hashtable<String, String> - the Hashtable of (networkName, statusName) pairs.
+     * @return int - the request id of setAvailability() request that was added, or 
+     * -1 if session in the LoginEngine is null.
+     */
+    public static int setMyAvailability(Hashtable<String, String> status) {
         if (LoginEngine.getSession() == null) {
             LogUtils.logE("Presence.setAvailability() No session, so return");
-            return;
+            return -1;
         }
         
         if (Settings.LOG_PRESENCE_PUSH_ON_LOGCAT) {
             LogUtils.logWithName(LogUtils.PRESENCE_INFO_TAG,"SET MY AVAILABILITY: " + status);
         }
-        Request request = new Request(EMPTY, Request.Type.AVAILABILITY, EngineId.UNDEFINED, true,
+        Request request = new Request(EMPTY, Request.Type.AVAILABILITY, EngineId.PRESENCE_ENGINE, true,
                 Settings.API_REQUESTS_TIMEOUT_PRESENCE_SET_AVAILABILITY);
         request.addData("availability", status);
 
-        QueueManager.getInstance().addRequest(request);
+        int reqId = QueueManager.getInstance().addRequest(request);
         QueueManager.getInstance().fireQueueStateChanged();
+        
+        return reqId;
     }
    
 }

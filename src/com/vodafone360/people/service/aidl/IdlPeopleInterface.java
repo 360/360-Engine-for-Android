@@ -27,7 +27,6 @@ package com.vodafone360.people.service.aidl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -687,16 +686,6 @@ public class IdlPeopleInterface extends Service {
          * @see com.vodafone360.people.service.interfaces.setAvailability()
          * Not yet supported, as function overloading is not supported in AIDL.
          */
-        @Override
-        public final void setAvailability(
-                final Hashtable<String, String> status) {
-            mPeopleService.setAvailability(status);
-        }
-
-        /**
-         * @see com.vodafone360.people.service.interfaces.setAvailability()
-         * Not yet supported, as function overloading is not supported in AIDL.
-         */
         public void setAvailability(int network, int status) {
             setAvailability(SocialNetwork.values()[network],
                     OnlineStatus.values()[status]);
@@ -874,6 +863,11 @@ public class IdlPeopleInterface extends Service {
         @Override
         public void unsubscribe(final Handler handler) {
             // Not exposed via AIDL.
+        }
+
+        @Override
+        public boolean isSettingStatusOnNetworkInProgress(String network) {
+            return mPeopleService.isSettingStatusOnNetworkInProgress(network);
         }
     }
 }

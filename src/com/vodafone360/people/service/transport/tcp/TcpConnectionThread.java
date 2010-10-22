@@ -190,8 +190,9 @@ public class TcpConnectionThread implements Runnable, IConnection {
 
                             req.setActive(true);
                             req.writeToOutputStream(mBaos, true);
-
-                            if (req.isFireAndForget()) { // f-a-f, no response,
+//                          We now use the timeout mechanism for Request.Type.AVAILABILITY of request,
+//                          so we should not remove it from the queue otherwise there will be no timeout triggered.
+                            if (req.isFireAndForget() && (req.mType != Request.Type.AVAILABILITY)) { // f-a-f, no response,
                                 // remove from queue
                                 HttpConnectionThread.logD("TcpConnectionThread.run()",
                                         "Removed F&F-Request: " + req.getRequestId());

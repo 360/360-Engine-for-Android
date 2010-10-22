@@ -26,8 +26,12 @@
 package com.vodafone360.people.engine.presence;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
+
+import android.os.Bundle;
 
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.database.tables.MePresenceCacheTable;
@@ -117,6 +121,16 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
      * True if the engine runs for the 1st time.
      */
     private boolean mFirstRun = true;
+    
+    /**
+     * The Hashtable of setAvailability requests that contains the pairs (networkName, targetState)
+     */
+    private final Hashtable<String, Bundle> mSetAvailabilityUiCalls;
+    
+    /**
+     *  The request id key. 
+     */
+    private static final String REQUEST_ID_KEY = "reqId";
 
     /**
      * 
@@ -129,6 +143,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         mDbHelper = databaseHelper;
         mSendMessagesHash = new Hashtable<String, ChatMessage>();
         mFailedMessagesList = new ArrayList<TimelineSummaryItem>();
+        mSetAvailabilityUiCalls = new Hashtable<String, Bundle>();
     }
 
     @Override
@@ -318,7 +333,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
      * This API makes the presence updates in pages of 10 with a timeout
      * after each page. The HandlerAgent is notified after every 10 pages.
      */
-    private synchronized void updatePresenceDatabaseNextPage(){
+    private synchronized void updatePresenceDatabaseNextPage() {
         UiAgent uiAgent = mEventCallback.getUiAgent();
         if(mUsers == null){
             mState = IDLE;
@@ -328,9 +343,12 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         int listSize = mUsers.size();
         int start = 0;
         int end = UPDATE_PRESENCE_PAGE_SIZE;
-        if(listSize == 0){
+        if (listSize == 0) {
             mState = IDLE;
             mUsers = null;
+            
+            notifyUiAgentOfResponse();
+            
             return;
         } else if(listSize < end) {
             end = listSize;
@@ -357,6 +375,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
             }
             this.setTimeout(UPDATE_PRESENCE_TIMEOUT_MILLS);
         }
+        
     }
 
 
@@ -442,6 +461,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         ServiceStatus errorStatus = srvError.toServiceStatus();
         if (errorStatus == ServiceStatus.ERROR_COMMS_TIMEOUT) {
             LogUtils.logW("PresenceEngine handleServerResponce(): TIME OUT IS RETURNED TO PRESENCE ENGINE.");
+            notifyUiAgentOfTimeOut(srvError.requestId);
         }
     }
 
@@ -529,7 +549,8 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         
         switch (requestId) {
             case SET_MY_AVAILABILITY:
-                Presence.setMyAvailability((Hashtable<String,String>)data);
+                Hashtable<String, String> presenceHash = (Hashtable<String, String>)data;
+                notifyUiAgentOfRequest(Presence.setMyAvailability(presenceHash), presenceHash);
                 break;
             case GET_PRESENCE_LIST:
                 Presence.getPresenceList(EngineId.PRESENCE_ENGINE, null);
@@ -599,11 +620,95 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         me.setLocalContactId(SyncMeDbUtils.getMeProfileLocalContactId(mDbHelper));
         
         updateMyPresenceInDatabase(me);
-
+        
         addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, availability);
     }
 
-     /**
+    /**
+     * This method notifies UiAgent of setAvailability call sent by the engine.
+     * @param reqId - the request id.
+     * @param availability - "Me" availability Hashtable - the parameter of the setAvailability call.
+     */
+    private void notifyUiAgentOfRequest(int reqId, Hashtable<String, String> availability) {
+        
+        String network = null;
+        String state = null;
+        synchronized (mSetAvailabilityUiCalls) {
+            for (Enumeration<String> en = availability.keys(); en.hasMoreElements();) {
+                network = en.nextElement();
+                state = availability.get(network);
+                final Bundle bundle = createBundle(network, state, User.SOURCE_REQUESTED);
+                bundle.putInt(REQUEST_ID_KEY, reqId);
+                mSetAvailabilityUiCalls.put(network, bundle);
+                fireNewState(ServiceUiRequest.SET_MY_AVAILABILITY, bundle);
+            }    
+        }
+    }
+    
+    /**
+     * This method notifies UiAgent of the presence push/getPresenceList() response. 
+     */
+    private void notifyUiAgentOfResponse() {
+        final User user = getMyAvailabilityStatusFromDatabase();
+        if (user != null) {
+            String network = null;
+            String state = null;
+            String stateFromDb = null;
+            synchronized (mSetAvailabilityUiCalls) {
+                for (Iterator<String> it = mSetAvailabilityUiCalls.keySet().iterator(); it.hasNext();) {
+                    network = it.next();
+                    state = ((Bundle)mSetAvailabilityUiCalls.get(network)).getString(User.STATUS);
+                    stateFromDb = user.getStatusForNetwork(SocialNetwork.getValue(network)).toString();
+                    if (state.equals(stateFromDb) ||
+                            (state.equals(OnlineStatus.INVISIBLE.toString()) && 
+                                    stateFromDb.equals(OnlineStatus.OFFLINE.toString()))) {
+                        fireNewState(ServiceUiRequest.SET_MY_AVAILABILITY, 
+                                createBundle(network, state, User.SOURCE_RECEIVED));
+                        it.remove();
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * This method notifies UiAgent of the presence push not coming in a timely manner. 
+     */
+    private void notifyUiAgentOfTimeOut(int reqId) {
+        String network = null;
+        int requestId = 0;
+        synchronized (mSetAvailabilityUiCalls) {
+            for (Iterator<String> it = mSetAvailabilityUiCalls.keySet().iterator(); it.hasNext();) {
+                network = it.next();
+                requestId = ((Bundle)mSetAvailabilityUiCalls.get(network)).getInt(REQUEST_ID_KEY);
+                if (requestId == reqId) {
+                    fireNewState(ServiceUiRequest.SET_MY_AVAILABILITY, 
+                            createBundle(network, 
+                                    ((Bundle)mSetAvailabilityUiCalls.get(network)).getString(User.STATUS), 
+                                    User.SOURCE_TIMED_OUT));
+                    it.remove();
+                }
+            }
+        }
+    }
+    
+    /**
+     * This method creates a Bundle for sending in the notification about setAvailability() calls
+     *  to UiAgent with the following data. 
+     * @param network - String name of the network @see {@link SocialNetwork}
+     * @param status - String name of the status @see {@link OnlineStatus}
+     * @param sourceType - type of the status, @see User.SOURCE_TIMED_OUT, User.SOURCE_REQUESTED, SOURCE_RECEIVED.
+     * @return Bundle for sending in the notification about setAvailability() calls to UiAgent. 
+     */
+    private Bundle createBundle(String network, String status, int sourceType) {
+        final Bundle bundle = new Bundle();
+        bundle.putString(User.NETWORK, network);
+        bundle.putString(User.STATUS, status);
+        bundle.putInt(User.SOURCE, sourceType);
+        return bundle;
+    }
+    
+    /**
      * Method used to set availability of me profile when user logs in. 
      * This is primarily used for reacting to login/connection state changes.
      */
@@ -660,59 +765,21 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         }
         
         // Get presences
-        Hashtable<String, String> presenceList = getPresencesForStatus(status);
+        Hashtable<String, String> availability = getPresencesForStatus(status);
         
         User me = new User(String.valueOf(PresenceDbUtils.getMeProfileUserId(mDbHelper)),
-                presenceList);
+                availability);
         
         MePresenceCacheTable.updateCache(me.getPayload(), mDbHelper.getWritableDatabase());
         
         // set the DB values for myself
         me.setLocalContactId(SyncMeDbUtils.getMeProfileLocalContactId(mDbHelper));
         updateMyPresenceInDatabase(me);
-
-        // set the engine to run now
         
-        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presenceList);
+        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, availability);
     }
     
     /**
-     * Changes the user's availability.
-     * 
-     * @param status - Hashtable<String, String> of pairs <communityName, statusName>.
-     */
-    public void setMyAvailability(Hashtable<String, String> presenceHash) {
-        if (presenceHash == null) {
-            LogUtils.logE("PresenceEngine setMyAvailability:"
-                    + " Can't send the setAvailability request due to DB reading errors");
-            return;
-        }
-        
-        if (ConnectionManager.getInstance().getConnectionState() != STATE_CONNECTED) {
-            LogUtils.logD("PresenceEngine.setMyAvailability(): skip - NO NETWORK CONNECTION");
-            return;
-        }
-        
-        if (!isFirstTimeSyncComplete()) {
-            LogUtils.logD("PresenceEngine.setMyAvailability(): skip - First time contact sync has not finished yet");
-            return;
-        }
-        
-        User me = new User(String.valueOf(PresenceDbUtils.getMeProfileUserId(mDbHelper)),
-                presenceHash);
-        
-        // set the DB values for myself
-        me.setLocalContactId(SyncMeDbUtils.getMeProfileLocalContactId(mDbHelper));
-        updateMyPresenceInDatabase(me);
-        
-        MePresenceCacheTable.updateCache(me.getPayload(), mDbHelper.getWritableDatabase());
-
-        // set the engine to run now
-        
-        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presenceHash);
-    }
-
-     /**
      * Changes the user's availability.
      * 
      * @param network - SocialNetwork to set presence on.
@@ -752,10 +819,11 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         updateMyPresenceInDatabase(me);
 
         // set the engine to run now
-        Hashtable<String, String> presenceHash = new Hashtable<String, String>();
-        presenceHash.put(network.toString(), status.toString());
+        Hashtable<String, String> availability = new Hashtable<String, String>();
+        availability.put(network.toString(), status.toString());
         
-        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, presenceHash);
+        addUiRequestToQueue(ServiceUiRequest.SET_MY_AVAILABILITY, availability);
+        
     }
 
 
@@ -815,6 +883,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
                     setPresenceOffline();
                     mFailedMessagesList.clear();
                     mSendMessagesHash.clear();
+                    mSetAvailabilityUiCalls.clear();   
                     break;
             }    
         }
@@ -873,6 +942,7 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         mUsers = null;
         mFailedMessagesList.clear();
         mSendMessagesHash.clear();
+        mSetAvailabilityUiCalls.clear();
     }
     
     /**
@@ -882,4 +952,14 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     private boolean isLoggedIn(){
         return EngineManager.getInstance().getLoginEngine().isLoggedIn();
     }
+
+    /**
+     * This method returns TRUE if the presence status on the passed has not been set yet.   
+     * @param network - network name.
+     * @return TRUE if the presence status on the passed has not been set yet.
+     */
+    public boolean isSetStatusInProgress(String network) {
+        return mSetAvailabilityUiCalls.containsKey(network);
+    }
+    
 }

@@ -80,11 +80,27 @@ public class ServerError extends BaseDataType {
     public String errorDescription;
     
     /**
+     * The request id.
+     */
+    public int requestId;
+    
+    /**
      * Constructor
      * @param errorType The error type
      */
     public ServerError(ErrorType errorType) {
         this.errorType = errorType;
+    }
+    
+    
+    /**
+     * Constructor
+     * @param errorType The error type
+     * @param reqId - request Id
+     */
+    public ServerError(ErrorType errorType, int reqId) {
+        this.errorType = errorType;
+        this.requestId = reqId;
     }
     
     /**

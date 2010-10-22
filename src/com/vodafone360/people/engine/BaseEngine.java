@@ -28,11 +28,14 @@ package com.vodafone360.people.engine;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import android.os.Bundle;
+
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.ServerError;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
+import com.vodafone360.people.service.agent.UiAgent;
 import com.vodafone360.people.service.io.ResponseQueue;
 import com.vodafone360.people.utils.LogUtils;
 
@@ -510,5 +513,20 @@ public abstract class BaseEngine {
     public void onReset() {
         emptyUiRequestQueue();
         clearTimeout();
+    }
+    
+    /**
+     * This method fires states change of an engine to UI (between "busy" and
+     * IDLE). This method is normally called after the new state has been
+     * changed and published to ApplicationCache. The UI should refer to
+     * ApplicationCache when processing this new ServiceRequest
+     * 
+     * @param request ServiceUIRequest UPDATING_UI or UPDATING_UI_FINISHED
+     */
+    public void fireNewState(ServiceUiRequest request, Bundle bundle) {
+        UiAgent uiAgent = mEventCallback.getUiAgent();
+        if (uiAgent != null && uiAgent.isSubscribed()) {
+            uiAgent.sendUnsolicitedUiEvent(request, bundle);
+        }
     }
 }

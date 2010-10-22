@@ -26,7 +26,6 @@
 package com.vodafone360.people.service;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
 
 import android.os.Bundle;
@@ -335,14 +334,6 @@ public class PeopleServiceImpl implements IPeopleService, IEngineEventCallback {
     }
 
     /***
-     * @see com.vodafone360.people.service.interfaces.IPeopleService#setAvailability(Hashtable<String, String> status)
-     */    
-    @Override
-    public void setAvailability(Hashtable<String, String> status) {
-        EngineManager.getInstance().getPresenceEngine().setMyAvailability(status);
-    }
-
-    /***
      * @see com.vodafone360.people.service.interfaces.IPeopleService#subscribe(Handler,
      *      long, boolean)
      */
@@ -436,5 +427,13 @@ public class PeopleServiceImpl implements IPeopleService, IEngineEventCallback {
 				.addUiDeleteIdentityRequest(network, identityId);
 
 	}
+
+	/**
+     * @see com.vodafone360.people.service.interfaces.IPeopleService#isSettingStatusOnNetworkInProgress(String network)
+     */
+    @Override
+    public boolean isSettingStatusOnNetworkInProgress(String network) {
+        return EngineManager.getInstance().getPresenceEngine().isSetStatusInProgress(network);
+    }
 
 }

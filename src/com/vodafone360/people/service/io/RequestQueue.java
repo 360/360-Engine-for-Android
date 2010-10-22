@@ -161,7 +161,10 @@ public class RequestQueue {
             req.setRequestId(mCurrentRequestId);
             mRequests.add(req);
             // add the request to the watcher thread
-            if (req.getTimeout() > 0 && (!req.isFireAndForget())) {
+            if (req.getTimeout() > 0 && (!req.isFireAndForget() || 
+//                  We now use the timeout mechanism for Request.Type.AVAILABILITY of request,
+//                  so we should not remove it from the queue otherwise there will be no timeout triggered.
+                    (req.mType == Request.Type.AVAILABILITY))) {
                 // TODO: maybe the expiry date should be calculated when the
                 // request is actually sent?
                 req.calculateExpiryDate();
