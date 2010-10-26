@@ -361,6 +361,9 @@ public class ApplicationCache {
         mCurrentContact = null;
         mCurrentContactSummary = null;
 
+        mSelectedFilterType = 0;
+        mCurrentContactFilter = -1;
+
         mServiceStatus = ServiceStatus.ERROR_UNKNOWN;
         mThirdPartyAccountsCache = null;
         mSyncStatus = null;
