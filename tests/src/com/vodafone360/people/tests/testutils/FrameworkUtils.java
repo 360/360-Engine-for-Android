@@ -26,7 +26,6 @@ package com.vodafone360.people.tests.testutils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Hashtable;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -231,11 +230,12 @@ public final class FrameworkUtils {
             public void setAvailability(OnlineStatus status) {
             }
 			@Override
-			public void setAvailability(Hashtable<String, String> status) {
-			}
-			@Override
 			public void setAvailability(SocialNetwork network, OnlineStatus status) {
 			}
+            @Override
+            public boolean isSettingStatusOnNetworkInProgress(String network) {
+                return false;
+            }
         };
     }
 
