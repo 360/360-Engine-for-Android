@@ -184,17 +184,17 @@ public class SyncMeEngine extends BaseEngine {
 
     @Override
     public void onCreate() {
-        PersistSettings setting1 = mDbHelper
-                .fetchOption(PersistSettings.Option.FIRST_TIME_MESYNC_STARTED);
-        PersistSettings setting2 = mDbHelper
-                .fetchOption(PersistSettings.Option.FIRST_TIME_MESYNC_COMPLETE);
-        if (setting1 != null) {
-            mFirstTimeSyncStarted = setting1.getFirstTimeMeSyncStarted();
-        }
-        if (setting2 != null) {
-            mFirstTimeMeSyncComplete = setting2.getFirstTimeMeSyncComplete();
+    	PersistSettings setting = mDbHelper.fetchOption(
+        		PersistSettings.Option.FIRST_TIME_MESYNC_STARTED);
+        if (setting != null) {
+            mFirstTimeSyncStarted = setting.getFirstTimeMeSyncStarted();
         }
 
+        setting = mDbHelper.fetchOption(
+        		PersistSettings.Option.FIRST_TIME_MESYNC_COMPLETE);
+        if (setting != null) {
+            mFirstTimeMeSyncComplete = setting.getFirstTimeMeSyncComplete();
+        }
     }
 
     @Override
