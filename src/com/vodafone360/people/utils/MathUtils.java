@@ -25,6 +25,7 @@
 
 package com.vodafone360.people.utils;
 
+import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 /**
@@ -34,6 +35,20 @@ import java.util.GregorianCalendar;
  *
  */
 public class MathUtils {
+	/**
+	 * The smallest birth date that can be chosen in Android as defined in the DatePicker.java is
+	 * 1900. The DateUtils in Android apparently have a bug that mixes up dates before 1916. Please
+	 * also take a look at the MathUtilsTest.java for this bug.
+	 * (check Android source code: http://tinyurl.com/39ppcfc).
+	 */
+	private static final int MINIMUM_BIRTH_DATE = 1916;
+	
+	/**	The month January as a number representation. */
+	private static final int JANUARY = 1;
+	
+	/** The first day of the month. */
+	private static final int FIRST_DAY_OF_MONTH = 1;
+	
 	
 	/**
 	 * 
@@ -60,8 +75,11 @@ public class MathUtils {
     
     /**
      * 
-     * Validates the birth date by a) checking if the preferred date is before the current date and
-     * b) by correcting the date if needed. E.g. the 32nd of January will be turned into the 1st of
+     * Validates the birth date by checking if 
+     * <p>
+     * a) the preferred date is before the current date or
+     * b) the preferred date is before 1916
+     * and correcting it if needed. E.g. the 32nd of January will be turned into the 1st of
      * February.
      * 
      * 
@@ -77,8 +95,19 @@ public class MathUtils {
     		final int dayOfMonth) {
     	GregorianCalendar currentDate = new GregorianCalendar();
     	GregorianCalendar preferredDate = new GregorianCalendar(year, monthOfYear, dayOfMonth);
+    	GregorianCalendar oldestDate = new GregorianCalendar(MINIMUM_BIRTH_DATE, JANUARY, 
+    			FIRST_DAY_OF_MONTH);
     	
-    	if (currentDate.before(preferredDate)) {
+    	if (preferredDate.before(oldestDate)) { // is the birthdate before 1916 (android.DateUtils) 
+    		// or 1900 (android.widget.DatePicker)? platform limitation!
+    		// return the oldest possible year (1916) with the month and the date entered by the user
+    		oldestDate.set(Calendar.YEAR, MINIMUM_BIRTH_DATE);
+    		oldestDate.set(Calendar.MONTH, preferredDate.get(Calendar.MONTH));
+    		oldestDate.set(Calendar.DAY_OF_MONTH, preferredDate.get(Calendar.DAY_OF_MONTH));
+    		
+    		return oldestDate;
+    	} else if (currentDate.before(preferredDate)) { // is the birthdate entered in the future?
+    		// enter the current date
     		return currentDate;
     	}
     	

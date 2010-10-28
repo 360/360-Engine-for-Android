@@ -25,19 +25,23 @@
 
 package com.vodafone360.people.tests.utils;
 
+import static android.text.format.DateUtils.FORMAT_SHOW_DATE;
+import static android.text.format.DateUtils.FORMAT_SHOW_YEAR;
+
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import com.vodafone360.people.utils.MathUtils;
+import android.test.AndroidTestCase;
+import android.text.format.DateUtils;
 
-import junit.framework.TestCase;
+import com.vodafone360.people.utils.MathUtils;
 
 /**
  * 
  * A test case class testing the MathUtils-class.
  *
  */
-public class MathUtilsTest extends TestCase {
+public class MathUtilsTest extends AndroidTestCase {
 	
 	/**
 	 * 
@@ -65,5 +69,52 @@ public class MathUtilsTest extends TestCase {
 		assertEquals(1970, cal.get(Calendar.YEAR));
 		assertEquals(Calendar.JUNE, cal.get(Calendar.MONTH));
 		assertEquals(1, cal.get(Calendar.DAY_OF_MONTH));
+		
+		// test in the middle of 1916, should return the same date just fine.
+		cal = MathUtils.getValidatedBirthdate(1916, Calendar.MAY, 1);
+		assertEquals(1916, cal.get(Calendar.YEAR));
+		assertEquals(Calendar.MAY, cal.get(Calendar.MONTH));
+		assertEquals(1, cal.get(Calendar.DAY_OF_MONTH));
+		
+		// test at the beginning of 1916, should also be just fine
+		cal = MathUtils.getValidatedBirthdate(1916, Calendar.JANUARY, 1);
+		assertEquals(1916, cal.get(Calendar.YEAR));
+		assertEquals(Calendar.JANUARY, cal.get(Calendar.MONTH));
+		assertEquals(1, cal.get(Calendar.DAY_OF_MONTH));
+		
+		// test at the border of 1915, this should return 1916 but with the preferred date and month
+		cal = MathUtils.getValidatedBirthdate(1915, Calendar.DECEMBER, 31);
+		assertEquals(1916, cal.get(Calendar.YEAR));
+		assertEquals(Calendar.DECEMBER, cal.get(Calendar.MONTH));
+		assertEquals(31, cal.get(Calendar.DAY_OF_MONTH));
+		
+		// very low test, should return 1916 with the given month and day
+		cal = MathUtils.getValidatedBirthdate(200, Calendar.MAY, 1);
+		assertEquals(1916, cal.get(Calendar.YEAR));
+		assertEquals(Calendar.MAY, cal.get(Calendar.MONTH));
+		assertEquals(1, cal.get(Calendar.DAY_OF_MONTH));
+	}
+	
+	/**
+	 * 
+	 * <p>Tests the formatDateTime-method in android.text.format.DateUtils which seems to be broken.
+	 * NOTE: I will comment the code so that our unit-tests will run fine again!</p>
+	 * 
+	 * <p>Important prerequisite: Emulator or device must be set to the "English (UK)" local.</p>
+	 *  
+	 */
+	public void testGoogleDateUtilsClass() {
+		for (int year = 2030; year > 1890; year -= 1) {
+			GregorianCalendar cal = new GregorianCalendar(year, Calendar.MAY, 1);
+			String result = DateUtils.formatDateTime(getContext(), cal.getTimeInMillis(), 
+					FORMAT_SHOW_DATE | FORMAT_SHOW_YEAR);
+			
+			
+			if (year >= 1916) {
+				assertEquals("Assumption equals for year: " + year, "1 May " + year, result);
+			} else {
+				assertFalse("Assumption not equals for year: " + year, result.equals("1 May " + year));	
+			}
+		}
 	}
 }
