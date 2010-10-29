@@ -173,6 +173,27 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
 
         return returnStatus;
     }
+    
+    public ServiceStatus simpleWait(int ts) {
+        Log.d("TAG", "EngineTestFramework waitWithoutRun");
+        
+        long endTime = System.nanoTime() + (((long)ts) * 1000000);
+        ServiceStatus returnStatus = ServiceStatus.ERROR_UNEXPECTED_RESPONSE;
+      
+        synchronized (mEngReqLock) {
+            while (System.nanoTime() < endTime) {
+                try {
+                	mStatus = 6; // ERROR_COMMS_TIMEOUT
+                	 mEngReqLock.wait(ts);
+                } catch (InterruptedException e) {
+                }
+            }
+            returnStatus = ServiceStatus.fromInteger(mStatus);
+        }
+        mRequestCompleted = false;
+
+        return returnStatus;
+    }
 
     @Override
     public void kickWorkerThread() {

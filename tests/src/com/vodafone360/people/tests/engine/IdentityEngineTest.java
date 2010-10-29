@@ -38,6 +38,7 @@ import android.test.suitebuilder.annotation.Suppress;
 import android.util.Log;
 
 import com.vodafone360.people.MainApplication;
+import com.vodafone360.people.datatypes.AuthSessionHolder;
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.IdentityCapability;
@@ -62,7 +63,7 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
      * States for test harness
      */
     enum IdentityTestState {
-        IDLE, FETCH_IDENTITIES, GET_MY_IDENTITIES, FETCH_IDENTITIES_FAIL, FETCH_IDENTITIES_POPULATED, GET_CHATABLE_IDENTITIES, SET_IDENTITY_CAPABILTY, VALIDATE_ID_CREDENTIALS_SUCCESS, VALIDATE_ID_CREDENTIALS_FAIL, GET_NEXT_RUNTIME
+        IDLE, FETCH_IDENTITIES, GET_MY_IDENTITIES, FETCH_IDENTITIES_FAIL, FETCH_IDENTITIES_POPULATED, GET_CHATABLE_IDENTITIES, SET_IDENTITY_CAPABILTY, VALIDATE_ID_CREDENTIALS_SUCCESS, VALIDATE_ID_CREDENTIALS_FAIL, GET_NEXT_RUNTIME,DELETE_IDENTITIES
     }
 
     EngineTestFramework mEngineTester = null;
@@ -93,7 +94,13 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
         
         mLoginEngine = new LoginEngine(getInstrumentation().getTargetContext(), mEngineTester, mApplication.getDatabase());
         mEngineManager.addEngineForTest(mLoginEngine);
-        
+        final AuthSessionHolder session = new AuthSessionHolder();
+        session.userID = 0;
+        session.sessionSecret = new String("sssh");
+        session.userName = new String("bob");
+        session.sessionID = new String("session");
+
+        mLoginEngine.setTestSession(session);
         mEng.setTestMode(true);
     }
 
@@ -108,10 +115,27 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
         // call at the end!!!
         super.tearDown();
     }
+    
+    
+    public void testdeleteIdentities() {
+
+        mState = IdentityTestState.DELETE_IDENTITIES;
+        String network = "Facebook";
+		String identityId = "abc";
+		mEng.addUiDeleteIdentityRequest(network, identityId);
+        // mEng.run();
+        ServiceStatus status = mEngineTester.waitForEvent();
+        assertEquals(ServiceStatus.SUCCESS, status);
+        
+
+        Object data = mEngineTester.data();
+        assertTrue(data != null);
+    }
+    
 
     // Breaks because of the change: PAND-2301
     // http://github.com/vfpeopledev/360-Engine-for-Android/commit/98935fd5305fa86e0e27384b2cf1669d4779be66
-    @Suppress
+   
     @MediumTest
     public void testFetchIdentities() {
 
@@ -137,8 +161,9 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
     // Breaks because of the change: PAND-2301
     // http://github.com/vfpeopledev/360-Engine-for-Android/commit/98935fd5305fa86e0e27384b2cf1669d4779be66
 
-    @Suppress
+    
     @MediumTest
+    @Suppress
     public void testAddUiGetMyIdentities() {
         mState = IdentityTestState.GET_MY_IDENTITIES;
 
@@ -159,7 +184,7 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress
+   
     public void testFetchIdentitiesFail() {
         mState = IdentityTestState.FETCH_IDENTITIES_FAIL;
 
@@ -174,7 +199,7 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress
+    
     public void testFetchIdentitiesPopulated() {
         mState = IdentityTestState.FETCH_IDENTITIES_POPULATED;
 
@@ -188,7 +213,7 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress
+    
     public void testSetIdentityCapability() {
         mState = IdentityTestState.SET_IDENTITY_CAPABILTY;
 
@@ -205,16 +230,9 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
 
         Object data = mEngineTester.data();
         assertTrue(data != null);
-        try {
-            ArrayList<StatusMsg> identityList = ((Bundle)data).getParcelableArrayList("data");
-            assertTrue(identityList.size() == 1);
-        } catch (Exception e) {
-            throw (new RuntimeException("Expected identity list with 1 item"));
-        }
     }
 
     @MediumTest
-    @Suppress
     public void testValidateIDCredentialsSuccess() {
         mState = IdentityTestState.VALIDATE_ID_CREDENTIALS_SUCCESS;
 
@@ -262,6 +280,21 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
     public void testGetNextRuntime() {
         mState = IdentityTestState.GET_NEXT_RUNTIME;
         // long runtime = mEng.getNextRunTime();
+    }
+    
+    @MediumTest
+    public void testPublicFunctions() {
+    	
+    	NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
+    	mEng.isFacebookInThirdPartyAccountList();
+    	
+    	ArrayList<Identity> thirdPartyIdentities = mEng.getMyThirdPartyIdentities();
+    	
+    	NetworkAgent.setAgentState(NetworkAgent.AgentState.DISCONNECTED);
+    	mEng.isFacebookInThirdPartyAccountList();
+    	
+    	NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
+    	mEng.isHyvesInThirdPartyAccountList();
     }
 
     @Override
@@ -370,6 +403,19 @@ public class IdentityEngineTest extends InstrumentationTestCase implements
                 respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.GET_AVAILABLE_IDENTITIES_RESPONSE.ordinal()));
                 Log.d("TAG", "IdentityEngineTest.reportBackToEngine add to Q");
                 break;
+            case DELETE_IDENTITIES: 
+				Identity myId1 = new Identity(BaseDataType.MY_IDENTITY_DATA_TYPE);
+				Hashtable<String, Object> hash3 = new Hashtable<String, Object>();
+            	hash3.put("name", "Google");
+            	Identity newId3 = myId1.createFromHashtable(hash3);
+            	data.add(newId3);
+            	Identity iden = new Identity(BaseDataType.IDENTITY_DELETION_DATA_TYPE);
+            	Hashtable<String, Object> hash2 = new Hashtable<String, Object>();
+               	hash2.put("name", "Google");
+                Identity newId2 = iden.createFromHashtable(hash2);
+                data.add(newId2);
+            	respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.DELETE_IDENTITY_RESPONSE.ordinal()));
+            	break;
             default:
         }
 

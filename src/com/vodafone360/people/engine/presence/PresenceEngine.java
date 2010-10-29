@@ -117,6 +117,11 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
      * True if the engine runs for the 1st time.
      */
     private boolean mFirstRun = true;
+    
+    /**
+     * Used only in Unittest
+     */
+    private boolean mJunitTest = false;
 
     /**
      * 
@@ -150,6 +155,9 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
      * @return true if both engines have completed first time sync
      */
     private boolean isFirstTimeSyncComplete() {
+    	if (mJunitTest) {
+    		return true;
+    	}
         return EngineManager.getInstance().getSyncMeEngine().isFirstTimeMeSyncComplete() &&
             EngineManager.getInstance().getContactSyncEngine().isFirstTimeSyncComplete();
     }
@@ -173,9 +181,11 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
             return 0;
         }
         if (mFirstRun) {
-            getPresenceList();
-            initSetMyAvailabilityRequestAfterLogin();
-            mFirstRun = false;
+            if(!mJunitTest) {
+            	getPresenceList();
+            	initSetMyAvailabilityRequestAfterLogin();
+            	mFirstRun = false;
+            }
         }
         return getCurrentTimeout();
     }
@@ -242,7 +252,9 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
         // Offline presence update request should take the highest priority.
         mUsers = null;
         mState = IDLE;
-        mEventCallback.getUiAgent().updatePresence(UiAgent.ALL_USERS);
+        if (mEventCallback.getUiAgent() != null) {
+        	mEventCallback.getUiAgent().updatePresence(UiAgent.ALL_USERS);
+        }
     }
 
     @Override
@@ -394,7 +406,9 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
     private void updateMyPresenceInDatabase(User myself) {
         LogUtils.logV("PresenceEnfgine.updateMyPresenceInDatabase() myself[" + myself + "]");
         if (PresenceDbUtils.updateMyPresence(myself, mDbHelper)) {
-        	mEventCallback.getUiAgent().updatePresence(myself.getLocalContactId());
+        	if (mEventCallback.getUiAgent() != null) {
+        		mEventCallback.getUiAgent().updatePresence(myself.getLocalContactId());
+        	}
         }
     }
 
@@ -889,6 +903,19 @@ public class PresenceEngine extends BaseEngine implements ILoginEventsListener,
      * @return - TRUE if the LoginEngine is in the LOGGED_ON state.
      */
     private boolean isLoggedIn(){
-        return EngineManager.getInstance().getLoginEngine().isLoggedIn();
+        if (mJunitTest) {
+        	return true;
+        }
+    	return EngineManager.getInstance().getLoginEngine().isLoggedIn();
+    	
+    }
+    
+    /**
+     * Used by Junit test cases to bypass dependencies
+     * 
+     */
+    public void setJunitMode(boolean mode) {
+    	
+    	mJunitTest = mode;
     }
 }
