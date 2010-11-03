@@ -212,4 +212,15 @@ public class SyncStatus {
     public final boolean isFirstTimeSync() {
         return mFirstTimeSync;
     }
+    
+	public final String toString() {
+		return new StringBuilder("SyncStatus:\n\tProgress:").append(mProgress)
+				.append("\n\tServiceStatus:").append(mServiceStatus)
+				.append("\n\tTask:").append(mTask)
+				.append("\n\tTaskStatus:").append(mTaskStatus)
+				.append("\n\tTaskStatusDone:").append(mTaskStatusDone)
+				.append("\n\tTaskStatusTotal:").append(mTaskStatusTotal)
+				.append("\n\tTextContact:").append(mTextContact)
+				.append("\n\tIsFirstTimeSync:").append(mFirstTimeSync).toString();
+	}
 }
