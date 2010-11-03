@@ -209,47 +209,51 @@ public class ApplicationCache {
     
     /** Cached whether ThirdPartyAccountsActivity is opened. */
     private boolean mIsAddAccountActivityOpened;
-    /**
-     * For storing the filter type in timeline status.
-     */
-    private int mSelectedFilterType = 0;
-    
-    /**
-     * For storing the filter type in timeline status of history details.
-     */
-    private int mSelectedHistoryFilterType;
+    /** Cached filter type for TimelineListActivity. **/
+    private int mTimelineListActivityFilter = 0;
+    /** Cached filter type for TimelineHistoryActivity. **/
+    private int mTimelineHistoryActivityFilter = 0;
     
     /**
      * True if the menu "Sync Now" request is being processed.
      */
     private static boolean sIsContactSyncBusy = false;
-    
+
     /**
-     * Setter for the selected filter
+     * Setter for the TimelineListActivityFilter value.
+     *
+     * @param filter Value to set.
      */
-    public void setSelectedTimelineFilter(int filter) {
-    	mSelectedFilterType = filter;
+    public final void setTimelineListActivityFilter(final int filter) {
+        mTimelineListActivityFilter = filter;
     }
     /**
-     * Getter for the selected filter
+     * Getter for the TimelineListActivityFilter value.
+     *
+     * @return Cached value for the TimelineListActivityFilter.
      */
-    public int getSelectedTimelineFilter() {
-    	return mSelectedFilterType;
+    public final int getTimelineListActivityFilter() {
+        return mTimelineListActivityFilter;
     }
-    
+
     /**
-     * Setter for the selected filter
+     * Setter for the TimelineHistoryActivityFilter value.
+     *
+     * @param filter Value to set.
      */
-    public void setSelectedHistoryTimelineFilter(int filter) {
-        mSelectedHistoryFilterType = filter;
+    public final void setTimelineHistoryActivityFilter(final int filter) {
+        mTimelineHistoryActivityFilter = filter;
     }
+
     /**
-     * Getter for the selected filter
+     * Getter for the TimelineHistoryActivityFilter value.
+     *
+     * @return Cached value for the TimelineListActivityFilter.
      */
-    public int getSelectedHistoryTimelineFilter() {
-        return mSelectedHistoryFilterType;
+    public final int getTimelineHistoryActivityFilter() {
+        return mTimelineHistoryActivityFilter;
     }
-    
+
     /***
      * GETTER Whether "add Account" activity is opened
      * 
@@ -361,7 +365,8 @@ public class ApplicationCache {
         mCurrentContact = null;
         mCurrentContactSummary = null;
 
-        mSelectedFilterType = 0;
+        mTimelineListActivityFilter = 0;
+        mTimelineHistoryActivityFilter = 0;
         mCurrentContactFilter = -1;
 
         mServiceStatus = ServiceStatus.ERROR_UNKNOWN;
