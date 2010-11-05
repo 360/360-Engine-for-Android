@@ -124,6 +124,8 @@ public class SyncMeEngine extends BaseEngine {
      * The service context.
      */
     private Context mContext;
+    
+    public static String ME_PROFILE_DEFAULT_NAME = "Me";
 
     /**
      * The constructor.

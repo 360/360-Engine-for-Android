@@ -75,7 +75,6 @@ import com.vodafone360.people.datatypes.ContactDetail;
 import com.vodafone360.people.datatypes.ContactSummary;
 import com.vodafone360.people.datatypes.LoginDetails;
 import com.vodafone360.people.datatypes.PublicKeyDetails;
-import com.vodafone360.people.datatypes.VCardHelper;
 import com.vodafone360.people.datatypes.ContactDetail.DetailKeyTypes;
 import com.vodafone360.people.datatypes.ContactDetail.DetailKeys;
 import com.vodafone360.people.engine.contactsync.ContactChange;
@@ -244,6 +243,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         mContext = context;
+//        SyncMeDbUtils.ME_PROFILE_DEFAULT_NAME = mContext.getString(R.string.ContactListActivity_no_me_profile_name);
 
         /*
          * // Uncomment the next line to reset the database //
@@ -459,6 +459,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * 
      * @param detail A {@link ContactDetail} object which contains the detail to
      *            add
+     * @param meProfile - TRUE if the provided detail belongs to Me Profile.    
+     *         
      * @return SUCCESS or a suitable error code
      * @see #addContactDetail(ContactDetail)
      * @see #deleteContactDetail(long)
@@ -467,18 +469,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @see #addContactToGroup(long, long)
      * @see #deleteContactFromGroup(long, long)
      */
-    public ServiceStatus modifyContactDetail(ContactDetail detail) {
+    public ServiceStatus modifyContactDetail(ContactDetail detail, boolean meProfile) {
         if (Settings.ENABLED_DATABASE_TRACE) {
             trace(false, "DatabaseHelper.modifyContactDetail() name[" + detail.getName() + "]");
         }
-        boolean isMeProfile = false; // me profile has changed
-
         List<ContactDetail> mDetailList = new ArrayList<ContactDetail>();
         mDetailList.add(detail);
-        ServiceStatus mStatus = syncModifyContactDetailList(mDetailList, !isMeProfile, !isMeProfile);
+        ServiceStatus mStatus = syncModifyContactDetailList(mDetailList, !meProfile, !meProfile);
         if (ServiceStatus.SUCCESS == mStatus) {
             fireDatabaseChangedEvent(DatabaseChangeType.CONTACTS, false);
-            if (isMeProfile) {
+            if (meProfile) {
                 WidgetUtils.kickWidgetUpdateNow(mContext);
             }
         }
@@ -1339,9 +1339,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (!Settings.ENABLE_UPDATE_NATIVE_CONTACTS) {
             syncToNative = false;
         }
-        String contactDetailFriendyName = null;
 
         SQLiteDatabase writableDb = getWritableDatabase();
+        
+        boolean needFireDbUpdate = false;
 
         for (Contact contact : contactList) {
             contact.deleted = null;
@@ -1388,14 +1389,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         			  "due to a database error. Contact ID[" + contact.localContactID + "]");
                         return status;
                     }
-
-                    // getting name for timeline updates
-                    if (detail.key == ContactDetail.DetailKeys.VCARD_NAME) {
-                        VCardHelper.Name name = detail.getName();
-                        if (name != null) {
-                            contactDetailFriendyName = name.toString();
-                        }
-                    }
                 }
                 // AA: added the check to make sure that contacts with empty
                 // contact
@@ -1438,26 +1431,30 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     }
                 }
 
+                // Update the summary with the new contact
+                //Me Profile is not native, so we pass !syncToNative to indicate if it is Me Profile or not 
+                String displayName = updateContactNameInSummary(writableDb, contact.localContactID, !syncToNative);
+                if (null == displayName) {
+                    return ServiceStatus.ERROR_DATABASE_CORRUPT;
+                }
                 // updating timeline
                 for (ContactDetail detail : contact.details) {
-                    // we already have name, don't need to get it again
+                // we already have name, don't need to get it again
                     if (detail.key != ContactDetail.DetailKeys.VCARD_NAME) {
                         detail.localContactID = contact.localContactID;
                         detail.nativeContactId = contact.nativeContactId;
-                        updateTimelineNames(detail, contactDetailFriendyName, contact.contactID,
-                                writableDb);
+                        if (updateTimelineNames(detail, displayName, contact.contactID, writableDb)) {
+                            needFireDbUpdate = true;
+                        }
                     }
-                }
-
-                // Update the summary with the new contact
-                status = updateNameAndStatusInSummary(writableDb, contact.localContactID);
-                if (ServiceStatus.SUCCESS != status) {
-                    return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
                 writableDb.setTransactionSuccessful();
             } finally {
                 writableDb.endTransaction();
             }
+        }
+        if (needFireDbUpdate) {
+            fireDatabaseChangedEvent(DatabaseChangeType.ACTIVITIES, false);
         }
         return ServiceStatus.SUCCESS;
     }
@@ -1472,7 +1469,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      *            native phonebook
      * @return SUCCESS or a suitable error code
      */
-    public ServiceStatus syncModifyContactList(List<Contact> contactList, boolean syncToServer, boolean syncToNative) {
+    public ServiceStatus syncModifyContactList(List<Contact> contactList, boolean syncToServer,
+            boolean syncToNative) {
     	
         if (Settings.ENABLED_DATABASE_TRACE)
             trace(false, "DatabaseHelper.syncModifyContactList() syncToServer[" + syncToServer
@@ -1483,8 +1481,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (!Settings.ENABLE_UPDATE_NATIVE_CONTACTS) {
             syncToNative = false;
         }
-        String contactDetailFriendyName = null;
         SQLiteDatabase writableDb = getWritableDatabase();
+        boolean needFireDbUpdate = false;
 
         for (Contact contact : contactList) {
             if (syncToServer) {
@@ -1523,35 +1521,30 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     }
                 }
 
-                // updating timeline events
-                // getting name
-                for (ContactDetail detail : contact.details) {
-                    if (detail.key == ContactDetail.DetailKeys.VCARD_NAME) {
-                        VCardHelper.Name name = detail.getName();
-                        if (name != null) {
-                            contactDetailFriendyName = name.toString();
-                        }
-                    }
+                // END updating timeline events
+
+                // Update the summary with the new contact
+                String displayName = updateContactNameInSummary(writableDb, contact.localContactID, !syncToNative);
+                if (null == displayName) {
+                    return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
                 // updating phone no
                 for (ContactDetail detail : contact.details) {
                     detail.localContactID = contact.localContactID;
                     detail.nativeContactId = contact.nativeContactId;
-                    updateTimelineNames(detail, contactDetailFriendyName, contact.contactID, writableDb);
-                }
-                // END updating timeline events
-
-                // Update the summary with the new contact
-                status = updateNameAndStatusInSummary(writableDb, contact.localContactID);
-                if (ServiceStatus.SUCCESS != status) {
-                    return ServiceStatus.ERROR_DATABASE_CORRUPT;
+                    if (updateTimelineNames(detail, displayName, contact.contactID, writableDb)) {
+                        needFireDbUpdate = true;
+                    }
                 }
                 writableDb.setTransactionSuccessful();
             } finally {
                 writableDb.endTransaction();
             }
         }
-
+        
+        if (needFireDbUpdate) {
+            fireDatabaseChangedEvent(DatabaseChangeType.ACTIVITIES, false);
+        }
         return ServiceStatus.SUCCESS;
     }
 
@@ -1788,14 +1781,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         ContactSummaryTable.modifyPictureLoadedFlag(mContactDetail.localContactID,
                                 false, mDb);
                 }
-                ServiceStatus serviceStatus = updateNameAndStatusInSummary(mDb,
-                        mContactDetail.localContactID);
-                if (ServiceStatus.SUCCESS != serviceStatus) {
+                //me profile is not native, so we pass !syncToNative
+                String displayName = updateContactNameInSummary(mDb,
+                        mContactDetail.localContactID, !syncToNative);
+                if (null == displayName) {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
 
-                final boolean updated = updateTimelineNames(mContactDetail, mDb);
-                if (updated) {
+                if (updateTimelineNames(mContactDetail, displayName, null, mDb)) {
                     needFireDbUpdate = true;
                 }
 
@@ -1812,17 +1805,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return ServiceStatus.SUCCESS;
     }
 
-    /**
-     * Updates the contents of the activities table when a contact detail
-     * changes.
-     * 
-     * @param cd The new or modified contact detail
-     * @param db Writable SQLite database for the update
-     * @return true if the Activities table was updated, false otherwise
-     */
-    private boolean updateTimelineNames(ContactDetail cd, SQLiteDatabase db) {
-        return updateTimelineNames(cd, null, null, db);
-    }
 
     /**
      * Updates the contents of the activities table when a contact detail
@@ -1837,15 +1819,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private boolean updateTimelineNames(ContactDetail cd, String contactFriendlyName, Long serverId,
             SQLiteDatabase db) {
         if (cd.key == ContactDetail.DetailKeys.VCARD_NAME) {
-            VCardHelper.Name name = cd.getName();
-            if (name != null) {
-                contactFriendlyName = name.toString();
+            if (contactFriendlyName != null) {
                 ActivitiesTable.updateTimelineContactNameAndId(contactFriendlyName,
                         cd.localContactID, db);
-                return true;
+                return true;    
             }
         }
-
         if (cd.key == ContactDetail.DetailKeys.VCARD_PHONE) {
             if (contactFriendlyName == null) {
                 ContactSummary cs = new ContactSummary();
@@ -1931,19 +1910,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     ContactSummaryTable.modifyPictureLoadedFlag(mContactDetail.localContactID,
                             false, mDb);
                 }
-
-                ServiceStatus serviceStatus = updateNameAndStatusInSummary(mDb,
-                        mContactDetail.localContactID);
-                if (ServiceStatus.SUCCESS != serviceStatus) {
+                //meProfile is not native, so pass the opposite to syncToNative
+                String displayName = updateContactNameInSummary(mDb,
+                        mContactDetail.localContactID, !syncToNative);
+                if (null == displayName) {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
-
-                final boolean updated = updateTimelineNames(mContactDetail, mDb);
-                
-                if (updated) {
+                if (updateTimelineNames(mContactDetail, displayName, null, mDb)) {
                     needFireDbUpdate = true;
                 }
-
                 mDb.setTransactionSuccessful();
             } finally {
                 mDb.endTransaction();
@@ -1967,6 +1942,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param syncToServer true if the details need to be sent to the server
      * @param syncToNative true if the contacts need to be added to the native
      *            phonebook
+     * @param meProfile - TRUE if the added contact is Me profile.  
      * @return SUCCESS or a suitable error code
      * @see #deleteContactDetail(long)
      */
@@ -1983,7 +1959,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         SQLiteDatabase mDb = getWritableDatabase();
-
+        boolean needFireDbUpdate = false;
+        
         for (ContactDetail mContactDetail : contactDetailList) {
             if ((mContactDetail.serverContactId == null) || (mContactDetail.serverContactId == -1)) {
                 ContactsTable.ContactIdInfo mContactIdInfo = ContactsTable.validateContactId(
@@ -1996,7 +1973,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
 
             try {
-
                 mDb.beginTransaction();
                 if (syncToNative) {
                     if (!NativeChangeLogTable.addDeletedContactDetailChange(mContactDetail, mDb)) {
@@ -2023,23 +1999,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     ContactSummaryTable.modifyPictureLoadedFlag(mContactDetail.localContactID,
                             false, mDb);
                     deleteThumbnail(mContactDetail.localContactID);
-
                 }
 
-                ServiceStatus serviceStatus = updateNameAndStatusInSummary(mDb,
-                        mContactDetail.localContactID);
-                if (ServiceStatus.SUCCESS != serviceStatus) {
+                // !syncToNative is opposite to meProfile: meProfile is not native
+                String displayName = updateContactNameInSummary(mDb,
+                        mContactDetail.localContactID, !syncToNative);
+                if (displayName == null) {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
-
+                
+                if (updateTimelineNames(mContactDetail, displayName, mContactDetail.localContactID, mDb)) {
+                    needFireDbUpdate = true;
+                }
                 mDb.setTransactionSuccessful();
-
             } finally {
-
                 mDb.endTransaction();
             }
         }
 
+        if (needFireDbUpdate) {
+            fireDatabaseChangedEvent(DatabaseChangeType.ACTIVITIES, false);
+        }
         return ServiceStatus.SUCCESS;
     }
 
@@ -2386,23 +2366,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Updates the ContactSummary table with the new/changed Contact
+     * Updates the ContactSummary table with the new/changed Contact.
+     * @param writableDatabase - SQLiteDatabase writable database.
+     * @param localContactId - long contact local id.
+     * @param meProfile - boolean that indicates if the localContactId belongs to Me Profile.
      */
-    public ServiceStatus updateNameAndStatusInSummary(SQLiteDatabase writableDatabase,
-            long localContactId) {
+    public String updateContactNameInSummary(SQLiteDatabase writableDatabase,
+            long localContactId, boolean meProfile) {
 
         Contact contact = new Contact();
         ServiceStatus status = fetchBaseContact(localContactId, contact, writableDatabase);
         if (ServiceStatus.SUCCESS != status) {
-            return status;
+            return null;
         }
         status = ContactDetailsTable.fetchContactDetails(localContactId, contact.details,
                 writableDatabase);
         if (ServiceStatus.SUCCESS != status) {
-            return status;
+            return null;
         }
-
-        return ContactSummaryTable.updateContactDisplayName(contact, writableDatabase);
+        return ContactSummaryTable.updateContactDisplayName(contact, writableDatabase, meProfile);
     }
 
     public List<Contact> fetchContactList() {
@@ -2486,48 +2468,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private boolean updateTimelineAndContactSummaryWithLegacyCode(Contact contact,
             SQLiteDatabase writableDb) {
 
-        String contactDetailFriendyName = null;
-
-        // getting name for timeline updates
-        for (int i = 0; i < contact.details.size(); i++) {
-
-            final ContactDetail detail = contact.details.get(i);
-
-            if (detail.key == ContactDetail.DetailKeys.VCARD_NAME) {
-                VCardHelper.Name name = detail.getName();
-                if (name != null) {
-                    contactDetailFriendyName = name.toString();
-                }
-            }
-        }
-
         if (!contact.details.isEmpty()) {
             final ServiceStatus status = ContactSummaryTable.addContact(contact, writableDb);
             if (ServiceStatus.SUCCESS != status) {
-
                 return false;
             }
         }
-
-        for (int i = 0; i < contact.details.size(); i++) {
-
-            final ContactDetail detail = contact.details.get(i);
-
-            // updating timeline
-            if (detail.key != ContactDetail.DetailKeys.VCARD_NAME) {
-                detail.localContactID = contact.localContactID;
-                detail.nativeContactId = contact.nativeContactId;
-                updateTimelineNames(detail, contactDetailFriendyName, contact.contactID, writableDb);
-            }
-        }
-
-        // update the summary with the new contact
-        ServiceStatus status = updateNameAndStatusInSummary(writableDb, contact.localContactID);
-        if (ServiceStatus.SUCCESS != status) {
-
+        // update the summary with the new contact, pass "false" as Me Profile can't be a native contact
+        String displayName = updateContactNameInSummary(writableDb, contact.localContactID, false);
+        if (displayName == null) {
             return false;
         }
-
+        for (int i = 0; i < contact.details.size(); i++) {
+             final ContactDetail detail = contact.details.get(i);
+            // updating timeline
+             if (detail.key != ContactDetail.DetailKeys.VCARD_NAME) {
+                 detail.localContactID = contact.localContactID;
+                 detail.nativeContactId = contact.nativeContactId;
+                 updateTimelineNames(detail, displayName, contact.contactID, writableDb);
+             }
+        }
         return true;
     }
 

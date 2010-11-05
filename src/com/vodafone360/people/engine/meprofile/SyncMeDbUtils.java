@@ -63,6 +63,8 @@ public class SyncMeDbUtils {
      * Mime type for the uploaded thumbnail picture of the me profile.
      */
     private static final String PHOTO_MIME_TYPE = "image/png";
+    
+//    public static String ME_PROFILE_DEFAULT_NAME = null;
 
     /**
      * This method create a Me Profile contact in the database.
@@ -326,7 +328,7 @@ public class SyncMeDbUtils {
                     // Currently it's only possible to post a status on
                     // Vodafone sns
                     detail.alt = ThirdPartyAccount.SNS_TYPE_VODAFONE;
-                    if (ServiceStatus.SUCCESS == dbHelper.modifyContactDetail(detail)) {
+                    if (ServiceStatus.SUCCESS == dbHelper.modifyContactDetail(detail, true)) {
                         return detail;
                     }
                 }

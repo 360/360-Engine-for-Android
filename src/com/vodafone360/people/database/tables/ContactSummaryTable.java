@@ -51,6 +51,8 @@ import com.vodafone360.people.datatypes.VCardHelper;
 import com.vodafone360.people.datatypes.ContactDetail.DetailKeys;
 import com.vodafone360.people.datatypes.ContactSummary.AltFieldType;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
+import com.vodafone360.people.engine.meprofile.SyncMeDbUtils;
+import com.vodafone360.people.engine.meprofile.SyncMeEngine;
 import com.vodafone360.people.engine.presence.User;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.utils.CloseUtils;
@@ -967,9 +969,10 @@ public abstract class ContactSummaryTable {
      * 
      * @param contact A Contact object that has been modified
      * @param writeableDb Writable SQLite database
-     * @return SUCCESS or a suitable error code
+     * @return String - the contact name to display and null in case of database error.
      */
-    public static ServiceStatus updateContactDisplayName(Contact contact, SQLiteDatabase writableDb) {
+    public static String updateContactDisplayName(Contact contact, 
+            SQLiteDatabase writableDb, boolean isMeProfile) {
         // These two Arrays contains the order in which the details are queried.
         // First valid (not empty or unknown) detail is taken
         ContactDetail.DetailKeys preferredNameDetails[] = {
@@ -991,12 +994,24 @@ public abstract class ContactSummaryTable {
             }
         }
 
-        // Build the name
-        String nameString = name != null ? name.getValue() : null;
-        if (nameString == null)
-            nameString = ContactDetail.UNKNOWN_NAME;
-        if (name != null && name.key == ContactDetail.DetailKeys.VCARD_NAME)
+        String nameString = null;
+//         Build the name
+        if (isMeProfile) {  
+            if (name != null && (name.key != ContactDetail.DetailKeys.VCARD_NAME)) {
+             // if me profile and the VCARD_NAME detail has empty name (that is why we are here)
+                nameString = SyncMeEngine.ME_PROFILE_DEFAULT_NAME;
+            }
+        } else { 
+//             if it is not me profile do the normal name substitution
+            nameString = name != null ? name.getValue() : null;
+            if (nameString == null) {
+                nameString = ContactDetail.UNKNOWN_NAME;
+            }    
+        }
+//         if the detail is VCARD_NAME and name is not empty - use it    
+        if (name != null && name.key == ContactDetail.DetailKeys.VCARD_NAME) {
             nameString = name.getName().toString();
+        }
 
         // Start updating the table
 
@@ -1016,7 +1031,7 @@ public abstract class ContactSummaryTable {
         } catch (SQLException e) {
             LogUtils.logE("ContactSummaryTable.updateNameAndStatus() "
                     + "SQLException - Unable to update contact native Ids", e);
-            return ServiceStatus.ERROR_DATABASE_CORRUPT;
+            return null;
         } finally {
             writableDb.endTransaction();
             if (statement != null) {
@@ -1025,7 +1040,7 @@ public abstract class ContactSummaryTable {
             }
         }
 
-        return ServiceStatus.SUCCESS;
+        return nameString;
     }
     
     /**

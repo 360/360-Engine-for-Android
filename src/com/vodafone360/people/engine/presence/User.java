@@ -112,11 +112,15 @@ public class User implements Parcelable {
             }
             
             if (payload.containsKey(PRESENCE_PC)) {
-            	LogUtils.logWithName(LogUtils.PRESENCE_INFO_TAG, "removed 360PC presence for " + userId);
+                if (Settings.LOG_PRESENCE_PUSH_ON_LOGCAT) {
+            	    LogUtils.logWithName(LogUtils.PRESENCE_INFO_TAG, "removed 360PC presence for " + userId);
+                }
             	payload.remove(PRESENCE_PC);
             }
             if (payload.containsKey(PRESENCE_MOBILE)) {
-            	LogUtils.logWithName(LogUtils.PRESENCE_INFO_TAG, "removed 360MOBILE presence for " + userId);
+                if (Settings.LOG_PRESENCE_PUSH_ON_LOGCAT) {
+                    LogUtils.logWithName(LogUtils.PRESENCE_INFO_TAG, "removed 360MOBILE presence for " + userId);    
+                }
             	payload.remove(PRESENCE_MOBILE);
             }
             
