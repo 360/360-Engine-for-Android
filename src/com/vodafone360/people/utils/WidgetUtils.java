@@ -25,27 +25,22 @@
 
 package com.vodafone360.people.utils;
 
-import com.vodafone360.people.Intents;
-
 import android.content.Context;
 import android.content.Intent;
+
+import com.vodafone360.people.Intents;
 
 /*
  * Widget utility Class.
  */
 public class WidgetUtils {
 
-    protected static final String URI_SCHEME = "people_widget";
-
-    protected static final String URI_DATA = "://widget/id/";
-
     /**
      * Sends an update event to the widget.
      * 
-     * @param context - Android context.
+     * @param context Android context.
      */
     public static void kickWidgetUpdateNow(Context context) {
-        
     	context.sendBroadcast(new Intent(Intents.UPDATE_WIDGET));
     }
 }
