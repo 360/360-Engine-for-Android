@@ -107,8 +107,12 @@ public class LoginPreferences {
         sSignupEmailAddress = preferences.getString(SIGNUP_EMAIL_ADDRESS, "");
         sSignupFirstName = preferences.getString(SIGNUP_FIRSTNAME, "");
         sSignupLastName = preferences.getString(SIGNUP_LASTNAME, "");
-        setSignupDateOfBirth(preferences.getInt(SIGNUP_DOB_DAY, -1), preferences.getInt(
-                SIGNUP_DOB_MONTH, -1), preferences.getInt(SIGNUP_DOB_YEAR, -1));
+        if (preferences.contains(SIGNUP_DOB_DAY)) {
+            setSignupDateOfBirth(
+                    preferences.getInt(SIGNUP_DOB_DAY, -1),
+                    preferences.getInt(SIGNUP_DOB_MONTH, -1),
+                    preferences.getInt(SIGNUP_DOB_YEAR, -1));            
+        }
 
         // Load login Settings
         sMobileNumber = preferences.getString(MOBILE_NUMBER, "");
