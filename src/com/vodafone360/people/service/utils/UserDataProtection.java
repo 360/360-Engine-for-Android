@@ -37,6 +37,7 @@ import com.vodafone360.people.engine.login.LoginEngine;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.receivers.SimStateReceiver;
 import com.vodafone360.people.utils.LogUtils;
+import com.vodafone360.people.utils.LoginPreferences;
 import com.vodafone360.people.utils.SimCard;
 
 /**
@@ -87,24 +88,19 @@ public class UserDataProtection implements SimStateReceiver.Listener {
     public void performStartupChecks() {
         
         LogUtils.logD("UserDataProtection.performStartupChecks()");
-        
-        final LoginEngine loginEngine = EngineManager.getInstance().getLoginEngine();
-        
-        if (loginEngine.isLoggedIn()) {
             
-            final int simState = SimCard.getState(mContext);
+        final int simState = SimCard.getState(mContext);
             
-            if (simState == TelephonyManager.SIM_STATE_ABSENT || simState == TelephonyManager.SIM_STATE_READY) {
+        if (simState == TelephonyManager.SIM_STATE_ABSENT || simState == TelephonyManager.SIM_STATE_READY) {
                 
-                processUserChanges();
-            } else {
+            processUserChanges();
+        } else {
                 
-                LogUtils.logD("UserDataProtection.performStartupChecks() - SIM_STATE_UNKNOWN, register a SimStateReceiver.");
-                // SIM is not ready, register a listener for Sim state changes to check
-                // the subscriber id when possible
-                mSimStateReceiver = new SimStateReceiver(this);
-                mContext.registerReceiver(mSimStateReceiver, new IntentFilter(SimStateReceiver.INTENT_SIM_STATE_CHANGED));
-            }
+            LogUtils.logD("UserDataProtection.performStartupChecks() - SIM_STATE_UNKNOWN, register a SimStateReceiver.");
+            // SIM is not ready, register a listener for Sim state changes to check
+            // the subscriber id when possible
+            mSimStateReceiver = new SimStateReceiver(this);
+            mContext.registerReceiver(mSimStateReceiver, new IntentFilter(SimStateReceiver.INTENT_SIM_STATE_CHANGED));
         }
     }
     
@@ -112,16 +108,21 @@ public class UserDataProtection implements SimStateReceiver.Listener {
      * Requests to log out from 360 if the user has changed.
      */
     public void processUserChanges() {
-        
+
         LogUtils.logD("UserDataProtection.checkUserChanges()");
         
         final LoginEngine loginEngine = EngineManager.getInstance().getLoginEngine();
         
-        if (loginEngine.isLoggedIn() && hasUserChanged()) {
+        if (hasUserChanged()) {
+
+             if (loginEngine.isLoggedIn()) {
+                 // User has changed, log out
+                LogUtils.logD("UserDataProtection.checkUserChanges() - User has changed! Request logout.");
+                loginEngine.addUiRemoveUserDataRequest();
+            } else {
+                LoginPreferences.clearPreferencesFile(mContext);
+            }
             
-            // User has changed, log out
-            LogUtils.logD("UserDataProtection.checkUserChanges() - User has changed! Request logout.");
-            loginEngine.addUiRemoveUserDataRequest();
         }
     }
     
@@ -146,7 +147,6 @@ public class UserDataProtection implements SimStateReceiver.Listener {
         
         final String loginSubscriberId = getSubscriberIdForLogin();
         final String currentSuscriberId = SimCard.getSubscriberId(mContext);
-        
         return !TextUtils.equals(loginSubscriberId, currentSuscriberId);
     }
     
