@@ -717,9 +717,7 @@ public abstract class ContactSummaryTable {
             return " WHERE " + ContactSummaryTable.Field.FRIENDOFMINE + "=" + "1";
         }
         if ((groupFilterId != null) && (groupFilterId == GroupsTable.GROUP_ONLINE)) {
-            String inClause = getOnlineWhereClause();
-            return " WHERE " + ContactSummaryTable.Field.LOCALCONTACTID + " IN " + (inClause == null? "()": inClause);
-            
+            return " WHERE " + ContactSummaryTable.Field.LOCALCONTACTID + " IN " + getOnlineWhereClause();
         }
         return " INNER JOIN " + ContactGroupsTable.TABLE_NAME + " WHERE "
                 + ContactSummaryTable.TABLE_NAME + "." + ContactSummaryTable.Field.LOCALCONTACTID
@@ -1117,7 +1115,7 @@ public abstract class ContactSummaryTable {
     private synchronized static String getOnlineWhereClause() {
         Set<Entry<Long, Integer>> set = sPresenceMap.entrySet();
         Iterator<Entry<Long, Integer>> i = set.iterator();
-        String inClause = "(";
+        StringBuilder inClause = new StringBuilder("(");
         boolean isFirst = true;
 
         while (i.hasNext()) {
@@ -1127,20 +1125,18 @@ public abstract class ContactSummaryTable {
                     && (value == OnlineStatus.ONLINE.ordinal() || value == OnlineStatus.IDLE
                             .ordinal())) {
                 if (isFirst == false) {
-                    inClause = inClause.concat(",");
+                    inClause.append(',');
                 } else {
                     isFirst = false;
                 }
-                inClause = inClause.concat(String.valueOf(me.getKey()));
+                inClause.append(me.getKey());
             }
         }
-        if (isFirst == true) {
-            inClause = null;
-        } else {
-            inClause = inClause.concat(")");
-        }
-        return inClause;
-
+        if (isFirst) {
+            return "()";
+        } 
+    	inClause.append(')');
+    	return inClause.toString();
     }
 
     /**
