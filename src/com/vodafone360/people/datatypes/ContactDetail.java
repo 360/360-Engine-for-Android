@@ -439,7 +439,7 @@ public class ContactDetail extends BaseDataType implements Parcelable {
         
         // FIX for PAND-2379
         // TODO: remove, when BE does not send invalid photo urls
-        if (key == DetailKeys.PHOTO) {
+        if (key == DetailKeys.PHOTO && value != null) {
         	value = value.replaceAll("\r", ""); 
         	value = value.replaceAll("\n", ""); 
         	value = value.replaceAll(" ", ""); 
