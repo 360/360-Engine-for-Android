@@ -53,7 +53,12 @@ import com.vodafone360.people.utils.ThumbnailUtils;
  *
  */
 public class SyncMeDbUtils {
-
+    /** 
+     * Default Me Profile Name. 
+     * This is set as an empty string to make it easy to detect when no Name has been set.
+     */
+    public static final String ME_PROFILE_DEFAULT_NAME = "";
+    
     /**
      * Me profile local contact id.
      */
@@ -63,8 +68,6 @@ public class SyncMeDbUtils {
      * Mime type for the uploaded thumbnail picture of the me profile.
      */
     private static final String PHOTO_MIME_TYPE = "image/png";
-    
-//    public static String ME_PROFILE_DEFAULT_NAME = null;
 
     /**
      * This method create a Me Profile contact in the database.
@@ -134,6 +137,18 @@ public class SyncMeDbUtils {
     public static void setMeProfileId(final Long meProfileId) {
         sMeProfileLocalContactId = meProfileId;
     }
+    
+    /**
+     * Checks if a given contact id belongs to the Me Contact.
+     * @param dbHelper DatabaseHelper - the database
+	 * @param localContactId The contact id to check
+     * @return True if contact being edited is the me profile.
+     */
+    public static boolean isMeProfile(DatabaseHelper dbHelper, long localContactId) {
+        return Long.valueOf(
+                localContactId).equals(SyncMeDbUtils.getMeProfileLocalContactId(dbHelper));
+    }
+
 
     /**
      * This method updates current Me Profile with changes from user profile.
@@ -328,7 +343,7 @@ public class SyncMeDbUtils {
                     // Currently it's only possible to post a status on
                     // Vodafone sns
                     detail.alt = ThirdPartyAccount.SNS_TYPE_VODAFONE;
-                    if (ServiceStatus.SUCCESS == dbHelper.modifyContactDetail(detail, true)) {
+                    if (ServiceStatus.SUCCESS == dbHelper.modifyContactDetail(detail)) {
                         return detail;
                     }
                 }

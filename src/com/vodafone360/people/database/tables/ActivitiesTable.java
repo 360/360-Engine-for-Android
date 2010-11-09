@@ -608,87 +608,92 @@ public abstract class ActivitiesTable {
         DatabaseHelper.trace(true, "DatabaseHelper.addActivities()");
         SQLiteStatement statement =
             ContactsTable.fetchLocalFromServerIdStatement(writableDb);
-        boolean meProfileChanged = false;
+        boolean isMeProfileChanged = false;
         Long meProfileId = StateTable.fetchMeProfileId(writableDb);
 
-            for (ActivityItem activity : actList) {
+        for (ActivityItem activity : actList) {
+            try {
+                writableDb.beginTransaction();
+            
+                if (activity.contactList != null) {
+                    int clistSize = activity.contactList.size();
+                    for (int i = 0; i < clistSize; i++) {
+                        final ActivityContact activityContact = activity.contactList.get(i);
+                        activityContact.mLocalContactId = 
+                            ContactsTable.fetchLocalFromServerId(
+                                    activityContact.mContactId,
+                                    statement);
 
-                try {
-                    writableDb.beginTransaction();
-                
-                    if (activity.contactList != null) {
-                        int clistSize = activity.contactList.size();
-                        for (int i = 0; i < clistSize; i++) {
-                            final ActivityContact activityContact = activity.contactList.get(i);
-                            activityContact.mLocalContactId = 
-                                ContactsTable.fetchLocalFromServerId(
-                                        activityContact.mContactId,
-                                        statement);
-                            // Check if me profile status has been modified.
-                            if(meProfileId != null && activityContact.mLocalContactId != null
-                                    && activityContact.mLocalContactId.equals(meProfileId)) {
-                                meProfileChanged = true;
-                            }
-                            
-                            if (activityContact.mLocalContactId == null) {
-                                // Just skip activities for which we don't have a corresponding contact
-                                // in the database anymore otherwise they will be shown as "Blank name".
-                                // This is the same on the web but we could use the provided name instead.
-                                continue;
-                            } else {
-                                // Find a more up-to-date name as the names in the Activities are the ones
-                                // from submit time. If they changed in the meantime, this is not reflected
-                                // so we fetch the names from the ContactSummary table.
-                                final ContactSummary contactSummary = new ContactSummary();
-                                if (ContactSummaryTable.fetchSummaryItem(activityContact.mLocalContactId,
-                                                                         contactSummary,
-                                                                         writableDb) == ServiceStatus.SUCCESS) {
-                                    if (!TextUtils.isEmpty(contactSummary.formattedName)) {
-                                        activityContact.mName = contactSummary.formattedName;
-                                    }
+                        // Check if me profile status has been modified.
+                        boolean isMeProfile = 
+                            meProfileId != null &&
+                            meProfileId.equals(activityContact.mLocalContactId);
+                        
+                        // ORing to ensure that the value remains true once set
+                        isMeProfileChanged |= isMeProfile;
+
+
+                        if (activityContact.mLocalContactId == null) {
+                            // Just skip activities for which we don't have a corresponding contact
+                            // in the database anymore otherwise they will be shown as "Blank name".
+                            // This is the same on the web but we could use the provided name instead.
+                            continue;
+                        } else {
+                            // Find a more up-to-date name as the names in the Activities are the ones
+                            // from submit time. If they changed in the meantime, this is not reflected
+                            // so we fetch the names from the ContactSummary table.
+                            final ContactSummary contactSummary = new ContactSummary();
+                            if (ContactSummaryTable.fetchSummaryItem(activityContact.mLocalContactId,
+                                                                     contactSummary,
+                                                                     writableDb) == ServiceStatus.SUCCESS) {
+								// Me Profile can have empty name
+                                if ((isMeProfile && contactSummary.formattedName != null) || 
+								    !TextUtils.isEmpty(contactSummary.formattedName)) {
+                                    activityContact.mName = contactSummary.formattedName;
                                 }
                             }
-                            
-                            int latestStatusVal = removeContactGroup(
-                                    activityContact.mLocalContactId, 
-                                    activityContact.mName, activity.time,
-                                    activity.activityFlags, null, writableDb);
-    
-                            ContentValues cv = fillUpdateData(activity, i);
-                            cv.put(Field.LATEST_CONTACT_STATUS.toString(),
-                                    latestStatusVal);
-                            activity.localActivityId =
-                                writableDb.insertOrThrow(TABLE_NAME, null, cv);
                         }
-                    } else {
-                        activity.localActivityId = writableDb.insertOrThrow(
-                                TABLE_NAME, null, fillUpdateData(activity, null));
+                        
+                        int latestStatusVal = removeContactGroup(
+                                activityContact.mLocalContactId, 
+                                activityContact.mName, activity.time,
+                                activity.activityFlags, null, writableDb);
+
+                        ContentValues cv = fillUpdateData(activity, i);
+                        cv.put(Field.LATEST_CONTACT_STATUS.toString(),
+                                latestStatusVal);
+                        activity.localActivityId =
+                            writableDb.insertOrThrow(TABLE_NAME, null, cv);
                     }
-                    if ((activity.localActivityId != null) && (activity.localActivityId < 0)) {
-                        LogUtils.logE("ActivitiesTable.addActivities() "
-                                + "Unable to add activity");
-                        return ServiceStatus.ERROR_DATABASE_CORRUPT;
-                    }
-                    writableDb.setTransactionSuccessful();
-                } catch (SQLException e) {
-                    LogUtils.logE("ActivitiesTable.addActivities() "
-                            + "Unable to add activity", e);
-                    return ServiceStatus.ERROR_DATABASE_CORRUPT;
-                } finally {
-                    writableDb.endTransaction();
+                } else {
+                    activity.localActivityId = writableDb.insertOrThrow(
+                            TABLE_NAME, null, fillUpdateData(activity, null));
                 }
+                if ((activity.localActivityId != null) && (activity.localActivityId < 0)) {
+                    LogUtils.logE("ActivitiesTable.addActivities() "
+                            + "Unable to add activity");
+                    return ServiceStatus.ERROR_DATABASE_CORRUPT;
+                }
+                writableDb.setTransactionSuccessful();
+            } catch (SQLException e) {
+                LogUtils.logE("ActivitiesTable.addActivities() "
+                        + "Unable to add activity", e);
+                return ServiceStatus.ERROR_DATABASE_CORRUPT;
+            } finally {
+                writableDb.endTransaction();
             }
-            if(statement != null) {
-                statement.close();
-                statement = null;
-            }
+        }
+        if(statement != null) {
+            statement.close();
+            statement = null;
+        }
 
-            // Update widget if me profile status has been modified.
-            if(meProfileChanged) {
-                WidgetUtils.kickWidgetUpdateNow(context);
-            }
+        // Update widget if me profile status has been modified.
+        if(isMeProfileChanged) {
+            WidgetUtils.kickWidgetUpdateNow(context);
+        }
 
-        return ServiceStatus.SUCCESS;
+    return ServiceStatus.SUCCESS;
     }
 
     /**

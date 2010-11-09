@@ -243,7 +243,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         mContext = context;
-//        SyncMeDbUtils.ME_PROFILE_DEFAULT_NAME = mContext.getString(R.string.ContactListActivity_no_me_profile_name);
 
         /*
          * // Uncomment the next line to reset the database //
@@ -457,9 +456,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * Modifies an existing contact detail in the database. Also fires an
      * internal database change event.
      * 
-     * @param detail A {@link ContactDetail} object which contains the detail to
-     *            add
-     * @param meProfile - TRUE if the provided detail belongs to Me Profile.    
+     * @param detail A {@link ContactDetail} object which contains the detail to add    
      *         
      * @return SUCCESS or a suitable error code
      * @see #addContactDetail(ContactDetail)
@@ -469,16 +466,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @see #addContactToGroup(long, long)
      * @see #deleteContactFromGroup(long, long)
      */
-    public ServiceStatus modifyContactDetail(ContactDetail detail, boolean meProfile) {
+    public ServiceStatus modifyContactDetail(ContactDetail detail) {
         if (Settings.ENABLED_DATABASE_TRACE) {
             trace(false, "DatabaseHelper.modifyContactDetail() name[" + detail.getName() + "]");
         }
+        boolean isMeProfile = SyncMeDbUtils.isMeProfile(this, detail.localContactID);
         List<ContactDetail> mDetailList = new ArrayList<ContactDetail>();
         mDetailList.add(detail);
-        ServiceStatus mStatus = syncModifyContactDetailList(mDetailList, !meProfile, !meProfile);
+        ServiceStatus mStatus = syncModifyContactDetailList(mDetailList, !isMeProfile, !isMeProfile);
         if (ServiceStatus.SUCCESS == mStatus) {
             fireDatabaseChangedEvent(DatabaseChangeType.CONTACTS, false);
-            if (meProfile) {
+            if (isMeProfile) {
                 WidgetUtils.kickWidgetUpdateNow(mContext);
             }
         }
@@ -2369,10 +2367,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * Updates the ContactSummary table with the new/changed Contact.
      * @param writableDatabase - SQLiteDatabase writable database.
      * @param localContactId - long contact local id.
-     * @param meProfile - boolean that indicates if the localContactId belongs to Me Profile.
+     * @param isMeProfile - boolean that indicates if the localContactId belongs to Me Profile.
+	 * @return The updated name, may be null in failure situations
      */
     public String updateContactNameInSummary(SQLiteDatabase writableDatabase,
-            long localContactId, boolean meProfile) {
+            long localContactId, boolean isMeProfile) {
 
         Contact contact = new Contact();
         ServiceStatus status = fetchBaseContact(localContactId, contact, writableDatabase);
@@ -2384,7 +2383,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (ServiceStatus.SUCCESS != status) {
             return null;
         }
-        return ContactSummaryTable.updateContactDisplayName(contact, writableDatabase, meProfile);
+        return ContactSummaryTable.updateContactDisplayName(contact, writableDatabase, isMeProfile);
     }
 
     public List<Contact> fetchContactList() {

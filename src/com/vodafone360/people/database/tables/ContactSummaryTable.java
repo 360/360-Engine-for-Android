@@ -39,6 +39,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
+import android.text.TextUtils;
 
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.database.DatabaseHelper;
@@ -52,7 +53,6 @@ import com.vodafone360.people.datatypes.ContactDetail.DetailKeys;
 import com.vodafone360.people.datatypes.ContactSummary.AltFieldType;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.meprofile.SyncMeDbUtils;
-import com.vodafone360.people.engine.meprofile.SyncMeEngine;
 import com.vodafone360.people.engine.presence.User;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.utils.CloseUtils;
@@ -86,8 +86,7 @@ public abstract class ContactSummaryTable {
      * This holds the presence information for each contact in the ContactSummaryTable
      */
     private static HashMap<Long, Integer> sPresenceMap = new HashMap<Long, Integer>();
-
-
+    
     /**
      * An enumeration of all the field names in the database.
      */
@@ -954,14 +953,6 @@ public abstract class ContactSummaryTable {
         return ServiceStatus.SUCCESS;
     }
 
-    private static boolean isEmpty(String string) {
-        if (string == null)
-            return true;
-        if (string.trim().length() == 0)
-            return true;
-        return false;
-    }
-
     /**
      * Updates the summary for a contact Replaces the complex logic of updating
      * the summary with a new contactdetail. Instead the method gets a whole
@@ -969,52 +960,33 @@ public abstract class ContactSummaryTable {
      * 
      * @param contact A Contact object that has been modified
      * @param writeableDb Writable SQLite database
+     * @param isMeProfile Specifies if the contact in question is the Me Contact or not
      * @return String - the contact name to display and null in case of database error.
      */
     public static String updateContactDisplayName(Contact contact, 
             SQLiteDatabase writableDb, boolean isMeProfile) {
-        // These two Arrays contains the order in which the details are queried.
-        // First valid (not empty or unknown) detail is taken
-        ContactDetail.DetailKeys preferredNameDetails[] = {
-                ContactDetail.DetailKeys.VCARD_NAME, ContactDetail.DetailKeys.VCARD_ORG,
-                ContactDetail.DetailKeys.VCARD_EMAIL, ContactDetail.DetailKeys.VCARD_PHONE
-        };
-        ContactDetail name = null;
-
-        // Query the details for the name field
-        for (ContactDetail.DetailKeys key : preferredNameDetails) {
-            if ((name = contact.getContactDetail(key)) != null) {
-                // Some contacts have only email but the name detail!=null
-                // (gmail for example)
-                if (key == ContactDetail.DetailKeys.VCARD_NAME && name.getName() == null)
-                    continue;
-                if (key != ContactDetail.DetailKeys.VCARD_NAME && isEmpty(name.getValue()))
-                    continue;
-                break;
-            }
-        }
-
+        
+        ContactDetail name = getDisplayNameDetail(contact);
+        
         String nameString = null;
-//         Build the name
-        if (isMeProfile) {  
-            if (name != null && (name.key != ContactDetail.DetailKeys.VCARD_NAME)) {
-             // if me profile and the VCARD_NAME detail has empty name (that is why we are here)
-                nameString = SyncMeEngine.ME_PROFILE_DEFAULT_NAME;
-            }
-        } else { 
-//             if it is not me profile do the normal name substitution
-            nameString = name != null ? name.getValue() : null;
-            if (nameString == null) {
-                nameString = ContactDetail.UNKNOWN_NAME;
-            }    
-        }
-//         if the detail is VCARD_NAME and name is not empty - use it    
-        if (name != null && name.key == ContactDetail.DetailKeys.VCARD_NAME) {
+        
+        if(isVcardNameDetail(name)) {
             nameString = name.getName().toString();
+        } else if(!isMeProfile) {
+            if(name != null) {
+                // Apply non VCard name
+                nameString = name.getValue();
+            }
+            if (nameString == null) {
+                // Unknown name
+                nameString = ContactDetail.UNKNOWN_NAME;
+            }
+        } else {
+            // Me Profile with no name - set the default name
+            nameString = SyncMeDbUtils.ME_PROFILE_DEFAULT_NAME;
         }
-
+                
         // Start updating the table
-
         SQLiteStatement statement = null;
         try {
             final StringBuffer updateQuery = StringBufferPool.getStringBuffer(SQLKeys.UPDATE);
@@ -1041,6 +1013,45 @@ public abstract class ContactSummaryTable {
         }
 
         return nameString;
+    }
+    
+    /**
+     * Utility method to determine if a Detail is of the VCard Name key type
+     * @param detail The Contact Detail to check
+     * @return true if not null and of the VCARD_NAME key type, false if not
+     */
+    private static boolean isVcardNameDetail(ContactDetail detail) {
+        return detail != null && detail.key == ContactDetail.DetailKeys.VCARD_NAME;
+    }
+    
+    /**
+     * Retrieves display name detail for a contact
+     * @param contact Contact to retrieve display name from
+     * @return Found display name detail - maybe be null
+     */
+    private static ContactDetail getDisplayNameDetail(Contact contact) {
+        // These two Arrays contains the order in which the details are queried.
+        // First valid (not empty or unknown) detail is taken
+        ContactDetail.DetailKeys preferredNameDetails[] = {
+                ContactDetail.DetailKeys.VCARD_NAME, ContactDetail.DetailKeys.VCARD_ORG,
+                ContactDetail.DetailKeys.VCARD_EMAIL, ContactDetail.DetailKeys.VCARD_PHONE
+        };
+        ContactDetail name = null;
+
+        // Query the details for the name field
+        for (ContactDetail.DetailKeys key : preferredNameDetails) {
+            if ((name = contact.getContactDetail(key)) != null) {
+                // Some contacts have only email but the name detail!=null
+                // (gmail for example)
+                if (key == ContactDetail.DetailKeys.VCARD_NAME && name.getName() == null)
+                    continue;
+                if (key != ContactDetail.DetailKeys.VCARD_NAME && TextUtils.isEmpty(name.getValue()))
+                    continue;
+                break;
+            }
+        }
+        
+        return name;
     }
     
     /**
