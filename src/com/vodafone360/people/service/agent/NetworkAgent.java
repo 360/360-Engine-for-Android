@@ -44,6 +44,7 @@ import android.text.format.DateUtils;
 
 import com.vodafone360.people.Intents;
 import com.vodafone360.people.MainApplication;
+import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.service.PersistSettings;
 import com.vodafone360.people.service.RemoteService;
 import com.vodafone360.people.service.ServiceStatus;
@@ -98,7 +99,27 @@ public class NetworkAgent {
     private IConnectionManagerInterface mConnectionMgrIf;
 
     private Context mContext;
-
+    
+    /**
+     * 2G Voice call started string
+     */
+    private static final String VOICE_CALL_STARTED_2G_STRING = "2GVoiceCallStarted";
+    
+    /**
+     * 2G Voice call finished string.
+     */
+    private static final String VOICE_CALL_ENDED_2G_STRING = "2GVoiceCallEnded";
+    
+    /**
+     * To hold network info
+     */
+    private NetworkInfo mNetworkInfo = null;
+    
+    /**
+     * Resume contact sync if 2G call has finished.
+     */
+    private boolean mIsResumeSync = false;
+    
     public enum AgentState {
         CONNECTED,
         DISCONNECTED,
@@ -300,16 +321,18 @@ public class NetworkAgent {
             LogUtils.logV("NetworkAgent.broadcastReceiver.onReceive() CONNECTIVITY_ACTION");
             synchronized (NetworkAgent.this) {
                 NetworkInfo info = (NetworkInfo) intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
+                mNetworkInfo = info;
                 boolean noConnectivity = intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, false);
                 
-                if (info == null) {
-                	LogUtils.logW("NetworkAgent.broadcastReceiver.onReceive() EXTRA_NETWORK_INFO not found.");
+                if (info != null) {
+                    // Check network type              
+                    if (info.getType() == TYPE_WIFI) {
+                        mWifiNetworkAvailable = (info.getState() == NetworkInfo.State.CONNECTED);
+                    } else {
+                        mMobileNetworkAvailable = (info.getState() == NetworkInfo.State.CONNECTED);
+                    }
                 } else {
-                	if (info.getType() == TYPE_WIFI) {
-                		mWifiNetworkAvailable = (info.getState() == NetworkInfo.State.CONNECTED);
-                	} else {
-                		mMobileNetworkAvailable = (info.getState() == NetworkInfo.State.CONNECTED);
-                	}
+                    LogUtils.logW("NetworkAgent.broadcastReceiver.onReceive() EXTRA_NETWORK_INFO not found.");
                 }
                 
                 if (noConnectivity) {
@@ -507,9 +530,22 @@ public class NetworkAgent {
         if (!mInternetConnected) {
             LogUtils.logV("NetworkAgent.onConnectionStateChanged() No internet connection");
             sDisconnectReason = AgentDisconnectReason.NO_INTERNET_CONNECTION;
+            // If 2g call is started, notify contact sync engine to pause.
+            if (mNetworkInfo != null && 
+                       VOICE_CALL_STARTED_2G_STRING.equals(mNetworkInfo.getReason())) {
+                EngineManager.getInstance().getContactSyncEngine().pauseSync();
+            }
+            
             setNewState(AgentState.DISCONNECTED);
             return;
         } 
+        
+        // If 2g voice call is finished, set resume state
+        if (mNetworkInfo != null && 
+                   VOICE_CALL_ENDED_2G_STRING.equals(mNetworkInfo.getReason())) {
+            mIsResumeSync = true;
+        }
+ 
         
         if (mWifiNetworkAvailable) {
             LogUtils.logV("NetworkAgent.onConnectionStateChanged() WIFI connected");
@@ -571,6 +607,12 @@ public class NetworkAgent {
         }
         if (mConnectionMgrIf != null) {
             mConnectionMgrIf.signalConnectionManager(true);
+        }
+                
+        // If resume sync is set, signal contact sync engine to resume sync.
+        if (mIsResumeSync) {
+            EngineManager.getInstance().getContactSyncEngine().resumeSync();
+            mIsResumeSync = false;
         }
     }
 

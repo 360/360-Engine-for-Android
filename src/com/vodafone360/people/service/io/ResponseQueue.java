@@ -274,4 +274,11 @@ public class ResponseQueue {
         }
         return exists;
     }
+    
+    /**
+     * Clear response queue holding any stale responses.
+     */
+    public void clearResponseQueue() {
+        mResponses.clear();
+    }
 }

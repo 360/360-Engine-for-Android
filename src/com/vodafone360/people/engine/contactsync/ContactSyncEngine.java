@@ -41,15 +41,16 @@ import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.PushEvent;
 import com.vodafone360.people.engine.BaseEngine;
 import com.vodafone360.people.engine.EngineManager;
-import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.EngineManager.EngineId;
+import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.content.ThumbnailHandler;
 import com.vodafone360.people.service.PersistSettings;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.NetworkAgent;
-import com.vodafone360.people.service.agent.UiAgent;
 import com.vodafone360.people.service.agent.NetworkAgent.AgentState;
+import com.vodafone360.people.service.agent.UiAgent;
+import com.vodafone360.people.service.io.ResponseQueue;
 import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.VersionUtils;
@@ -147,6 +148,11 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * currently active)
      */
     private State mState = State.IDLE;
+    
+    /**
+     * Last state of the contact sync engine (to check if engine was paused).
+     */
+    private State mLastState = State.IDLE;
 
     /**
      * Current mode (or stragegy) the contact sync engine is in. The mode
@@ -344,9 +350,17 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * Service Context.
      */
     private Context mContext = null;
+
+    /**
+     * Check if sync is paused.
+     */
+    private boolean mIsSyncPaused = false;
+
+    /**
+     * Copy paused state in mIsSyncPausedLast to resume sync in engine's run method.
+     */
+    private boolean mIsSyncPausedLast = false;
     
-
-
     /**
      * Used to listen for NowPlus database change events. Such events will be
      * received when the user modifies a contact in the people application.
@@ -641,7 +655,22 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      */
     @Override
     public void run() {
-
+   	
+        // Pause contact sync engine.
+        if (mIsSyncPaused) {
+            return;
+        }
+        
+        if (mIsSyncPausedLast) {
+            mIsSyncPausedLast = false;
+            if (mFirstTimeSyncComplete) {       
+                startServerSync();
+            } else {
+                resumeFirstTimeSync();
+            }
+            return;
+        }
+    	
         if (processTimeout()) {
             return;
         }
@@ -892,6 +921,20 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         return true;
     }
 
+    
+    /**
+     * This is added to support resuming of contact sync from where it is paused during first time sync.
+     */
+    public void resumeFirstTimeSync() {
+        mFailureList = "";
+        mDatabaseChanged = false;
+        mServerSyncTimeout = null;
+        mServerSyncRequired = false;
+        setFirstTimeSyncStarted(true);
+        mMode = Mode.FULL_SYNC_FIRST_TIME;
+        nextTaskFullSyncFirstTime();
+    }
+    
     /**
      * Starts a full sync. If the native contacts haven't yet been fetched then
      * a first time sync will be started, otherwise will start a normal full
@@ -991,10 +1034,9 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
             newState(State.FETCHING_SERVER_CONTACTS);
             startProcessor(mProcessorFactory.create(ProcessorFactory.DOWNLOAD_SERVER_CONTACTS, this, mDb));
             return true;
-            
         }
-        else
-        	return false;
+        else 
+            return false;
     }
 
     /**
@@ -1235,7 +1277,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
      * @param newState The new state
      */
     private void newState(State newState) {
-        State oldState = mState;
+        mLastState = mState;
         synchronized (mMutex) {
             if (newState == mState) {
                 return;
@@ -1247,8 +1289,8 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
                 ApplicationCache.setSyncBusy(true);
             }
         }
-        LogUtils.logI("ContactSyncEngine.newState: " + oldState + " -> " + mState);
-        fireStateChangeEvent(mMode, oldState, mState);
+        LogUtils.logI("ContactSyncEngine.newState: " + mLastState + " -> " + mState);
+        fireStateChangeEvent(mMode, mLastState, mState);
     }
 
     /**
@@ -1261,7 +1303,6 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     private void completeSync(ServiceStatus status) {
         // release wake lock acquired during full sync    	
         releaseSyncLock();
-    	
         if (mState == State.IDLE) {
             return;
         }
@@ -1619,4 +1660,36 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         }
     } 
     
+    /**
+     * Signal contact sync engine to pause ongoing sync. 
+     * 
+     */
+    public synchronized void pauseSync() {
+        // Pause sync if it is in progress.
+        if (ApplicationCache.isSyncBusy()) {
+            mIsSyncPaused = true;
+        }
+    }
+    
+    /**
+     * Signal contact sync engine to resume sync. 
+     * 
+     */
+    public synchronized void resumeSync() {
+        if (mIsSyncPaused) {
+
+            // Get last contact sync engine state from where contact sync can be resumed.
+            mState = mLastState;
+    	    
+            mIsSyncPausedLast = mIsSyncPaused;
+            mIsSyncPaused = false;
+    	    
+            // Remove any stale responses from response queue.
+            ResponseQueue.getInstance().clearResponseQueue();
+    	    
+            // Set active processor to null.
+            mActiveProcessor = null;
+        }
+    }
+   
 }
