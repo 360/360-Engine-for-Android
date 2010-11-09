@@ -492,7 +492,6 @@ public class VCardHelper {
      * @return Postal address generated from supplied String.
      */
     public static PostalAddress getPostalAddress(String val) {
-        HttpConnectionThread.logW("$$$$$$$$$$$$$$$$$$$$$$$$$", "Location: " + val);
         
         if (val == null) {
             return null;
@@ -500,8 +499,6 @@ public class VCardHelper {
         PostalAddress address = new PostalAddress();
         List<Item> itemList = new ArrayList<Item>();
         getVCardList(val, itemList);
-        
-        HttpConnectionThread.logW("$$$$$$$$$$$$$$$$$$$$$$$$$", "List: " + itemList.toString());
         
         ListIterator<Item> it = itemList.listIterator();
         address.postOfficeBox = nextFullItem(it);
