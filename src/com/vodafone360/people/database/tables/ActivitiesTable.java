@@ -2422,4 +2422,32 @@ public abstract class ActivitiesTable {
         }
     }
 
+	/**
+	 * Fetches the Timelinedata with the given contactNumber. Returns the
+	 * TimelineSummaryItem with the latest data from Activities Table.
+	 *
+	 * @param contactNumber contactNumber whose TimelineSummary is needed.
+	 * @param readableDb Readable SQLite database.
+	 */
+	public static TimelineSummaryItem fetchTimelineSummaryFromContactNumber(
+			final String contactNumber, final SQLiteDatabase readableDb) {
+		DatabaseHelper.trace(false, "DatabaseHelper." + "fetchTimelineSummaryFromContactNumber()");
+		Cursor cursor = null;
+
+		try {
+			StringBuilder query = new StringBuilder("SELECT * FROM ")
+					.append(TABLE_NAME);
+			query.append(" WHERE ").append(Field.CONTACT_ADDRESS).append(" = ")
+					.append("\"").append(contactNumber).append("\"");
+			cursor = readableDb.rawQuery(query.toString(), null);
+			if (cursor != null && cursor.moveToFirst() && !cursor.isNull(0)) {
+				return getTimelineData(cursor);
+			} else {
+				return null;
+			}
+		} finally {
+			CloseUtils.close(cursor);
+		}
+	}
+
 }
