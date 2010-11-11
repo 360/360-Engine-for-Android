@@ -45,6 +45,8 @@ public class Intents {
     
     public static final String OPEN_STATUS = "com.vodafone360.people.Intents.OPEN_STATUS";
     
+    public static final String DELETE_CONTACT_NOTIFICATION = "com.vodafone360.people.Intents.Delete_Contact_NOTIFICATION";
+    
     /**
      * This is a boolean extra for the Intent, which indicates the Intent has been dismissed.
      */
