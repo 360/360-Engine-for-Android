@@ -1429,9 +1429,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     }
                 }
 
-                // Update the summary with the new contact
-                //Me Profile is not native, so we pass !syncToNative to indicate if it is Me Profile or not 
-                String displayName = updateContactNameInSummary(writableDb, contact.localContactID, !syncToNative);
+                /*
+                 * FIXME: Hacking a check for me profile here using syncToNative and syncToServer
+                 * The me contact does not use a static local contact id 
+                 * which is ridiculous. Basically we have to check the syncToNative and syncToServer
+                 * flags together with isMeProfile
+                 * because luckily as of yet the they are only both false when its me profile 
+                 * in case that's the contact being added.
+                 */
+                String displayName = 
+                    updateContactNameInSummary(writableDb, 
+                                               contact.localContactID, 
+                                               (!syncToNative && !syncToServer) || 
+                                               SyncMeDbUtils.isMeProfile(this, contact.localContactID));
                 if (null == displayName) {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
@@ -1522,7 +1532,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 // END updating timeline events
 
                 // Update the summary with the new contact
-                String displayName = updateContactNameInSummary(writableDb, contact.localContactID, !syncToNative);
+                String displayName = updateContactNameInSummary(writableDb, 
+                        contact.localContactID, 
+                        SyncMeDbUtils.isMeProfile(this, contact.localContactID));
                 if (null == displayName) {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
@@ -1779,9 +1791,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         ContactSummaryTable.modifyPictureLoadedFlag(mContactDetail.localContactID,
                                 false, mDb);
                 }
-                //me profile is not native, so we pass !syncToNative
                 String displayName = updateContactNameInSummary(mDb,
-                        mContactDetail.localContactID, !syncToNative);
+                        mContactDetail.localContactID, 
+                        SyncMeDbUtils.isMeProfile(this, mContactDetail.localContactID));
                 if (null == displayName) {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
@@ -1908,9 +1920,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     ContactSummaryTable.modifyPictureLoadedFlag(mContactDetail.localContactID,
                             false, mDb);
                 }
-                //meProfile is not native, so pass the opposite to syncToNative
+
                 String displayName = updateContactNameInSummary(mDb,
-                        mContactDetail.localContactID, !syncToNative);
+                        mContactDetail.localContactID, 
+                        SyncMeDbUtils.isMeProfile(this, mContactDetail.localContactID));
                 if (null == displayName) {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
@@ -1999,9 +2012,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     deleteThumbnail(mContactDetail.localContactID);
                 }
 
-                // !syncToNative is opposite to meProfile: meProfile is not native
                 String displayName = updateContactNameInSummary(mDb,
-                        mContactDetail.localContactID, !syncToNative);
+                        mContactDetail.localContactID,
+                        SyncMeDbUtils.isMeProfile(this, mContactDetail.localContactID));
                 if (displayName == null) {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
