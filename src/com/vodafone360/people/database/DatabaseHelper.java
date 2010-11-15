@@ -120,7 +120,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * Contains the database version. Must be increased each time the schema is
      * changed.
      **/
-    private static final int DATABASE_VERSION = 63;
+    private static final int DATABASE_VERSION = 64;
 
     private final List<Handler> mUiEventCallbackList = new ArrayList<Handler>();
 
@@ -314,7 +314,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         try {
-            trace(true, "DatabaseHelper.onUpgrade() Upgrading database version from [" + oldVersion
+        	trace(true, "DatabaseHelper.onUpgrade() Upgrading database version from [" + oldVersion
                     + "] to [" + newVersion + "]");
             mContext.deleteDatabase(DATABASE_NAME);
             mDbUpgradeRequired = true;
