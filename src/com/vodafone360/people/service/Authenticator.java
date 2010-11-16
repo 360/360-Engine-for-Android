@@ -25,6 +25,7 @@
 
 package com.vodafone360.people.service;
 
+import com.vodafone360.people.Intents;
 import com.vodafone360.people.MainApplication;
 import com.vodafone360.people.engine.contactsync.NativeContactsApi;
 import com.vodafone360.people.utils.LoginPreferences;
@@ -45,15 +46,6 @@ import android.text.TextUtils;
  */
 public class Authenticator extends AbstractAccountAuthenticator {
     private final MainApplication mApplication;
-    
-    /**
-     * Intent action to send to StartActivity activity.
-     * Upon receiving this action a UI notification should be presented
-     * regarding only one 360 People account being supported.
-     */
-    public static final String ACTION_ONE_ACCOUNT_ONLY_INTENT = 
-        "com.vodafone360.people.android.account.ONE_ONLY";
-
     
     /**
      * Constructor
@@ -78,7 +70,7 @@ public class Authenticator extends AbstractAccountAuthenticator {
         intent.setClassName(mApplication.getApplicationContext(), 
                 "com.vodafone360.people.ui.StartActivity");
         if(NativeContactsApi.getInstance().isPeopleAccountCreated()) {
-            intent.setAction(ACTION_ONE_ACCOUNT_ONLY_INTENT);                
+            intent.setAction(Intents.ONE_360_ACCOUNT_ONLY);                
         } 
 
         final Bundle bundle = new Bundle();

@@ -145,12 +145,6 @@ public class ApplicationCache {
     public final static String PREFS_UPGRADE_TEXT = "upgradeText";
     
     /**
-     * Text key to indicate if the intent from StartTabsActivity needs to be
-     * retained.
-     */
-    public final static String RETAIN_INTENT = "RetainIntent";
-
-    /**
      * To keep track of whether contact sync screen is visible to the user.
      */
     private static boolean sContactSyncScreenVisible = false;

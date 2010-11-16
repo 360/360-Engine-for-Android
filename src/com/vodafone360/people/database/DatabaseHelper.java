@@ -48,6 +48,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.vodafone360.people.MainApplication;
@@ -1787,7 +1788,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 // also be downloaded.
                 // When the picture is being from the client we don't need to set the flag to "TRUE",
                 // in order not to override the new picture before it is uploaded.
-                if (mContactDetail.key == ContactDetail.DetailKeys.PHOTO && isNullOrBlank(mContactDetail.photo_url)) {
+                if (mContactDetail.key == ContactDetail.DetailKeys.PHOTO && TextUtils.isEmpty(mContactDetail.photo_url)) {
                         ContactSummaryTable.modifyPictureLoadedFlag(mContactDetail.localContactID,
                                 false, mDb);
                 }
@@ -1916,7 +1917,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 // also be downloaded.
                 // When the picture is being from the client we don't need to set the flag to "TRUE",
                 // in order not to override the new picture before it is uploaded.
-                if (ContactDetail.DetailKeys.PHOTO == mContactDetail.key && isNullOrBlank(mContactDetail.photo_url)) {
+                if (ContactDetail.DetailKeys.PHOTO == mContactDetail.key && TextUtils.isEmpty(mContactDetail.photo_url)) {
                     ContactSummaryTable.modifyPictureLoadedFlag(mContactDetail.localContactID,
                             false, mDb);
                 }
@@ -2006,7 +2007,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 // also be downloaded.
                 // When the picture is being from the client we don't need to set the flag to "TRUE",
                 // in order not to override the new picture before it is uploaded.
-                if (mContactDetail.key == ContactDetail.DetailKeys.PHOTO && isNullOrBlank(mContactDetail.photo_url)) {
+                if (mContactDetail.key == ContactDetail.DetailKeys.PHOTO && TextUtils.isEmpty(mContactDetail.photo_url)) {
                     ContactSummaryTable.modifyPictureLoadedFlag(mContactDetail.localContactID,
                             false, mDb);
                     deleteThumbnail(mContactDetail.localContactID);
@@ -2683,15 +2684,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return isPictureLoaded;
     }
     
-    /**
-     * This utility method returns true if the passed string is null or blank.
-     * @param input String
-     * @return TRUE if the passed string is null or blank.
-     */
-    public static boolean isNullOrBlank(String input) {
-        return input == null || input.length() == 0;
-    }
-
     /**
      * This method updates the timeline entries.
      * for the contact when new Phone number is added.
