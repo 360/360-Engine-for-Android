@@ -99,16 +99,6 @@ public class AuthenticatorTest extends AndroidTestCase  {
     }
 
     /***
-     * Test the ACTION_ONE_ACCOUNT_ONLY_INTENT string.
-     */
-    @SmallTest
-    public final void testActionOneAccountOnlyIntent() {
-        assertEquals("ACTION_ONE_ACCOUNT_ONLY_INTENT returns the wrong value",
-                "com.vodafone360.people.android.account.ONE_ONLY",
-                Authenticator.ACTION_ONE_ACCOUNT_ONLY_INTENT);
-    }
-
-    /***
      * Test the getParcelable() method.
      */
     @SmallTest
