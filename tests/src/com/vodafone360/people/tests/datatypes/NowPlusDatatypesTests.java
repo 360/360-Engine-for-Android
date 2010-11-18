@@ -243,7 +243,7 @@ public class NowPlusDatatypesTests extends AndroidTestCase {
 	    assertEquals(input.mName, output.mName);
 	    assertEquals(input.mValue, output.mValue);
 	}
-	
+
 	public void testIdentity() {
 		Identity input = new Identity();
 		input.mPluginId = "pluginid";
@@ -258,14 +258,17 @@ public class NowPlusDatatypesTests extends AndroidTestCase {
 		input.mUserId = new Integer(1234);
 		input.mUserName = "bob";
 		input.mCountryList = new ArrayList<String>();
-		
+		input.mName = "bob";
+
 		String urlString = "http://www.mobica.com/";
 		try {
 			input.mNetworkUrl = new URL(urlString);
 		} catch (MalformedURLException e) {
 			input.mNetworkUrl = null;
 		}
-		
+
+		assertFalse("Input identity Name or Network is Empty or NULL", input.isBlankorNull());
+
 		Hashtable<String, Object> hash = new Hashtable<String, Object>();
 		hash.put("pluginid", input.mPluginId);
 		hash.put("network", input.mNetwork);
@@ -275,20 +278,22 @@ public class NowPlusDatatypesTests extends AndroidTestCase {
 		hash.put("created", input.mCreated);
 		hash.put("updated", input.mUpdated);
 		hash.put("active", true);
-		hash.put("authtype",input.mAuthType);
-		hash.put("identitytype",input.mIdentityType);
-		hash.put("userid",new Long(1234));
-		hash.put("username",input.mUserName);
-		hash.put("countrylist",input.mCountryList);
-		
+		hash.put("authtype", input.mAuthType);
+		hash.put("identitytype", input.mIdentityType);
+		hash.put("userid", new Long(1234));
+		hash.put("username", input.mUserName);
+		hash.put("countrylist", input.mCountryList);
+		hash.put("name", input.mName);
+
 		Identity helper = new Identity();
 		Identity output = helper.createFromHashtable(hash);
-		
+
+		assertFalse("Output identity Name or Network is Empty or NULL", output.isBlankorNull());
 		assertEquals(input.getType(), output.getType());
 	    assertEquals(input.toString(), output.toString());
 	    assertTrue(input.isSameAs(output));
-	}	
-	
+	}
+
 	public void testItemList() {
 		ItemList groupPriv = new ItemList(ItemList.Type.group_privacy);
 		int groupType = 1;
