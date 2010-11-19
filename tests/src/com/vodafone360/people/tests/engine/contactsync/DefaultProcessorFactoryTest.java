@@ -51,17 +51,16 @@ public class DefaultProcessorFactoryTest extends AndroidTestCase {
         DefaultProcessorFactory factory = new DefaultProcessorFactory();
         BaseSyncProcessor processor;
 
-        processor = factory.create(ProcessorFactory.DOWNLOAD_SERVER_CONTACTS, null, null, null,
-                null);
+        processor = factory.create(ProcessorFactory.DOWNLOAD_SERVER_CONTACTS, null, null);
         assertTrue(processor instanceof DownloadServerContacts);
 
-        processor = factory.create(ProcessorFactory.FETCH_NATIVE_CONTACTS, null, null, null, null);
+        processor = factory.create(ProcessorFactory.FETCH_NATIVE_CONTACTS, null, null);
         assertTrue(processor instanceof FetchNativeContacts);
 
-        processor = factory.create(ProcessorFactory.UPDATE_NATIVE_CONTACTS, null, null, null, null);
+        processor = factory.create(ProcessorFactory.UPDATE_NATIVE_CONTACTS, null, null);
         assertTrue(processor instanceof UpdateNativeContacts);
 
-        processor = factory.create(ProcessorFactory.UPLOAD_SERVER_CONTACTS, null, null, null, null);
+        processor = factory.create(ProcessorFactory.UPLOAD_SERVER_CONTACTS, null, null);
         assertTrue(processor instanceof UploadServerContacts);
 
     }
@@ -76,7 +75,7 @@ public class DefaultProcessorFactoryTest extends AndroidTestCase {
 
         try {
             // with type=-12, an IllegalArgumentException shall be thrown
-            factory.create(-12, null, null, null, null);
+            factory.create(-12, null, null);
         } catch (IllegalArgumentException e) {
             exception = e;
         }

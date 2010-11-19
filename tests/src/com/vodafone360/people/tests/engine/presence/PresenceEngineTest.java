@@ -23,12 +23,14 @@
  * Use is subject to license terms.
  */
 
-package com.vodafone360.people.tests.engine;
+package com.vodafone360.people.tests.engine.presence;
 
 import android.test.InstrumentationTestCase;
 
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.engine.presence.PresenceEngine;
+import com.vodafone360.people.tests.engine.EngineTestFramework;
+import com.vodafone360.people.tests.engine.IEngineTestFrameworkObserver;
 
 public class PresenceEngineTest extends InstrumentationTestCase implements  IEngineTestFrameworkObserver{
 

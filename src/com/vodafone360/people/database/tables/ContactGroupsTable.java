@@ -52,7 +52,7 @@ public abstract class ContactGroupsTable {
     /**
      * Name of the table as it appears in the database
      */
-    protected static final String TABLE_NAME = "ContactGroupRelations";
+    public static final String TABLE_NAME = "ContactGroupRelations";
 
     /**
      * Represents the data stored in a record

@@ -30,6 +30,8 @@ import java.util.Hashtable;
 
 import junit.framework.TestCase;
 
+import android.test.suitebuilder.annotation.Suppress;
+
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.engine.contactsync.ContactChange;
 import com.vodafone360.people.engine.contactsync.NativeExporter;
@@ -42,6 +44,7 @@ public class NativeExporterTest extends TestCase {
     /**
      * Tests multiple exports to native with only new contacts.
      */
+    @Suppress
     public void testMultipleExportsToNativeWithNewContacts() {
         
         final int NEW_CONTACTS_COUNT = 30;
@@ -78,6 +81,7 @@ public class NativeExporterTest extends TestCase {
     /**
      * Tests multiple exports to native with deleted contacts.
      */
+    @Suppress
     public void testMultipleExportsToNativeWithDeletedContacts() {
         
         // add contacts on People side and sync them to native side
@@ -150,6 +154,7 @@ public class NativeExporterTest extends TestCase {
     /**
      * Tests export to native with added details to a existing contacts.
      */
+    @Suppress
     public void testExportToNativeWithUpdatedContacts_addedDetails() {
         
         // add contacts on People side and sync them to native side
@@ -208,6 +213,7 @@ public class NativeExporterTest extends TestCase {
     /**
      * Tests export to native with updated details to existing contacts.
      */
+    @Suppress
     public void testExportToNativeWithUpdatedContacts_updatedDetails() {
         
         // add contacts on People side and sync them to native side
@@ -266,6 +272,7 @@ public class NativeExporterTest extends TestCase {
     /**
      * Tests export to native with added details to a existing contacts.
      */
+    @Suppress
     public void testExportToNativeWithUpdatedContacts_deletedDetails() {
         
         // add contacts on People side and sync them to native side

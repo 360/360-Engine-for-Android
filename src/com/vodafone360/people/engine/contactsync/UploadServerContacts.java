@@ -290,7 +290,7 @@ public class UploadServerContacts extends BaseSyncProcessor {
             return;
         }
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            complete(ServiceStatus.ERROR_COMMS);
+            complete(NetworkAgent.getServiceStatusfromDisconnectReason());
             return;
         }
 
@@ -342,7 +342,7 @@ public class UploadServerContacts extends BaseSyncProcessor {
         /** End debug output. **/
 
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            complete(ServiceStatus.ERROR_COMMS);
+            complete(NetworkAgent.getServiceStatusfromDisconnectReason());
             return;
         }
 
@@ -396,7 +396,7 @@ public class UploadServerContacts extends BaseSyncProcessor {
         /** Debug output. **/
 
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            complete(ServiceStatus.ERROR_COMMS);
+            complete(NetworkAgent.getServiceStatusfromDisconnectReason());
             return;
         }
 
@@ -479,7 +479,7 @@ public class UploadServerContacts extends BaseSyncProcessor {
         /** Debug output. **/
 
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            complete(ServiceStatus.ERROR_COMMS);
+            complete(NetworkAgent.getServiceStatusfromDisconnectReason());
             return;
         }
 
@@ -551,7 +551,7 @@ public class UploadServerContacts extends BaseSyncProcessor {
         mGroupList.add(group);
 
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            complete(ServiceStatus.ERROR_COMMS);
+            complete(NetworkAgent.getServiceStatusfromDisconnectReason());
             return;
         }
 
@@ -612,7 +612,7 @@ public class UploadServerContacts extends BaseSyncProcessor {
         }
 
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            complete(ServiceStatus.ERROR_COMMS);
+            complete(NetworkAgent.getServiceStatusfromDisconnectReason());
             return;
         }
 
@@ -718,8 +718,8 @@ public class UploadServerContacts extends BaseSyncProcessor {
      * @param resp Response from server.
      */
     private void processNewContactsResp(final DecodedResponse resp) {
-        ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.CONTACT_CHANGES_DATA_TYPE,
-                resp.mDataTypes);
+    	
+        ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.CONTACT_CHANGES_DATA_TYPE, resp.mDataTypes);
         if (status == ServiceStatus.SUCCESS) {
             ContactChanges contactChanges = (ContactChanges)resp.mDataTypes.get(0);
             ListIterator<Contact> itContactSrc = contactChanges.mContacts.listIterator();
@@ -805,16 +805,19 @@ public class UploadServerContacts extends BaseSyncProcessor {
             if (dupList.size() > 0) {
                 LogUtils.logV("UploadServerContacts.processNewContactsResp() Found "
                         +dupList.size()+ " duplicate contacts. Trying to remove them...");
+                
                 if(VersionUtils.is2XPlatform()) {
-                    // This is a very important distinction for 2.X devices!
-                    // the NAB IDs from the contacts we first import are stripped away
-                    // So we won't have the correct ID if syncMergeContactList() is executed
-                    // This is critical because a chain reaction will cause a Contact Delete in the end
-                    // Instead we can syncDeleteContactList() which should be safe on 2.X!
-                    status = mDb.syncDeleteContactList(dupList, false, true);   
-                } else {
-                    status = mDb.syncMergeContactList(dupList);
+                	// This is a very important distinction for 2.X devices!
+                	// the NAB IDs from the contacts we first import are stripped away
+                	// So we won't have the correct ID if syncMergeContactList() is executed
+                	// This is critical because a chain reaction will cause a Contact Delete in the end
+                	// Instead we can syncDeleteContactList() which should be safe on 2.X!
+                	status = mDb.syncDeleteContactList(dupList, false, true);
+                } 
+                else {
+                	status = mDb.syncMergeContactList(dupList);
                 }
+
                 if (status != ServiceStatus.SUCCESS) {
                     complete(status);
                     return;
@@ -847,8 +850,8 @@ public class UploadServerContacts extends BaseSyncProcessor {
      * @param resp Response from server.
      */
     private void processModifiedDetailsResp(final DecodedResponse resp) {
-        ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.CONTACT_CHANGES_DATA_TYPE,
-                resp.mDataTypes);
+    	
+        ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.CONTACT_CHANGES_DATA_TYPE, resp.mDataTypes);
         if (status == ServiceStatus.SUCCESS) {
             ContactChanges contactChanges = (ContactChanges)resp.mDataTypes.get(0);
             ListIterator<Contact> itContactSrc = contactChanges.mContacts.listIterator();

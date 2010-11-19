@@ -36,8 +36,10 @@ import android.os.PowerManager;
 
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.datatypes.AuthSessionHolder;
+import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.login.LoginEngine;
 import com.vodafone360.people.service.RemoteService;
+import com.vodafone360.people.service.transport.ConnectionManager;
 import com.vodafone360.people.service.transport.IWakeupListener;
 import com.vodafone360.people.service.transport.http.HttpConnectionThread;
 import com.vodafone360.people.service.utils.AuthUtils;
@@ -182,13 +184,6 @@ public class HeartbeatSenderThread implements Runnable, IWakeupListener {
                 mOs = null;
             }
         }
-
-        if (null != mThread) {
-            try {
-                mThread.join(60); // give it 60 millis max
-            } catch (InterruptedException ie) {
-            }
-        }
     }
 
     /**
@@ -271,11 +266,18 @@ public class HeartbeatSenderThread implements Runnable, IWakeupListener {
      *             writing to the output-stream.
      */
     public void sendHeartbeat() throws IOException, Exception {
-        byte[] rpgMsg = getHeartbeatHessianPayload();
+    	 byte[] rpgMsg = null;
+    	try {
+             rpgMsg = getHeartbeatHessianPayload();
+    	} catch(NullPointerException e) {
+    	    // Stop connnection and log out
+   		 	ConnectionManager.getInstance().onLoginStateChanged(false);
+   		 	EngineManager.getInstance().getLoginEngine().logoutAndRemoveUser();
+    	}
 
         try {
             // Try and issue the request
-            if (Settings.ENABLED_TRANSPORT_TRACE) {
+            if (Settings.sEnableProtocolTrace) {
                 Long userID = null;
                 AuthSessionHolder auth = LoginEngine.getSession();
                 if (auth != null) {
@@ -322,6 +324,9 @@ public class HeartbeatSenderThread implements Runnable, IWakeupListener {
 
         final String timestamp = "" + ((long)System.currentTimeMillis() / MILLIS_PER_SEC);
         final AuthSessionHolder auth = LoginEngine.getSession();
+        if(auth == null) {
+        	throw new NullPointerException();
+        }
         ht.put("auth", AuthUtils
                 .calculateAuth("", new Hashtable<String, Object>(), timestamp, auth));
         ht.put("userid", auth.userID);
@@ -368,7 +373,7 @@ public class HeartbeatSenderThread implements Runnable, IWakeupListener {
 
     @Override
     public void notifyOfWakeupAlarm() {
-        if (Settings.ENABLED_TRANSPORT_TRACE) {
+        if (Settings.sEnableProtocolTrace) {
             HttpConnectionThread.logI("HeartbeatSenderThread.notifyOfWakeupAlarm()",
                     "Waking up for a heartbeat!");
         }

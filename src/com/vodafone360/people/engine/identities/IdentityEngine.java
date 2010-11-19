@@ -32,15 +32,16 @@ import java.util.Map;
 
 import android.os.Bundle;
 
+import com.vodafone360.people.database.DatabaseHelper;
+import com.vodafone360.people.database.tables.MyIdentitiesCacheTable;
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.IdentityCapability;
 import com.vodafone360.people.datatypes.PushEvent;
 import com.vodafone360.people.datatypes.StatusMsg;
 import com.vodafone360.people.engine.BaseEngine;
-import com.vodafone360.people.engine.EngineManager;
+import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.EngineManager.EngineId;
-import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.UiAgent;
@@ -50,6 +51,7 @@ import com.vodafone360.people.service.io.rpg.PushMessageTypes;
 import com.vodafone360.people.service.transport.ConnectionManager;
 import com.vodafone360.people.service.transport.tcp.ITcpConnectionListener;
 import com.vodafone360.people.utils.LogUtils;
+import com.vodafone360.people.utils.ThirdPartyAccount;
 
 /**
  * Engine responsible for handling retrieval and validation of Identities (e.g.
@@ -167,21 +169,57 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 	 * maintained cache.
 	 **/
 	private DeleteIdentityRequest identityToBeDeleted;
+	
+    /**
+     * The hard coded list of capabilities we use to getAvailableIdentities(): chat and status.
+     */
+    private final Map<String, List<String>> mGetAvailableIdentitiesFilter;
+    
+    /**
+     * The hard coded list of capabilities we use to getMyIdentities(): chat and status.
+     */
+    private final Map<String, List<String>> mGetMyIdentitiesFilter;
+    
+    /**
+     * The DatabaseHelper used to access the client database.
+     */
+    private final DatabaseHelper mDatabaseHelper;
 
     /**
      * Constructor
      * 
      * @param eventCallback IEngineEventCallback allowing engine to report back.
      */
-    public IdentityEngine(IEngineEventCallback eventCallback) {
+    public IdentityEngine(IEngineEventCallback eventCallback, DatabaseHelper databaseHelper) {
         super(eventCallback);
         mEngineId = EngineId.IDENTITIES_ENGINE;
+        mDatabaseHelper = databaseHelper;
         
         mMyIdentityList = new ArrayList<Identity>();
+        // restore cached identities
+        MyIdentitiesCacheTable.getCachedIdentities(databaseHelper.getReadableDatabase(),
+                                                   mMyIdentityList);
         mAvailableIdentityList = new ArrayList<Identity>();
-        
+                
         mLastMyIdentitiesRequestTimestamp = 0;
         mLastAvailableIdentitiesRequestTimestamp = 0;
+        
+        // initialize identity capabilities filter
+        mGetAvailableIdentitiesFilter = new Hashtable<String, List<String>>();
+        final List<String> capabilities = new ArrayList<String>();
+        capabilities.add(IdentityCapability.CapabilityID.chat.name());
+        capabilities.add(IdentityCapability.CapabilityID.get_own_status.name());
+        
+        mGetAvailableIdentitiesFilter.put(Identity.CAPABILITY, capabilities);
+        
+        final List<String> authType = new ArrayList<String>();
+        authType.add(Identity.AUTH_TYPE_URL);
+        authType.add(Identity.AUTH_TYPE_CREDENTIALS);
+                
+        mGetAvailableIdentitiesFilter.put(Identity.AUTH_TYPE, authType);
+        
+        mGetMyIdentitiesFilter = new Hashtable<String, List<String>>();
+        mGetMyIdentitiesFilter.put(Identity.CAPABILITY, capabilities);
     }
     
     /**
@@ -195,13 +233,21 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * 
      */
     public ArrayList<Identity> getAvailableThirdPartyIdentities() {
-    	if ((mAvailableIdentityList.size() == 0) && (
+        
+        final ArrayList<Identity> availableIdentityList;
+        
+        synchronized(mAvailableIdentityList) {
+            // make a shallow copy
+            availableIdentityList = new ArrayList<Identity>(mAvailableIdentityList);
+        }
+        
+    	if ((availableIdentityList.size() == 0) && (
     			(System.currentTimeMillis() - mLastAvailableIdentitiesRequestTimestamp)
     				> MIN_REQUEST_INTERVAL)) {
     		sendGetAvailableIdentitiesRequest();
     	}
     	    	
-    	return mAvailableIdentityList;
+    	return availableIdentityList;
     }
     
     /**
@@ -213,45 +259,22 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * 
      */
     public ArrayList<Identity> getMyThirdPartyIdentities() {
-    	if ((mMyIdentityList.size() == 0) && (
-    			(System.currentTimeMillis() - mLastMyIdentitiesRequestTimestamp)
+        
+        final ArrayList<Identity> myIdentityList;
+        
+        synchronized(mMyIdentityList) {
+            // make a shallow copy
+            myIdentityList = new ArrayList<Identity>(mMyIdentityList);
+        }
+        
+        if ((myIdentityList.size() == 0) && (
+            (System.currentTimeMillis() - mLastMyIdentitiesRequestTimestamp)
     				> MIN_REQUEST_INTERVAL)) {
     		sendGetMyIdentitiesRequest();
     	}
-    	    	
-    	return mMyIdentityList;
+        
+    	return myIdentityList;
 	}
-    
-    /**
-     * 
-     * Takes all third party identities that have a chat capability set to true.
-     * It also includes the 360 identity mobile.
-     * 
-     * @return A list of chattable 3rd party identities the user is signed in to
-     * plus the mobile 360 identity. If the retrieval identities failed the 
-     * returned list will be empty.
-     * 
-     */
-    public ArrayList<Identity> getMy360AndThirdPartyChattableIdentities() {
-    	ArrayList<Identity> chattableIdentities = getMyThirdPartyChattableIdentities();
-    	
-    	// add mobile identity to support 360 chat
-    	IdentityCapability capability = new IdentityCapability();
-    	capability.mCapability = IdentityCapability.CapabilityID.chat;
-    	capability.mValue = new Boolean(true);
-    	ArrayList<IdentityCapability> mobileCapabilities = 
-    								new ArrayList<IdentityCapability>();
-    	mobileCapabilities.add(capability);
-    	
-    	Identity mobileIdentity = new Identity();
-    	mobileIdentity.mNetwork = SocialNetwork.MOBILE.toString();
-    	mobileIdentity.mName = "Vodafone";
-    	mobileIdentity.mCapabilities = mobileCapabilities;
-    	chattableIdentities.add(mobileIdentity);
-    	// end: add mobile identity to support 360 chat
-    	
-    	return chattableIdentities;
-    }
     
     /**
      * 
@@ -260,14 +283,22 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * @return A list of chattable 3rd party identities the user is signed in to. If the retrieval identities failed the returned list will be empty.
      * 
      */
-    public ArrayList<Identity> getMyThirdPartyChattableIdentities() {
-    	ArrayList<Identity> chattableIdentities = new ArrayList<Identity>();
-    	int identityListSize = mMyIdentityList.size(); 
+    public ArrayList<Identity> getMyChattableIdentities() {
+    	final ArrayList<Identity> chattableIdentities = new ArrayList<Identity>();
+    	final ArrayList<Identity> myIdentityList;
+    	final int identityListSize;
+        
+        synchronized(mMyIdentityList) {
+            // make a shallow copy
+            myIdentityList = new ArrayList<Identity>(mMyIdentityList);
+        }
+    	
+    	identityListSize = myIdentityList.size(); 
     	
     	// checking each identity for its chat capability and adding it to the
     	// list if it does
     	for (int i = 0; i < identityListSize; i++) {
-    		Identity identity = mMyIdentityList.get(i);
+    		Identity identity = myIdentityList.get(i);
     		List<IdentityCapability> capabilities = identity.mCapabilities;
     		
     		if (null == capabilities) {
@@ -299,7 +330,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * by onProcessCommsResponse once a response comes in.
      */
     private void sendGetMyIdentitiesRequest() {
-    	Identities.getMyIdentities(this, prepareStringFilter(getIdentitiesFilter()));
+        Identities.getMyIdentities(this, mGetMyIdentitiesFilter);
     }
     
     /**
@@ -307,7 +338,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * handled by onProcessCommsResponse once a response comes in.
      */
     private void sendGetAvailableIdentitiesRequest() {
-    	Identities.getAvailableIdentities(this, prepareStringFilter(getIdentitiesFilter()));
+    	Identities.getAvailableIdentities(this, mGetAvailableIdentitiesFilter);
     }
 
     /**
@@ -329,6 +360,9 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     }
 
     /**
+     * TODO: re-factor the method in the way that the UI doesn't pass the Bundle with capabilities
+     * list to the Engine, but the Engine makes the list itself (UI/Engine separation).
+     *  
      * Add request to validate user credentials for a specified identity.
      * 
      * @param dryRun True if this is a dry-run.
@@ -398,6 +432,10 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     protected void processUiRequest(ServiceUiRequest requestType, Object data) {
         LogUtils.logD("IdentityEngine.processUiRequest() - reqID = " + requestType);
         switch (requestType) {
+            case GET_MY_IDENTITIES:
+                sendGetMyIdentitiesRequest();
+                completeUiRequest(ServiceStatus.SUCCESS);
+                break;
             case VALIDATE_IDENTITY_CREDENTIALS:
                 executeValidateIdentityCredentialsRequest(data);
                 break;
@@ -481,7 +519,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     	LogUtils.logD("IdentityEngine.processCommsResponse() - resp = " + resp);
     	
     	if ((null == resp) || (null == resp.mDataTypes)) {
-    		LogUtils.logWithName("IdentityEngine.processCommsResponse()", "Response objects or its contents were null. Aborting...");
+    		LogUtils.logE("Response objects or its contents were null. Aborting...");
     		return;
     	}
         
@@ -533,7 +571,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
                 sendGetAvailableIdentitiesRequest();
                 break;
             case IDENTITY_CHANGE:
-            	EngineManager.getInstance().getPresenceEngine().setMyAvailability();
+            	mMyIdentityList.clear();
                 sendGetMyIdentitiesRequest();
                 mEventCallback.kickWorkerThread();
             	break;
@@ -618,18 +656,23 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         LogUtils.logD("IdentityEngine: handleGetMyIdentitiesResponse");
         ServiceStatus errorStatus = getResponseStatus(BaseDataType.MY_IDENTITY_DATA_TYPE, data);
         
-        if (errorStatus == ServiceStatus.SUCCESS) {        	
+        
+        if (errorStatus == ServiceStatus.SUCCESS) {  
         	synchronized (mMyIdentityList) {
+
 	            mMyIdentityList.clear();
 	            
 	            for (BaseDataType item : data) {
-	            	mMyIdentityList.add((Identity)item);
+	                Identity identity = (Identity)item;
+	            	mMyIdentityList.add(identity);
 	            }
+	            // cache the identities
+	            MyIdentitiesCacheTable.setCachedIdentities(mDatabaseHelper.getWritableDatabase(),
+	                                                       mMyIdentityList);
         	}
         }
-        
         pushIdentitiesToUi(ServiceUiRequest.GET_MY_IDENTITIES);
-        
+         
         LogUtils.logD("IdentityEngine: handleGetMyIdentitiesResponse complete request.");
     }
 
@@ -666,6 +709,10 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         completeUiRequest(errorStatus, bu);
 
         newState(State.IDLE);
+        
+        if (errorStatus == ServiceStatus.SUCCESS) {
+            addUiRequestToQueue(ServiceUiRequest.GET_MY_IDENTITIES, null);
+        }
 
     }
 
@@ -714,14 +761,20 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 		if (errorStatus == ServiceStatus.SUCCESS) {
 			for (BaseDataType item : data) {
 				if (item.getType() == BaseDataType.IDENTITY_DELETION_DATA_TYPE) {
-					// iterating through the subscribed identities
-					for (Identity identity : mMyIdentityList) {
-						if (identity.mIdentityId
-								.equals(getIdentityToBeDeleted().mIdentityId)) {
-							mMyIdentityList.remove(identity);
-							break;
-						}
-					}
+					
+				    synchronized(mMyIdentityList) {
+				        // iterating through the subscribed identities
+    					for (Identity identity : mMyIdentityList) {
+    						if (identity.mIdentityId
+    								.equals(getIdentityToBeDeleted().mIdentityId)) {
+    							mMyIdentityList.remove(identity);
+    							break;
+    						}
+    					}
+    					// cache the new set of identities
+    					MyIdentitiesCacheTable.setCachedIdentities(mDatabaseHelper.getWritableDatabase(),
+    					                                           mMyIdentityList);
+				    }
 
 					completeUiRequest(ServiceStatus.SUCCESS);
 					return;
@@ -732,7 +785,6 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 			}
 		}
 		completeUiRequest(errorStatus, bu);
-
 	}
 
     /**
@@ -747,10 +799,16 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     	ArrayList<Identity> idBundle = null;
     	if (request == ServiceUiRequest.GET_AVAILABLE_IDENTITIES) {
     		requestKey = KEY_AVAILABLE_IDS;
-    		idBundle = mAvailableIdentityList;
+    		synchronized (mAvailableIdentityList) {
+    		    // provide a shallow copy
+    		    idBundle = new ArrayList<Identity>(mAvailableIdentityList);
+    		}
     	} else {
     		requestKey = KEY_MY_IDS;
-    		idBundle = mMyIdentityList;
+    		synchronized (mMyIdentityList) {
+    		    // provide a shallow copy
+    		    idBundle = new ArrayList<Identity>(mMyIdentityList);
+    		}
     	}
     	
         // send update to 3rd party identities ui if it is up
@@ -773,31 +831,14 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     	int connState = ConnectionManager.getInstance().getConnectionState();
         return (connState == ITcpConnectionListener.STATE_CONNECTED);
     }
-    
-    /**
-     * 
-     * Retrieves the filter for the getAvailableIdentities and getMyIdentities
-     * calls.
-     * 
-     * @return The identities filter in form of a bundle.
-     * 
-     */
-    private Bundle getIdentitiesFilter() {
-    	Bundle b = new Bundle();
-        ArrayList<String> l = new ArrayList<String>();
-        l.add(IdentityCapability.CapabilityID.chat.name());
-        l.add(IdentityCapability.CapabilityID.get_own_status.name());
-        b.putStringArrayList("capability", l);
-        return b;
-    }
-
+   
 	@Override
 	public void onConnectionStateChanged(int state) {
 		if (state == ITcpConnectionListener.STATE_CONNECTED) {
 	        emptyUiRequestQueue();
 	        sendGetAvailableIdentitiesRequest();
 	        sendGetMyIdentitiesRequest();
-		}
+		} 
 	}
 	
     /**
@@ -855,25 +896,6 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         }
         return objectFilter;
     }
-
-    /**
-     * Generate Map containing String capability filters for m supplied Bundle.
-     * 
-     * @param filter Bundle containing filter.
-     * @return Map containing set of capabilities.
-     */
-    private static Map<String, List<String>> prepareStringFilter(Bundle filter) {
-        Map<String, List<String>> returnFilter = null;
-        if (filter != null && filter.keySet().size() > 0) {
-            returnFilter = new Hashtable<String, List<String>>();
-            for (String key : filter.keySet()) {
-                returnFilter.put(key, filter.getStringArrayList(key));
-            }
-        } else {
-            returnFilter = null;
-        }
-        return returnFilter;
-    }
     
     /**
      * This method needs to be called as part of removeAllData()/changeUser()
@@ -889,5 +911,46 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         mStatusList.clear();
         mState = State.IDLE;
     }
+    
+    /***
+     * Return TRUE if the given ThirdPartyAccount contains a Facebook account.
+     * 
+     * @param list List of Identity objects, can be NULL.
+     * @return TRUE if the given Identity contains a Facebook account.
+     */
+    public boolean isFacebookInThirdPartyAccountList() {
+        if (mMyIdentityList != null) {
+            synchronized(mMyIdentityList) {
+                for (Identity identity : mMyIdentityList) {
+                    if (identity.mName.toLowerCase().contains(ThirdPartyAccount.SNS_TYPE_FACEBOOK)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        LogUtils.logV("ApplicationCache."
+                + "isFacebookInThirdPartyAccountList() Facebook not found in list");
+        return false;
+    }
 
+    /***
+     * Return TRUE if the given Identity contains a Hyves account.
+     * 
+     * @param list List of ThirdPartyAccount objects, can be NULL.
+     * @return TRUE if the given Identity contains a Hyves account.
+     */
+    public boolean isHyvesInThirdPartyAccountList() {
+        if (mMyIdentityList != null) {
+            synchronized(mMyIdentityList) {
+                for (Identity identity : mMyIdentityList) {
+                    if (identity.mName.toLowerCase().contains(ThirdPartyAccount.SNS_TYPE_HYVES)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        LogUtils.logV("ApplicationCache."
+                + "isFacebookInThirdPartyAccountList() Hyves not found in list");
+        return false;
+    }
 }

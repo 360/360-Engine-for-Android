@@ -53,7 +53,12 @@ import com.vodafone360.people.utils.ThumbnailUtils;
  *
  */
 public class SyncMeDbUtils {
-
+    /** 
+     * Default Me Profile Name. 
+     * This is set as an empty string to make it easy to detect when no Name has been set.
+     */
+    public static final String ME_PROFILE_DEFAULT_NAME = "";
+    
     /**
      * Me profile local contact id.
      */
@@ -132,6 +137,18 @@ public class SyncMeDbUtils {
     public static void setMeProfileId(final Long meProfileId) {
         sMeProfileLocalContactId = meProfileId;
     }
+    
+    /**
+     * Checks if a given contact id belongs to the Me Contact.
+     * @param dbHelper DatabaseHelper - the database
+	 * @param localContactId The contact id to check
+     * @return True if contact being edited is the me profile.
+     */
+    public static boolean isMeProfile(DatabaseHelper dbHelper, long localContactId) {
+        return Long.valueOf(
+                localContactId).equals(SyncMeDbUtils.getMeProfileLocalContactId(dbHelper));
+    }
+
 
     /**
      * This method updates current Me Profile with changes from user profile.
@@ -234,7 +251,10 @@ public class SyncMeDbUtils {
                     break;
                 }
             }
-            if (!found) {
+            
+            // if the detail was not found in the old profile and either there was no deleted flag 
+            // in the response or the deleted flag was false we have to add the new detail to the list
+            if ( (!found) && ((null == newDetail.deleted) || (!newDetail.deleted.booleanValue())) ) {
                 newDetail.localContactID = currentMeProfile.localContactID;
                 newDetail.nativeContactId = currentMeProfile.nativeContactId;
                 

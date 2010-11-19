@@ -32,6 +32,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.test.ApplicationTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.vodafone360.people.MainApplication;
@@ -40,7 +41,9 @@ import com.vodafone360.people.database.tables.ContactSummaryTable;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactDetail;
 import com.vodafone360.people.datatypes.ContactSummary;
+import com.vodafone360.people.datatypes.VCardHelper;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
+import com.vodafone360.people.engine.meprofile.SyncMeDbUtils;
 import com.vodafone360.people.engine.presence.User;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.tests.TestModule;
@@ -344,9 +347,12 @@ public class NowPlusContactSummaryTest extends ApplicationTestCase<MainApplicati
         Log.i(LOG_TAG, "Add a contact detail to the previous contact");
         final ContactDetail contactDetail = new ContactDetail();
         contactDetail.localContactID = contact.localContactID;
-        contactDetail.setEmail("toto@mail.co.uk", ContactDetail.DetailKeyTypes.HOME);
-        assertTrue(ContactSummaryTable.updateContactDisplayName(contact, mTestDatabase
-                .getWritableDatabase()) == ServiceStatus.SUCCESS);
+        
+        boolean isMe = false;
+        contactDetail.setEmail("test@example.com", ContactDetail.DetailKeyTypes.HOME);
+        assertEquals(getDisplayName(contact, isMe), 
+                 ContactSummaryTable.updateContactDisplayName(contact, mTestDatabase
+                .getWritableDatabase(), isMe));
     }
 
     /**
@@ -373,16 +379,22 @@ public class NowPlusContactSummaryTest extends ApplicationTestCase<MainApplicati
         Log.i(LOG_TAG, "Add a contact detail to the previous contact");
         ContactDetail contactDetail = new ContactDetail();
         contactDetail.localContactID = contact.localContactID;
+
         contactDetail.setEmail("toto@mail.co.uk", ContactDetail.DetailKeyTypes.HOME);
-        assertTrue(ContactSummaryTable.updateContactDisplayName(contact, mTestDatabase
-                .getWritableDatabase()) == ServiceStatus.SUCCESS);
+        boolean isMe = false;
+        assertEquals(getDisplayName(contact, isMe), 
+                ContactSummaryTable.updateContactDisplayName(contact, mTestDatabase
+                .getWritableDatabase(), isMe));
 
         Log.i(LOG_TAG, "Modify a contact detail to the previous contact");
         contactDetail = new ContactDetail();
         contactDetail.localContactID = contact.localContactID;
-        contactDetail.setEmail("toto2@mail.co.uk", ContactDetail.DetailKeyTypes.HOME);
-        assertTrue(ContactSummaryTable.updateContactDisplayName(contact, mTestDatabase
-                .getWritableDatabase()) == ServiceStatus.SUCCESS);
+        final String eMail2 = "toto2@mail.co.uk";
+
+        contactDetail.setEmail(eMail2, ContactDetail.DetailKeyTypes.HOME);
+        assertEquals(getDisplayName(contact, isMe), 
+                ContactSummaryTable.updateContactDisplayName(contact, mTestDatabase
+                .getWritableDatabase(), isMe));
     }
 
     /**
@@ -409,14 +421,118 @@ public class NowPlusContactSummaryTest extends ApplicationTestCase<MainApplicati
         Log.i(LOG_TAG, "Add a contact detail to the previous contact");
         ContactDetail contactDetail = new ContactDetail();
         contactDetail.localContactID = contact.localContactID;
-        contactDetail.setEmail("toto@mail.co.uk", ContactDetail.DetailKeyTypes.HOME);
-        assertTrue(ContactSummaryTable.updateContactDisplayName(contact, mTestDatabase
-                .getWritableDatabase()) == ServiceStatus.SUCCESS);
+        final String eMail = "toto@mail.co.uk";
+        contactDetail.setEmail(eMail, ContactDetail.DetailKeyTypes.HOME);
+        boolean isMe = false;
+        assertEquals(getDisplayName(contact, isMe), 
+                ContactSummaryTable.updateContactDisplayName(contact, mTestDatabase
+                .getWritableDatabase(), isMe));
 
         Log.i(LOG_TAG, "Delete a contact detail from the previous contact");
-        assertTrue(ContactSummaryTable.updateContactDisplayName(contact, mTestDatabase
-                .getWritableDatabase()) == ServiceStatus.SUCCESS);
+        assertEquals(getDisplayName(contact, isMe), 
+                ContactSummaryTable.updateContactDisplayName(contact, mTestDatabase
+                .getWritableDatabase(), isMe));
     }
+    
+    /**
+     * Tests updating a contact's display name.
+     */
+    @SmallTest
+    public void testUpdateDisplayName() {
+        Log.i(LOG_TAG, "***** EXECUTING testtestUpdateDisplayName *****");
+
+        Log.i(LOG_TAG, "Create ContactSummaryTable");
+        ContactSummaryTable.create(mTestDatabase.getWritableDatabase()); 
+        Log.i(LOG_TAG, "Create also a ContactDetailsTable");
+        ContactDetailsTable.create(mTestDatabase.getWritableDatabase());
+
+        Log.i(LOG_TAG, "Add a contact to ContactSummaryTable");
+        final Contact contact = new Contact();
+        contact.localContactID = new Long(10);
+        contact.nativeContactId = new Integer(11);
+        ServiceStatus serviceStatus = ContactSummaryTable.addContact(contact, mTestDatabase
+                .getWritableDatabase());
+        assertEquals(ServiceStatus.SUCCESS, serviceStatus);
+        
+        // Name
+        ContactDetail nameDetail = new ContactDetail();
+        nameDetail.localContactID = contact.localContactID;
+        
+        VCardHelper.Name name = new VCardHelper.Name();
+        
+        name.firstname = "John";
+        name.surname = "Doe";
+        
+        nameDetail.setName(name);
+        
+        // ORG
+        ContactDetail orgDetail = new ContactDetail();
+        nameDetail.localContactID = contact.localContactID;
+
+        VCardHelper.Organisation org = new VCardHelper.Organisation();
+        
+        org.name = "VF";
+        org.unitNames.add("Dev");
+        
+        orgDetail.setOrg(org, ContactDetail.DetailKeyTypes.WORK);
+        
+        ContactDetail emailDetail = new ContactDetail();
+        emailDetail.localContactID = contact.localContactID;
+        
+        emailDetail.setEmail("dev@vf.com", ContactDetail.DetailKeyTypes.WORK);
+        
+        ContactDetail phoneDetail = new ContactDetail();
+        phoneDetail.localContactID = contact.localContactID;
+        
+        phoneDetail.setTel("+123456789", ContactDetail.DetailKeyTypes.HOME);
+                
+        contact.details.add(nameDetail);
+        contact.details.add(orgDetail);
+        contact.details.add(emailDetail);
+        contact.details.add(phoneDetail);
+        
+        // Loop for number of details + 1
+        final int numLoopCycles = contact.details.size() + 1;
+        
+        int loopCycles = numLoopCycles;
+        
+        boolean isMe = false;
+        
+        while(loopCycles-- > 0) {
+            assertEquals(getDisplayName(contact, isMe), 
+                    ContactSummaryTable.updateContactDisplayName(contact, mTestDatabase
+                    .getWritableDatabase(), isMe));
+            if(contact.details.size() > 0) {
+                contact.details.remove(0);
+            }
+        }
+        
+        final Contact meContact = new Contact();
+        meContact.localContactID = new Long(11);
+        meContact.nativeContactId = new Integer(12);
+        isMe = true;
+        Log.i(LOG_TAG, "Add me Contact to ContactSummaryTable");
+        serviceStatus = ContactSummaryTable.addContact(meContact, mTestDatabase
+                .getWritableDatabase());
+        assertEquals(ServiceStatus.SUCCESS, serviceStatus);
+        
+        meContact.details.add(nameDetail);
+        meContact.details.add(orgDetail);
+        meContact.details.add(emailDetail);
+        meContact.details.add(phoneDetail);        
+        
+        loopCycles = numLoopCycles;
+        
+        while(loopCycles-- > 0) {
+            assertEquals(getDisplayName(contact, isMe), 
+                    ContactSummaryTable.updateContactDisplayName(contact, mTestDatabase
+                    .getWritableDatabase(), isMe));
+            if(contact.details.size() > 0) {
+                contact.details.remove(0);
+            }
+        }        
+    }
+    
 
     /**
      * Tests fetching native contact IDs.
@@ -513,5 +629,46 @@ public class NowPlusContactSummaryTest extends ApplicationTestCase<MainApplicati
         newContact.nativeContactId = contact.nativeContactId;
 
         return newContact;
+    }
+    
+    /**
+     * Simplified logic in comparison to the real code in ContactSummaryTable.getDisplayNameDetail 
+     * and updateDisplayName which should behave the same way.
+     * @param contact The contact to search
+     * @param isMe Is the contact the me contact
+     * @return The retrieved displayName 
+     */
+    private static String getDisplayName(Contact contact, boolean isMe) {
+        ContactDetail name = null;
+
+        name = contact.getContactDetail(ContactDetail.DetailKeys.VCARD_NAME);
+        
+        if(name != null && name.getName() != null) {
+            return name.getName().toString();
+        }
+        
+        if(isMe) {
+            return SyncMeDbUtils.ME_PROFILE_DEFAULT_NAME;
+        }
+        
+        name = contact.getContactDetail(ContactDetail.DetailKeys.VCARD_ORG);
+        
+        if(name != null && !TextUtils.isEmpty(name.getValue())) {
+            return name.getValue();
+        }
+        
+        name = contact.getContactDetail(ContactDetail.DetailKeys.VCARD_EMAIL);
+        
+        if(name != null && !TextUtils.isEmpty(name.getValue())) {
+            return name.getValue();
+        }
+        
+        name = contact.getContactDetail(ContactDetail.DetailKeys.VCARD_PHONE);
+        
+        if(name != null && !TextUtils.isEmpty(name.getValue())) {
+            return name.getValue();
+        }
+        
+        return ContactDetail.UNKNOWN_NAME;
     }
 }

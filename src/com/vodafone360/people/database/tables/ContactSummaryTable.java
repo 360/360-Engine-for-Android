@@ -39,6 +39,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
+import android.text.TextUtils;
 
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.database.DatabaseHelper;
@@ -51,6 +52,7 @@ import com.vodafone360.people.datatypes.VCardHelper;
 import com.vodafone360.people.datatypes.ContactDetail.DetailKeys;
 import com.vodafone360.people.datatypes.ContactSummary.AltFieldType;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
+import com.vodafone360.people.engine.meprofile.SyncMeDbUtils;
 import com.vodafone360.people.engine.presence.User;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.utils.CloseUtils;
@@ -76,11 +78,15 @@ public abstract class ContactSummaryTable {
     public static final String TABLE_INDEX_NAME = "ContactSummaryIndex";
     
     /**
+     * SQL localized collate for sorting contact list. 
+     */
+    private static final String LOCALIZED_COLLATE = " COLLATE LOCALIZED ASC";
+    
+    /**
      * This holds the presence information for each contact in the ContactSummaryTable
      */
     private static HashMap<Long, Integer> sPresenceMap = new HashMap<Long, Integer>();
-
-
+    
     /**
      * An enumeration of all the field names in the database.
      */
@@ -163,19 +169,6 @@ public abstract class ContactSummaryTable {
      * information. The {@link #getQueryData(Cursor)} method can be used to
      * obtain the data from the query.
      * 
-     * @return The query string
-     * @see #getQueryData(Cursor).
-     */
-    private static String getOrderedQueryStringSql() {
-        return "SELECT " + getFullQueryList() + " FROM " + TABLE_NAME + " ORDER BY LOWER("
-                + Field.DISPLAYNAME + ")";
-    }
-
-    /**
-     * Returns a full SQL query statement to fetch the contact summary
-     * information. The {@link #getQueryData(Cursor)} method can be used to
-     * obtain the data from the query.
-     * 
      * @param whereClause An SQL where clause (without the "WHERE"). Cannot be
      *            null.
      * @return The query string
@@ -185,22 +178,6 @@ public abstract class ContactSummaryTable {
         return "SELECT " + getFullQueryList() + " FROM " + TABLE_NAME + " WHERE " + whereClause;
     }
 
-    /**
-     * Returns a full SQL query statement to fetch the contact summary
-     * information in alphabetical order of contact name. The
-     * {@link #getQueryData(Cursor)} method can be used to obtain the data from
-     * the query.
-     * 
-     * @param whereClause An SQL where clause (without the "WHERE"). Cannot be
-     *            null.
-     * @return The query string
-     * @see #getQueryData(Cursor).
-     */
-    private static String getOrderedQueryStringSql(String whereClause) {
-        return "SELECT " + getFullQueryList() + " FROM " + TABLE_NAME + " WHERE " + whereClause
-                + " ORDER BY LOWER(" + Field.DISPLAYNAME + ")";
-    }
-    
     /**
      * UPDATE ContactSummary SET
      * NativeId = ?
@@ -221,7 +198,6 @@ public abstract class ContactSummaryTable {
 
     public static final int STATUS_TEXT = 3;
 
-    @SuppressWarnings("unused")
     @Deprecated
     public static final int ONLINE_STATUS = 4;
 
@@ -307,8 +283,7 @@ public abstract class ContactSummaryTable {
         }
         Cursor c1 = null;
         try {
-            c1 = readableDb.rawQuery(
-                    getQueryStringSql(Field.LOCALCONTACTID + "=" + localContactId), null);
+            c1 = readableDb.rawQuery(getQueryStringSql(Field.LOCALCONTACTID + "=" + localContactId), null);
             if (!c1.moveToFirst()) {
                 LogUtils.logW("ContactSummeryTable.fetchSummaryItem() localContactId["
                         + localContactId + "] not found in ContactSummeryTable.");
@@ -316,13 +291,12 @@ public abstract class ContactSummaryTable {
             }
             summary.copy(getQueryData(c1));
             return ServiceStatus.SUCCESS;
-        } catch (SQLiteException e) {
-            LogUtils
-                    .logE(
-                            "ContactSummeryTable.fetchSummaryItem() Exception - Unable to fetch contact summary",
-                            e);
+        } 
+        catch (SQLiteException e) {
+            LogUtils.logE("ContactSummeryTable.fetchSummaryItem() Exception - Unable to fetch contact summary", e);
             return ServiceStatus.ERROR_DATABASE_CORRUPT;
-        } finally {
+        } 
+        finally {
             CloseUtils.close(c1);
             c1 = null;
         }
@@ -359,37 +333,6 @@ public abstract class ContactSummaryTable {
             values.put(Field.ALTDETAILTYPE.toString(), altDetail.keyType.ordinal());
         }
     }
-
-    /**
-     * Processes a ContentValues object to handle a missing name or missing
-     * status.
-     * <ol>
-     * <li>If type is NAME, the name will be set to the alternative detail.</li>
-     * <li>If type is STATUS, the status will be set to the alternative detail</li>
-     * <li>Otherwise, the alternative detail is not used</li>
-     * </ol>
-     * In any case the {@link Field#ALTFIELDTYPE} value will be updated to
-     * reflect how the alternative detail is being used.
-     * 
-     * @param values The ContentValues object to be updated
-     * @param altDetail The must suitable alternative detail (see
-     *            {@link #fetchNewAltDetail(long, ContactDetail, SQLiteDatabase)}
-     * @param type Specifies how the alternative detail should be used
-     */
-    /*
-     * private static void updateAltValues(ContentValues values, ContactDetail
-     * altDetail, ContactSummary.AltFieldType type) { switch (type) { case NAME:
-     * values.put(Field.DISPLAYNAME.toString(), altDetail.getValue());
-     * values.put(Field.ALTFIELDTYPE.toString(),
-     * ContactSummary.AltFieldType.NAME .ordinal()); break; case STATUS:
-     * values.put(Field.STATUSTEXT.toString(), altDetail.getValue());
-     * values.put(Field.ALTFIELDTYPE.toString(),
-     * ContactSummary.AltFieldType.STATUS .ordinal()); break; default:
-     * values.put(Field.ALTFIELDTYPE.toString(),
-     * ContactSummary.AltFieldType.UNUSED .ordinal()); } if (altDetail.keyType
-     * != null) { values.put(Field.ALTDETAILTYPE.toString(),
-     * altDetail.keyType.ordinal()); } }
-     */
 
     /**
      * Adds contact summary information to the table for a new contact. If the
@@ -501,8 +444,7 @@ public abstract class ContactSummaryTable {
      */
     public static ServiceStatus modifyContact(Contact contact, SQLiteDatabase writableDb) {
         if (Settings.ENABLED_DATABASE_TRACE) {
-            DatabaseHelper.trace(true, "ContactSummeryTable.modifyContact() contactID["
-                    + contact.contactID + "]");
+            DatabaseHelper.trace(true, "ContactSummeryTable.modifyContact() contactID[" + contact.contactID + "]");
         }
         if (contact.localContactID == null) {
             LogUtils.logE("ContactSummeryTable.modifyContact() Invalid parameters");
@@ -510,20 +452,21 @@ public abstract class ContactSummaryTable {
         }
         try {
             final ContentValues values = new ContentValues();
-            values.put(Field.LOCALCONTACTID.toString(), contact.localContactID);
+
             values.put(Field.NATIVEID.toString(), contact.nativeContactId);
             values.put(Field.FRIENDOFMINE.toString(), contact.friendOfMine);
             values.put(Field.SYNCTOPHONE.toString(), contact.synctophone);
-            String[] args = {
-                String.format("%d", contact.localContactID)
-            };
+            
+            String[] args = { contact.localContactID.toString() };
+            
             if (writableDb.update(TABLE_NAME, values, Field.LOCALCONTACTID + "=?", args) < 0) {
                 LogUtils.logE("ContactSummeryTable.modifyContact() "
                         + "Unable to update contact summary");
                 return ServiceStatus.ERROR_NOT_FOUND;
             }
             return ServiceStatus.SUCCESS;
-        } catch (SQLException e) {
+        } 
+        catch (SQLException e) {
             LogUtils.logE("ContactSummeryTable.modifyContact() "
                     + "SQLException - Unable to update contact summary", e);
             return ServiceStatus.ERROR_DATABASE_CORRUPT;
@@ -775,9 +718,7 @@ public abstract class ContactSummaryTable {
             return " WHERE " + ContactSummaryTable.Field.FRIENDOFMINE + "=" + "1";
         }
         if ((groupFilterId != null) && (groupFilterId == GroupsTable.GROUP_ONLINE)) {
-            String inClause = getOnlineWhereClause();
-            return " WHERE " + ContactSummaryTable.Field.LOCALCONTACTID + " IN " + (inClause == null? "()": inClause);
-            
+            return " WHERE " + ContactSummaryTable.Field.LOCALCONTACTID + " IN " + getOnlineWhereClause();
         }
         return " INNER JOIN " + ContactGroupsTable.TABLE_NAME + " WHERE "
                 + ContactSummaryTable.TABLE_NAME + "." + ContactSummaryTable.Field.LOCALCONTACTID
@@ -797,8 +738,7 @@ public abstract class ContactSummaryTable {
      * @return The cursor or null if an error occurred
      * @see #getQueryData(Cursor)
      */
-    public static Cursor openContactSummaryCursor(Long groupFilterId, CharSequence constraint,
-            Long meProfileId, SQLiteDatabase readableDb) {
+    public static Cursor openContactSummaryCursor(Long groupFilterId, CharSequence constraint, Long meProfileId, SQLiteDatabase readableDb) {
         if (Settings.ENABLED_DATABASE_TRACE) {
             DatabaseHelper.trace(false, "ContactSummeryTable.fetchContactList() "
                     + "groupFilterId[" + groupFilterId + "] constraint[" + constraint + "]"
@@ -807,139 +747,44 @@ public abstract class ContactSummaryTable {
 
         try {
             if (meProfileId == null) {
-                // Ensure that when the profile is not available the function
-                // doesn't fail
+                // Ensure that when the profile is not available the function doesn't fail
                 // Since "Field <> null" always returns false
                 meProfileId = -1L;
             }
+            
+            final StringBuilder queryString = new StringBuilder("SELECT ").append(getFullQueryList())
+                                      .append(" FROM ").append(TABLE_NAME);
+            
+            // Add group constraint if any
             if (groupFilterId == null) {
-                if (constraint == null) {
-                    // Fetch all contacts
-                    return openContactSummaryCursor(groupFilterId, meProfileId, readableDb);
-                } else {
-                    return openContactSummaryCursor(constraint, meProfileId, readableDb);
-                }
-            } else {
-                // filtering by group id
-                if (constraint == null) {
-                    return openContactSummaryCursor(groupFilterId, meProfileId, readableDb);
-                } else {
-                    // filter by both group and constraint
-                    final String dbSafeConstraint = DatabaseUtils.sqlEscapeString("%" + constraint
-                            + "%");
-                    return readableDb.rawQuery("SELECT " + ContactSummaryTable.getFullQueryList()
-                            + " FROM " + ContactSummaryTable.TABLE_NAME
-                            + getGroupConstraint(groupFilterId) + " AND "
-                            + ContactSummaryTable.Field.DISPLAYNAME + " LIKE " + dbSafeConstraint
-                            + " AND " + ContactSummaryTable.TABLE_NAME + "."
-                            + ContactSummaryTable.Field.LOCALCONTACTID + "<>" + meProfileId
-                            + " ORDER BY LOWER(" + ContactSummaryTable.Field.DISPLAYNAME + ")",
-                            null);
-                }
+            	queryString.append(" WHERE ");
             }
-        } catch (SQLException e) {
+            else {
+                queryString.append(getGroupConstraint(groupFilterId)).append(" AND ");
+            }
+            
+            // Check if this is a search request
+            if (constraint != null) {
+            	final String dbSafeConstraint = DatabaseUtils.sqlEscapeString("%" + constraint + "%");
+            	queryString.append(Field.DISPLAYNAME).append(" LIKE ").append(dbSafeConstraint).append(" AND ");
+            }
+                        
+            queryString.append(TABLE_NAME).append(".")
+                       .append(Field.LOCALCONTACTID).append("!=").append(meProfileId)
+                       .append(" ORDER BY LOWER(").append(Field.DISPLAYNAME).append(")");
+            
+            // Sort results using localized collate method
+            queryString.append(LOCALIZED_COLLATE);
+            
+            return readableDb.rawQuery(queryString.toString(), null);
+            
+        } 
+        catch (SQLException e) {
             LogUtils.logE("ContactSummeryTable.fetchContactList() "
                     + "SQLException - Unable to fetch filtered summary cursor", e);
             return null;
         }
     }
-
-    /**
-     * Fetches a contact list cursor for a given filter
-     * 
-     * @param groupFilterId The server group ID or null to fetch all groups
-     * @param meProfileId The current me profile Id which should be excluded
-     *            from the returned list.
-     * @param readableDb Readable SQLite database
-     * @return The cursor or null if an error occurred
-     * @see #getQueryData(Cursor)
-     */
-    private static Cursor openContactSummaryCursor(Long groupFilterId, Long meProfileId,
-            SQLiteDatabase readableDb) {
-        if (Settings.ENABLED_DATABASE_TRACE) {
-            DatabaseHelper.trace(false, "ContactSummeryTable.fetchContactList() groupFilterId["
-                    + groupFilterId + "] meProfileId[" + meProfileId + "]");
-        }
-        try {
-            if (groupFilterId == null) {
-                // Fetch all contacts
-                return readableDb.rawQuery(getOrderedQueryStringSql(ContactSummaryTable.TABLE_NAME
-                        + "." + ContactSummaryTable.Field.LOCALCONTACTID + "<>" + meProfileId),
-                        null);
-            }
-            return readableDb.rawQuery("SELECT " + ContactSummaryTable.getFullQueryList()
-                    + " FROM " + ContactSummaryTable.TABLE_NAME + getGroupConstraint(groupFilterId)
-                    + " AND " + ContactSummaryTable.TABLE_NAME + "."
-                    + ContactSummaryTable.Field.LOCALCONTACTID + "!=" + meProfileId
-                    + " ORDER BY LOWER(" + ContactSummaryTable.Field.DISPLAYNAME + ")", null);
-
-        } catch (SQLException e) {
-            LogUtils.logE("ContactSummeryTable.fetchContactList() "
-                    + "SQLException - Unable to fetch filtered summary cursor", e);
-            return null;
-        }
-    }
-
-    /**
-     * Fetches a contact list cursor for a given search constraint
-     * 
-     * @param constraint A search string or null to fetch without constraint
-     * @param meProfileId The current me profile Id which should be excluded
-     *            from the returned list.
-     * @param readableDb Readable SQLite database
-     * @return The cursor or null if an error occurred
-     * @see #getQueryData(Cursor)
-     */
-    private static Cursor openContactSummaryCursor(CharSequence constraint, Long meProfileId,
-            SQLiteDatabase readableDb) {
-        if (Settings.ENABLED_DATABASE_TRACE) {
-            DatabaseHelper.trace(false, "ContactSummeryTable.fetchContactList() constraint["
-                    + constraint + "] meProfileId[" + meProfileId + "]");
-        }
-        try {
-            if (constraint == null) {
-                // Fetch all contacts
-                return readableDb.rawQuery(getOrderedQueryStringSql(), null);
-            }
-            final String dbSafeConstraint = DatabaseUtils.sqlEscapeString("%" + constraint + "%");
-            return readableDb.rawQuery("SELECT " + ContactSummaryTable.getFullQueryList()
-                    + " FROM " + ContactSummaryTable.TABLE_NAME + " WHERE "
-                    + ContactSummaryTable.Field.DISPLAYNAME + " LIKE " + dbSafeConstraint + " AND "
-                    + ContactSummaryTable.TABLE_NAME + "."
-                    + ContactSummaryTable.Field.LOCALCONTACTID + "!=" + meProfileId
-                    + " ORDER BY LOWER(" + ContactSummaryTable.Field.DISPLAYNAME + ")", null);
-        } catch (SQLException e) {
-            LogUtils.logE("ContactSummeryTable.fetchContactList() "
-                    + "SQLException - Unable to fetch filtered summary cursor", e);
-            return null;
-        }
-    }
-
-    /**
-     * Fetches the current alternative field type for a contact This value
-     * determines how the alternative detail is currently being used for the
-     * record.
-     * 
-     * @param localContactID The primary key ID of the contact
-     * @param readableDb Readable SQLite database
-     * @return The alternative field type or null if a database error occurred
-     */
-    /*
-     * private static AltFieldType fetchAltFieldType(long localContactId,
-     * SQLiteDatabase readableDb) { if (Settings.ENABLED_DATABASE_TRACE) {
-     * DatabaseHelper.trace(false,
-     * "ContactSummeryTable.FetchAltFieldType() localContactId[" +
-     * localContactId + "]"); } Cursor c = null; try { c =
-     * readableDb.rawQuery("SELECT " + Field.ALTFIELDTYPE + " FROM " +
-     * ContactSummaryTable.TABLE_NAME + " WHERE " + Field.LOCALCONTACTID + "=" +
-     * localContactId, null); AltFieldType type = AltFieldType.UNUSED; if
-     * (c.moveToFirst() && !c.isNull(0)) { int val = c.getInt(0); if (val <
-     * AltFieldType.values().length) { type = AltFieldType.values()[val]; } }
-     * return type; } catch (SQLException e) {
-     * LogUtils.logE("ContactSummeryTable.fetchContactList() " +
-     * "SQLException - Unable to fetch alt field type", e); return null; }
-     * finally { CloseUtils.close(c); c = null; } }
-     */
 
     /**
      * Fetches an SQLite statement object which can be used to merge the native
@@ -953,9 +798,11 @@ public abstract class ContactSummaryTable {
              writableDb) { 
          if (Settings.ENABLED_DATABASE_TRACE) {
             DatabaseHelper.trace(true, "ContactSummeryTable.mergeContact()"); 
-         } try {
+         } 
+         try {
             return writableDb.compileStatement(UPDATE_NATIVE_ID_BY_LOCAL_CONTACT_ID); 
-         } catch (SQLException e) {
+         } 
+         catch (SQLException e) {
             LogUtils.logE("ContactSummaryTable.mergeContactStatement() compile error:\n", e); 
             return null; 
         } 
@@ -979,11 +826,16 @@ public abstract class ContactSummaryTable {
             return ServiceStatus.ERROR_DATABASE_CORRUPT;
         }
         try {
-            statement.bindLong(1, info.nativeId);
-            statement.bindLong(2, info.mergedLocalId);
+        	if (info.nativeId == null)
+        		statement.bindNull(1);
+        	else
+        		statement.bindLong(1, info.nativeId);
+
+        	statement.bindLong(2, info.mergedLocalId);
             statement.execute();
             return ServiceStatus.SUCCESS;
-        } catch (SQLException e) {
+        } 
+        catch (SQLException e) {
             LogUtils.logE("ContactSummeryTable.mergeContact() "
                     + "SQLException - Unable to merge contact summary native info:\n", e);
             return ServiceStatus.ERROR_DATABASE_CORRUPT;
@@ -1101,14 +953,6 @@ public abstract class ContactSummaryTable {
         return ServiceStatus.SUCCESS;
     }
 
-    private static boolean isEmpty(String string) {
-        if (string == null)
-            return true;
-        if (string.trim().length() == 0)
-            return true;
-        return false;
-    }
-
     /**
      * Updates the summary for a contact Replaces the complex logic of updating
      * the summary with a new contactdetail. Instead the method gets a whole
@@ -1116,39 +960,33 @@ public abstract class ContactSummaryTable {
      * 
      * @param contact A Contact object that has been modified
      * @param writeableDb Writable SQLite database
-     * @return SUCCESS or a suitable error code
+     * @param isMeProfile Specifies if the contact in question is the Me Contact or not
+     * @return String - the contact name to display and null in case of database error.
      */
-    public static ServiceStatus updateContactDisplayName(Contact contact, SQLiteDatabase writableDb) {
-        // These two Arrays contains the order in which the details are queried.
-        // First valid (not empty or unknown) detail is taken
-        ContactDetail.DetailKeys prefferredNameDetails[] = {
-                ContactDetail.DetailKeys.VCARD_NAME, ContactDetail.DetailKeys.VCARD_ORG,
-                ContactDetail.DetailKeys.VCARD_EMAIL, ContactDetail.DetailKeys.VCARD_PHONE
-        };
-        ContactDetail name = null;
-
-        // Query the details for the name field
-        for (ContactDetail.DetailKeys key : prefferredNameDetails) {
-            if ((name = contact.getContactDetail(key)) != null) {
-                // Some contacts have only email but the name detail!=null
-                // (gmail for example)
-                if (key == ContactDetail.DetailKeys.VCARD_NAME && name.getName() == null)
-                    continue;
-                if (key != ContactDetail.DetailKeys.VCARD_NAME && isEmpty(name.getValue()))
-                    continue;
-                break;
-            }
-        }
-
-        // Build the name
-        String nameString = name != null ? name.getValue() : null;
-        if (nameString == null)
-            nameString = ContactDetail.UNKNOWN_NAME;
-        if (name != null && name.key == ContactDetail.DetailKeys.VCARD_NAME)
+    public static String updateContactDisplayName(Contact contact, 
+            SQLiteDatabase writableDb, boolean isMeProfile) {
+        
+        ContactDetail name = getDisplayNameDetail(contact);
+        
+        String nameString = null;
+        
+        if(isVcardNameDetail(name)) {
             nameString = name.getName().toString();
-
+        } else if(!isMeProfile) {
+            if(name != null) {
+                // Apply non VCard name
+                nameString = name.getValue();
+            }
+            if (nameString == null) {
+                // Unknown name
+                nameString = ContactDetail.UNKNOWN_NAME;
+            }
+        } else {
+            // Me Profile with no name - set the default name
+            nameString = SyncMeDbUtils.ME_PROFILE_DEFAULT_NAME;
+        }
+                
         // Start updating the table
-
         SQLiteStatement statement = null;
         try {
             final StringBuffer updateQuery = StringBufferPool.getStringBuffer(SQLKeys.UPDATE);
@@ -1165,7 +1003,7 @@ public abstract class ContactSummaryTable {
         } catch (SQLException e) {
             LogUtils.logE("ContactSummaryTable.updateNameAndStatus() "
                     + "SQLException - Unable to update contact native Ids", e);
-            return ServiceStatus.ERROR_DATABASE_CORRUPT;
+            return null;
         } finally {
             writableDb.endTransaction();
             if (statement != null) {
@@ -1174,7 +1012,46 @@ public abstract class ContactSummaryTable {
             }
         }
 
-        return ServiceStatus.SUCCESS;
+        return nameString;
+    }
+    
+    /**
+     * Utility method to determine if a Detail is of the VCard Name key type
+     * @param detail The Contact Detail to check
+     * @return true if not null and of the VCARD_NAME key type, false if not
+     */
+    private static boolean isVcardNameDetail(ContactDetail detail) {
+        return detail != null && detail.key == ContactDetail.DetailKeys.VCARD_NAME;
+    }
+    
+    /**
+     * Retrieves display name detail for a contact
+     * @param contact Contact to retrieve display name from
+     * @return Found display name detail - maybe be null
+     */
+    private static ContactDetail getDisplayNameDetail(Contact contact) {
+        // These two Arrays contains the order in which the details are queried.
+        // First valid (not empty or unknown) detail is taken
+        ContactDetail.DetailKeys preferredNameDetails[] = {
+                ContactDetail.DetailKeys.VCARD_NAME, ContactDetail.DetailKeys.VCARD_ORG,
+                ContactDetail.DetailKeys.VCARD_EMAIL, ContactDetail.DetailKeys.VCARD_PHONE
+        };
+        ContactDetail name = null;
+
+        // Query the details for the name field
+        for (ContactDetail.DetailKeys key : preferredNameDetails) {
+            if ((name = contact.getContactDetail(key)) != null) {
+                // Some contacts have only email but the name detail!=null
+                // (gmail for example)
+                if (key == ContactDetail.DetailKeys.VCARD_NAME && name.getName() == null)
+                    continue;
+                if (key != ContactDetail.DetailKeys.VCARD_NAME && TextUtils.isEmpty(name.getValue()))
+                    continue;
+                break;
+            }
+        }
+        
+        return name;
     }
     
     /**
@@ -1264,7 +1141,7 @@ public abstract class ContactSummaryTable {
     private synchronized static String getOnlineWhereClause() {
         Set<Entry<Long, Integer>> set = sPresenceMap.entrySet();
         Iterator<Entry<Long, Integer>> i = set.iterator();
-        String inClause = "(";
+        StringBuilder inClause = new StringBuilder("(");
         boolean isFirst = true;
 
         while (i.hasNext()) {
@@ -1274,20 +1151,18 @@ public abstract class ContactSummaryTable {
                     && (value == OnlineStatus.ONLINE.ordinal() || value == OnlineStatus.IDLE
                             .ordinal())) {
                 if (isFirst == false) {
-                    inClause = inClause.concat(",");
+                    inClause.append(',');
                 } else {
                     isFirst = false;
                 }
-                inClause = inClause.concat(String.valueOf(me.getKey()));
+                inClause.append(me.getKey());
             }
         }
-        if (isFirst == true) {
-            inClause = null;
-        } else {
-            inClause = inClause.concat(")");
-        }
-        return inClause;
-
+        if (isFirst) {
+            return "()";
+        } 
+    	inClause.append(')');
+    	return inClause.toString();
     }
 
     /**
@@ -1329,5 +1204,4 @@ public abstract class ContactSummaryTable {
             c1 = null;
         }
     }
-
 }

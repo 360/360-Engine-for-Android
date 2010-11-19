@@ -102,7 +102,7 @@ public class UiAgent {
         mMainApplication = mainApplication;
         mContext = context;
         mHandler = null;
-        mLocalContactId = -1;
+        mLocalContactId = ALL_USERS;
         mShouldHandleChat = false;
     }
 
@@ -194,9 +194,6 @@ public class UiAgent {
         mHandler = handler;
         mLocalContactId = localContactId;
         mShouldHandleChat = shouldHandleChat;
-        if (mShouldHandleChat) {
-            updateChatNotification(false);
-        }
 
         if (mUiEventQueue != null) {
             LogUtils.logV("UiAgent.subscribe() Send pending uiEvent["
@@ -234,7 +231,7 @@ public class UiAgent {
                     + "unsubscribe with a different handler");
         } else {
             mHandler = null;
-            mLocalContactId = -1;
+            mLocalContactId = ALL_USERS;
             mShouldHandleChat = false;
         }
     }
@@ -280,18 +277,42 @@ public class UiAgent {
     public final void updatePresence(final long contactId) {
         WidgetUtils.kickWidgetUpdateNow(mMainApplication);
 
-        if (mHandler != null) {
-            if (mLocalContactId == -1 || mLocalContactId == contactId) {
-                mHandler.sendMessage(mHandler.obtainMessage(
-                        ServiceUiRequest.UNSOLICITED_PRESENCE.ordinal(),
-                        null));
-            } else {
-                LogUtils.logV("UiAgent.updatePresence() No Activities are "
-                        + "interested in contactId[" + contactId + "]");
-            }
-        } else {
+        if (mHandler == null) {
             LogUtils.logW("UiAgent.updatePresence() No subscribed Activities");
+            return;
         }
+                
+        if(shouldSendPresenceToUi(contactId)) {
+            mHandler.sendMessage(mHandler.obtainMessage(
+                    ServiceUiRequest.UNSOLICITED_PRESENCE.ordinal(),
+                    null));
+        } else {
+            LogUtils.logV("UiAgent.updatePresence() No Activities are "
+                    + "interested in contactId[" + contactId + "]");
+        }
+    }
+    
+    /**
+     * Checks if a (Unsolicited) Presence event should be sent to the UI.
+     * At the moment sending it only if contactId or mLocalContactId for ALL_USERS
+     * or the monitored contact matches mLocalContactId.
+     * @param contactId
+     * @return
+     */
+    private boolean shouldSendPresenceToUi(final long contactId) {
+        if(mLocalContactId == ALL_USERS) {
+            return true;
+        }
+    
+        /*
+         * Basically this fixes bug in the me profile where presence is not updated to invisible
+         * when user goes into flight mode 
+         */
+        if(contactId == ALL_USERS) {
+            return true;
+        }
+        
+        return mLocalContactId == contactId;
     }
 
     /**
@@ -305,13 +326,15 @@ public class UiAgent {
      *            localContact ID only.
      * @param isNewChatMessage True if this is a new chat message that we are notifying
      * for. False if we are for instance just deleting a notification.
+     * @param networkId the ordinal value of the SocialNetwork from which the chat 
+     * message has been received
      */
-    public final void updateChat(final long contactId, final boolean isNewChatMessage) {
+    public final void updateChat(final long contactId, final boolean isNewChatMessage, final int networkId) {
         if (mHandler != null && mShouldHandleChat && mLocalContactId == contactId) {
             LogUtils.logV("UiAgent.updateChat() Send message to UI (i.e. "
                     + "update the screen)");
             mHandler.sendMessage(mHandler.obtainMessage(
-                    ServiceUiRequest.UNSOLICITED_CHAT.ordinal(), null));
+                    ServiceUiRequest.UNSOLICITED_CHAT.ordinal(), networkId, 0, null));
             /*
              * Note: Do not update the chat notification at this point, as the
              * UI must update the database (e.g. mark messages as read) before
@@ -326,7 +349,7 @@ public class UiAgent {
              * localIds (i.e. localContactId = -1)
              */
             mHandler.sendMessage(mHandler.obtainMessage(
-                    ServiceUiRequest.UNSOLICITED_CHAT.ordinal(), null));
+                    ServiceUiRequest.UNSOLICITED_CHAT.ordinal(), networkId, 0, null));
             updateChatNotification(isNewChatMessage);
 
         } else {
@@ -345,7 +368,7 @@ public class UiAgent {
      * 
      */
     private void updateChatNotification(final boolean isNewChatMessage) {
-        mContext.sendBroadcast(new Intent(Intents.NEW_CHAT_RECEIVED).putExtra(
+        mContext.sendBroadcast(new Intent(Intents.UPDATE_CHAT_NOTIFICATION).putExtra(
                 ApplicationCache.sIsNewMessage, isNewChatMessage));
     }
 }

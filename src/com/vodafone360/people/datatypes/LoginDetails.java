@@ -51,7 +51,7 @@ public class LoginDetails implements Parcelable {
         final StringBuilder sb = new StringBuilder("Name: ");
         sb.append(mUsername); 
         sb.append("\nPassword: "); sb.append(mPassword);
-        sb.append("Mobile No: "); sb.append(mMobileNo); 
+        sb.append("\nMobile No: "); sb.append(mMobileNo); 
         sb.append("\nRemember Me: ");  sb.append(mRememberMe);
         sb.append("\nAuto Connect: "); sb.append(mAutoConnect); 
         sb.append("\nSubscriber ID: "); sb.append(mSubscriberId);
@@ -160,4 +160,30 @@ public class LoginDetails implements Parcelable {
         dest.writeBooleanArray(validDataList); // real array
         dest.setDataPosition(currentPos);
     }
+
+    /***
+     * Parcelable constructor for LoginDetails.
+     *
+     * @param in LoginDetails Parcel.
+     */
+    public LoginDetails(final Parcel in) {
+        readFromParcel(in);
+    }
+
+    /***
+     * Parcelable creator for LoginDetails.
+     */
+    public static Parcelable.Creator<LoginDetails> CREATOR
+        = new Parcelable.Creator<LoginDetails>() {
+
+        @Override
+        public LoginDetails createFromParcel(final Parcel source) {
+            return new LoginDetails(source);
+        }
+
+        @Override
+        public LoginDetails[] newArray(final int size) {
+            return new LoginDetails[size];
+        }
+    };
 }

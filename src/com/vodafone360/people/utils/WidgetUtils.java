@@ -25,53 +25,22 @@
 
 package com.vodafone360.people.utils;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
-import android.os.SystemClock;
 
-import com.vodafone360.people.MainApplication;
-import com.vodafone360.people.utils.LogUtils;
+import com.vodafone360.people.Intents;
 
 /*
  * Widget utility Class.
  */
 public class WidgetUtils {
 
-    protected static final String URI_SCHEME = "people_widget";
-
-    protected static final String URI_DATA = "://widget/id/";
-
     /**
      * Sends an update event to the widget.
      * 
-     * @param context - Android context.
+     * @param context Android context.
      */
     public static void kickWidgetUpdateNow(Context context) {
-        MainApplication mainApplication = (MainApplication)context.getApplicationContext();
-        int[] list = mainApplication.getCache().getWidgetIdList(context.getApplicationContext());
-        if (list != null && list.length > 0) {
-            LogUtils.logD("WidgetUtils.kickWidgetUpdateNow() Updating widget list.length" + "["
-                    + list.length + "]");
-
-            Intent widgetUpdate = new Intent();
-            widgetUpdate.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-            widgetUpdate.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, list);
-
-            // Make this pending intent unique.
-            widgetUpdate.setData(Uri.withAppendedPath(Uri.parse(URI_SCHEME
-                    + URI_DATA), String.valueOf(list[0])));
-
-            // Schedule the new widget for updating.
-            ((AlarmManager)mainApplication.getSystemService(Context.ALARM_SERVICE)).set(
-                    AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime(), PendingIntent
-                            .getBroadcast(context.getApplicationContext(), 0, widgetUpdate,
-                                    PendingIntent.FLAG_UPDATE_CURRENT));
-        } else {
-            LogUtils.logE("WidgetUtils.kickWidgetUpdateNow() There are no widgets to update");
-        }
+    	context.sendBroadcast(new Intent(Intents.UPDATE_WIDGET));
     }
 }

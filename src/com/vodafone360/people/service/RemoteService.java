@@ -43,10 +43,10 @@ import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.contactsync.NativeContactsApi;
 import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.interfaces.IConnectionManagerInterface;
-import com.vodafone360.people.service.interfaces.IPeopleServiceImpl;
 import com.vodafone360.people.service.interfaces.IWorkerThreadControl;
 import com.vodafone360.people.service.transport.ConnectionManager;
 import com.vodafone360.people.service.transport.IWakeupListener;
+import com.vodafone360.people.service.utils.UserDataProtection;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.VersionUtils;
 
@@ -93,7 +93,7 @@ public class RemoteService extends Service implements IWorkerThreadControl,
      * {@link com.vodafone360.people.service.interfaces.IPeopleService}
      * interface.
      */
-    private IPeopleServiceImpl mIPeopleServiceImpl;
+    private PeopleServiceImpl mIPeopleServiceImpl;
 
     /**
      * Used by comms when waking up the CPI at regular intervals and sending a
@@ -123,24 +123,27 @@ public class RemoteService extends Service implements IWorkerThreadControl,
     public void onCreate() {
         LogUtils.logV("RemoteService.onCreate()");
         SettingsManager.loadProperties(this);
-        mIPeopleServiceImpl = new IPeopleServiceImpl(this, this);
+        mIPeopleServiceImpl = new PeopleServiceImpl(this, this);
         mNetworkAgent = new NetworkAgent(this, this, this);
         // Create NativeContactsApi here to access Application Context
         NativeContactsApi.createInstance(getApplicationContext());
         EngineManager.createEngineManager(this, mIPeopleServiceImpl);
         mNetworkAgent.onCreate();
         mIPeopleServiceImpl.setNetworkAgent(mNetworkAgent);
-        ConnectionManager.getInstance().connect(this);
 
         /** The service has now been fully initialised. **/
         mIsStarted = true;
         kickWorkerThread();
 
-        ((MainApplication)getApplication()).setServiceInterface(mIPeopleServiceImpl);
+        final MainApplication mainApp = (MainApplication)getApplication();
+        mainApp.setServiceInterface(mIPeopleServiceImpl);
         if(VersionUtils.is2XPlatform()) {
             mAccountsObjectsHolder = new 
             NativeAccountObjectsHolder(((MainApplication)getApplication()));
         }
+        
+        final UserDataProtection userDataProtection = new UserDataProtection(this, mainApp.getDatabase());
+        userDataProtection.performStartupChecks();
     }
 
     /**
@@ -149,20 +152,24 @@ public class RemoteService extends Service implements IWorkerThreadControl,
      */
     @Override
     public void onStart(Intent intent, int startId) {
-        Bundle mBundle = intent.getExtras();
+        if(intent == null) {
+            LogUtils.logV("RemoteService.onStart() intent is null. Returning.");
+            return;
+        }
+    	final Bundle bundle = intent.getExtras();
         LogUtils.logI("RemoteService.onStart() Intent action["
-                + intent.getAction() + "] data[" + mBundle + "]");
+    		+ intent.getAction() + "] data[" + bundle + "]");
 
-        if ((null == mBundle) || (null == mBundle.getString(ALARM_KEY))) {
+        if ((null == bundle) || (null == bundle.getString(ALARM_KEY))) {
             LogUtils.logV("RemoteService.onStart() mBundle is null. Returning.");
             return;
         }
 
-        if (mBundle.getString(ALARM_KEY).equals(WorkerThread.ALARM_WORKER_THREAD)) {
+        if (bundle.getString(ALARM_KEY).equals(WorkerThread.ALARM_WORKER_THREAD)) {
             LogUtils.logV("RemoteService.onStart() ALARM_WORKER_THREAD Alarm thrown");
             kickWorkerThread();
 
-        } else if (mBundle.getString(ALARM_KEY).equals(IWakeupListener.ALARM_HB_THREAD)) {
+        } else if (bundle.getString(ALARM_KEY).equals(IWakeupListener.ALARM_HB_THREAD)) {
             LogUtils.logV("RemoteService.onStart() ALARM_HB_THREAD Alarm thrown");
             if (null != mWakeListener) {
                 mWakeListener.notifyOfWakeupAlarm();

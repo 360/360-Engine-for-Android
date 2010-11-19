@@ -25,9 +25,6 @@
 
 package com.vodafone360.people.engine.contactsync;
 
-import android.content.ContentResolver;
-import android.content.Context;
-
 import com.vodafone360.people.database.DatabaseHelper;
 
 /**
@@ -97,6 +94,5 @@ public interface ProcessorFactory {
      *         type
      * @throws IllegalArgumentException if the type of processor is not known
      */
-    BaseSyncProcessor create(int type, IContactSyncCallback callback, DatabaseHelper dbHelper,
-            Context context, ContentResolver cr);
+    BaseSyncProcessor create(int type, IContactSyncCallback callback, DatabaseHelper dbHelper);
 }

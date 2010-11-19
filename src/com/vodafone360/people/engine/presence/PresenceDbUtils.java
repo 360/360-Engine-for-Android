@@ -35,7 +35,6 @@ import android.text.TextUtils;
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.database.tables.ContactDetailsTable;
 import com.vodafone360.people.database.tables.ContactSummaryTable;
-import com.vodafone360.people.database.tables.ContactsTable;
 import com.vodafone360.people.database.tables.PresenceTable;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactDetail;
@@ -50,17 +49,22 @@ import com.vodafone360.people.utils.LogUtils;
 
 public class PresenceDbUtils {
     /**
+     * Invalid general purpose id
+     * TODO: Move this and all other values like this to a common place
+     */
+    private static final long INVALID_ID = -1L;
+    /**
      * the user id of the me profile contact
      */
-    private static long sMeProfileUserId = -1L;
+    private static long sMeProfileUserId = INVALID_ID;
     /**
      * the local contact id of the me profile contact
      */
-    private static long sMeProfileLocalContactId = -1L;
+    private static long sMeProfileLocalContactId = INVALID_ID;
 
     public static void resetMeProfileIds() {
-        sMeProfileUserId = -1L;
-        sMeProfileLocalContactId = -1L;
+        sMeProfileUserId = INVALID_ID;
+        sMeProfileLocalContactId = INVALID_ID;
     }
     
     /**
@@ -76,7 +80,7 @@ public class PresenceDbUtils {
      * @return
      */
     protected static Long getMeProfileUserId(DatabaseHelper databaseHelper) {
-        if (sMeProfileUserId == -1L) {
+        if (sMeProfileUserId == INVALID_ID) {
             Contact meProfile = new Contact();
             if (SyncMeDbUtils.fetchMeProfile(databaseHelper, meProfile) != ServiceStatus.ERROR_NOT_FOUND) {
                 sMeProfileUserId = meProfile.userID;
@@ -96,21 +100,28 @@ public class PresenceDbUtils {
         // if
         // (!sMeProfileLocalContactId.equals(databaseHelper.getMeProfileId())) {
         Long meProfileId = SyncMeDbUtils.getMeProfileLocalContactId(databaseHelper);
-        sMeProfileLocalContactId = (meProfileId == null || meProfileId.intValue() == -1) ? -1
+        sMeProfileLocalContactId = 
+            (meProfileId == null || meProfileId.intValue() == INVALID_ID) ? INVALID_ID
                 : meProfileId;
         // LogUtils.logE("The DB Helper and Utils IDs are not synchronized");
         // }
+        if(meProfileId == INVALID_ID) {
+            LogUtils.logW(
+                    "PresenceDbUtils.getMeProfilePresenceStatus() No local me contact id!");
+        }
+        
         User user = PresenceTable.getUserPresenceByLocalContactId(
-                getMeProfileUserId(databaseHelper), databaseHelper.getWritableDatabase());
+                meProfileId, databaseHelper.getWritableDatabase());
         if (user == null || (user.getPayload() == null)) { // the table is
-            // empty, need to set
-            // the status for the
-            // 1st time
-            // Get presence list constructed from identities
+            /* empty, need to set the status for the 1st time 
+             * Get presence list constructed from identities
+             */
             Hashtable<String, String> status =             
-                EngineManager.getInstance().getPresenceEngine().getPresencesForStatus(OnlineStatus.ONLINE);
+                EngineManager.getInstance().getPresenceEngine().
+                    getPresencesForStatus(OnlineStatus.ONLINE);
             user = new User(String.valueOf(getMeProfileUserId(databaseHelper)), status);
         }
+                
         return user;
     }
 
@@ -165,20 +176,10 @@ public class PresenceDbUtils {
                         if (isMeProfile(userId, dbHelper)) { 
                             localContactId = sMeProfileLocalContactId;
                             meProfile = true;
-                            // remove the PC presence, as we don't display it in me profile
-                            if (networkId == SocialNetwork.PC.ordinal()) {
-                                presenceChanged = true;
-                            } 
-                         } // 360 contact, PC or MOBILE network
-                         else if (networkId == SocialNetwork.PC.ordinal() || networkId == SocialNetwork.MOBILE.ordinal()) {
-                            localContactId = ContactsTable.fetchLocalIdFromUserId(Long
-                                    .valueOf(userId), writableDb);
-                            if (localContactId != -1) {
-                                break;
-                            }
-                        } else { // 3rd party accounts
+                            
+                         } else { // 3rd party accounts
                              localContactId = ContactDetailsTable.findLocalContactIdByKey(
-                                    SocialNetwork.getPresenceValue(networkId).toString(), userId,
+                                    SocialNetwork.getSocialNetworkValue(networkId).toString(), userId,
                                     ContactDetail.DetailKeys.VCARD_IMADDRESS, writableDb);
                              if (localContactId != -1) {
                                  break;
@@ -242,7 +243,6 @@ public class PresenceDbUtils {
      */
     private static boolean processMeProfile(boolean removePCPresence, User user, ArrayList<Integer> ignoredNetworks){
         if (removePCPresence) {
-            user.removeNetwork(SocialNetwork.PC.ordinal());
             int max = OnlineStatus.OFFLINE.ordinal();
             // calculate the new aggregated presence status
             for (NetworkPresence presence : user.getPayload()) {
@@ -266,7 +266,7 @@ public class PresenceDbUtils {
             }    
         }
         // 2. ignore the TPC networks presence state for which is unknown
-        ArrayList<Identity> identities = EngineManager.getInstance().getIdentityEngine().getMy360AndThirdPartyChattableIdentities();   
+        ArrayList<Identity> identities = EngineManager.getInstance().getIdentityEngine().getMyChattableIdentities();   
         SocialNetwork network = null;
         for (Identity identity : identities) {
             network = SocialNetwork.getValue(identity.mNetwork);

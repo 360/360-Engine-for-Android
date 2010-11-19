@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 import android.content.Context;
+import android.os.Bundle;
 
 import com.vodafone360.people.ApplicationCache;
 import com.vodafone360.people.database.DatabaseHelper;
@@ -42,6 +43,7 @@ import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.PushEvent;
 import com.vodafone360.people.engine.BaseEngine;
 import com.vodafone360.people.engine.EngineManager;
+import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine.IContactSyncObserver;
@@ -67,11 +69,9 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
      * below are the constants to communicate the engine state states to UI: 3
      * buttons (update statuses, load older statuses, older timelines)
      */
-    public static final String UPDATING_STATUSES = "updating_statuses";
-
-    public static final String FETCHING_OLDER_STATUSES = "fetching_older_statuses";
-
-    public static final String FETCHING_OLDER_TIMELINE = "fecthing_older_timelines";
+    private enum ActivitiesState {
+        UPDATING_STATUSES, FETCHING_OLDER_STATUSES, FETCHING_OLDER_TIMELINE
+    }
 
     /** filter definitions */
     private static final String FILTER_UPDATED = "f.updated";
@@ -94,6 +94,12 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
     private static final String FILTER_TRUE = "true";
 
     private static final long MS_IN_SECOND = 1000L;
+    /**
+     * Interval of how often the Activities table should be cleaned up.
+     * Currently a cleanup will take place once every day, or more often if the
+     * client is unloaded from memory.
+     **/
+    private static final long ACTIVITES_CLEANUP_SEC = 24 * 60 * 60 * MS_IN_SECOND;
 
     private static final long READ_TIMELINES_TIMEOUT_MILLS = 0;
 
@@ -105,6 +111,15 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
     /** Timestamp for oldest Status event update */
     private long mOldestStatusUpdated;
 
+    /**
+     * Time stamp for the next time the Activities table should be cleaned up.
+     * This member variable acts as an in-memory throttle to prevent the
+     * cleanup happening too often while the client in on screen (i.e.
+     * avoid flickering), but to run at least once every ACTIVITES_CLEANUP_SEC
+     * so long as the current process is alive.
+     **/
+    private long mNextCleanup = -1;
+    
     private Context mContext;
 
     /** engine's current state **/
@@ -112,7 +127,7 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
 
     private boolean mRequestActivitiesRequired;
 
-    private final Hashtable<Integer, String> mActiveRequests = new Hashtable<Integer, String>();
+    private final Hashtable<Integer, ActivitiesState> mActiveRequests = new Hashtable<Integer, ActivitiesState>();
 
     /**
      * Instance of TimelineEventWatcher which listens for native call and
@@ -198,6 +213,9 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
         if (!isContactSyncReady()
                 || !EngineManager.getInstance().getContactSyncEngine().isFirstTimeSyncComplete()) {
             return -1;
+        }
+        if (mNextCleanup < System.currentTimeMillis()) {
+            return 0;
         }
         if (isCommsResponseOutstanding()) {
             return 0;
@@ -304,7 +322,7 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
                 break;
             case FETCH_TIMELINES:
                 // "more" button - we only need time lines
-                enqueueRequest(ServiceUiRequest.FETCH_TIMELINES.ordinal(), FETCHING_OLDER_TIMELINE);
+                enqueueRequest(ServiceUiRequest.FETCH_TIMELINES.ordinal(), ActivitiesState.FETCHING_OLDER_TIMELINE);
                 newState(State.FETCH_OLDER_CALLLOG_FROM_NATIVE_DB);
                 startCallLogSync(false);
                 break;
@@ -331,6 +349,13 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
     public void run() {
         LogUtils.logD("ActivityEngine run");
         processTimeout();
+        if (mNextCleanup < System.currentTimeMillis()) {
+            cleanDatabase();
+            mNextCleanup = System.currentTimeMillis() + ACTIVITES_CLEANUP_SEC;
+            LogUtils.logD("ActivityEngine.run() Clean database again at ["
+                    + mNextCleanup + "]");
+            return;
+        }
         if (isCommsResponseOutstanding() && processCommsInQueue()) {
             return;
         }
@@ -403,7 +428,7 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
         int reqId = Activities.getActivities(this, null, applyActivitiesFilter(refresh));
         if (reqId > 0) {
             setReqId(reqId);
-            enqueueRequest(reqId, refresh ? UPDATING_STATUSES : FETCHING_OLDER_STATUSES);
+            enqueueRequest(reqId, refresh ? ActivitiesState.UPDATING_STATUSES : ActivitiesState.FETCHING_OLDER_STATUSES);
 
             if (mLastStatusUpdated == 0) {
                 newState(State.FETCH_STATUSES_FIRST_TIME);
@@ -450,8 +475,7 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
     }
 
     /**
-     * Trigger the ActivitiesTable cleanup when the Engine is in
-     * "CLEANUP_DATABASE" state.
+     * Trigger the ActivitiesTable cleanup.
      */
     private void cleanDatabase() {
         ActivitiesTable.cleanupActivityTable(mDb.getWritableDatabase());
@@ -680,7 +704,6 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
                 // activities sync is over
                 mActiveSyncHelper = null;
                 newState(State.IDLE);
-                cleanDatabase();
                 completeUiRequest(status, null);
                 break;
             default:
@@ -748,14 +771,15 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
             case FETCH_OLDER_CALLLOG_FROM_NATIVE_DB:
             case UPDATE_STATUSES:
             case FETCH_STATUSES_FIRST_TIME:
-                fireNewState(ServiceUiRequest.UPDATING_UI);
+                fireNewState(ServiceUiRequest.UPDATING_UI, null);
                 break;
             case IDLE:
-                fireNewState(ServiceUiRequest.UPDATING_UI_FINISHED);
+                fireNewState(ServiceUiRequest.UPDATING_UI_FINISHED, null);
                 break;
             default:
                 // nothing to do
         }
+
         LogUtils.logV("ActivitiesEngine.newState(): " + oldState + " -> " + mState);
     }
 
@@ -767,10 +791,10 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
      * 
      * @param request ServiceUIRequest UPDATING_UI or UPDATING_UI_FINISHED
      */
-    private void fireNewState(ServiceUiRequest request) {
+    public void fireNewState(ServiceUiRequest request, Bundle bundle) {
         UiAgent uiAgent = mEventCallback.getUiAgent();
         if (uiAgent != null && uiAgent.isSubscribed()) {
-            uiAgent.sendUnsolicitedUiEvent(request, null);
+            uiAgent.sendUnsolicitedUiEvent(request, bundle);
         }
     }
 
@@ -784,16 +808,38 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
      * @param requestType one of UPDATING_STATUSES, FETCHING_OLDER_STATUSES,
      *            FETCHING_OLDER_TIMELINE
      */
-    private void enqueueRequest(int requestId, String requestType) {
+    private void enqueueRequest(int requestId, ActivitiesState requestType) {
         synchronized (mQueueMutex) {
             if (!mActiveRequests.containsKey(requestId)) {
-                LogUtils.logE("ActivityEngine.enqueueRequest:" + requestId + ", " + requestType);
+                LogUtils.logI("ActivityEngine.enqueueRequest:" + requestId + ", " + requestType);
                 mActiveRequests.put(requestId, requestType);
-                ApplicationCache.setBooleanValue(mContext, requestType, true);
+                cacheRequestType(requestType, true);
+
             } else {
-                LogUtils.logE("ActivityEngine.enqueueRequest: already have this type!" + requestId
+                LogUtils.logI("ActivityEngine.enqueueRequest: already have this type!" + requestId
                         + ", " + requestType);
             }
+        }
+    }
+
+    /***
+     * Add the given request type to the Application cache.
+     *
+     * @param requestType Request type ENUM.
+     * @param value Boolean to set for given request type.
+     */
+    private final static void cacheRequestType(
+            final ActivitiesState requestType, final boolean value) {
+        switch (requestType) {
+            case UPDATING_STATUSES:
+                ApplicationCache.setUpdatingStatuses(value);
+                break;
+            case FETCHING_OLDER_STATUSES:
+                ApplicationCache.setFetchingOlderStatuses(value);
+                break;
+            case FETCHING_OLDER_TIMELINE:
+                ApplicationCache.setFetchingOlderTimeline(value);
+                break;
         }
     }
 
@@ -810,13 +856,13 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
 
     private void dequeueRequest(int requestId) {
         synchronized (mQueueMutex) {
-            String requestType = mActiveRequests.get(requestId);
+            ActivitiesState requestType = mActiveRequests.get(requestId);
             if (requestType != null) {
                 mActiveRequests.remove(requestId);
-                LogUtils.logE("ActivityEngine.dequeueRequest:" + requestId + ", " + requestType);
-                ApplicationCache.setBooleanValue(mContext, requestType, false);
+                LogUtils.logI("ActivityEngine.dequeueRequest:" + requestId + ", " + requestType);
+                cacheRequestType(requestType, false);
             } else {
-                LogUtils.logE("ActivityEngine.dequeueRequest: the request is not in the queue!"
+                LogUtils.logI("ActivityEngine.dequeueRequest: the request is not in the queue!"
                         + requestId + ", " + requestType);
             }
         }

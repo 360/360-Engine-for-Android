@@ -53,7 +53,7 @@ public abstract class NativeChangeLogTable {
     /**
      * Name of the table as it appears in the database
      */
-    private static final String TABLE_NAME = "NativeChangeLog";
+    public static final String TABLE_NAME = "NativeChangeLog";
 
     /**
      * Name of a temporary table created and used to batch the deletion of sync
@@ -80,6 +80,18 @@ public abstract class NativeChangeLogTable {
         "SELECT " + Field.CHANGETYPE + ", " + Field.LOCALCONTACTID + ", " + Field.NATIVECONTACTID +
         ", " + Field.LOCALDETAILID + ", " + Field.NATIVEDETAILID + ", " + Field.DETAILKEY + 
         " FROM " + TABLE_NAME + " WHERE " + Field.LOCALCONTACTID + " = ? AND " + Field.CHANGETYPE + " = ?";
+
+    /**
+     * SELECT NativeContactId FROM NativeChangeLog WHERE ChangeType = 0 ORDER BY NativeContactId
+     */
+    public final static String QUERY_MODIFIED_CONTACTS_LOCAL_IDS = 
+    	"SELECT DISTINCT " + Field.LOCALCONTACTID + " FROM " + TABLE_NAME + " ORDER BY " + Field.LOCALCONTACTID;
+    
+    /**
+     * 
+     */
+    public final static String QUERY_MODIFIED_CONTACTS_LOCAL_IDS_NO_ORDERBY = 
+    	"SELECT " + Field.LOCALCONTACTID + " FROM " + TABLE_NAME;
 
     /**
      * An enumeration of all the field names in the database.
@@ -658,16 +670,6 @@ public abstract class NativeChangeLogTable {
             c = null;
         }
     }
-    
-    /**
-     * SELECT NativeContactId FROM NativeChangeLog WHERE ChangeType = 0 ORDER BY NativeContactId
-     */
-    public final static String QUERY_MODIFIED_CONTACTS_LOCAL_IDS = "SELECT DISTINCT " + Field.LOCALCONTACTID + " FROM " + TABLE_NAME
-                                                                  + " ORDER BY " + Field.LOCALCONTACTID;
-    /**
-     * 
-     */
-    public final static String QUERY_MODIFIED_CONTACTS_LOCAL_IDS_NO_ORDERBY = "SELECT " + Field.LOCALCONTACTID + " FROM " + TABLE_NAME;
     
     /**
      * 

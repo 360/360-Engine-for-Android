@@ -56,7 +56,7 @@ public abstract class GroupsTable {
     /**
      * The name of the table as it appears in the database.
      */
-    private static final String TABLE_NAME = "ZybGroups";
+    public static final String TABLE_NAME = "ZybGroups";
 
     /**
      * Special ID for the ALL group

@@ -184,7 +184,7 @@ public class NativeContactsApi1 extends NativeContactsApi {
         // No People Accounts on 1.X NAB
         return false;
     }
-
+    
     /**
      * @see NativeContactsApi#isPeopleAccountCreated()
      */
@@ -1222,4 +1222,5 @@ public class NativeContactsApi1 extends NativeContactsApi {
 
         return address;
     }
+
 }

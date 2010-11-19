@@ -26,18 +26,19 @@
 package com.vodafone360.people;
 
 import android.app.Application;
-import android.content.ContentResolver;
+import android.content.Intent;
 import android.os.Handler;
 
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.contactsync.NativeContactsApi;
 import com.vodafone360.people.service.PersistSettings;
+import com.vodafone360.people.service.RemoteService;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.PersistSettings.InternetAvail;
 import com.vodafone360.people.service.interfaces.IPeopleService;
-import com.vodafone360.people.utils.LoginPreferences;
 import com.vodafone360.people.utils.LogUtils;
+import com.vodafone360.people.utils.LoginPreferences;
 import com.vodafone360.people.utils.WidgetUtils;
 
 /**
@@ -64,6 +65,9 @@ public class MainApplication extends Application {
         mDatabaseHelper = new DatabaseHelper(this);
         mDatabaseHelper.start();
         LoginPreferences.getCurrentLoginActivity(this);
+        
+        /** Start the Service. **/
+        startService(new Intent(this, RemoteService.class));
     }
 
     /**
@@ -109,7 +113,14 @@ public class MainApplication extends Application {
             // have been reset.
             mEngineManager.resetAllEngines();
         }
+        // Remove NAB Account at this point (does nothing on 1.X)
+        NativeContactsApi.getInstance().removePeopleAccount();
+        
+        // the same action as in NetworkSettingsActivity onChecked()
+        setInternetAvail(InternetAvail.ALWAYS_CONNECT, false);
+        
         mDatabaseHelper.removeUserData();
+        
         // Before clearing the Application cache, kick the widget update. Pref's
         // file contain the widget ID.
         WidgetUtils.kickWidgetUpdateNow(this);
@@ -190,8 +201,7 @@ public class MainApplication extends Application {
      */
     public ServiceStatus setInternetAvail(InternetAvail internetAvail, boolean forwardToSyncAdapter) {
 
-        if(getInternetAvail() == internetAvail) {
-            // Nothing to do
+        if (getInternetAvail() == internetAvail) {
             return ServiceStatus.SUCCESS;
         }
         
@@ -199,6 +209,9 @@ public class MainApplication extends Application {
                 !NativeContactsApi.getInstance().getMasterSyncAutomatically()) {
             // FIXME: Perhaps an abusive use of this error code for when 
             //        Master Sync Automatically is OFF, should have a different
+        	
+        	LogUtils.logW("ServiceStatus.setInternetAvail() [master sync is off]");
+        	
             return ServiceStatus.ERROR_NO_AUTO_CONNECT;
         }
         

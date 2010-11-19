@@ -42,16 +42,19 @@ public class ThirdPartyAccount {
 
     private boolean mIsVerified = false;
 
-    private boolean mChecked = true;
-
-    private boolean mShouldBeProcessed = false;
-
     private String mDisplayName;
 
     /** username */
     private String mIdentityID;
 
+    /**
+     * Hard coded SN account names.
+     */
     public static final String SNS_TYPE_FACEBOOK = "facebook";
+    
+    public static final String SNS_TYPE_VKONTAKTE = "vkontakte";
+    
+    public static final String SNS_TYPE_ODNOKLASSNIKI = "odnoklassniki";
 
     private static final String SNS_TYPE_MICROSOFT = "microsoft";
 
@@ -81,35 +84,13 @@ public class ThirdPartyAccount {
      * 
      * @param userName - the username for the account.
      * @param identity - Identity details retrieved from server.
-     * @param checkedByDefault - true for the account to be enabled in the list.
      * @param isVerified -
      */
-    public ThirdPartyAccount(String userName, Identity identity, boolean checkedByDefault,
-            boolean isVerified) {
+    public ThirdPartyAccount(String userName, Identity identity, boolean isVerified) {
         mIdentityID = userName;
-        mChecked = checkedByDefault;
         mIdentity = identity;
         mIsVerified = isVerified;
         mDisplayName = identity.mName;
-    }
-
-    /**
-     * Create a new third party account object.
-     *
-     * @param userName - the username for the account.
-     * @param identity - Identity details retrieved from server.
-     * @param isVerified -
-     */
-    public ThirdPartyAccount(final String userName, final Identity identity,
-            final boolean isVerified) {
-
-        /**In ui-refresh will not have flag status of mChecked==false.
-         * Because ui-refresh remove checkBox UI of this flag.
-         * */
-        this(userName, identity, /*checkedByDefault*/true, isVerified);
-
-        /** Always TRUE for UI-Refresh. */
-        mShouldBeProcessed = true;
     }
 
     /** {@inheritDoc} */
@@ -117,10 +98,8 @@ public class ThirdPartyAccount {
     public String toString() {
         final StringBuffer sb = new StringBuffer("ThirdPartyAccount: \n\tmUsername = ");
         sb.append(getIdentityID());
-        sb.append("\n\tmDisplayName = "); sb.append(getDisplayName()); 
-        sb.append("\n\tmCheckedByDefault = "); sb.append(isChecked());
-        sb.append("\n\tmIsVerified = "); sb.append(isVerified()); 
-        sb.append("\n\tmShouldBeProcesed = "); sb.append(isShouldBeProcessed());
+        sb.append("\n\tmDisplayName = "); sb.append(getDisplayName());
+        sb.append("\n\tmIsVerified = "); sb.append(isVerified());
         return sb.toString();
     }
 
@@ -135,17 +114,6 @@ public class ThirdPartyAccount {
                 || snsLower.contains(SNS_TYPE_MICROSOFT) || snsLower.contains(SNS_TYPE_WINDOWS));
     }
 
-    /*
-     * Checks if the sns string contains text to identify it as Vodafone sns
-     * @param sns - the text to check
-     * @return true if this is a Vodafone sns
-     */
-    public static boolean isVodafone(String sns) {
-        String snsLower = sns.toLowerCase();
-        return (snsLower.contains(SNS_TYPE_VODAFONE) || snsLower.contains(SNS_TYPE_NOWPLUS) || snsLower
-                .contains(SNS_TYPE_ZYB));
-    }
-
     /**
      * Gets the Localised string for the given SNS.
      * 
@@ -153,10 +121,14 @@ public class ThirdPartyAccount {
      * @return Localised string for the given SNS.
      */
     public static String getSnsString(Context context, String sns) {
-        if (sns == null || isVodafone(sns)) {
+        if (sns == null) {
             return context.getString(R.string.Utils_sns_name_vodafone);
         } else if (sns.contains(SNS_TYPE_FACEBOOK)) {
             return context.getString(R.string.Utils_sns_name_facebook);
+        } else if (sns.contains(SNS_TYPE_ODNOKLASSNIKI)) {
+            return context.getString(R.string.Utils_sns_name_odnoklassniki);
+        } else if (sns.contains(SNS_TYPE_VKONTAKTE)) {
+            return context.getString(R.string.Utils_sns_name_vkontakte);
         } else if (sns.contains(SNS_TYPE_GOOGLE)) {
             return context.getString(R.string.Utils_sns_name_google);
         } else if (isWindowsLive(sns)) {
@@ -245,31 +217,13 @@ public class ThirdPartyAccount {
     }
 
     /**
-     * @param mChecked the mChecked to set
-     */
-    public void setChecked(boolean mChecked) {
-        this.mChecked = mChecked;
+     * Checks if the sns string contains text to identify it as Vodafone sns
+     * @param sns - the text to check
+     * @return true if this is a Vodafone sns
+     */	 	
+    public static boolean isVodafone(String sns) {
+    	String snsLower = sns.toLowerCase();
+    	return (snsLower.contains(SNS_TYPE_VODAFONE) || snsLower.contains(SNS_TYPE_NOWPLUS) || 
+    			snsLower.contains(SNS_TYPE_ZYB));
     }
-
-    /**
-     * @return the mChecked
-     */
-    public boolean isChecked() {
-        return mChecked;
-    }
-
-    /**
-     * @param mShouldBeProcessed the mShouldBeProcessed to set
-     */
-    public void setShouldBeProcessed(boolean mShouldBeProcessed) {
-        this.mShouldBeProcessed = mShouldBeProcessed;
-    }
-
-    /**
-     * @return the mShouldBeProcessed
-     */
-    public boolean isShouldBeProcessed() {
-        return mShouldBeProcessed;
-    }
-
 }

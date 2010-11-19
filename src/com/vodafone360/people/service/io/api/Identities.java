@@ -58,7 +58,6 @@ public class Identities {
 
     public final static String DISABLE_IDENTITY = "disable";
 
-    //public final static String SUSPENDED_IDENTITY = "suspended";
 
     /**
      * Implementation of identities/getavailableidentities API. Parameters are;

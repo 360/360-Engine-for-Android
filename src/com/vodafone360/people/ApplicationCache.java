@@ -25,23 +25,23 @@
 
 package com.vodafone360.people;
 
+import java.lang.ref.SoftReference;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 
-import android.appwidget.AppWidgetManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.vodafone360.people.R;
 import com.vodafone360.people.database.tables.ActivitiesTable.TimelineSummaryItem;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactSummary;
+import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.contactsync.SyncStatus;
 import com.vodafone360.people.service.ServiceStatus;
-import com.vodafone360.people.utils.ThirdPartyAccount;
-import com.vodafone360.people.utils.LoginPreferences;
+import com.vodafone360.people.service.io.api.Auth;
 import com.vodafone360.people.utils.LogUtils;
+import com.vodafone360.people.utils.LoginPreferences;
+import com.vodafone360.people.utils.ThirdPartyAccount;
 
 /**
  * Caches information about the current state of the application. Stores most
@@ -60,6 +60,8 @@ public class ApplicationCache {
     private final static String PRIVACY = "PRIVACY";
     /** Text key for Privacy last updated time. **/
     private final static String PRIVACY_TIME = "PRIVACY_TIME";
+    
+    
     /**
      * Refresh any cached terms of service or privacy content after 10 minutes.
      */
@@ -91,6 +93,13 @@ public class ApplicationCache {
     public static final String CONTACT_MODIFIED = "ContactModified";
 
     public static final String STARTUP_LAUNCH_PATH_KEY = "LAUNCHED_FROM";
+    
+    public static final String ADD_ACCOUNT_CLICKED = "ADD_ACCOUNT_CLICKED";
+    
+    /***
+     * New String ID for Opening a chat from contextual menu, always opens the first connected (first in list) chat account.
+     */
+    public static final String PREFERRED_ONLINE_SNS = "PREFERRED_ONLINE_SNS";
 
     public static final int RESULT_DELETE = -100;
 
@@ -141,9 +150,23 @@ public class ApplicationCache {
      */
     public final static String RETAIN_INTENT = "RetainIntent";
 
-    public static String sWidgetProviderClassName = null;
+    /**
+     * Current state of the Activities engine fetching older time line logic.
+     */
+    private static boolean sFetchingOlderTimeline = false;
+    /**
+     * Current state of the Activities engine updating statuses logic.
+     */
+    private static boolean sUpdatingStatuses = false;
+    /**
+     * Current state of the Activities engine fetching newer time line logic.
+     */
+    private static boolean sFetchingOlderStatuses = false;
 
     public static String sIsNewMessage = "isNewMessage";
+    
+    private static String mPrivacyLanguage;
+    private static String mTermsLanguage;
 
     // Frequency setting descriptions and defaults
     public final static long[] FREQUENCY_SETTING_LONG = {
@@ -159,9 +182,6 @@ public class ApplicationCache {
     /** In memory cache of the current contacts sync status. **/
     private SyncStatus mSyncStatus = null;
     
-    // Cached login flags
-    private boolean mFirstTimeLogin = true;
-
     private boolean mScanThirdPartyAccounts = true;
 
     private boolean mAcceptedTermsAndConditions = false;
@@ -178,13 +198,62 @@ public class ApplicationCache {
 
     private ServiceStatus mServiceStatus = ServiceStatus.ERROR_UNKNOWN;
     
+    /**
+     * The constant for storing the "Add Account" button state (hidden or shown).   
+     */
+    public static final String JUST_LOGGED_IN = "first_time"; 
+    
     private TimelineSummaryItem mCurrentTimelineSummary;
 
     private long mCurrentContactFilter;
     
     /** Cached whether ThirdPartyAccountsActivity is opened. */
     private boolean mIsAddAccountActivityOpened;
+    /** Cached filter type for TimelineListActivity. **/
+    private int mTimelineListActivityFilter = 0;
+    /** Cached filter type for TimelineHistoryActivity. **/
+    private int mTimelineHistoryActivityFilter = 0;
     
+    /**
+     * True if the menu "Sync Now" request is being processed.
+     */
+    private static boolean sIsContactSyncBusy = false;
+
+    /**
+     * Setter for the TimelineListActivityFilter value.
+     *
+     * @param filter Value to set.
+     */
+    public final void setTimelineListActivityFilter(final int filter) {
+        mTimelineListActivityFilter = filter;
+    }
+    /**
+     * Getter for the TimelineListActivityFilter value.
+     *
+     * @return Cached value for the TimelineListActivityFilter.
+     */
+    public final int getTimelineListActivityFilter() {
+        return mTimelineListActivityFilter;
+    }
+
+    /**
+     * Setter for the TimelineHistoryActivityFilter value.
+     *
+     * @param filter Value to set.
+     */
+    public final void setTimelineHistoryActivityFilter(final int filter) {
+        mTimelineHistoryActivityFilter = filter;
+    }
+
+    /**
+     * Getter for the TimelineHistoryActivityFilter value.
+     *
+     * @return Cached value for the TimelineListActivityFilter.
+     */
+    public final int getTimelineHistoryActivityFilter() {
+        return mTimelineHistoryActivityFilter;
+    }
+
     /***
      * GETTER Whether "add Account" activity is opened
      * 
@@ -203,26 +272,7 @@ public class ApplicationCache {
         mIsAddAccountActivityOpened = flag;
     }
     
-    /**
-     * Whether this is a first time login (on this device) for current account.
-     * 
-     * @return True if this is the first login for current account.
-     */
-    public boolean firstTimeLogin() {
-        return mFirstTimeLogin;
-    }
-
-    /**
-     * Set whether this is a first time login (on this device) for current
-     * account. If we have not logged in on this device (or after 'Remove user
-     * data') we will need to perform the first time 'full' time contact sync.
-     * 
-     * @param aState True if this is our 1st time sync.
-     */
-    public void setFirstTimeLogin(boolean state) {
-        mFirstTimeLogin = state;
-    }
-
+    
     /**
      * Set whether application should re-scan 3rd party accounts.
      * 
@@ -277,6 +327,27 @@ public class ApplicationCache {
         return mAcceptedTermsAndConditions;
     }
 
+    
+    /**
+     * Sets the language for the cached terms string. If the language of the
+     * device changes, the cache becomes invalid
+     * 
+     * @param privacyLanguage language of last fetched terms string
+     */
+    public static void setTermsLanguage(String termsLanguage) {
+        mTermsLanguage = termsLanguage;
+    }
+
+    /**
+     * Sets the language for the cached privacy string. If the language of the
+     * device changes, the cache becomes invalid
+     * 
+     * @param privacyLanguage language of last fetched privacy string
+     */
+    public static void setPrivacyLanguage(String privacyLanguage) {
+        mPrivacyLanguage = privacyLanguage;
+    }
+    
     /**
      * Clear all cached data currently stored in People application.
      */
@@ -284,7 +355,8 @@ public class ApplicationCache {
         LoginPreferences.clearPreferencesFile(context);
         LoginPreferences.clearCachedLoginDetails();
 
-        mFirstTimeLogin = true;
+        setBooleanValue(context, JUST_LOGGED_IN, true);
+        setBooleanValue(context, ADD_ACCOUNT_CLICKED, false);
         mScanThirdPartyAccounts = true;
         mIdentityBeingProcessed = -1;
         mAcceptedTermsAndConditions = false;
@@ -293,11 +365,20 @@ public class ApplicationCache {
         mCurrentContact = null;
         mCurrentContactSummary = null;
 
+        mTimelineListActivityFilter = 0;
+        mTimelineHistoryActivityFilter = 0;
+        mCurrentContactFilter = -1;
+
         mServiceStatus = ServiceStatus.ERROR_UNKNOWN;
         mThirdPartyAccountsCache = null;
         mSyncStatus = null;
         
         mIsAddAccountActivityOpened = false;
+        
+        sFetchingOlderTimeline = false;
+        sUpdatingStatuses = false;
+        sFetchingOlderStatuses = false;
+        
     }
 
     /**
@@ -381,8 +462,8 @@ public class ApplicationCache {
      * @param list List of ThirdPartyAccount items retrieved from current login.
      */
     public void storeThirdPartyAccounts(Context context, ArrayList<ThirdPartyAccount> list) {
-        setValue(context, FACEBOOK_SUBSCRIBED, isFacebookInThirdPartyAccountList(list) + "");
-        setValue(context, HYVES_SUBSCRIBED, isHyvesInThirdPartyAccountList(list) + "");
+        setValue(context, FACEBOOK_SUBSCRIBED, EngineManager.getInstance().getIdentityEngine().isFacebookInThirdPartyAccountList() + "");
+        setValue(context, HYVES_SUBSCRIBED, EngineManager.getInstance().getIdentityEngine().isHyvesInThirdPartyAccountList() + "");
         mThirdPartyAccountsCache = list;
     }
 
@@ -394,74 +475,6 @@ public class ApplicationCache {
      */
     public ArrayList<ThirdPartyAccount> getThirdPartyAccounts() {
         return mThirdPartyAccountsCache;
-    }
-
-    /***
-     * Return TRUE if the given ThirdPartyAccount contains a Facebook account.
-     * 
-     * @param list List of ThirdPartyAccount objects, can be NULL.
-     * @return TRUE if the given ThirdPartyAccount contains a Facebook account.
-     */
-    private static boolean isFacebookInThirdPartyAccountList(ArrayList<ThirdPartyAccount> list) {
-        if (list != null) {
-            for (ThirdPartyAccount thirdPartyAccount : list) {
-                if (thirdPartyAccount.getDisplayName().toLowerCase().startsWith("facebook")) {
-                    if (thirdPartyAccount.isVerified()) {
-                        LogUtils.logV("ApplicationCache."
-                                + "isFacebookInThirdPartyAccountList() Facebook is verified");
-                        return true;
-                    } else {
-                        LogUtils.logV("ApplicationCache."
-                                + "isFacebookInThirdPartyAccountList() Facebook is not verified");
-                        return false;
-                    }
-                }
-            }
-        }
-        LogUtils.logV("ApplicationCache."
-                + "isFacebookInThirdPartyAccountList() Facebook not found in list");
-        return false;
-    }
-
-    /***
-     * Return TRUE if the given ThirdPartyAccount contains a Hyves account.
-     * 
-     * @param list List of ThirdPartyAccount objects, can be NULL.
-     * @return TRUE if the given ThirdPartyAccount contains a Hyves account.
-     */
-    private static boolean isHyvesInThirdPartyAccountList(ArrayList<ThirdPartyAccount> list) {
-        if (list != null) {
-            for (ThirdPartyAccount thirdPartyAccount : list) {
-                if (thirdPartyAccount.getDisplayName().toLowerCase().startsWith("hyves")) {
-                    if (thirdPartyAccount.isVerified()) {
-                        LogUtils
-                                .logV("ApplicationCache.isHyvesInThirdPartyAccountList() Hyves is verified");
-                        return true;
-                    } else {
-                        LogUtils
-                                .logV("ApplicationCache.isHyvesInThirdPartyAccountList() Hyves is not verified");
-                        return false;
-                    }
-                }
-            }
-        }
-        LogUtils.logV("ApplicationCache.isHyvesInThirdPartyAccountList() Hyves not found in list");
-        return false;
-    }
-
-    /**
-     * Get list of IDs of Home-screen widgets.
-     * 
-     * @param context Current context.
-     * @return list of IDs of Home-screen widgets.
-     */
-    public int[] getWidgetIdList(Context context) {
-        if(sWidgetProviderClassName != null) {
-        return AppWidgetManager.getInstance(context).getAppWidgetIds(
-                new ComponentName(context, sWidgetProviderClassName));
-        }
-        
-        return null;
     }
 
     /***
@@ -486,7 +499,10 @@ public class ApplicationCache {
     /***
      * Gets the current sync state, or NULL if the state has not been set in
      * this JVM instance.
-     * 
+     *
+     * Note: The sync state is an in memory condition.  If this is not NULL
+     * then the UI should be redirected to the SyncingYourAddressBookActivity.
+     *
      * @return SyncStatus or NULL.
      */
     public SyncStatus getSyncStatus() {
@@ -529,8 +545,8 @@ public class ApplicationCache {
                     + "context cannot be NULL");
         }
 
-        boolean facebook = getValue(context, FACEBOOK_SUBSCRIBED, "").equals("true");
-        boolean hyves = getValue(context, HYVES_SUBSCRIBED, "").equals("true");
+        boolean facebook = EngineManager.getInstance().getIdentityEngine().isFacebookInThirdPartyAccountList();
+        boolean hyves =EngineManager.getInstance().getIdentityEngine().isHyvesInThirdPartyAccountList();
 
         if (facebook && hyves) {
             return R.string.ContactStatusListActivity_update_status_on_hyves_and_facebook;
@@ -621,7 +637,7 @@ public class ApplicationCache {
         SharedPreferences sharedPreferences = context.getSharedPreferences(
                 ApplicationCache.PREFS_FILE, 0);
         long time = sharedPreferences.getLong(TERMS_OF_SERVICE_TIME, -1);
-        if (time == -1 || time < System.currentTimeMillis() - REFRESH_TIME) {
+        if (time == -1 || time < System.currentTimeMillis() - REFRESH_TIME || !Auth.getLocalString().equals(mTermsLanguage)) {
             return null;
         } else {
             return sharedPreferences.getString(TERMS_OF_SERVICE, null);
@@ -639,7 +655,7 @@ public class ApplicationCache {
         SharedPreferences sharedPreferences = context.getSharedPreferences(
                 ApplicationCache.PREFS_FILE, 0);
         long time = sharedPreferences.getLong(PRIVACY_TIME, -1);
-        if (time == -1 || time < System.currentTimeMillis() - REFRESH_TIME) {
+        if (time == -1 || time < System.currentTimeMillis() - REFRESH_TIME || !Auth.getLocalString().equals(mPrivacyLanguage) ) {
             return null;
         } else {
             return sharedPreferences.getString(PRIVACY, null);
@@ -670,4 +686,97 @@ public class ApplicationCache {
         return mCurrentContactFilter;
     }
 
+    /** Background thread for caching Thumbnails in memory. **/
+    private SoftReference<ThumbnailCache> mThumbnailCache;
+
+    /***
+     * Get or create a background thread for caching Thumbnails in memory.
+     * Note: This object can be used by multiple activities.
+     */
+    public synchronized ThumbnailCache getThumbnailCache() {
+        ThumbnailCache local = null;
+        if (mThumbnailCache == null || mThumbnailCache.get() == null) {
+            local = new ThumbnailCache();
+            mThumbnailCache =new SoftReference<ThumbnailCache>(local);
+        }
+        return mThumbnailCache.get();
+    }
+
+    /***
+     * TRUE if the Activities engine is currently fetching older time line
+     * data.
+     *
+     * @return TRUE if the Activities engine is currently fetching older time
+     *          line data.
+     */
+    public static boolean isFetchingOlderTimeline() {
+        return sFetchingOlderTimeline;
+    }
+
+    /***
+     * Set if the Activities engine is currently fetching older time line
+     * data.
+     *
+     * @param fetchingOlderTimeline Specific current state.
+     */
+    public static void setFetchingOlderTimeline(
+            final boolean fetchingOlderTimeline) {
+        sFetchingOlderTimeline = fetchingOlderTimeline;
+    }
+
+    /***
+     * TRUE if the Activities engine is currently updating status data.
+     *
+     * @return TRUE if the Activities engine is currently updating status data.
+     */
+    public static boolean isUpdatingStatuses() {
+        return sUpdatingStatuses;
+    }
+
+    /***
+     * Set if the Activities engine is currently updating status data.
+     *
+     * @param updatingStatuses Specific current state.
+     */
+    public static void setUpdatingStatuses(final boolean updatingStatuses) {
+        sUpdatingStatuses = updatingStatuses;
+    }
+    /***
+     * TRUE if the Activities engine is currently fetching older time line
+     * statuses.
+     *
+     * @return TRUE if the Activities engine is currently fetching older time
+     *          line data.
+     */
+    public static boolean isFetchingOlderStatuses() {
+        return sFetchingOlderStatuses;
+    }
+
+    /***
+     * Set if the Activities engine is currently fetching older time line
+     * statuses.
+     *
+     * @param fetchingOlderStatuses Specific current state.
+     */
+    public static void setFetchingOlderStatuses(
+            final boolean fetchingOlderStatuses) {
+        sFetchingOlderStatuses = fetchingOlderStatuses;
+    }
+    
+    /**
+     * This method is used by menu "Sync Now" to check if the current BG sync
+     * has finished to place a new BG sync request.
+     * @return TRUE if the background sync is still on-going
+     */
+    synchronized public static boolean isSyncBusy() {
+        return sIsContactSyncBusy;
+    }
+    
+    /**
+     * This flag is set by ContactSyncEngine to indicate his state synchronizing the account.
+     * @param isSyncBusy must be FALSE if state of ContactSync is State.IDLE, TRUE otherwise. 
+     */
+    synchronized public static void setSyncBusy(boolean isSyncBusy) {
+        ApplicationCache.sIsContactSyncBusy = isSyncBusy;
+    }
 }

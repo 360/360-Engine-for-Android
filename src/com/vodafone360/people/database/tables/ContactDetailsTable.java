@@ -27,7 +27,6 @@ package com.vodafone360.people.database.tables;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -36,7 +35,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
 import android.text.TextUtils;
-
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.database.SQLKeys;
@@ -47,12 +45,14 @@ import com.vodafone360.people.datatypes.ContactDetail;
 import com.vodafone360.people.datatypes.VCardHelper;
 import com.vodafone360.people.datatypes.ContactDetail.DetailKeyTypes;
 import com.vodafone360.people.datatypes.ContactDetail.DetailKeys;
+import com.vodafone360.people.datatypes.VCardHelper.Name;
 import com.vodafone360.people.engine.contactsync.ContactChange;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.utils.CloseUtils;
 import com.vodafone360.people.utils.CursorUtils;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.StringBufferPool;
+import com.vodafone360.people.utils.VersionUtils;
 
 /**
  * Provides a wrapper for all the operations on the Contact Details Table. Class
@@ -84,11 +84,10 @@ public abstract class ContactDetailsTable {
     /**
      * SELECT DISTINCT LocalId
      * FROM ContactDetails
-     * WHERE NativeSyncId IS NULL OR NativeSyncId <> -1
+     * WHERE NativeSyncId is NULL or NativeSyncId <> -1
      */
     public final static String QUERY_NATIVE_SYNCABLE_CONTACTS_LOCAL_IDS = "SELECT " + Field.LOCALCONTACTID + " FROM " + TABLE_NAME
-                                                                        + " WHERE " + Field.NATIVESYNCCONTACTID + " IS NULL OR " + Field.NATIVESYNCCONTACTID
-                                                                        + " <> -1";
+                                                                        + " WHERE (" + Field.NATIVESYNCCONTACTID + " IS NULL OR " + Field.NATIVESYNCCONTACTID + " <> -1)";
     
     /**
      * SELECT DetailLocalId, DetailServerId
@@ -652,7 +651,26 @@ public abstract class ContactDetailsTable {
      */
     public static ServiceStatus modifyDetail(ContactDetail detail, boolean syncToServer,
             boolean syncToNative, SQLiteDatabase writeableDb) {
-        try {
+        try { 
+            
+            // Sometimes we get surname duplicated in first name (Max Mustermann
+            // Mustermann) on a VCARD_NAME
+            // To fix this we will remove surnames from first names and sync
+            // back to server if we change anything
+            if (VersionUtils.is2XPlatform() == false && detail.key == DetailKeys.VCARD_NAME) {
+                Name name = VCardHelper.getName(detail.value);
+                if (name.surname.length() > 0) {
+                    name.firstname = name.firstname.replace(name.surname, "").trim();
+                    name.midname = name.midname.replace(name.surname, "").trim();
+                }
+                String vcardName = VCardHelper.makeName(name);
+                if (!detail.value.equals(vcardName)) {
+                    syncToServer = true;
+                    detail.value = vcardName;
+                }
+
+            }
+            
             ContentValues contactDetailValues = fillUpdateData(detail, syncToServer, syncToNative);
             if (writeableDb.update(TABLE_NAME, contactDetailValues, Field.DETAILLOCALID + " = "
                     + detail.localDetailID, null) <= 0) {
@@ -1194,8 +1212,7 @@ public abstract class ContactDetailsTable {
      * @param writableDb A writable SQLite database object
      * @return SUCCESS or a suitable error code.
      */
-    public static ServiceStatus mergeContactDetails(ContactIdInfo info,
-            List<ContactDetail> nativeInfoList, SQLiteDatabase writableDb) {
+    public static ServiceStatus mergeContactDetails(ContactIdInfo info, List<ContactDetail> nativeInfoList, SQLiteDatabase writableDb) {
 
         DatabaseHelper.trace(true, "ContactDetailsTable.mergeContactDetails()");
 
@@ -1229,8 +1246,8 @@ public abstract class ContactDetailsTable {
             // Retrieve a list of detail local IDs from the merged contact
             // (original one)
             final String[] args = {String.valueOf(info.mergedLocalId)}; 
-            cursor = writableDb.rawQuery(
-                    QUERY_DETAIL_LOCAL_AND_SERVER_IDS_BY_LOCAL_CONTACT_ID, args);
+            cursor = writableDb.rawQuery(QUERY_DETAIL_LOCAL_AND_SERVER_IDS_BY_LOCAL_CONTACT_ID, args);
+            
             while (cursor.moveToNext()) {
                 if (!cursor.isNull(0) && !cursor.isNull(1)) {
                     // only adding details with a detailServerId (Name and
@@ -1239,14 +1256,13 @@ public abstract class ContactDetailsTable {
                             .getLong(1)));
                 }
             }
-            DatabaseHelper.trace(true,
-                    "ContactDetailsTable.mergeContactDetails(): detailLocalIds.size()="
-                            + detailLocalIds.size());
-        } catch (Exception e) {
-            LogUtils.logE("ContactDetailsTable.mergeContactDetails() Exception - "
-                    + "Unable to query merged contact details list", e);
+            DatabaseHelper.trace(true, "ContactDetailsTable.mergeContactDetails(): detailLocalIds.size()=" + detailLocalIds.size());
+        } 
+        catch (Exception e) {
+            LogUtils.logE("ContactDetailsTable.mergeContactDetails() Exception - " + "Unable to query merged contact details list", e);
             return ServiceStatus.ERROR_DATABASE_CORRUPT;
-        } finally {
+        } 
+        finally {
             if (cursor != null) {
                 cursor.close();
                 cursor = null;
@@ -1272,13 +1288,11 @@ public abstract class ContactDetailsTable {
                         cv.put(Field.NATIVEDETAILVAL1.toString(), detailInfo.nativeVal1);
                         cv.put(Field.NATIVEDETAILVAL2.toString(), detailInfo.nativeVal2);
                         cv.put(Field.NATIVEDETAILVAL3.toString(), detailInfo.nativeVal3);
-                        cv
-                                .put(Field.NATIVESYNCCONTACTID.toString(),
-                                        detailInfo.syncNativeContactId);
+                        cv.put(Field.NATIVESYNCCONTACTID.toString(), detailInfo.syncNativeContactId);
+                        
                         DatabaseHelper.trace(true, "ContactDetailsTable.mergeContactDetails():"
                                 + " changing ownership for duplicated detail: " + detailInfo);
-                        writableDb.update(TABLE_NAME, cv, Field.DETAILLOCALID + "="
-                                + currentDetails.localId, null);
+                        writableDb.update(TABLE_NAME, cv, Field.DETAILLOCALID + "=" + currentDetails.localId, null);
                         cv.clear();
                         detailLocalIds.remove(detailsIndex);
                         break;
@@ -1287,7 +1301,8 @@ public abstract class ContactDetailsTable {
             }
 
             return ServiceStatus.SUCCESS;
-        } catch (SQLException e) {
+        } 
+        catch (SQLException e) {
             LogUtils.logE("ContactDetailsTable.mergeContactDetails() SQLException - "
                     + "Unable to merge contact detail native info", e);
             return ServiceStatus.ERROR_DATABASE_CORRUPT;

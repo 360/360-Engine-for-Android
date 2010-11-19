@@ -57,6 +57,16 @@ public class VersionUtils {
         "com.android.htccontacts.HtcContactInfoBase";
     
     /**
+     * True, if we already tested for HTC Sense.
+     */
+    private static boolean sWasHtcSenseTested = false;
+
+    /**
+     * True, if device is HTC Sense.
+     */
+    private static boolean sIsHtcSenseDevice = false;
+
+    /**
      * Returns the Platform Version Code.
      * @return Platform Version Code
      */
@@ -77,25 +87,33 @@ public class VersionUtils {
      * Checks if we are currently on a HTC device with HTC Sense enabled.
      * This method simply looks for a class that we know of. 
      * However, this flawed as it uses hard-coded Strings.
+     * 
      * TODO: Use a non hard-coded way to detect these devices
+     * TODO: This function leaks memory. 
+     *       The created class and loader instances are not removed by GC. 
+     *       After ~200 calls we get an OutOfMemoryException. 
+     *       Workaround: Test just once and remember outcome.
+     * 
      * @param context Context needed for fetching Class Loader
      */
     public static boolean isHtcSenseDevice(Context context) {
-        boolean isHtcSenseDevice = false;
-        try {
-            // Search for HTC Contacts Application class (HTC Sense)
-            final PathClassLoader classLoader = 
-                new PathClassLoader(HTC_CONTACTS_APK_PATH, 
-                        context.getClassLoader());
-            final Class<?> c = 
-                Class.forName(KNOWN_HTC_CONTACTS_CLASS, 
-                        true, classLoader);
-            isHtcSenseDevice = true;
-        } catch(Exception ex) {
-            // Nothing to do, not a HTC Sense device
-        }
-        
-        return isHtcSenseDevice;
+       	// We already know?
+    	if (!sWasHtcSenseTested) {
+    		sWasHtcSenseTested = true;
+
+    		try {
+	            // No we don't. Search for HTC Contacts Application class (HTC Sense)
+	            PathClassLoader classLoader =  new PathClassLoader(HTC_CONTACTS_APK_PATH,
+	            		context.getClassLoader());
+	            Class.forName(KNOWN_HTC_CONTACTS_CLASS, true, classLoader);
+	            
+	            sIsHtcSenseDevice = true;
+            } 
+            catch(Exception ex) {
+            	sIsHtcSenseDevice = false;
+            }
+       	}
+    	return sIsHtcSenseDevice;
     }
     
     /**

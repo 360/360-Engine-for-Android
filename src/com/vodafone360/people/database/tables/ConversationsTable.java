@@ -44,7 +44,7 @@ public abstract class ConversationsTable {
      * The name of the table as it appears in the database. TODO: methods
      * signatures might change
      */
-    private static final String TABLE_NAME = "Conversations"; // it is used in
+    public static final String TABLE_NAME = "Conversations"; // it is used in
 
     // the tests
 
@@ -194,13 +194,8 @@ public abstract class ConversationsTable {
                     msg.setUserId(c.getString(USER_ID));
                     msg.setConversationId(c.getString(CONVERSATION_ID));
                     tos = new ArrayList<String>();
-                    // People users don't need the "network::" prefix
-                    if (SocialNetwork.VODAFONE.ordinal() == msg.getNetworkId()) {
-                        tos.add(msg.getUserId());
-                    } else {
-                        tos.add(SocialNetwork.getChatValue(msg.getNetworkId()) + COLUMNS
-                                + msg.getUserId());
-                    }
+                    tos.add(SocialNetwork.getSocialNetworkValue(msg.getNetworkId()) + COLUMNS
+                            + msg.getUserId());
                 } else {
                     removeOldConversationByLocalContactIdAndNetworkId(msg.getLocalContactId(), msg
                             .getNetworkId(), writableDb);

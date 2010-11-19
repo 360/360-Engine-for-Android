@@ -101,7 +101,7 @@ public class ContactDetail extends BaseDataType implements Parcelable {
          * @param tag String value to find detailKeyTypes item for
          * @return detailKeyTypes item for specified String, null otherwise
          */
-        protected static DetailKeyTypes findKey(String k) {
+        public static DetailKeyTypes findKey(String k) {
             for (DetailKeyTypes type : DetailKeyTypes.values()) {
                 if (k.compareTo(type.tag()) == 0) {
                     return type;
@@ -202,6 +202,20 @@ public class ContactDetail extends BaseDataType implements Parcelable {
             return tag;
         }
 
+        /**
+         * Find Tags item for specified String
+         * 
+         * @param tag String value to find Tags item for
+         * @return Tags item for specified String, null otherwise
+         */
+        public static Tags findTag(String tag) {
+            for (Tags tags : Tags.values()) {
+                if (tag.compareTo(tags.tag()) == 0) {
+                    return tags;
+                }
+            }
+            return null;
+        }
     }
 
     /**
@@ -348,22 +362,8 @@ public class ContactDetail extends BaseDataType implements Parcelable {
      */
     public Integer metadata = -1;
 
-    /**
-     * Find Tags item for specified String
-     * 
-     * @param tag String value to find Tags item for
-     * @return Tags item for specified String, null otherwise
-     */
-    private Tags findTag(String tag) {
-        for (Tags tags : Tags.values()) {
-            if (tag.compareTo(tags.tag()) == 0) {
-                return tags;
-            }
-        }
-        return null;
-    }
-
-    /** {@inheritDoc} */
+    
+     /** {@inheritDoc} */
     @Override
     public int getType() {
         return CONTACT_DETAIL_DATA_TYPE;
@@ -433,10 +433,18 @@ public class ContactDetail extends BaseDataType implements Parcelable {
         while (e.hasMoreElements()) {
             String key = e.nextElement();
             Object value = hash.get(key);
-            Tags tag = findTag(key);
+            Tags tag = Tags.findTag(key);
             setValue(tag, value);
         }
-
+        
+        // FIX for PAND-2379
+        // TODO: remove, when BE does not send invalid photo urls
+        if (key == DetailKeys.PHOTO && value != null) {
+        	value = value.replaceAll("\r", ""); 
+        	value = value.replaceAll("\n", ""); 
+        	value = value.replaceAll(" ", ""); 
+        }
+        
         return this;
     }
 
@@ -569,17 +577,18 @@ public class ContactDetail extends BaseDataType implements Parcelable {
         sb.append(" Date: "); sb.append(time.toGMTString()); 
         sb.append("\n\t\tUnique ID: "); sb.append(unique_id);
         sb.append("\n\t\tserverContactId: "); sb.append(serverContactId);
-        sb.append("\n\t\tsyncNativeContactId: "); sb.append(syncNativeContactId);;
+        sb.append("\n\t\tsyncNativeContactId: "); sb.append(syncNativeContactId);
         
         if (location != null) {
-            sb.append("\n\t\tLocation: "); sb.append(location.toString());;
+            sb.append("\n\t\tLocation: "); sb.append(location.toString());
         }
 
         if (photo != null) {
             sb.append("\n\t\tPhoto BYTE[] is present");
         }
-        sb.append("\n\t\tPhoto MIME type: "); sb.append(photo_mime_type);;
-        sb.append("\n\t\tPhoto URL: "); sb.append(photo_url);;
+        sb.append("\n\t\tPhoto MIME type: "); sb.append(photo_mime_type);
+        sb.append("\n\t\tPhoto URL: "); sb.append(photo_url);
+        sb.append("\n");
 
         return sb.toString();
     }

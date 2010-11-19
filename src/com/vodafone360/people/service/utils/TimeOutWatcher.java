@@ -223,7 +223,7 @@ public class TimeOutWatcher implements Runnable {
     private void fireRequestExpired(Request request) {
         // create a list with a server error containing a timeout
         final List<BaseDataType> data = new ArrayList<BaseDataType>(1);
-        final ServerError timeoutError = new ServerError(ServerError.ErrorType.REQUEST_TIMEOUT);
+        final ServerError timeoutError = new ServerError(ServerError.ErrorType.REQUEST_TIMEOUT, request.getRequestId());
         timeoutError.errorDescription = "TimeOutWatcher detected that the request id=["
                 + request.getRequestId() + "] has timed out.";
         data.add(timeoutError);

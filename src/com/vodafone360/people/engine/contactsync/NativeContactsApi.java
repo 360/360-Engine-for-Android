@@ -59,20 +59,48 @@ public abstract class NativeContactsApi {
      * Account type for 360 People in the Native Accounts. 
      * MUST be a copy of type in 'res/xml/authenticator.xml' 
      */
-    protected static final String PEOPLE_ACCOUNT_TYPE_STRING = "com.vodafone360.people.android.account";
+    public static final String PEOPLE_ACCOUNT_TYPE_STRING = "com.vodafone360.people.android.account";
 
     /**
      * Google account, there can be more than one of these
      */
     protected static final String GOOGLE_ACCOUNT_TYPE_STRING = "com.google";
+    
+    /**
+     * HTC vendor specific account type for phone contacts.
+     * Current indication is that this account type is HTC Sense specific.
+     */
+    private static final String HTC_PHONE_ACCOUNT_TYPE_STRING = 
+        "com.htc.android.pcsc";
+    
+    /**
+     * Samsung vendor specific Account type String for phone contacts. 
+     */
+    private static final String SAMSUNG_PHONE_ACCOUNT_TYPE_STRING = 
+        "vnd.sec.contact.phone";
+    
+    /**
+     * Motorola vendor specific Account type String for phone contacts.
+     * Current indication is that this account type is Moto Blur specific.
+     */
+    private static final String MOTOROLA_PHONE_ACCOUNT_TYPE_STRING = 
+        "com.motorola.blur.service.bsutils.MOTHER_USER_CREDS_TYPE";
+    
+    /**
+     * Sony Ericsson vendor specific Account type for phone contacts.
+     */
+    private static final String SONY_ERICSSON_PHONE_ACCOUNT_TYPE_STRING = 
+        "com.sonyericsson.localcontacts";
 
     /**
      * There are devices with custom contact applications. For them we need
      * special handling of contacts.
      */
     protected static final String[] VENDOR_SPECIFIC_ACCOUNTS = {
-            "com.htc.android.pcsc", "vnd.sec.contact.phone",
-            "com.motorola.blur.service.bsutils.MOTHER_USER_CREDS_TYPE"
+            HTC_PHONE_ACCOUNT_TYPE_STRING, 
+            SAMSUNG_PHONE_ACCOUNT_TYPE_STRING,
+            MOTOROLA_PHONE_ACCOUNT_TYPE_STRING,
+            SONY_ERICSSON_PHONE_ACCOUNT_TYPE_STRING
     };
     
     /**
@@ -299,7 +327,7 @@ public abstract class NativeContactsApi {
      * @return true if successful, false if not
      */
     public abstract boolean addPeopleAccount(String username);
-
+    
     /**
      * Checks if there is a People Account in the NAB Accounts. Only supported
      * on 2.X The 1.X implementation does nothing.
@@ -412,4 +440,5 @@ public abstract class NativeContactsApi {
         }
         return false;
     }
+  
 }

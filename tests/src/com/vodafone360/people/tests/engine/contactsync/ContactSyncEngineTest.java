@@ -30,8 +30,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Instrumentation;
-import android.content.ContentResolver;
-import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -44,7 +42,7 @@ import com.vodafone360.people.MainApplication;
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.ContactChanges;
-import com.vodafone360.people.engine.BaseEngine.IEngineEventCallback;
+import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.engine.contactsync.BaseSyncProcessor;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine;
@@ -128,11 +126,11 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
      * @param factory the factory used by the ContactSyncEngine
      * @param observer the test framework observer
      */
-    private void setUpContactSyncEngineTestFramework(ProcessorFactory factory,
-            IEngineTestFrameworkObserver observer) {
+    private void setUpContactSyncEngineTestFramework(IEngineTestFrameworkObserver observer, 
+    		ProcessorFactory factory) {
         mEngineTester = new EngineTestFramework(observer);
-        mContactSyncEngine = new ContactSyncEngine(mEngineTester, mApplication, mApplication
-                .getDatabase(), factory);
+        mContactSyncEngine = new ContactSyncEngine(mApplication.getApplicationContext(),
+        		mEngineTester, mApplication.getDatabase(), factory);
         mContactSyncEngine.onCreate();
 
         mEngineTester.setEngine(mContactSyncEngine);
@@ -146,8 +144,8 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
      */
     private void minimalEngineSetup(IEngineEventCallback eventCallback, ProcessorFactory factory) {
 
-        mContactSyncEngine = new ContactSyncEngine(eventCallback, mApplication, mApplication
-                .getDatabase(), factory);
+        mContactSyncEngine = new ContactSyncEngine(mApplication.getApplicationContext(),
+        		eventCallback, mApplication.getDatabase(), factory);
         mContactSyncEngine.onCreate();
     }
 
@@ -163,7 +161,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
 
             @Override
             public BaseSyncProcessor create(int type, IContactSyncCallback callback,
-                    DatabaseHelper dbHelper, Context context, ContentResolver cr) {
+                    DatabaseHelper dbHelper) {
 
                 return new DummySyncProcessor(mContactSyncEngine, null);
             }
@@ -185,7 +183,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
         Log.i(LOG_TAG, "**** testFirstTimeSync_dummyReplies ****");
 
         final FirstTimeSyncFrameworkHandler handler = new FirstTimeSyncFrameworkHandler();
-        setUpContactSyncEngineTestFramework(null, handler);
+        setUpContactSyncEngineTestFramework(handler, null);
         handler.setContactSyncEngine(mContactSyncEngine);
 
         NetworkAgent.setAgentState(AgentState.CONNECTED);
@@ -219,7 +217,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
 
             @Override
             public BaseSyncProcessor create(int type, IContactSyncCallback callback,
-                    DatabaseHelper dbHelper, Context context, ContentResolver cr) {
+                    DatabaseHelper dbHelper) {
 
                 Log.i(LOG_TAG, "create(), type=" + type);
                 processorTypeList.add(new Integer(type));
@@ -273,7 +271,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
 
             @Override
             public BaseSyncProcessor create(int type, IContactSyncCallback callback,
-                    DatabaseHelper dbHelper, Context context, ContentResolver cr) {
+                    DatabaseHelper dbHelper) {
 
                 Log.i(LOG_TAG, "create(), type=" + type);
 
@@ -339,7 +337,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
 
             @Override
             public BaseSyncProcessor create(int type, IContactSyncCallback callback,
-                    DatabaseHelper dbHelper, Context context, ContentResolver cr) {
+                    DatabaseHelper dbHelper) {
 
                 Log.i(LOG_TAG, "create(), type=" + type);
 
@@ -369,14 +367,6 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
         // check that first time sync is completed
         assertEquals(ServiceUiRequest.UI_REQUEST_COMPLETE.ordinal(), uiEventCall.event);
         assertEquals(uiEventCall.status, ServiceStatus.SUCCESS.ordinal());
-
-        // ask for a server sync
-        uiEventCall.reset();
-        mContactSyncEngine.addUiStartServerSync(0);
-        nextRuntime = mContactSyncEngine.getNextRunTime();
-        assertEquals(0, nextRuntime);
-
-        mContactSyncEngine.run();
 
         // check that first time sync is completed
         assertEquals(ServiceUiRequest.UI_REQUEST_COMPLETE.ordinal(), uiEventCall.event);
@@ -424,7 +414,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
 
             @Override
             public BaseSyncProcessor create(int type, IContactSyncCallback callback,
-                    DatabaseHelper dbHelper, Context context, ContentResolver cr) {
+                    DatabaseHelper dbHelper) {
 
                 Log.i(LOG_TAG, "create(), type=" + type);
 
@@ -487,7 +477,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
 
             @Override
             public BaseSyncProcessor create(int type, IContactSyncCallback callback,
-                    DatabaseHelper dbHelper, Context context, ContentResolver cr) {
+                    DatabaseHelper dbHelper) {
 
                 Log.i(LOG_TAG, "create(), type=" + type);
 
@@ -555,7 +545,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
 
             @Override
             public BaseSyncProcessor create(int type, IContactSyncCallback callback,
-                    DatabaseHelper dbHelper, Context context, ContentResolver cr) {
+                    DatabaseHelper dbHelper) {
 
                 Log.i(LOG_TAG, "create(), type=" + type);
 
@@ -616,7 +606,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
 
             @Override
             public BaseSyncProcessor create(int type, IContactSyncCallback callback,
-                    DatabaseHelper dbHelper, Context context, ContentResolver cr) {
+                    DatabaseHelper dbHelper) {
 
                 Log.i(LOG_TAG, "create(), type=" + type);
                 ProcessorLog log = new ProcessorLog();
@@ -743,7 +733,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
 
             @Override
             public BaseSyncProcessor create(int type, IContactSyncCallback callback,
-                    DatabaseHelper dbHelper, Context context, ContentResolver cr) {
+                    DatabaseHelper dbHelper) {
 
                 Log.i(LOG_TAG, "create(), type=" + type);
                 ProcessorLog log = new ProcessorLog();
@@ -834,16 +824,6 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
         mContactSyncEngine.run();
 
         // get the native sync to be run
-        mContactSyncEngine.run();
-
-        // request a server sync
-        mContactSyncEngine.addUiStartServerSync(0);
-
-        nextRuntime = mContactSyncEngine.getNextRunTime();
-        // next runtime should be now
-        assertEquals(0, nextRuntime);
-
-        // perform the server sync
         mContactSyncEngine.run();
 
         // get the thumbnail sync to be run
@@ -982,7 +962,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
 
             @Override
             public BaseSyncProcessor create(int type, IContactSyncCallback callback,
-                    DatabaseHelper dbHelper, Context context, ContentResolver cr) {
+                    DatabaseHelper dbHelper) {
 
                 Log.i(LOG_TAG, "create(), type=" + type);
                 ProcessorLog log = new ProcessorLog();
@@ -1124,7 +1104,7 @@ public class ContactSyncEngineTest extends InstrumentationTestCase {
 
             @Override
             public BaseSyncProcessor create(int type, IContactSyncCallback callback,
-                    DatabaseHelper dbHelper, Context context, ContentResolver cr) {
+                    DatabaseHelper dbHelper) {
 
                 Log.i(LOG_TAG, "create(), type=" + type);
                 ProcessorLog log = new ProcessorLog();

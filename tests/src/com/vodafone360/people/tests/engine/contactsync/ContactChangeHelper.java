@@ -25,7 +25,6 @@
 
 package com.vodafone360.people.tests.engine.contactsync;
 
-import java.security.acl.LastOwnerException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;

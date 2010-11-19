@@ -165,7 +165,8 @@ public abstract class PresenceTable {
         if (writableDb == null) {
             throw new NullPointerException(DEFAULT_ERROR_MESSAGE);
         }
-        String createSql = "CREATE TABLE IF NOT EXISTS " + DatabaseHelper.DATABASE_PRESENCE + "." + TABLE_NAME + " (" + Field.ID
+        String createSql = "CREATE TABLE IF NOT EXISTS " + DatabaseHelper.DATABASE_PRESENCE 
+                + "." + TABLE_NAME + " (" + Field.ID
                 + " INTEGER PRIMARY KEY AUTOINCREMENT, " + Field.LOCAL_CONTACT_ID + " LONG, "
                 + Field.USER_ID + " STRING, " + Field.NETWORK_ID + " INT, " + Field.NETWORK_STATUS
                 + " INT);";
@@ -223,10 +224,8 @@ public abstract class PresenceTable {
                             } else {
                                 LogUtils.logE("PresenceTable updateUser(): could not add new user!");
                             }
-                        } else {
-                            if (ret == USER_NOTADDED) {
+                        } else if (ret == USER_NOTADDED) {
                                 ret = USER_UPDATED;
-                            }
                         }
                         values.clear();    
                     } else if (ignoredNetworkIds != null) { // presence information from this network needs to be ignored
@@ -348,8 +347,8 @@ public abstract class PresenceTable {
         if (writableDatabase == null) {
             throw new NullPointerException(DEFAULT_ERROR_MESSAGE);
         }
-        // To remove all rows and get a count pass "1" as the whereClause
-        return writableDatabase.delete(TABLE_NAME, "1", null);
+        // To remove all rows and get a count pass null as the whereClause
+        return writableDatabase.delete(TABLE_NAME, null, null);
     }
     
    

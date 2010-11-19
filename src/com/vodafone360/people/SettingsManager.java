@@ -34,7 +34,6 @@ import java.util.Properties;
 
 import android.content.Context;
 
-import com.vodafone360.people.R;
 import com.vodafone360.people.utils.CloseUtils;
 import com.vodafone360.people.utils.LogUtils;
 
@@ -89,6 +88,8 @@ public final class SettingsManager {
         sSettings.put(Settings.SERVER_URL_HESSIAN_KEY,
                 Settings.DEFAULT_SERVER_URL_HESSIAN);
         sSettings.put(Settings.DEACTIVATE_ENGINE_LIST_KEY, new String[] {});
+        sSettings.put(Settings.ENABLE_AIDL_KEY, Settings.ENABLE_AIDL_DEFAULT);
+        
 
         InputStream mFile =
             context.getResources().openRawResource(R.raw.config);

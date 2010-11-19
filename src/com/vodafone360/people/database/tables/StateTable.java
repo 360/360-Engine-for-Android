@@ -56,7 +56,7 @@ public abstract class StateTable {
     /**
      * Name of the table as it appears in the database.
      */
-    private static final String TABLE_NAME = "State";
+    public static final String TABLE_NAME = "State";
 
     /**
      * The state table only has one record with the primary key set to the
@@ -434,7 +434,7 @@ public abstract class StateTable {
                     + "username[" + details.mUsername + "]");
         }
         ContentValues values = new ContentValues();
-        values.put(Field.STATEID.toString(), PRIMARY_STATE_KEY_VALUE);
+
         values.put(Field.USERNAME.toString(), details.mUsername);
         if (!details.mRememberMe) {
             values.put(Field.PASSWORD.toString(), (String) null);
@@ -480,7 +480,7 @@ public abstract class StateTable {
                     + details.mUsername + "]");
         }
         ContentValues values = new ContentValues();
-        values.put(Field.STATEID.toString(), PRIMARY_STATE_KEY_VALUE);
+
         values.put(Field.USERNAME.toString(), details.mUsername);
         if (!details.mRememberMe) {
             values.put(Field.PASSWORD.toString(), (String) null);
@@ -633,7 +633,7 @@ public abstract class StateTable {
                     + "revision[" + revision + "]");
         }
         ContentValues values = new ContentValues();
-        values.put(Field.STATEID.toString(), PRIMARY_STATE_KEY_VALUE);
+
         values.put(Field.CONTACTSREVISION.toString(), revision);
         try {
             if (writableDb.update(TABLE_NAME, values, Field.STATEID + " = "
@@ -885,7 +885,7 @@ public abstract class StateTable {
                     + "myContactID[" + myContactID + "]");
         }
         ContentValues values = new ContentValues();
-        values.put(Field.STATEID.toString(), PRIMARY_STATE_KEY_VALUE);
+
         values.put(Field.MYCONTACTID.toString(), myContactID);
         try {
             if (writableDb.update(TABLE_NAME, values, Field.STATEID + " = "
@@ -957,7 +957,7 @@ public abstract class StateTable {
                     + myContactChanged + "]");
         }
         ContentValues values = new ContentValues();
-        values.put(Field.STATEID.toString(), PRIMARY_STATE_KEY_VALUE);
+
         values.put(Field.MYCONTACTCHANGED.toString(), myContactChanged);
         try {
             if (writableDb.update(TABLE_NAME, values, Field.STATEID + " = "
@@ -1422,7 +1422,7 @@ public abstract class StateTable {
                     + "revision[" + revision + "]");
         }
         ContentValues values = new ContentValues();
-        values.put(Field.STATEID.toString(), PRIMARY_STATE_KEY_VALUE);
+
         values.put(Field.MEPROFILEREVISION.toString(), revision);
         try {
             if (writableDb.update(TABLE_NAME, values, Field.STATEID + " = "

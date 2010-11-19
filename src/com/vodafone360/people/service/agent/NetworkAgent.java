@@ -44,8 +44,10 @@ import android.text.format.DateUtils;
 
 import com.vodafone360.people.Intents;
 import com.vodafone360.people.MainApplication;
+import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.service.PersistSettings;
 import com.vodafone360.people.service.RemoteService;
+import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.PersistSettings.InternetAvail;
 import com.vodafone360.people.service.interfaces.IConnectionManagerInterface;
 import com.vodafone360.people.service.interfaces.IWorkerThreadControl;
@@ -73,7 +75,7 @@ public class NetworkAgent {
 
     private ContentResolver mContentResolver;
 
-    private AgentDisconnectReason mDisconnectReason = AgentDisconnectReason.UNKNOWN;
+    private static AgentDisconnectReason sDisconnectReason = AgentDisconnectReason.UNKNOWN;
 
     private SettingsContentObserver mDataRoamingSettingObserver;
 
@@ -97,7 +99,27 @@ public class NetworkAgent {
     private IConnectionManagerInterface mConnectionMgrIf;
 
     private Context mContext;
-
+    
+    /**
+     * 2G Voice call started string
+     */
+    private static final String VOICE_CALL_STARTED_2G_STRING = "2GVoiceCallStarted";
+    
+    /**
+     * 2G Voice call finished string.
+     */
+    private static final String VOICE_CALL_ENDED_2G_STRING = "2GVoiceCallEnded";
+    
+    /**
+     * To hold network info
+     */
+    private NetworkInfo mNetworkInfo = null;
+    
+    /**
+     * Resume contact sync if 2G call has finished.
+     */
+    private boolean mIsResumeSync = false;
+    
     public enum AgentState {
         CONNECTED,
         DISCONNECTED,
@@ -299,16 +321,18 @@ public class NetworkAgent {
             LogUtils.logV("NetworkAgent.broadcastReceiver.onReceive() CONNECTIVITY_ACTION");
             synchronized (NetworkAgent.this) {
                 NetworkInfo info = (NetworkInfo) intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
+                mNetworkInfo = info;
                 boolean noConnectivity = intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, false);
                 
-                if (info == null) {
-                	LogUtils.logW("NetworkAgent.broadcastReceiver.onReceive() EXTRA_NETWORK_INFO not found.");
+                if (info != null) {
+                    // Check network type              
+                    if (info.getType() == TYPE_WIFI) {
+                        mWifiNetworkAvailable = (info.getState() == NetworkInfo.State.CONNECTED);
+                    } else {
+                        mMobileNetworkAvailable = (info.getState() == NetworkInfo.State.CONNECTED);
+                    }
                 } else {
-                	if (info.getType() == TYPE_WIFI) {
-                		mWifiNetworkAvailable = (info.getState() == NetworkInfo.State.CONNECTED);
-                	} else {
-                		mMobileNetworkAvailable = (info.getState() == NetworkInfo.State.CONNECTED);
-                	}
+                    LogUtils.logW("NetworkAgent.broadcastReceiver.onReceive() EXTRA_NETWORK_INFO not found.");
                 }
                 
                 if (noConnectivity) {
@@ -474,55 +498,61 @@ public class NetworkAgent {
      * access
      */
     private void onConnectionStateChanged() {
-        if (!mInternetConnected) {
-            LogUtils.logV("NetworkAgent.onConnectionStateChanged() No internet connection");
-            mDisconnectReason = AgentDisconnectReason.NO_INTERNET_CONNECTION;
-            setNewState(AgentState.DISCONNECTED);
-            return;
-        } else {
-            if (mWifiNetworkAvailable) {
-                LogUtils.logV("NetworkAgent.onConnectionStateChanged() WIFI connected");
-            } else {
-                LogUtils.logV("NetworkAgent.onConnectionStateChanged() Cellular connected");
-            }
-        }
         if (mContext != null) {
             MainApplication app = (MainApplication)((RemoteService)mContext).getApplication();
-            if ((app.getInternetAvail() == InternetAvail.MANUAL_CONNECT)/*
-                                                                         * AA: I
-                                                                         * commented
-                                                                         * it -
-                                                                         * TBD
-                                                                         * &&!
-                                                                         * mWifiNetworkAvailable
-                                                                         */) {
+            if ((app.getInternetAvail() == InternetAvail.MANUAL_CONNECT)) {
                 LogUtils.logV("NetworkAgent.onConnectionStateChanged()"
                         + " Internet allowed only in manual mode");
-                mDisconnectReason = AgentDisconnectReason.DATA_SETTING_SET_TO_MANUAL_CONNECTION;
+                sDisconnectReason = AgentDisconnectReason.DATA_SETTING_SET_TO_MANUAL_CONNECTION;
                 setNewState(AgentState.DISCONNECTED);
                 return;
             }
         }
         if (!mNetworkWorking) {
             LogUtils.logV("NetworkAgent.onConnectionStateChanged() Network is not working");
-            mDisconnectReason = AgentDisconnectReason.NO_WORKING_NETWORK;
+            sDisconnectReason = AgentDisconnectReason.NO_WORKING_NETWORK;
             setNewState(AgentState.DISCONNECTED);
             return;
         }
-        if (mIsRoaming && !mDataRoaming) {
+        if (mIsRoaming && !mDataRoaming && !mWifiNetworkAvailable) {
             LogUtils.logV("NetworkAgent.onConnectionStateChanged() "
                     + "Connect while roaming not allowed");
-            mDisconnectReason = AgentDisconnectReason.DATA_ROAMING_DISABLED;
+            sDisconnectReason = AgentDisconnectReason.DATA_ROAMING_DISABLED;
             setNewState(AgentState.DISCONNECTED);
             return;
         }
         if (mIsInBackground && !mBackgroundData) {
-            LogUtils
-                    .logV("NetworkAgent.onConnectionStateChanged() Background connection not allowed");
-            mDisconnectReason = AgentDisconnectReason.BACKGROUND_CONNECTION_DISABLED;
+            LogUtils.logV("NetworkAgent.onConnectionStateChanged() Background connection not allowed");
+            sDisconnectReason = AgentDisconnectReason.BACKGROUND_CONNECTION_DISABLED;
             setNewState(AgentState.DISCONNECTED);
             return;
         }
+        if (!mInternetConnected) {
+            LogUtils.logV("NetworkAgent.onConnectionStateChanged() No internet connection");
+            sDisconnectReason = AgentDisconnectReason.NO_INTERNET_CONNECTION;
+            // If 2g call is started, notify contact sync engine to pause.
+            if (mNetworkInfo != null && 
+                       VOICE_CALL_STARTED_2G_STRING.equals(mNetworkInfo.getReason())) {
+                EngineManager.getInstance().getContactSyncEngine().pauseSync();
+            }
+            
+            setNewState(AgentState.DISCONNECTED);
+            return;
+        } 
+        
+        // If 2g voice call is finished, set resume state
+        if (mNetworkInfo != null && 
+                   VOICE_CALL_ENDED_2G_STRING.equals(mNetworkInfo.getReason())) {
+            mIsResumeSync = true;
+        }
+ 
+        
+        if (mWifiNetworkAvailable) {
+            LogUtils.logV("NetworkAgent.onConnectionStateChanged() WIFI connected");
+        } else {
+            LogUtils.logV("NetworkAgent.onConnectionStateChanged() Cellular connected");
+        }
+        
         LogUtils.logV("NetworkAgent.onConnectionStateChanged() Connection available");
         setNewState(AgentState.CONNECTED);
     }
@@ -530,6 +560,29 @@ public class NetworkAgent {
     public static AgentState getAgentState() {
         LogUtils.logV("NetworkAgent.getAgentState() mAgentState[" + mAgentState.name() + "]");
         return mAgentState;
+    }
+
+    public static ServiceStatus getServiceStatusfromDisconnectReason() {
+        
+        if (sDisconnectReason != null)
+	    	switch (sDisconnectReason)
+	    	{
+				case AGENT_IS_CONNECTED:
+					return ServiceStatus.SUCCESS;
+	    		case NO_WORKING_NETWORK:
+	    			return ServiceStatus.ERROR_NO_INTERNET;
+	    		case NO_INTERNET_CONNECTION:
+	    			return ServiceStatus.ERROR_NO_INTERNET;
+	    		case DATA_ROAMING_DISABLED:
+	    			return ServiceStatus.ERROR_ROAMING_INTERNET_NOT_ALLOWED;
+	    		case DATA_SETTING_SET_TO_MANUAL_CONNECTION:
+	    			return ServiceStatus.ERROR_NO_AUTO_CONNECT;
+	    		case BACKGROUND_CONNECTION_DISABLED:
+	    			// TODO: define appropriate ServiceStatus
+	    			return ServiceStatus.ERROR_COMMS;
+	    	}
+        
+        return ServiceStatus.ERROR_COMMS;
     }
 
     private void setNewState(AgentState newState) {
@@ -540,7 +593,7 @@ public class NetworkAgent {
         mAgentState = newState;
 
         if (newState == AgentState.CONNECTED) {
-            mDisconnectReason = AgentDisconnectReason.AGENT_IS_CONNECTED;
+            sDisconnectReason = AgentDisconnectReason.AGENT_IS_CONNECTED;
             onConnected();
         } else if (newState == AgentState.DISCONNECTED) {
             onDisconnected();
@@ -554,6 +607,12 @@ public class NetworkAgent {
         }
         if (mConnectionMgrIf != null) {
             mConnectionMgrIf.signalConnectionManager(true);
+        }
+                
+        // If resume sync is set, signal contact sync engine to resume sync.
+        if (mIsResumeSync) {
+            EngineManager.getInstance().getContactSyncEngine().resumeSync();
+            mIsResumeSync = false;
         }
     }
 
@@ -666,7 +725,7 @@ public class NetworkAgent {
         state.setNetworkWorking(mNetworkWorking);
         state.setWifiActive(mWifiNetworkAvailable);
 
-        state.setDisconnectReason(mDisconnectReason);
+        state.setDisconnectReason(sDisconnectReason);
         state.setAgentState(mAgentState);
 
         LogUtils.logD("NetworkAgent.getNetworkAgentState() state[" + state + "]");

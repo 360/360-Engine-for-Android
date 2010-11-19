@@ -76,6 +76,9 @@ public class SyncStatus {
     /** Current task total (e.g. Sent 25 of X contacts). **/
     private int mTaskStatusTotal;
 
+    /** TRUE if this is currently a first time sync. **/
+    private boolean mFirstTimeSync;
+
     /**
      * Construct with only the ServiceStatus of the Contacts sync engine.
      *
@@ -187,4 +190,37 @@ public class SyncStatus {
     public final int getTaskStatusTotal() {
         return mTaskStatusTotal;
     }
+
+    /***
+     * Set to TRUE if this is a first time sync.  Progress UI should always be
+     * shown during first time sync even when returning to the application.
+     * Background sync should not have any UI at all. 
+     *
+     * @param firstTimeSync TRUE if this is a first time sync.
+     */
+    public void firstTimeSync(boolean firstTimeSync) {
+        mFirstTimeSync = firstTimeSync;
+    }
+
+    /**
+     * Return TRUE if this is a first time sync.  Progress UI should always be
+     * shown during first time sync even when returning to the application.
+     * Background sync should not have any UI at all. 
+     *
+     * @return TRUE if this is a first time sync.
+     */
+    public final boolean isFirstTimeSync() {
+        return mFirstTimeSync;
+    }
+    
+	public final String toString() {
+		return new StringBuilder("SyncStatus:\n\tProgress:").append(mProgress)
+				.append("\n\tServiceStatus:").append(mServiceStatus)
+				.append("\n\tTask:").append(mTask)
+				.append("\n\tTaskStatus:").append(mTaskStatus)
+				.append("\n\tTaskStatusDone:").append(mTaskStatusDone)
+				.append("\n\tTaskStatusTotal:").append(mTaskStatusTotal)
+				.append("\n\tTextContact:").append(mTextContact)
+				.append("\n\tIsFirstTimeSync:").append(mFirstTimeSync).toString();
+	}
 }

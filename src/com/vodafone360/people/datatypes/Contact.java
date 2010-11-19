@@ -627,6 +627,20 @@ public class Contact extends BaseDataType implements Parcelable, Persistable {
     }
 
     /**
+     * Checks if the specified contact detail is available.
+     * @return <code>true</code> if the contact detail has been found, <code>false</code> otherwise.
+     */
+    public boolean hasContactDetail(ContactDetail.DetailKeys detailKey) {
+        for (final ContactDetail detail : details) {
+            if (detail != null && detail.key == detailKey) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    
+    /**
      * Fetches the preffered ContactDetail for this Contact and a DetailKey for
      * example the preffered phone number or email address
      * 

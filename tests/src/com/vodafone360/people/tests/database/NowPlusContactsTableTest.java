@@ -26,6 +26,9 @@
 package com.vodafone360.people.tests.database;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -322,19 +325,24 @@ public class NowPlusContactsTableTest extends NowPlusTableTestCase {
 				writeableDb);
 		assertEquals(ServiceStatus.SUCCESS, status);
 		// fetch server ids
-		ArrayList<Long> serverIds = new ArrayList<Long>();
+		HashSet<Long> serverIds = new HashSet<Long>();
 		status = ContactsTable.fetchContactServerIdList(serverIds, readableDb);
 		assertEquals(ServiceStatus.SUCCESS, status);
 		// validate if lists have the same sizes
 		assertEquals(2, dupList.size());
 		assertEquals(contactServerIdList.size() - 2, serverIds.size());
-
-		final ListIterator<Long> serverIdsIt = serverIds.listIterator();
+		
 		assertEquals(Long.valueOf(dupList.get(0).localId), contactServerIdList.get(0).localId);
 		assertEquals(contactServerIdList.get(0).serverId, dupList.get(0).serverId);
 		assertEquals(duplicateContact.localContactID, Long.valueOf(dupList.get(1).localId));
 		assertEquals(Long.valueOf(contactIdBase + 1), dupList.get(1).serverId);
 		
+        // Need to convert HashSet into an Arraylist, otherwise it's not possible to compare
+		// HashSet is not sorted!
+        ArrayList<Long> serverIdsArrayList = new ArrayList<Long>(serverIds);
+        Collections.sort(serverIdsArrayList);
+	    final Iterator<Long> serverIdsIt = serverIdsArrayList.iterator();
+	    
 		for (int i = 1; i < contactServerIdList.size() - 1; i++) {
 			Long actServerId = serverIdsIt.next();
 			assertEquals(contactServerIdList.get(i).serverId, actServerId);

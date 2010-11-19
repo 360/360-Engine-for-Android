@@ -26,6 +26,7 @@
 package com.vodafone360.people.service;
 
 import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.BroadcastReceiver;
 import android.content.ContentProviderClient;
@@ -41,11 +42,11 @@ import android.provider.ContactsContract;
 
 import com.vodafone360.people.MainApplication;
 import com.vodafone360.people.engine.contactsync.NativeContactsApi;
-import com.vodafone360.people.engine.contactsync.NativeContactsApi2;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine.IContactSyncObserver;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine.Mode;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine.State;
 import com.vodafone360.people.service.PersistSettings.InternetAvail;
+import com.vodafone360.people.utils.LogUtils;
 
 /**
  * SyncAdapter implementation which basically just ties in with
@@ -72,7 +73,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
      * This waiting time is necessary because in case it is our sync adapter authority setting 
      * that changes we cannot query in the callback because the value is not yet changed!
      */
-    private static final int SYNC_SETTING_CHECK_DELAY = 500;
+    private static final int SYNC_SETTING_CHECK_DELAY = 2000;
     
     /**
      * Same as ContentResolver.SYNC_OBSERVER_TYPE_SETTINGS
@@ -114,10 +115,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
      */
     private final Handler mHandler = new Handler();
     
-    /**
-     * Cached Account we use to query this Sync Adapter instance's Auto-sync setting.
-     */
-    private Account mAccount;
     
     /**
      * Runnable used to post to a runnable in order to wait 
@@ -138,14 +135,14 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
     };
             
     public SyncAdapter(Context context, MainApplication application) {
-        // No automatic initialization (false)
-        super(context, false);
+        // Automatically initialized (true) due to PAND-2304
+        super(context, true);
         mApplication = application;
         context.registerReceiver(mAutoSyncChangeBroadcastReceiver, new IntentFilter(
             "com.android.sync.SYNC_CONN_STATUS_CHANGED"));
         ContentResolver.addStatusChangeListener(
                 SYNC_OBSERVER_TYPE_SETTINGS, mSyncStatusObserver);
-        // Necessary in case of Application udpate
+        // Necessary in case of Application update
         forceSyncSettingsInCaseOfAppUpdate();
 
         // Register for sync event callbacks
@@ -160,7 +157,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
     public void onPerformSync(Account account, Bundle extras, String authority,
         ContentProviderClient provider, SyncResult syncResult) {
         if(extras.getBoolean(ContentResolver.SYNC_EXTRAS_INITIALIZE, false)) {
-            initializeSyncAdapter(account, authority);
+            initialize(account, authority);
             return;
         } 
 
@@ -229,9 +226,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
      * @param account The account associated with the initialization
      * @param authority The authority of the content
      */
-    private void initializeSyncAdapter(Account account, String authority) {
-        mAccount = account; // caching
-        ContentResolver.setIsSyncable(account, authority, 1);
+    public static void initialize(Account account, String authority) {
+        ContentResolver.setIsSyncable(account, authority, 1); // > 0 means syncable
         ContentResolver.setSyncAutomatically(account, authority, true);
     }
       
@@ -242,9 +238,20 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
      * @return true if the settings are enabled, false otherwise
      */
     private boolean canSyncAutomatically() {
-        return ContentResolver.getMasterSyncAutomatically()
-            && mAccount != null 
-            && ContentResolver.getSyncAutomatically(mAccount, ContactsContract.AUTHORITY);
+        Account account = getPeopleAccount();
+        if (account == null) {
+            // There's no account in the system anyway so 
+            // just say true to avoid any issues with the application.
+            return true;
+        }
+        
+        boolean masterSyncAuto = ContentResolver.getMasterSyncAutomatically();
+        boolean syncAuto = ContentResolver.getSyncAutomatically(account, ContactsContract.AUTHORITY); 
+        
+        LogUtils.logD("SyncAdapter.canSyncAutomatically() [masterSync=" + 
+                masterSyncAuto + ", syncAuto=" + syncAuto + "]");
+        
+        return masterSyncAuto && syncAuto;
     }
     
     /**
@@ -270,11 +277,28 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements IContact
      * the sync adapter to syncable for the contacts authority.
      */
     private void forceSyncSettingsInCaseOfAppUpdate() {
-        NativeContactsApi2 nabApi = (NativeContactsApi2) NativeContactsApi.getInstance();
+        NativeContactsApi nabApi = NativeContactsApi.getInstance();
         nabApi.setSyncable(true);
-        mAccount = nabApi.getPeopleAccount();
         nabApi.setSyncAutomatically(
                 mApplication.getInternetAvail() == InternetAvail.ALWAYS_CONNECT);
+    }
+    
+    /**
+     * Gets the first People Account found on the device or
+     * null if none is found.
+     * Beware! This method is basically duplicate code from 
+     * NativeContactsApi2.getPeopleAccount().
+     * Duplicating the code was found to be cleanest way to acess the functionality. 
+     * @return The Android People account found or null
+     */
+    private Account getPeopleAccount() {
+        android.accounts.Account[] accounts = 
+            AccountManager.get(mApplication).getAccountsByType(NativeContactsApi.PEOPLE_ACCOUNT_TYPE_STRING);
+        if (accounts != null && accounts.length > 0) {
+            Account ret = new Account(accounts[0].name, accounts[0].type);
+            return ret;
+        }
+        return null;
     }
 }
 

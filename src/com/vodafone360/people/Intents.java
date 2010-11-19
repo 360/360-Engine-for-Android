@@ -31,20 +31,22 @@ package com.vodafone360.people;
  */
 public class Intents {
     
-    public static final String NEW_CHAT_RECEIVED = "com.vodafone360.people.Intents.NEW_CHAT_RECEIVED";
+    public static final String UPDATE_CHAT_NOTIFICATION = "com.vodafone360.people.Intents.UPDATE_CHAT_NOTIFICATION";
     
     public static final String ROAMING_ON = "com.vodafone360.people.Intents.ROAMING_ON";
     
     public static final String ROAMING_OFF = "com.vodafone360.people.Intents.ROAMING_OFF";
 
-    public static final String START_LOGIN_ACTIVITY = 
-        "com.vodafone360.people.Intents.START_LOGIN_ACTIVITY";
-    
-    public static final String LOGIN_FAILED = 
-        "com.vodafone360.people.Intents.LOGIN_FAILED";
-    
-    public static final String HIDE_LOGIN_NOTIFICATION = 
-        "com.vodafone360.people.Intents.HIDE_LOGIN_NOTIFICATION";
+    public static final String START_LOGIN_ACTIVITY =  "com.vodafone360.people.Intents.START_LOGIN_ACTIVITY";
 
+    public static final String UPDATE_WIDGET =  "com.vodafone360.people.Intents.UPDATE_WIDGET";
     
+    public static final String CLEARALL_NOTIFICATION =  "com.vodafone360.people.Intents.CLEAR_ALL";
+    
+    public static final String OPEN_STATUS = "com.vodafone360.people.Intents.OPEN_STATUS";
+    
+    /**
+     * This is a boolean extra for the Intent, which indicates the Intent has been dismissed.
+     */
+    public static final String EXTRA_DISMISSED = "dismissed"; 
 }

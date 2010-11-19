@@ -23,10 +23,9 @@
  * Use is subject to license terms.
  */
 
-package com.vodafone360.people.service.interfaces;
+package com.vodafone360.people.service;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
 
 import android.os.Bundle;
@@ -40,21 +39,21 @@ import com.vodafone360.people.datatypes.LoginDetails;
 import com.vodafone360.people.datatypes.RegistrationDetails;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.EngineManager;
-import com.vodafone360.people.engine.BaseEngine.IEngineEventCallback;
+import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
-import com.vodafone360.people.service.RemoteService;
-import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.PersistSettings.InternetAvail;
 import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.agent.NetworkAgentState;
 import com.vodafone360.people.service.agent.UiAgent;
+import com.vodafone360.people.service.interfaces.IPeopleService;
+import com.vodafone360.people.service.interfaces.IWorkerThreadControl;
 import com.vodafone360.people.utils.LogUtils;
 
 /***
  * @see com.vodafone360.people.engine.BaseEngine.IEngineEventCallback
  * @see com.vodafone360.people.service.interfaces.IPeopleService
  */
-public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback {
+public class PeopleServiceImpl implements IPeopleService, IEngineEventCallback {
     private final List<Handler> mUiEventCallbackList = new ArrayList<Handler>();
 
     private IWorkerThreadControl mWorkerThreadControl;
@@ -75,7 +74,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @param service Provides access to remote service functions (mainly used
      *            to retrieve context).
      */
-    public IPeopleServiceImpl(IWorkerThreadControl workerThreadControl, RemoteService service) {
+    public PeopleServiceImpl(IWorkerThreadControl workerThreadControl, RemoteService service) {
         mWorkerThreadControl = workerThreadControl;
         mService = service;
         mHandlerAgent = new UiAgent((MainApplication)service.getApplication(), service);
@@ -165,7 +164,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
      * @see com.vodafone360.people.service.interfaces.IPeopleService#getMy360AndThirdPartyChattableIdentities()
      */
     public ArrayList<Identity> getMy360AndThirdPartyChattableIdentities() {
-    	return EngineManager.getInstance().getIdentityEngine().getMy360AndThirdPartyChattableIdentities();
+    	return EngineManager.getInstance().getIdentityEngine().getMyChattableIdentities();
     }
 
     /***
@@ -268,15 +267,6 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
     }
 
     /***
-     * @see com.vodafone360.people.service.interfaces.IPeopleService#startBackgroundContactSync(long)
-     */
-    @Override
-    public void startBackgroundContactSync(long delay) {
-        EngineManager.getInstance().getGroupsEngine().addUiGetGroupsRequest();
-        EngineManager.getInstance().getContactSyncEngine().addUiStartServerSync(delay);
-    }
-
-    /***
      * @see com.vodafone360.people.service.interfaces.IPeopleService#pingUserActivity()
      */
     @Override
@@ -341,14 +331,6 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
     @Override
     public void setAvailability(SocialNetwork network, OnlineStatus status) {
         EngineManager.getInstance().getPresenceEngine().setMyAvailability(network, status);
-    }
-
-    /***
-     * @see com.vodafone360.people.service.interfaces.IPeopleService#setAvailability(Hashtable<String, String> status)
-     */    
-    @Override
-    public void setAvailability(Hashtable<String, String> status) {
-        EngineManager.getInstance().getPresenceEngine().setMyAvailability(status);
     }
 
     /***
@@ -432,7 +414,7 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
 
     @Override
     public void updateChatNotification(long localContactId) {
-        mHandlerAgent.updateChat(localContactId, false);
+        mHandlerAgent.updateChat(localContactId, false, SocialNetwork.INVALID.ordinal());
         
     }
     
@@ -445,5 +427,13 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
 				.addUiDeleteIdentityRequest(network, identityId);
 
 	}
+
+	/**
+     * @see com.vodafone360.people.service.interfaces.IPeopleService#isSettingStatusOnNetworkInProgress(String network)
+     */
+    @Override
+    public boolean isSettingStatusOnNetworkInProgress(String network) {
+        return EngineManager.getInstance().getPresenceEngine().isSetStatusInProgress(network);
+    }
 
 }

@@ -26,6 +26,7 @@
 package com.vodafone360.people.database.tables;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import android.content.ContentValues;
@@ -199,9 +200,8 @@ public abstract class ContactsTable {
      * FROM Contacts
      * WHERE LocalId = ?
      */    
-    private static final String QUERY_NATIVE_ID_BY_LOCAL_CONTACT_ID = "SELECT " 
-        + Field.NATIVECONTACTID + " FROM "
-        + TABLE_NAME + " WHERE " + Field.LOCALID + "=?";
+    private static final String QUERY_NATIVE_ID_BY_LOCAL_CONTACT_ID = 
+    	"SELECT " + Field.NATIVECONTACTID + " FROM " + TABLE_NAME + " WHERE " + Field.LOCALID + "=?";
     
     
     /**
@@ -209,9 +209,8 @@ public abstract class ContactsTable {
      * FROM Contacts
      * WHERE ServerId = ?
      */
-    private static final String QUERY_LOCAL_ID_BY_SERVER_ID = "SELECT " + Field.LOCALID + ","
-        + Field.NATIVECONTACTID + " FROM " + TABLE_NAME + " WHERE "
-        + Field.SERVERID + "=?";
+    private static final String QUERY_LOCAL_ID_BY_SERVER_ID = 
+    	"SELECT " + Field.LOCALID + " FROM " + TABLE_NAME + " WHERE " + Field.SERVERID + "=?";
 
     /**
      * Column indices which match the query string returned by
@@ -596,25 +595,23 @@ public abstract class ContactsTable {
     }
 
     /**
-     * Returns a complete list of server IDs from the Contacts table in
-     * ascending order.
+     * Returns a complete set of server IDs from the Contacts table.
      * 
-     * @param orderedServerIdList A list that will be populated with the ordered
-     *            server IDs
+     * @param serverIdSet A set that will be populated with the server IDs
      * @param readableDb Readable SQLite database
      * @return SUCCESS or a suitable error code
      */
-    public static ServiceStatus fetchContactServerIdList(ArrayList<Long> orderedServerIdList,
+    public static ServiceStatus fetchContactServerIdList(HashSet<Long> serverIdSet,
             SQLiteDatabase readableDb) {
         DatabaseHelper.trace(false, "ContactsTable.fetchContactServerIdList()");
         Cursor c = null;
         try {
-            orderedServerIdList.clear();
+        	serverIdSet.clear();
             c = readableDb.rawQuery("SELECT " + Field.SERVERID + " FROM " + TABLE_NAME + " WHERE "
-                    + Field.SERVERID + " IS NOT NULL ORDER BY " + Field.SERVERID, null);
+                    + Field.SERVERID + " IS NOT NULL", null);
             while (c.moveToNext()) {
                 if (!c.isNull(0)) {
-                    orderedServerIdList.add(c.getLong(0));
+                	serverIdSet.add(c.getLong(0));
                 }
             }
             return ServiceStatus.SUCCESS;
@@ -730,7 +727,7 @@ public abstract class ContactsTable {
                     contactInfo.localId = info.localId;
                     contactInfo.serverId = info.serverId;
                      
-                    if(!fetchOriginalContactDataForDuplicate(contactInfo, writableDb)) {                        
+                    if(!fetchLocalIDFromServerID(writableDb, contactInfo)) {                        
                         writableDb.endTransaction();
                         return ServiceStatus.ERROR_DATABASE_CORRUPT;
                     }
@@ -815,9 +812,9 @@ public abstract class ContactsTable {
         }
         try {
             return writableDb.compileStatement(UPDATE_NATIVE_ID_BY_LOCAL_CONTACT_ID);
-        } catch (SQLException e) {
-            LogUtils.logE("ContactsTable.mergeContactStatement() SQLException - compile error:\n",
-                    e);
+        } 
+        catch (SQLException e) {
+            LogUtils.logE("ContactsTable.mergeContactStatement() SQLException - compile error:\n", e);
             return null;
         }
     }
@@ -839,8 +836,12 @@ public abstract class ContactsTable {
             return ServiceStatus.ERROR_DATABASE_CORRUPT;
         }
         try {
-            statement.bindLong(1, info.nativeId);
-            statement.bindLong(2, info.mergedLocalId);
+        	if (info.nativeId == null)
+        		statement.bindNull(1);
+        	else
+        		statement.bindLong(1, info.nativeId);
+
+        	statement.bindLong(2, info.mergedLocalId);
             statement.execute();
             return ServiceStatus.SUCCESS;
         } catch (SQLException e) {
@@ -913,31 +914,13 @@ public abstract class ContactsTable {
                 }
             }
             return syncToPhone;
-        } catch (SQLiteException e) {
+        } 
+        catch (SQLiteException e) {
             LogUtils.logE("ContactsTable.fetchSyncToPhone() Exception - Unable to run query:\n", e);
             return false;
-        } finally {
+        } 
+        finally {
             CloseUtils.close(c);
-            c = null;
-        }
-    }
-
-    /**
-     * Provides a statement that can be used to find a contact native ID in the
-     * table
-     * 
-     * @param readableDb Readable SQLite database
-     * @return The SQLite statement
-     * @see #fetchNativeFromLocalId(Long, SQLiteStatement)
-     */
-    public static SQLiteStatement fetchNativeFromLocalIdStatement(SQLiteDatabase readableDb) {
-        DatabaseHelper.trace(false, "ContactsTable.fetchNativeFromLocalIdStatement()");
-        try {
-            return readableDb.compileStatement(QUERY_NATIVE_ID_BY_LOCAL_CONTACT_ID);
-        } catch (SQLException e) {
-            LogUtils.logE("ContactsTable.fetchNativeFromLocalIdStatement() "
-                    + "Exception - Compile error:\n", e);
-            return null;
         }
     }
 
@@ -950,18 +933,33 @@ public abstract class ContactsTable {
      * @return Native Contact ID or NULL if the contact was not found.
      * @see #fetchNativeFromLocalIdStatement(SQLiteDatabase)
      */
-    public static Integer fetchNativeFromLocalId(Long localContactId, SQLiteStatement statement) {
-        DatabaseHelper.trace(false, "ContactsTable.fetchNativeFromLocalId() localContactId["
-                + localContactId + "]");
-        if (statement == null || localContactId == null) {
+    public static Integer fetchNativeFromLocalId(SQLiteDatabase readableDb, Long localContactId) {
+    	
+    	Cursor c = null;
+    	
+        DatabaseHelper.trace(false, "ContactsTable.fetchNativeFromLocalId() localContactId["  + localContactId + "]");
+        
+        if (readableDb == null || localContactId == null) {
             return null;
         }
         try {
-            statement.bindLong(1, localContactId);
-            return Long.valueOf(statement.simpleQueryForLong()).intValue();
-        } catch (SQLException e) {
+        	c = readableDb.rawQuery(QUERY_NATIVE_ID_BY_LOCAL_CONTACT_ID, new String[] { localContactId.toString() });
+        	if (!c.moveToFirst()) {
+            	LogUtils.logW("ContactsTable.fetchNativeFromLocalId() nativeID not found");
+                return null;
+            }
+            
+            return (c.isNull(0)) ? null : c.getInt(0);
+        } 
+        catch (SQLException e) {
+        	
+        	LogUtils.logE("ContactsTable.fetchNativeFromLocalId() Exception - Unable to run query:\n", e);
+        	 
             return null;
         }
+    	finally {
+    		CloseUtils.close(c);
+    	}
     }
 
     public static long fetchLocalIdFromUserId(Long userId, SQLiteDatabase readableDb) {
@@ -980,11 +978,12 @@ public abstract class ContactsTable {
                 }
             }
 
-        } catch (SQLiteException e) {
+        } 
+        catch (SQLiteException e) {
             LogUtils.logE("ContactsTable.fetchSyncToPhone() Exception - Unable to run query:\n", e);
-        } finally {
+        } 
+        finally {
             CloseUtils.close(c);
-            c = null;
         }
         return localContactId;
 
@@ -1007,7 +1006,6 @@ public abstract class ContactsTable {
             LogUtils.logE("ContactsTable.fetchSyncToPhone() Exception - Unable to run query:\n", e);
         } finally {
             CloseUtils.close(c);
-            c = null;
         }
         return userId;
 
@@ -1248,33 +1246,28 @@ public abstract class ContactsTable {
     }
     
     /**
-     * Method used in case of duplication to fetch the original 
-     * Native Contact ID and Local Contact ID based on the Server ID.
+     * Fill in Local Contact ID based on the Server ID.
      * @param contactInfo Contact Information including duplication data
-     * @param writableDb DB object we are using
+     * @param readableDB DB object we are using
      * @return true if the data was found, false if not (i.e. due to SQL Exception)
      */
-    private static boolean fetchOriginalContactDataForDuplicate(ContactIdInfo contactInfo, 
-            SQLiteDatabase writableDb) {
+    private static boolean fetchLocalIDFromServerID(SQLiteDatabase readableDB, ContactIdInfo contactInfo) {
         Cursor dupInfoCursor = null;
         try {
-            dupInfoCursor = writableDb.rawQuery(QUERY_LOCAL_ID_BY_SERVER_ID, new String[] {
-                String.valueOf(contactInfo.serverId)
-            });
+            dupInfoCursor = readableDB.rawQuery(QUERY_LOCAL_ID_BY_SERVER_ID, 
+            		new String[] { String.valueOf(contactInfo.serverId) });
+            
             if (dupInfoCursor.moveToFirst()) {
-                if (!dupInfoCursor.isNull(1)) {
-                    contactInfo.nativeId = dupInfoCursor.getInt(1);
-                } else {
-                    contactInfo.mergedLocalId = dupInfoCursor.getLong(0);
-                }
+            	contactInfo.mergedLocalId = dupInfoCursor.getLong(0);
             }
-        } catch (SQLException sqlException) {
+        } 
+        catch (SQLException sqlException) {
             LogUtils.logE("ContactsTable.findDuplicateNabIdAttachment() SQLException - "
                     + "Unable to fetch original contact data for duplicate \n", sqlException);
             return false;
-        } finally {
+        } 
+        finally {
             CloseUtils.close(dupInfoCursor);
-            dupInfoCursor = null;
         }
         
         return true;

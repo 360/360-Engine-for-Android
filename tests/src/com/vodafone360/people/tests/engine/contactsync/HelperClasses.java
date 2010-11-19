@@ -32,7 +32,7 @@ import android.util.Log;
 import com.vodafone360.people.ApplicationCache;
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.engine.BaseEngine;
-import com.vodafone360.people.engine.BaseEngine.IEngineEventCallback;
+import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.contactsync.IContactSyncCallback;
 import com.vodafone360.people.engine.contactsync.SyncStatus;
 import com.vodafone360.people.service.ServiceStatus;

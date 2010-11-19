@@ -26,7 +26,6 @@
 package com.vodafone360.people.service.interfaces;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -151,16 +150,6 @@ public interface IPeopleService {
      */
     void startContactSync();
 
-    /***
-     * Begins the process of synchronising contacts with the Vodafone 360 back
-     * end. This is designed to run in the background and is called every time
-     * the ContactListActivity is shown to the user.
-     * 
-     * @param delay the delay in milliseconds from now when the sync should
-     *            start
-     */
-    void startBackgroundContactSync(long delay);
-
     /**
      * Pings the service about user activity.
      */
@@ -280,13 +269,6 @@ public interface IPeopleService {
     /**
      * Changes the user's availability.
      * 
-     * @param status - Hashtable<String, String> is the hash of pairs <networkName, statusName>.
-     */
-    void setAvailability(Hashtable<String, String> status);
-    
-    /**
-     * Changes the user's availability.
-     * 
      * @param network - SocialNetwork to set presence on.
      * @param status - OnlineStatus presence status to set.
      */
@@ -375,5 +357,12 @@ public interface IPeopleService {
      */
     void deleteIdentity(String network, String identityId);
 
-
+    
+    /**
+     * This method returns TRUE if the presence status on the passed has not been set yet.   
+     * @param network - network name.
+     * @return TRUE if the presence status on the passed has not been set yet.
+     */
+    boolean isSettingStatusOnNetworkInProgress(String network);
+    
 }

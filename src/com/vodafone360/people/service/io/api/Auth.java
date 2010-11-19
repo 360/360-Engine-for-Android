@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.vodafone360.people.ApplicationCache;
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.SettingsManager;
 import com.vodafone360.people.engine.BaseEngine;
@@ -374,16 +375,18 @@ public class Auth {
         if (engine == null) {
             throw new NullPointerException("Auth.getPublicKey() engine cannot be NULL");
         }
-
+        
+        String localString=getLocalString();
         Request request = new Request(FUNCTION_GET_TERMS_AND_CONDITIONS,
                 Request.Type.TEXT_RESPONSE_ONLY, engine.engineId(), false,
                 Settings.API_REQUESTS_TIMEOUT_AUTH);
-        request.addData(LANGUAGE_CULTURE, getLocalString());
+        request.addData(LANGUAGE_CULTURE, localString);
         request.addData(FLAGS, "0");
 
         QueueManager queue = QueueManager.getInstance();
         int requestId = queue.addRequest(request);
         queue.fireQueueStateChanged();
+        ApplicationCache.setTermsLanguage(localString);
         return requestId;
     }
 
@@ -400,24 +403,110 @@ public class Auth {
             throw new NullPointerException("Auth.getPublicKey() engine cannot be NULL");
         }
 
+        String localString=getLocalString();
         Request request = new Request(FUNCTION_GET_PRIVACY_STATEMENT,
                 Request.Type.TEXT_RESPONSE_ONLY, engine.engineId(), false,
                 Settings.API_REQUESTS_TIMEOUT_AUTH);
-        request.addData(LANGUAGE_CULTURE, getLocalString());
+        request.addData(LANGUAGE_CULTURE, localString);
+        
         request.addData(FLAGS, "0");
 
         QueueManager queue = QueueManager.getInstance();
         int requestId = queue.addRequest(request);
         queue.fireQueueStateChanged();
+        ApplicationCache.setPrivacyLanguage(localString);
         return requestId;
     }
-
+    
+    /**Prefix String of locale descriptor ID for German.*/
+    private static final String PREFIX_LOCALE_GERMAN = "de-";
+    /**Locale descriptor ID for German.*/
+    private static final String LOCALE_GERMAN = "de-DE";
+    
+    /**Prefix String of locale descriptor ID for Czech.*/
+    private static final String PREFIX_LOCALE_CZECH = "cs-";
+    /**Locale descriptor ID for Czech.*/
+    private static final String LOCALE_CZECH = "cs-CZ";
+    
+    /**Prefix String of locale descriptor ID for Danish.*/
+    private static final String PREFIX_LOCALE_DANISH = "da-";
+    /**Locale descriptor ID for Danish.*/
+    private static final String LOCALE_DANISH = "da-DK";
+    
+    /**Prefix String of locale descriptor ID for Russian.*/
+    private static final String PREFIX_LOCALE_RUSSIAN = "ru-";
+    /**Locale descriptor ID for Russian.*/
+    private static final String LOCALE_RUSSIAN = "ru-RU";
+    
+    /**Prefix String of locale descriptor ID for Greek.*/
+    private static final String PREFIX_LOCALE_GREEK = "el-";
+    /**Locale descriptor ID for Greek.*/
+    private static final String LOCALE_GREEK = "el-GR";
+    
+    /**Prefix String of locale descriptor ID for Spanish.*/
+    private static final String PREFIX_LOCALE_SPANISH = "es-";
+    /**Locale descriptor ID for Spanish.*/
+    private static final String LOCALE_SPANISH = "es-ES";
+    
+    /**Prefix String of locale descriptor ID for French.*/
+    private static final String PREFIX_LOCALE_FRENCH = "fr-";
+    /**Locale descriptor ID for French.*/
+    private static final String LOCALE_FRENCH = "fr-FR";
+    
+    /**Prefix String of locale descriptor ID for Italian.*/
+    private static final String PREFIX_LOCALE_ITALIAN= "it-";
+    /**Locale descriptor ID for Italian.*/
+    private static final String LOCALE_ITALIAN = "it-IT";
+    
+    /**Prefix String of locale descriptor ID for Dutch.*/
+    private static final String PREFIX_LOCALE_DUTCH = "nl-";
+    /**Locale descriptor ID for Dutch.*/
+    private static final String LOCALE_DUTCH = "nl-NL";
+    
+    /**Prefix String of locale descriptor ID for Portuguese.*/
+    private static final String PREFIX_LOCALE_PORTUGUESE = "pt-"; 
+    /**Locale descriptor ID for Portuguese.*/
+    private static final String LOCALE_PORTUGUESE = "pt-PT";
+    
+    /**Prefix String of locale descriptor ID for Turkish.*/
+    private static final String PREFIX_LOCALE_TURKISH = "tr-";
+    /**Locale descriptor ID for Turkish.*/
+    private static final String LOCALE_TURKISH = "tr-TR";
+    
+    
     /***
      * Returns the Local string in a formation suitable for the back end.
      * 
      * @return Local as a String
      */
-    private static String getLocalString() {
-        return Locale.getDefault().toString().replace('_', '-');
+    public static String getLocalString() {
+        String localString = Locale.getDefault().toString().replace('_', '-');
+
+        //Retrieve backend supported locale string.
+        if (localString.startsWith(PREFIX_LOCALE_GERMAN)) {
+            localString = LOCALE_GERMAN;
+        } else if (localString.startsWith(PREFIX_LOCALE_CZECH)) {
+            localString = LOCALE_CZECH;
+        } else if (localString.startsWith(PREFIX_LOCALE_DANISH)) {
+            localString = LOCALE_DANISH;
+        } else if (localString.startsWith(PREFIX_LOCALE_RUSSIAN)) {
+            localString = LOCALE_RUSSIAN;
+        } else if (localString.startsWith(PREFIX_LOCALE_GREEK)) {
+            localString = LOCALE_GREEK;
+        } else if (localString.startsWith(PREFIX_LOCALE_SPANISH)) {
+            localString = LOCALE_SPANISH;
+        } else if (localString.startsWith(PREFIX_LOCALE_FRENCH)) {
+            localString = LOCALE_FRENCH;
+        } else if (localString.startsWith(PREFIX_LOCALE_ITALIAN)) {
+            localString = LOCALE_ITALIAN;
+        } else if (localString.startsWith(PREFIX_LOCALE_DUTCH)) {
+            localString = LOCALE_DUTCH;
+        } else if (localString.startsWith(PREFIX_LOCALE_PORTUGUESE)) {
+            localString = LOCALE_PORTUGUESE;
+        } else if (localString.startsWith(PREFIX_LOCALE_TURKISH)) {
+            localString = LOCALE_TURKISH;
+        } 
+
+        return localString;
     }
 }

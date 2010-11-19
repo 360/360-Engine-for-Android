@@ -34,7 +34,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.telephony.TelephonyManager;
 
 import com.vodafone360.people.ApplicationCache;
 import com.vodafone360.people.Intents;
@@ -49,6 +48,7 @@ import com.vodafone360.people.datatypes.PublicKeyDetails;
 import com.vodafone360.people.datatypes.RegistrationDetails;
 import com.vodafone360.people.datatypes.SimpleText;
 import com.vodafone360.people.engine.BaseEngine;
+import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.engine.contactsync.NativeContactsApi;
 import com.vodafone360.people.service.ServiceStatus;
@@ -61,6 +61,7 @@ import com.vodafone360.people.service.io.api.Auth;
 import com.vodafone360.people.service.receivers.SmsBroadcastReceiver;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.LoginPreferences;
+import com.vodafone360.people.utils.SimCard;
 
 /**
  * Engine handling sign in to existing accounts and sign up to new accounts.
@@ -128,16 +129,6 @@ public class LoginEngine extends BaseEngine {
      * Database used for fetching/storing state information
      */
     private DatabaseHelper mDb;
-
-    /**
-     * Subscriber ID fetched from SIM card
-     */
-    private String mCurrentSubscriberId;
-
-    /**
-     * Android telephony manager used for fetching subscriber ID
-     */
-    private TelephonyManager mTelephonyManager;
 
     /**
      * Contains the authenticated session information while the user is logged
@@ -218,7 +209,6 @@ public class LoginEngine extends BaseEngine {
         super(eventCallback);
         LogUtils.logD("LoginEngine.LoginEngine()");
         mContext = context;
-        mTelephonyManager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
         mDb = db;
 
         mEngineId = EngineId.LOGIN_ENGINE;
@@ -232,10 +222,10 @@ public class LoginEngine extends BaseEngine {
     public void onCreate() {
         LogUtils.logD("LoginEngine.OnCreate()");
         mState = State.NOT_INITIALISED;
-        mCurrentSubscriberId = mTelephonyManager.getSubscriberId();
         IntentFilter filter = new IntentFilter(SmsBroadcastReceiver.ACTION_ACTIVATION_CODE);
         mContext.registerReceiver(mEventReceiver, filter);
         mIsRegistrationComplete = StateTable.isRegistrationComplete(mDb.getReadableDatabase());
+        initializeEngine();
     }
 
     /**
@@ -246,9 +236,9 @@ public class LoginEngine extends BaseEngine {
     public void onDestroy() {
         LogUtils.logD("LoginEngine.onDestroy()");
 
-        Intent intent = new Intent();
-        intent.setAction(Intents.HIDE_LOGIN_NOTIFICATION);
-        mContext.sendBroadcast(intent);
+//        Intent intent = new Intent();
+//        intent.setAction(Intents.HIDE_LOGIN_NOTIFICATION);
+//        mContext.sendBroadcast(intent);
 
         removeAllListeners();
         mContext.unregisterReceiver(mEventReceiver);
@@ -385,7 +375,7 @@ public class LoginEngine extends BaseEngine {
         }
         switch (mState) {
             case NOT_INITIALISED:
-                initialiseEngine();
+                initializeEngine();
                 return;
             case REQUESTING_ACTIVATION_CODE:
             case SIGNING_UP:
@@ -398,10 +388,17 @@ public class LoginEngine extends BaseEngine {
                 break;
             case LOGGED_OFF:
             case LOGGED_OFF_WAITING_FOR_NETWORK:
-                // AA mCurrentNoOfRetries = 0;
-                if (retryAutoLogin()) {
-                    return;
-                }
+            	AuthSessionHolder session = StateTable.fetchSession(mDb.getReadableDatabase());
+            	
+                // if session is null we try to login automatically again
+            	if (null == session) {
+            		if (retryAutoLogin()) {
+                        return;
+                    }
+            	} else {	// otherwise we try to reuse the session
+            		sActivatedSession = session;
+            		newState(State.LOGGED_ON);
+            	}
             default: // do nothing.
                 break;
         }
@@ -580,16 +577,11 @@ public class LoginEngine extends BaseEngine {
      * Called by the run() function the first time it is executed to perform
      * non-trivial initialisation such as auto login.
      */
-    private void initialiseEngine() {
+    private void initializeEngine() {
         LogUtils.logD("LoginEngine.initialiseEngine()");
         if (ServiceStatus.SUCCESS == mDb.fetchLogonCredentialsAndPublicKey(mLoginDetails,
                 mPublicKey)) {
-            if (mLoginDetails.mSubscriberId != null
-                    && !mLoginDetails.mSubscriberId.equals(mCurrentSubscriberId)) {
-                LogUtils.logW("SIM card has changed.  Login session invalid");
-            } else {
-                sActivatedSession = StateTable.fetchSession(mDb.getReadableDatabase());
-            }
+            sActivatedSession = StateTable.fetchSession(mDb.getReadableDatabase());
         }
         mAreLoginDetailsValid = true;
         restoreLoginState();
@@ -622,7 +614,7 @@ public class LoginEngine extends BaseEngine {
             mLoginDetails.mAutoConnect = true;
             mLoginDetails.mRememberMe = true;
             mLoginDetails.mMobileNo = mRegistrationDetails.mMsisdn;
-            mLoginDetails.mSubscriberId = mCurrentSubscriberId;
+            mLoginDetails.mSubscriberId = SimCard.getSubscriberId(mContext);
             mDb.modifyCredentialsAndPublicKey(mLoginDetails, mPublicKey);
 
             startSignUpCrypted(theBytes, timestampInSeconds);
@@ -694,7 +686,7 @@ public class LoginEngine extends BaseEngine {
     private void startSignUpCrypted(byte[] theBytes, long timestamp) {
         LogUtils.logD("startSignUpCrypted()");
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            completeUiRequest(ServiceStatus.ERROR_COMMS, null);
+        	completeUiRequest(NetworkAgent.getServiceStatusfromDisconnectReason(), null);
             return;
         }
         mActivationCode = null;
@@ -751,7 +743,7 @@ public class LoginEngine extends BaseEngine {
     public void getNewPublicKey() {
         LogUtils.logD("LoginEngine.getNewPublicKey");
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            completeUiRequest(ServiceStatus.ERROR_COMMS, null);
+        	completeUiRequest(NetworkAgent.getServiceStatusfromDisconnectReason(), null);
             return;
         }
         mActivationCode = null;
@@ -802,7 +794,7 @@ public class LoginEngine extends BaseEngine {
     private void startFetchUsernameState(String username) {
         LogUtils.logD("LoginEngine.startFetchUsernameState()");
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            completeUiRequest(ServiceStatus.ERROR_COMMS, null);
+        	completeUiRequest(NetworkAgent.getServiceStatusfromDisconnectReason(), null);
             return;
         }
         mLoginDetails.mUsername = username;
@@ -828,7 +820,7 @@ public class LoginEngine extends BaseEngine {
             return;
         }
         mLoginDetails.copy(details);
-        mLoginDetails.mSubscriberId = mCurrentSubscriberId;
+        mLoginDetails.mSubscriberId = SimCard.getSubscriberId(mContext);
         mDb.modifyCredentialsAndPublicKey(mLoginDetails, mPublicKey);
 
         if (Settings.ENABLE_ACTIVATION) {
@@ -844,7 +836,7 @@ public class LoginEngine extends BaseEngine {
     private void startRequestActivationCode() {
         LogUtils.logD("LoginEngine.startRequestActivationCode()");
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            completeUiRequest(ServiceStatus.ERROR_COMMS, null);
+        	completeUiRequest(NetworkAgent.getServiceStatusfromDisconnectReason(), null);
             return;
         }
         mActivationCode = null;
@@ -861,8 +853,9 @@ public class LoginEngine extends BaseEngine {
      */
     private void startGetSessionManual() {
         LogUtils.logD("LoginEngine.startGetSessionManual()");
+        
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            completeUiRequest(ServiceStatus.ERROR_COMMS, null);
+        	completeUiRequest(NetworkAgent.getServiceStatusfromDisconnectReason(), null);
             return;
         }
         newState(State.CREATING_SESSION_MANUAL);
@@ -879,9 +872,10 @@ public class LoginEngine extends BaseEngine {
     private void startActivateAccount() {
         LogUtils.logD("LoginEngine.startActivateAccount()");
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
-            completeUiRequest(ServiceStatus.ERROR_COMMS, null);
+        	completeUiRequest(NetworkAgent.getServiceStatusfromDisconnectReason(), null);
             return;
         }
+        
         if (Settings.ENABLE_ACTIVATION) {
             newState(State.ACTIVATING_ACCOUNT);
             if (!setReqId(Auth.activate(this, mActivationCode))) {
@@ -941,11 +935,12 @@ public class LoginEngine extends BaseEngine {
         // AA: the old version if (mCurrentSubscriberId == null ||
         // !mCurrentSubscriberId.equals(mLoginDetails.mSubscriberId)) { //
         // logging off/fail will be done in another way according to bug 8288
-        if (mCurrentSubscriberId != null
-                && !mCurrentSubscriberId.equals(mLoginDetails.mSubscriberId)) {
+        final String currentSubscriberId = SimCard.getSubscriberId(mContext);
+        if (currentSubscriberId != null
+                && !currentSubscriberId.equals(mLoginDetails.mSubscriberId)) {
             LogUtils.logV("LoginEngine.retryAutoLogin() -"
                     + " SIM card has changed or is missing (old subId = "
-                    + mLoginDetails.mSubscriberId + ", new subId = " + mCurrentSubscriberId + ")");
+                    + mLoginDetails.mSubscriberId + ", new subId = " + currentSubscriberId + ")");
             mAreLoginDetailsValid = false;
             newState(State.LOGIN_FAILED);
             return false;
@@ -1024,14 +1019,14 @@ public class LoginEngine extends BaseEngine {
                 intent.setAction(Intents.START_LOGIN_ACTIVITY);
                 mContext.sendBroadcast(intent);
 
-                setRegistrationComplete(false);
+                setRegistrationComplete(false);            	
                 break;
             // here should be no break
             case NOT_REGISTERED:
             case LOGIN_FAILED:
-                intent = new Intent();
-                intent.setAction(Intents.LOGIN_FAILED);
-                mContext.sendBroadcast(intent);
+//                intent = new Intent();
+//                intent.setAction(Intents.LOGIN_FAILED);
+//                mContext.sendBroadcast(intent);
 
                 setRegistrationComplete(false);
                 // startLogout();
@@ -1047,9 +1042,9 @@ public class LoginEngine extends BaseEngine {
             case LOGGED_OFF_WAITING_FOR_NETWORK:
             case LOGGED_OFF_WAITING_FOR_RETRY:
             case LOGGED_ON:
-                intent = new Intent();
-                intent.setAction(Intents.HIDE_LOGIN_NOTIFICATION);
-                mContext.sendBroadcast(intent);
+//                intent = new Intent();
+//                intent.setAction(Intents.HIDE_LOGIN_NOTIFICATION);
+//                mContext.sendBroadcast(intent);
                 break;
             default:// do nothing
                 break;
@@ -1205,7 +1200,7 @@ public class LoginEngine extends BaseEngine {
     private void handleCreateSessionAutoResponse(List<BaseDataType> data) {
         LogUtils.logD("LoginEngine.handleCreateSessionResponse()");
         ServiceStatus errorStatus = getResponseStatus(BaseDataType.AUTH_SESSION_HOLDER_TYPE, data);
-        if (errorStatus == ServiceStatus.SUCCESS) {
+        if (errorStatus == ServiceStatus.SUCCESS && (data.size() > 0)) {
             clearTimeout();
             setActivatedSession((AuthSessionHolder)data.get(0));
             newState(State.LOGGED_ON);
@@ -1405,8 +1400,6 @@ public class LoginEngine extends BaseEngine {
         mRegistrationDetails = new RegistrationDetails();
         mActivationCode = null;
         onLoginStateChanged(false);
-        // Remove NAB Account at this point (does nothing on 1.X)
-        NativeContactsApi.getInstance().removePeopleAccount();
     }
 
     /**

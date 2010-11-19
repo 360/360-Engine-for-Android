@@ -35,6 +35,7 @@ import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.GroupItem;
 import com.vodafone360.people.datatypes.ItemList;
 import com.vodafone360.people.engine.BaseEngine;
+import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
@@ -104,9 +105,10 @@ public class GroupsEngine extends BaseEngine {
     @Override
     protected void processCommsResponse(DecodedResponse resp) {
         LogUtils.logD("DownloadGroups.processCommsResponse()");
-        ServiceStatus status = 
-            BaseEngine.getResponseStatus(BaseDataType.ITEM_LIST_DATA_TYPE, resp.mDataTypes);
+        
+        ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.ITEM_LIST_DATA_TYPE, resp.mDataTypes);
         if (status == ServiceStatus.SUCCESS) {
+        	
             final List<GroupItem> tempGroupList = new ArrayList<GroupItem>();
             for (int i = 0; i < resp.mDataTypes.size(); i++) {
                 ItemList itemList = (ItemList)resp.mDataTypes.get(i);
@@ -114,6 +116,8 @@ public class GroupsEngine extends BaseEngine {
                     completeUiRequest(ServiceStatus.ERROR_UNEXPECTED_RESPONSE);
                     return;
                 }
+                
+                // TODO: why cloning the list?
                 for (int j = 0; j < itemList.mItemList.size(); j++) {
                     tempGroupList.add((GroupItem)itemList.mItemList.get(j));
                 }
@@ -137,9 +141,7 @@ public class GroupsEngine extends BaseEngine {
             requestNextGroupsPage();
             return;
         }
-        LogUtils
-                .logE("DownloadGroups.processCommsResponse() - Error requesting Zyb groups, error = "
-                        + status);
+        LogUtils.logE("DownloadGroups.processCommsResponse() - Error requesting Zyb groups, error = " + status);
         completeUiRequest(status);
     }
 

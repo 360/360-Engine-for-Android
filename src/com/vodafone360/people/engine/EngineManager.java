@@ -33,11 +33,10 @@ import java.util.Set;
 import com.vodafone360.people.MainApplication;
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.SettingsManager;
-import com.vodafone360.people.engine.BaseEngine.IEngineEventCallback;
 import com.vodafone360.people.engine.activities.ActivitiesEngine;
 import com.vodafone360.people.engine.contactsync.ContactSyncEngine;
-import com.vodafone360.people.engine.groups.GroupsEngine;
 import com.vodafone360.people.engine.content.ContentEngine;
+import com.vodafone360.people.engine.groups.GroupsEngine;
 import com.vodafone360.people.engine.identities.IdentityEngine;
 import com.vodafone360.people.engine.login.LoginEngine;
 import com.vodafone360.people.engine.meprofile.SyncMeEngine;
@@ -389,8 +388,7 @@ public class EngineManager {
 
     private synchronized void createContactSyncEngine() {
         final MainApplication app = (MainApplication)mService.getApplication();
-        mContactSyncEngine = new ContactSyncEngine(mUiEventCallback, mService, app.getDatabase(),
-                null);
+        mContactSyncEngine = new ContactSyncEngine(mService, mUiEventCallback, app.getDatabase(), null);
         addEngine(mContactSyncEngine);
     }
     
@@ -414,7 +412,8 @@ public class EngineManager {
      * Create instance of IdentityEngine.
      */
     private synchronized void createIdentityEngine() {
-        mIdentityEngine = new IdentityEngine(mUiEventCallback);
+        final MainApplication app = (MainApplication)mService.getApplication();
+        mIdentityEngine = new IdentityEngine(mUiEventCallback, app.getDatabase());
         ConnectionManager.getInstance().addConnectionListener(mIdentityEngine);
         addEngine(mIdentityEngine);
     }
@@ -476,11 +475,10 @@ public class EngineManager {
             int engineId = i.next();
             BaseEngine engine = mEngineList.get(engineId);
             long currentTime = System.currentTimeMillis();
-            long tempRuntime = engine.getNextRunTime(); // TODO: Pass
-            // mCurrentTime to
-            // getNextRunTime() to
-            // help with Unit
-            // tests
+            
+            // TODO: Pass mCurrentTime to getNextRunTime() to help with Unit tests
+            long tempRuntime = engine.getNextRunTime(); 
+
             if (Settings.ENABLED_ENGINE_TRACE) {
                 LogUtils.logV("EngineManager.runEngines() " + "engine["
                         + engine.getClass().getSimpleName() + "] " + "nextRunTime["

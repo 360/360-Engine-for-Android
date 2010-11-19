@@ -28,6 +28,8 @@ package com.vodafone360.people.tests.engine.contactsync;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.vodafone360.people.MainApplication;
 import com.vodafone360.people.engine.contactsync.ContactChange;
@@ -97,21 +99,7 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 	};
 	
 	static boolean sNabChanged = false;
-	
-	class AccountsObserver implements IPeopleAccountChangeObserver {
-
-		private int mCurrentNumAccounts = 0;
-		@Override
-		public void onPeopleAccountsChanged(int currentNumAccounts) {
-			mCurrentNumAccounts = currentNumAccounts;
-			Thread.currentThread().interrupt();
-		}
 		
-		public int getCurrentNumAccounts() {
-			return mCurrentNumAccounts;
-		}
-	}
-	
 	class ObserverThread extends Thread {
 		private ContactsObserver mObserver = new ContactsObserver() {
 			@Override
@@ -486,6 +474,7 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 	
 	
 	@MediumTest
+	@Suppress
 	public void testAddGetRemoveContacts() {
 		Account account = null;
 		if(mUsing2xApi) {
@@ -627,6 +616,55 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 					assertEquals(false, mNabApi.isKeySupported(i));				
 			}
 		}
+	}
+	
+	@SmallTest
+	public void testCompleteDateRegEx() {
+	    
+	    final String[] validDates = {
+	            "1900-01-02",
+	            "20-02-03",
+	            "03-21-04",
+	            "04-05-22",
+	            "5-6-23",
+	            "23-5-6",
+	            "6-23-5",
+	            "06-07-1900",
+	            "1900-01-02T00:00.000",
+	            "1900-01-02T00:00.000+0000Z",
+	            "00:00.000T1900-01-02",
+	            "xxxxxxxx2000-01-01xxxxxxxxxxx"       
+	    };
+	    
+	    final int maximumValidDateLength = 10;
+	    
+        Pattern pattern = Pattern.compile(NativeContactsApi2.COMPLETE_DATE_REGEX);
+        
+	    for(String validDate : validDates) {
+	        Matcher matcher = pattern.matcher(validDate);
+	        assertEquals(1, matcher.groupCount());
+	        assertTrue(matcher.find());
+	        String group = matcher.group();
+	        assertNotNull(group);
+	        assertTrue(group.length() > 0);
+	        assertTrue(group.length() <= maximumValidDateLength);
+	    }
+	    
+	    final String[] invalidDates = {
+	            "",
+	            "nodate",
+	            "12345",
+	            "1-2",
+	            "11-222-33",
+	            "11-22-##-20",
+	            "05-06-a2013"
+	    };
+
+	       for(String invalidDate : invalidDates) {
+	            Matcher matcher = pattern.matcher(invalidDate);
+	            assertEquals(1, matcher.groupCount());
+	            assertFalse(matcher.find());
+	       }
 	}
 
 	/**
@@ -826,18 +864,5 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 				assertNull(ids[i]);
 			}
 		}		
-	}
-	
-	private void waitForAccountsChange(AccountsObserver observer, int expectedNumAccounts) {
-		final int maxTimeSleep = 1000000;
-		int timeslept = 0;
-		while(timeslept < maxTimeSleep) {
-			try {
-				Thread.sleep(100);
-				timeslept+=100;
-			} catch (InterruptedException e) {
-				assertEquals(expectedNumAccounts, observer.getCurrentNumAccounts());
-			}
-		}
 	}
 }

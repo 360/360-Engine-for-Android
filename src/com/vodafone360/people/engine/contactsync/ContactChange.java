@@ -33,7 +33,6 @@ import java.util.HashMap;
  * A Contact Change is meant to represent the smallest chunk of data 
  * associated with a Contact whilst being able to map and track its properties:
  * - Origin (via IDs and type);
- * - Purpose (destination); 
  * - Attributes (IDs, Key, Value and Flags)
  */
 public class ContactChange {       
@@ -264,42 +263,6 @@ public class ContactChange {
      * EXTERNAL Key
      */
     public static final int KEY_EXTERNAL = 25;      // TODO needed?!
-
-    /**
-     * None (null) destination
-     */
-    public static final int DESTINATION_FLAG_NONE  = 0;
-    /**
-     * NAB destination
-     */
-    public static final int DESTINATION_FLAG_NAB = 0x01;
-    /**
-     * CAB destination
-     */
-    public static final int DESTINATION_FLAG_CAB = 0x02;
-    /**
-     * RPG destination
-     */
-    public static final int DESTINATION_FLAG_RPG = 0x04;
-    
-    /**
-     * Incoming via RPG. Goes to CAB first.
-     */
-    public static final int DESTINATIONS_CAB_NAB = 
-        DESTINATION_FLAG_CAB | DESTINATION_FLAG_NAB;
-        
-    /**
-     * Incoming via NAB. Goes to CAB first.
-     */
-    public static final int DESTINATIONS_CAB_RPG = 
-        DESTINATION_FLAG_CAB | DESTINATION_FLAG_RPG; 
-    
-    /**
-     * Incoming via client. Goes to CAB first.
-     */
-    public static final int DESTINATIONS_CAB_NAB_RPG = 
-        DESTINATION_FLAG_CAB | DESTINATION_FLAG_NAB | DESTINATION_FLAG_RPG;
-           
   
     /**
      * Lookup Table from Key integer to String values
@@ -375,10 +338,6 @@ public class ContactChange {
      */
     public static final long INVALID_ID = -1L;
     
-    /**
-     * Destination flags for this ContactChange
-     */
-    private int mDestinations = DESTINATION_FLAG_NONE;
     /**
      * Key for this ContactChange
      */
@@ -458,17 +417,6 @@ public class ContactChange {
     }
     
     /**
-     * Constructor taking destination flags and a type
-     * @param destinations The destination flags
-     * @param type The change type
-     */
-    public ContactChange(int destinations, int type) {
-        this();
-        mDestinations = destinations;
-        mType = type;
-    }
-    
-    /**
      * Constructor taking key, value and flags
      * @param key The Key for the Change
      * @param value The Value for the Change
@@ -516,25 +464,8 @@ public class ContactChange {
         cc.mNabContactId = mNabContactId;
         cc.mNabDetailId = mNabDetailId;
         cc.mType = mType;
-        cc.mDestinations = mDestinations;
         
         return cc;
-    }
-    
-    /**
-     * Get the change destination flags.
-     * @return The Destination flags
-     */
-    public int getDestinations() {
-        return mDestinations;
-    }
-
-    /**
-     * Set the change destination flags.
-     * @param destinations The Destination flags to set 
-     */
-    public void setDestinations(int destinations) {
-        mDestinations = destinations;
     }
     
     /**
@@ -698,5 +629,40 @@ public class ContactChange {
      */
     public void setNabDetailId(long nabDetailId) {
         mNabDetailId = nabDetailId;
+    }
+    
+    /**
+     * Converts the ContactChange to a String representation.
+     * 
+     * @return a String representing the ContactChange 
+     */
+    public String toString() {
+        
+        StringBuffer buffer = new StringBuffer();
+        
+        buffer.append("[ContactChange: ");
+        buffer.append("mBackendContactId=");
+        buffer.append(mBackendContactId);
+        buffer.append(", mBackendDetailId=");
+        buffer.append(mBackendDetailId);
+        buffer.append(", mFlags=");
+        buffer.append(mFlags);
+        buffer.append(", mInternalContactId=");
+        buffer.append(mInternalContactId);
+        buffer.append(", mInternalDetail=");
+        buffer.append(mInternalDetailId);
+        buffer.append(", mKey=");
+        buffer.append(mKey);
+        buffer.append(", mNabContactId=");
+        buffer.append(mNabContactId);
+        buffer.append(", mNabDetailId=");
+        buffer.append(mNabDetailId);
+        buffer.append(", mType=");
+        buffer.append(mType);
+        buffer.append(", mValue=");
+        buffer.append(mValue);
+        buffer.append("]");
+        
+        return buffer.toString();
     }
 }

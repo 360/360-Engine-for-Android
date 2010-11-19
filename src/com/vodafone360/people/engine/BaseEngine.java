@@ -28,7 +28,8 @@ package com.vodafone360.people.engine;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import com.vodafone360.people.ApplicationCache;
+import android.os.Bundle;
+
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.ServerError;
 import com.vodafone360.people.engine.EngineManager.EngineId;
@@ -70,7 +71,7 @@ public abstract class BaseEngine {
      * true if a Comms response is waiting in the comms response queue for
      * processing, false otherwise.
      */
-    private Boolean mCommsResponseOutstanding = false;
+    private volatile boolean mCommsResponseOutstanding = false;
 
     /**
      * Set by the {@link #setReqId(int)} function to store the request ID when a
@@ -90,49 +91,6 @@ public abstract class BaseEngine {
      * true if the engine is deactivated (for test purposes), false otherwise.
      */
     private boolean mDeactivated;
-
-    /**
-     * mutex for thread synchronization
-     */
-    private Object mMutex = new Object();
-
-    /**
-     * Interface which must be implemented by engine client. Provides the
-     * interface for engine to return the results of requests to their clients.
-     */
-    public static interface IEngineEventCallback {
-        /***
-         * Handle an incoming UI Event.
-         * 
-         * @param event ServiceUiRequest - e.g. UI request complete.
-         * @param request ID of associated request.
-         * @param status status of request (success or error code).
-         * @param data object Data associated with completed request.
-         */
-        void onUiEvent(ServiceUiRequest event, int request, int status, Object data);
-
-        /***
-         * Restarts the WorkerThread if it is in a sleeping or suspended state,
-         * ignored otherwise. This method is called by various events including:
-         * new UI or network events or a wake up alarm set by an engine
-         * requiring periodic activity.
-         */
-        void kickWorkerThread();
-
-        /***
-         * Returns the UiAgent, for sending unsolicited messages to the UI.
-         * 
-         * @return UiAgent object.
-         */
-        public UiAgent getUiAgent();
-        
-        /***
-         * Returns the ApplicationCache, for storing data.
-         * 
-         * @return Application cache object.
-         */
-        public ApplicationCache getApplicationCache();
-    }
 
     /**
      * Class to encapsulate client request information.
@@ -297,9 +255,7 @@ public abstract class BaseEngine {
      * the response outstanding flag and kick the worker thread.
      */
     public void onCommsInMessage() {
-        synchronized (mMutex) {
-            mCommsResponseOutstanding = true;
-        }
+    	mCommsResponseOutstanding = true;
         mEventCallback.kickWorkerThread();
     }
 
@@ -310,9 +266,7 @@ public abstract class BaseEngine {
      * @return true if there are 1 or more responses to process.
      */
     protected boolean isCommsResponseOutstanding() {
-        synchronized (mMutex) {
-            return mCommsResponseOutstanding;
-        }
+    	return mCommsResponseOutstanding;
     }
 
     /**
@@ -330,9 +284,7 @@ public abstract class BaseEngine {
         if (queue != null) {
             final ResponseQueue.DecodedResponse resp = queue.getNextResponse(mEngineId);
             if (resp == null) {
-                synchronized (mMutex) {
-                    mCommsResponseOutstanding = false;
-                }
+                mCommsResponseOutstanding = false;
                 return false;
             }
             boolean processResponse = false;
@@ -561,5 +513,20 @@ public abstract class BaseEngine {
     public void onReset() {
         emptyUiRequestQueue();
         clearTimeout();
+    }
+    
+    /**
+     * This method fires states change of an engine to UI (between "busy" and
+     * IDLE). This method is normally called after the new state has been
+     * changed and published to ApplicationCache. The UI should refer to
+     * ApplicationCache when processing this new ServiceRequest
+     * 
+     * @param request ServiceUIRequest UPDATING_UI or UPDATING_UI_FINISHED
+     */
+    public void fireNewState(ServiceUiRequest request, Bundle bundle) {
+        UiAgent uiAgent = mEventCallback.getUiAgent();
+        if (uiAgent != null && uiAgent.isSubscribed()) {
+            uiAgent.sendUnsolicitedUiEvent(request, bundle);
+        }
     }
 }

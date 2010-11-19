@@ -127,7 +127,7 @@ public class AuthenticationManager extends Thread implements IConnection {
                 request.writeToOutputStream(baos, false);
                 byte[] payload = baos.toByteArray();
 
-                if (Settings.ENABLED_TRANSPORT_TRACE) {
+                if (Settings.sEnableProtocolTrace) {
                     HttpConnectionThread.logI("AuthenticationManager.handleAuthRequests()",
                             "\n \n \nAUTHENTICATING: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
                                     + HessianUtils.getInHessian(new ByteArrayInputStream(payload),

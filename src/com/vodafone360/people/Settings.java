@@ -97,15 +97,15 @@ public final class Settings {
     /** Trace output for database components. **/
     public static final boolean ENABLED_DATABASE_TRACE = false;
 
-    /** Trace output for transport (i.e. network IO) components. **/
-
-    public static final boolean ENABLED_TRANSPORT_TRACE = false;
-
     /** Trace output for contact synchronisation components. **/
     public static final boolean ENABLED_CONTACTS_SYNC_TRACE = false;
 
     /** Log engine runtime information to file for profiling. **/
     public static final boolean ENABLED_PROFILE_ENGINES = false;    
+
+    /** Trace output for protocol (i.e. network IO) components. **/
+    public static boolean sEnableProtocolTrace = false;
+    
     
     /**
      * This is a list of strings containing the names of engines to be
@@ -182,6 +182,12 @@ public final class Settings {
 
     /** Key for Hessian URL setting. **/
     public static final String SERVER_URL_HESSIAN_KEY = "hessian-url";
+    
+    /** Key for enabling 3rd party applications to access data via AIDL. **/
+    public static final String ENABLE_AIDL_KEY = "allow-aidl";
+
+    /** Default setting ENABLE_AIDL_KEY. **/
+    public static final String ENABLE_AIDL_DEFAULT = "false";
 
 
     /*
@@ -285,12 +291,16 @@ public final class Settings {
      * response no matter if gzipped or not to the SD card under the given
      * request ID.
      */
-    public static boolean sEnableSuperExpensiveResponseFileLogging
-        = false;
+    public static boolean sEnableSuperExpensiveResponseFileLogging = false;
 
     /**
      * Private constructor to prevent instantiation.
      */
     private Settings() {
     }
+    
+    /**
+     * a debug flag to see what's coming with availability state change push messages. 
+     */
+    public static boolean LOG_PRESENCE_PUSH_ON_LOGCAT = false;
 }

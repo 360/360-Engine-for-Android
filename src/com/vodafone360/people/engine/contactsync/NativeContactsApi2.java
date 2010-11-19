@@ -28,6 +28,8 @@ package com.vodafone360.people.engine.contactsync;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import android.accounts.AccountManager;
 import android.content.ContentProviderOperation;
@@ -49,7 +51,6 @@ import android.provider.ContactsContract.RawContacts;
 import android.provider.ContactsContract.Settings;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Event;
-import android.provider.ContactsContract.CommonDataKinds.GroupMembership;
 import android.provider.ContactsContract.CommonDataKinds.Nickname;
 import android.provider.ContactsContract.CommonDataKinds.Note;
 import android.provider.ContactsContract.CommonDataKinds.Organization;
@@ -65,7 +66,6 @@ import com.vodafone360.people.datatypes.VCardHelper;
 import com.vodafone360.people.datatypes.VCardHelper.Name;
 import com.vodafone360.people.datatypes.VCardHelper.Organisation;
 import com.vodafone360.people.datatypes.VCardHelper.PostalAddress;
-import com.vodafone360.people.service.NativeAccountObjectsHolder;
 import com.vodafone360.people.service.SyncAdapter;
 import com.vodafone360.people.utils.CursorUtils;
 import com.vodafone360.people.utils.LogUtils;
@@ -110,19 +110,13 @@ public class NativeContactsApi2 extends NativeContactsApi {
      * present. Matches the following cases: N-n-n n-n-N Where: - 'n'
      * corresponds to one or two digits - 'N' corresponds to two or 4 digits
      */
-    private static final String COMPLETE_DATE_REGEX = "(?:^\\d{2,4}-\\d{1,2}-\\d{1,2}$|^\\d{1,2}-\\d{1,2}-\\d{2,4}$)";
+    public static final String COMPLETE_DATE_REGEX = 
+        "(\\d{1,4}-\\d{1,2}-\\d{1,2}|\\d{1,2}-\\d{1,2}-\\d{1,4})";
 
     /**
      * 'My Contacts' System group where clause
      */
     private static final String MY_CONTACTS_GROUP_WHERE_CLAUSE = Groups.SYSTEM_ID + "=\"Contacts\"";
-
-    /**
-     * 'My Contacts' System Group Membership where in clause (Multiple 'My
-     * Contacts' IDs)
-     */
-    private static final String MY_CONTACTS_MULTI_GROUP_MEMBERSHIP = Data.MIMETYPE + "=\""
-            + GroupMembership.CONTENT_ITEM_TYPE + "\" AND " + Data.DATA1 + " IN (";
 
     /**
      * Selection where clause for a NULL Account
@@ -156,44 +150,31 @@ public class NativeContactsApi2 extends NativeContactsApi {
 
     static {
         sFromNabContentTypeToKeyMap = new HashMap<String, Integer>(9, 1);
-        sFromNabContentTypeToKeyMap.put(StructuredName.CONTENT_ITEM_TYPE,
-                ContactChange.KEY_VCARD_NAME);
-        sFromNabContentTypeToKeyMap.put(Nickname.CONTENT_ITEM_TYPE,
-                ContactChange.KEY_VCARD_NICKNAME);
+        sFromNabContentTypeToKeyMap.put(StructuredName.CONTENT_ITEM_TYPE, ContactChange.KEY_VCARD_NAME);
+        sFromNabContentTypeToKeyMap.put(Nickname.CONTENT_ITEM_TYPE, ContactChange.KEY_VCARD_NICKNAME);
         sFromNabContentTypeToKeyMap.put(Phone.CONTENT_ITEM_TYPE, ContactChange.KEY_VCARD_PHONE);
         sFromNabContentTypeToKeyMap.put(Email.CONTENT_ITEM_TYPE, ContactChange.KEY_VCARD_EMAIL);
-        sFromNabContentTypeToKeyMap.put(StructuredPostal.CONTENT_ITEM_TYPE,
-                ContactChange.KEY_VCARD_ADDRESS);
-        sFromNabContentTypeToKeyMap
-                .put(Organization.CONTENT_ITEM_TYPE, ContactChange.KEY_VCARD_ORG);
+        sFromNabContentTypeToKeyMap.put(StructuredPostal.CONTENT_ITEM_TYPE, ContactChange.KEY_VCARD_ADDRESS);
+        sFromNabContentTypeToKeyMap.put(Organization.CONTENT_ITEM_TYPE, ContactChange.KEY_VCARD_ORG);
         sFromNabContentTypeToKeyMap.put(Website.CONTENT_ITEM_TYPE, ContactChange.KEY_VCARD_URL);
         sFromNabContentTypeToKeyMap.put(Note.CONTENT_ITEM_TYPE, ContactChange.KEY_VCARD_NOTE);
         sFromNabContentTypeToKeyMap.put(Event.CONTENT_ITEM_TYPE, ContactChange.KEY_VCARD_DATE);
-        // sFromNabContentTypeToKeyMap.put(
-        // Photo.CONTENT_ITEM_TYPE, ContactChange.KEY_PHOTO);
+        // sFromNabContentTypeToKeyMap.put(Photo.CONTENT_ITEM_TYPE, ContactChange.KEY_PHOTO);
 
         sFromKeyToNabContentTypeArray = new SparseArray<String>(10);
-        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_NAME,
-                StructuredName.CONTENT_ITEM_TYPE);
-        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_NICKNAME,
-                Nickname.CONTENT_ITEM_TYPE);
-        sFromKeyToNabContentTypeArray
-                .append(ContactChange.KEY_VCARD_PHONE, Phone.CONTENT_ITEM_TYPE);
-        sFromKeyToNabContentTypeArray
-                .append(ContactChange.KEY_VCARD_EMAIL, Email.CONTENT_ITEM_TYPE);
-        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_ADDRESS,
-                StructuredPostal.CONTENT_ITEM_TYPE);
-        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_ORG,
-                Organization.CONTENT_ITEM_TYPE);
+        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_NAME, StructuredName.CONTENT_ITEM_TYPE);
+        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_NICKNAME, Nickname.CONTENT_ITEM_TYPE);
+        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_PHONE, Phone.CONTENT_ITEM_TYPE);
+        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_EMAIL, Email.CONTENT_ITEM_TYPE);
+        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_ADDRESS, StructuredPostal.CONTENT_ITEM_TYPE);
+        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_ORG, Organization.CONTENT_ITEM_TYPE);
+        
         // Special case: VCARD_TITLE maps to the same NAB type as
-        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_TITLE,
-                Organization.CONTENT_ITEM_TYPE);
-        sFromKeyToNabContentTypeArray
-                .append(ContactChange.KEY_VCARD_URL, Website.CONTENT_ITEM_TYPE);
+        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_TITLE, Organization.CONTENT_ITEM_TYPE);
+        sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_URL, Website.CONTENT_ITEM_TYPE);
         sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_NOTE, Note.CONTENT_ITEM_TYPE);
         sFromKeyToNabContentTypeArray.append(ContactChange.KEY_VCARD_DATE, Event.CONTENT_ITEM_TYPE);
-        // sFromKeyToNabContentTypeArray.append(
-        // ContactChange.KEY_PHOTO, Photo.CONTENT_ITEM_TYPE);
+        // sFromKeyToNabContentTypeArray.append(ContactChange.KEY_PHOTO, Photo.CONTENT_ITEM_TYPE);
     }
 
     /**
@@ -523,18 +504,22 @@ public class NativeContactsApi2 extends NativeContactsApi {
                 if (VersionUtils.isHtcSenseDevice(mContext)) {
                     createSettingsEntryForAccount(username);
                     requestSyncAdapterInitialization(account);
-                }        
+                }
+                // Need to do our Sync Adapter initialization logic here
+                SyncAdapter.initialize(account, ContactsContract.AUTHORITY);
             }
         } catch (Exception ex) {
             LogUtils.logE("People Account creation failed because of exception:\n", ex);
         }
-        if (isAdded) {
-            // Updating MyContacts Group IDs here for now because it needs to be
-            // done one time just before first time sync.
-            // In the future, this code may change if we modify
-            // the way we retrieve contact IDs.
-            fetchMyContactsGroupRowIds();
-        }
+        
+//      Commented out 'My Contacts' Group Row IDs call as it is not currently used        
+//        if (isAdded) {
+//            // Updating MyContacts Group IDs here for now because it needs to be
+//            // done one time just before first time sync.
+//            // In the future, this code may change if we modify
+//            // the way we retrieve contact IDs.
+//            fetchMyContactsGroupRowIds();
+//        }
 
         return isAdded;
     }
@@ -834,8 +819,8 @@ public class NativeContactsApi2 extends NativeContactsApi {
                     // TODO: Remove hardcoding (if statement)
                     if (TextUtils.isEmpty(accountType)
                             || accountType.equals(NativeContactsApi.PEOPLE_ACCOUNT_TYPE_STRING)
-                            || isVendorSpecificAccount(accountType)
-                            || isContactInMyContactsGroup(id)) {
+                            || isVendorSpecificAccount(accountType)) {
+                     //PAND-2125       || isContactInMyContactsGroup(id)) {
                         tempIds[idCount] = id;
                         idCount++;
                     }
@@ -891,6 +876,12 @@ public class NativeContactsApi2 extends NativeContactsApi {
      * @param nabContactId ID of the Contact to check
      * @return true if the Contact is in the Group, false if not
      */
+    /**
+     * PAND-2125
+     * The decision has been made to stop the import of Google contacts on 2.x devices. 
+     * From now on, we will only import native addressbook contacts.
+     */
+    /*
     private boolean isContactInMyContactsGroup(long nabContactId) {
         boolean belongs = false;
         if (mMyContactsGroupRowIds != null) {
@@ -918,7 +909,7 @@ public class NativeContactsApi2 extends NativeContactsApi {
         }
         return belongs;
     }
-
+*/
     /**
      * Reads a Contact Detail from a Cursor into the supplied Contact Change
      * List.
@@ -1243,23 +1234,41 @@ public class NativeContactsApi2 extends NativeContactsApi {
      * @param ccList List of Contact Changes to add read detail data
      * @param nabContactId ID of the NAB Contact
      */
-    public void readBirthday(Cursor cursor, List<ContactChange> ccList, long nabContactId) {
+    private void readBirthday(Cursor cursor, List<ContactChange> ccList, long nabContactId) {
         final int type = CursorUtils.getInt(cursor, Event.TYPE);
-        if (type == Event.TYPE_BIRTHDAY) {
-            final String date = CursorUtils.getString(cursor, Event.START_DATE);
-            // Ignoring birthdays without year, day and month!
-            // FIXME: Remove this check when/if the backend becomes able to
-            // handle incomplete birthdays
-            if (date != null && date.matches(COMPLETE_DATE_REGEX)) {
-                final long nabDetailId = CursorUtils.getLong(cursor, Event._ID);
-                final ContactChange cc = new ContactChange(ContactChange.KEY_VCARD_DATE, date,
-                        ContactChange.FLAG_BIRTHDAY);
-                cc.setNabContactId(nabContactId);
-                cc.setNabDetailId(nabDetailId);
-                ccList.add(cc);
-                mHaveReadBirthday = true;
-            }
+        if (type != Event.TYPE_BIRTHDAY) {
+            // Not a Birthday, return
+            return;
         }
+        
+        final String date = CursorUtils.getString(cursor, Event.START_DATE);
+        
+        if(TextUtils.isEmpty(date)) {
+            // Empty date, do nothing
+            return;
+        }
+
+        // Ignoring birthdays without year, day and month!
+        // FIXME: Remove this check when/if the backend becomes able to
+        // handle incomplete birthdays
+        Matcher matcher = Pattern.compile(NativeContactsApi2.COMPLETE_DATE_REGEX).matcher(date);
+        
+        if(!matcher.find()) {
+            // No matching date, log and return
+            LogUtils.logD("NativeContactsApi2.readBirthday() - Unsupported '"+
+                    date+"' Date skipped for NAB Contact ID:"+nabContactId);
+            return;            
+        }
+        
+        final long nabDetailId = CursorUtils.getLong(cursor, Event._ID);
+        final ContactChange cc = new ContactChange(
+                                        ContactChange.KEY_VCARD_DATE, 
+                                        matcher.group(),
+                                        ContactChange.FLAG_BIRTHDAY);
+        cc.setNabContactId(nabContactId);
+        cc.setNabDetailId(nabDetailId);
+        ccList.add(cc);
+        mHaveReadBirthday = true;
     }
 
     /**
@@ -1430,6 +1439,7 @@ public class NativeContactsApi2 extends NativeContactsApi {
             case ContactChange.KEY_VCARD_DATE:
                 // Date only means Birthday currently
                 putBirthday(cc);
+                break;
             default:
                 break;
         }
@@ -1795,6 +1805,7 @@ public class NativeContactsApi2 extends NativeContactsApi {
     private ContactChange[] executeNewContactBatch(ContactChange[] ccList) {
         if (mBatch.size() == 0) {
             // Nothing to execute
+            LogUtils.logW("NativeContactsApi2.executeNewContactBatch() - the batch is empty, probably none of the changes are supported");
             return null;
         }
         final ContentProviderResult[] results = mBatch.execute();
@@ -1887,12 +1898,15 @@ public class NativeContactsApi2 extends NativeContactsApi {
     private ContactChange[] executeUpdateContactBatch(ContactChange[] ccList) {
         if (mBatch.size() == 0) {
             // Nothing to execute
+            LogUtils.logW("NativeContactsApi2.executeUpdateContactBatch() - the batch is empty, probably none of the changes are supported");
             return null;
         }
         final ContentProviderResult[] results = mBatch.execute();
         final int resultsSize = results.length;
         if (results == null || resultsSize == 0) {
             // Assuming this can happen in case of no added details
+            LogUtils.logE("NativeContactsApi2.executeUpdateContactBatch()"
+                    + "Batch execution result is null or empty!");
             return null;
         }
 
@@ -2211,10 +2225,10 @@ public class NativeContactsApi2 extends NativeContactsApi {
     
     /**
      * Gets the first People Account found on the device or
-     * null if none is found
+     * null if none is found.
      * @return The Android People account found or null
      */
-    public android.accounts.Account getPeopleAccount() {
+    private android.accounts.Account getPeopleAccount() {
         android.accounts.Account[] accounts = 
             AccountManager.get(mContext).getAccountsByType(PEOPLE_ACCOUNT_TYPE_STRING);
         if(accounts != null && accounts.length > 0) {

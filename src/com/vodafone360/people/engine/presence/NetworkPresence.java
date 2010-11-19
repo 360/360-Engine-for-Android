@@ -25,12 +25,15 @@
 
 package com.vodafone360.people.engine.presence;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.vodafone360.people.utils.ThirdPartyAccount;
 
 /**
  * A wrapper for the user presence state on certain web or IM account
  */
-public class NetworkPresence {
+public class NetworkPresence implements Parcelable {
 
     private String mUserId;
 
@@ -117,15 +120,15 @@ public class NetworkPresence {
     /**
      * Hard coded networks with enable IM list
      */
-    public static enum SocialNetwork {
+    public static enum SocialNetwork implements Parcelable {
         FACEBOOK_COM("facebook.com"),
         HYVES_NL("hyves.nl"),
         GOOGLE("google"),
         MICROSOFT("microsoft"),
-        MOBILE("mobile"),
-        PC("pc"),
-        VODAFONE("vodafone"); // the aggregated status for "pc" and "mobile"
-                              // only used by - UI - Contact Profile View
+        VKONTAKTE_RU("vkontakte.ru"),
+        ODNOKLASSNIKI_RU("odnoklassniki.ru"),
+
+        INVALID("invalid"); 
         private String mSocialNetwork; // / The name of the field as it appears
                                        // in the database
 
@@ -152,41 +155,32 @@ public class NetworkPresence {
         }
 
         /**
-         * This method returns the SocialNetwork object based on index in the SocialNetwork enum.
-         * This method should be called to get the SocialNetwork object by networkId
-         * index from {@code}NetworkPresence.   
-         * @param index - integer index.
-         * @return SocialNetwork object for the provided index.
-         */
-        public static SocialNetwork getPresenceValue(int index) {
-            if (index == VODAFONE.ordinal())
-                return MOBILE;
-            return values()[index];
-        }
-
-        /**
+         * 
          * This method returns the SocialNetwork object based on index in the SocialNetwork enum.
          * This method should be called to get the SocialNetwork for a chat network id index.
+         * 
          * @param index - integer index.
          * @return SocialNetwork object for the provided index.
+         * 
          */
-        public static SocialNetwork getChatValue(int index) {
-            if (index == MOBILE.ordinal() || index == PC.ordinal() || index == VODAFONE.ordinal())
-                return VODAFONE;
+        public static SocialNetwork getSocialNetworkValue(int index) {
             return values()[index];
         }
 
         /**
          * This method returns the SocialNetwork object based on the provided
          * string.
-         * This method should be called to get the SocialNetwork objects for UI purposes, i.e. 
-         * it returns Vodafone rather than MOBILE or PC if "pc" and "mobile" are passed in.
+         * 
          * @param index - integer index.
          * @return SocialNetwork object for the provided underlying string.
          */
         public static SocialNetwork getNetworkBasedOnString(String sns) {
             if (sns != null) {
-                if (sns.contains(ThirdPartyAccount.SNS_TYPE_FACEBOOK)) {
+                if (sns.contains(ThirdPartyAccount.SNS_TYPE_VKONTAKTE)) {
+                    return VKONTAKTE_RU;
+                } else if (sns.contains(ThirdPartyAccount.SNS_TYPE_ODNOKLASSNIKI)) {
+                    return ODNOKLASSNIKI_RU;
+                } else if (sns.contains(ThirdPartyAccount.SNS_TYPE_FACEBOOK)) {
                     return FACEBOOK_COM;
                 } else if (sns.contains(ThirdPartyAccount.SNS_TYPE_HYVES)) {
                     return HYVES_NL;
@@ -194,13 +188,84 @@ public class NetworkPresence {
                     return MICROSOFT;
                 } else if (sns.contains(ThirdPartyAccount.SNS_TYPE_GOOGLE)) {
                     return GOOGLE;
-                } else if (sns.contains(ThirdPartyAccount.SNS_TYPE_TWITTER)) {
-                    return PC;
-                } else if (ThirdPartyAccount.isVodafone(sns)) {
-                    return VODAFONE;
                 }
             }
             return null;
         }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(final Parcel dest, final int flags) {
+            dest.writeString(mSocialNetwork);
+        }
+
+        /***
+         * Parcelable.Creator for SocialNetwork.
+         */
+        Parcelable.Creator<SocialNetwork> CREATOR
+            = new Parcelable.Creator<SocialNetwork>() {
+
+            @Override
+            public SocialNetwork createFromParcel(final Parcel source) {
+                return getNetworkBasedOnString(source.readString());
+            }
+
+            @Override
+            public SocialNetwork[] newArray(final int size) {
+                return new SocialNetwork[size];
+            }
+        };
     }
+
+    @Override
+    public final int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public final void writeToParcel(final Parcel parcel, final int flags) {
+        parcel.writeString(mUserId);
+        parcel.writeInt(mNetworkId);
+        parcel.writeInt(mOnlineStatusId);
+    }
+
+    /***
+     * Read in NetworkPresence data from Parcel.
+     *
+     * @param in NetworkPresence Parcel.
+     */
+    public final void readFromParcel(final Parcel in) {
+        mUserId = in.readString();
+        mNetworkId = in.readInt();
+        mOnlineStatusId = in.readInt();
+        return;
+    }
+
+    /***
+     * Parcelable constructor for NetworkPresence.
+     *
+     * @param source NetworkPresence Parcel.
+     */
+    public NetworkPresence(final Parcel source) {
+        this.readFromParcel(source);
+    }
+
+    /***
+     * Parcelable.Creator for NetworkPresence.
+     */
+    public static final Parcelable.Creator<NetworkPresence> CREATOR
+        = new Parcelable.Creator<NetworkPresence>(){
+        public NetworkPresence createFromParcel(final Parcel in) {
+            return new NetworkPresence(in);
+        }
+
+        @Override
+        public NetworkPresence[] newArray(final int size) {
+            return new NetworkPresence[size];
+        }
+    };
 }

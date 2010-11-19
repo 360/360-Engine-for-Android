@@ -25,11 +25,10 @@
 
 package com.vodafone360.people.tests.engine.contactsync;
 
-import com.vodafone360.people.engine.contactsync.ContactChange;
-
 import android.test.InstrumentationTestCase;
-import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.SmallTest;
+
+import com.vodafone360.people.engine.contactsync.ContactChange;
 
 public class ContactChangeTest extends InstrumentationTestCase {
 
@@ -49,10 +48,6 @@ public class ContactChangeTest extends InstrumentationTestCase {
 	public void testSettersAndGetters() {
 		// at the same time test the initial values of the default constructor
 		ContactChange cc = new ContactChange();
-		
-		assertEquals(ContactChange.DESTINATION_FLAG_NONE, cc.getDestinations());
-		cc.setDestinations(ContactChange.DESTINATIONS_CAB_NAB_RPG);
-		assertEquals(ContactChange.DESTINATIONS_CAB_NAB_RPG, cc.getDestinations());
 		
 		assertEquals(ContactChange.FLAG_NONE, cc.getFlags());
 		cc.setFlags(ContactChange.FLAGS_HOME_CELL);
@@ -94,7 +89,6 @@ public class ContactChangeTest extends InstrumentationTestCase {
 	public void testConstructors() {
 		String value = new String("value");
 		int type = ContactChange.TYPE_ADD_CONTACT;
-		int destination = ContactChange.DESTINATIONS_CAB_RPG;
 		long nabContactId = 100;
 		long internalContactId = 200;
 		long backendContactId = 300;
@@ -107,7 +101,6 @@ public class ContactChangeTest extends InstrumentationTestCase {
 		assertEquals(value, cc.getValue());
 		assertEquals(ContactChange.FLAG_HOME, cc.getFlags());
 		
-		assertEquals(ContactChange.DESTINATION_FLAG_NONE, cc.getDestinations());
 		assertEquals(ContactChange.TYPE_UNKNOWN, cc.getType());
 		assertEquals(-1L, cc.getBackendContactId());
 		assertEquals(-1L, cc.getBackendDetailId());
@@ -121,7 +114,6 @@ public class ContactChangeTest extends InstrumentationTestCase {
 		
 		assertEquals(type, cc.getType());
 		
-		assertEquals(ContactChange.DESTINATION_FLAG_NONE, cc.getDestinations());
 		assertEquals(ContactChange.FLAG_NONE, cc.getFlags());
 		assertEquals(-1L, cc.getBackendContactId());
 		assertEquals(-1L, cc.getBackendDetailId());
@@ -137,7 +129,6 @@ public class ContactChangeTest extends InstrumentationTestCase {
 
 		assertEquals(Long.MAX_VALUE, cc.getNabContactId());
 		
-		assertEquals(ContactChange.DESTINATION_FLAG_NONE, cc.getDestinations());
 		assertEquals(ContactChange.FLAG_NONE, cc.getFlags());
 		assertEquals(ContactChange.TYPE_UNKNOWN, cc.getType());
 		assertEquals(-1L, cc.getBackendContactId());
@@ -154,29 +145,12 @@ public class ContactChangeTest extends InstrumentationTestCase {
 		assertEquals(Long.MAX_VALUE, cc.getNabContactId());
 		assertEquals(Long.MIN_VALUE, cc.getNabDetailId());
 		
-		assertEquals(ContactChange.DESTINATION_FLAG_NONE, cc.getDestinations());
 		assertEquals(ContactChange.FLAG_NONE, cc.getFlags());
 		assertEquals(ContactChange.TYPE_UNKNOWN, cc.getType());
 		assertEquals(-1L, cc.getBackendContactId());
 		assertEquals(-1L, cc.getBackendDetailId());
 		assertEquals(-1L, cc.getInternalContactId());
 		assertEquals(-1L, cc.getInternalDetailId());
-		assertEquals(null, cc.getValue());
-		assertEquals(ContactChange.KEY_UNKNOWN, cc.getKey());
-		
-		//----------------------------------------
-		cc = new ContactChange(destination, type);
-		
-		assertEquals(type, cc.getType());
-		assertEquals(destination, cc.getDestinations());
-		
-		assertEquals(ContactChange.FLAG_NONE, cc.getFlags());
-		assertEquals(-1L, cc.getBackendContactId());
-		assertEquals(-1L, cc.getBackendDetailId());
-		assertEquals(-1L, cc.getInternalContactId());
-		assertEquals(-1L, cc.getInternalDetailId());
-		assertEquals(-1L, cc.getNabContactId());		
-		assertEquals(-1L, cc.getNabDetailId());
 		assertEquals(null, cc.getValue());
 		assertEquals(ContactChange.KEY_UNKNOWN, cc.getKey());
 		
@@ -193,7 +167,6 @@ public class ContactChangeTest extends InstrumentationTestCase {
 		assertEquals(internalContactId, cc.getInternalContactId());
 		assertEquals(type, cc.getType());
 		
-		assertEquals(ContactChange.DESTINATION_FLAG_NONE, cc.getDestinations());
 		assertEquals(ContactChange.FLAG_NONE, cc.getFlags());
 		assertEquals(-1L, cc.getBackendDetailId());
 		assertEquals(-1L, cc.getInternalDetailId());

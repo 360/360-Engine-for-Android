@@ -639,5 +639,7 @@
 	<string name="Utils_sns_name_hyves">Hyves</string>
 	<string name="Utils_sns_name_vodafone">Vodafone</string>
 	<string name="Utils_sns_name_studivz">StudiVZ</string>
+	<string name="Utils_sns_name_vkontakte">vKontakte</string>
+	<string name="Utils_sns_name_odnoklassniki">Odnoklassniki</string>
 	
 </resources>

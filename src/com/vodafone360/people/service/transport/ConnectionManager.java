@@ -31,7 +31,6 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.widget.Toast;
 
-import com.vodafone360.people.R;
 import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.login.LoginEngine.ILoginEventsListener;
 import com.vodafone360.people.service.RemoteService;
@@ -150,14 +149,7 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
             mDecoder.stopThread();
         }
 
-        if (null != mConnection) {
-            mConnection.stopThread();
-            mConnection = null;
-            unsubscribeFromQueueEvents();
-
-            // TODO remove as soon as the network agent is out. this is a hack!
-            onConnectionStateChanged(ITcpConnectionListener.STATE_DISCONNECTED);
-        }
+        stopActiveConnection();
     }
 
     @Override
@@ -165,12 +157,7 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
         HttpConnectionThread.logI("ConnectionManager.onLoginStateChanged()", "Is logged in: "
                 + loggedIn);
 
-        if (null != mConnection) {
-            mConnection.stopThread();
-            mConnection = null;
-
-            unsubscribeFromQueueEvents();
-        }
+        stopActiveConnection();
 
         if (loggedIn) {
             mConnection = getAutodetectedConnection(mService);
@@ -182,6 +169,22 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
         mConnection.startThread();
     }
 
+    /**
+     * 
+     * Stops the connection if it was currently running.
+     * 
+     */
+    private void stopActiveConnection() {
+    	if (null != mConnection) {
+    		synchronized (mConnection) {
+	            mConnection.stopThread();
+	            mConnection = null;
+	
+	            unsubscribeFromQueueEvents();
+	        }
+    	}
+    }
+    
     @Override
     public synchronized void notifyOfItemInRequestQueue() {
         mConnection.notifyOfItemInRequestQueue();
@@ -201,25 +204,6 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
     }
 
     /**
-     * TODO: remove this singleton model and call
-     */
-    /*
-     * public boolean isRPGEnabled(){ if (null != mConnection) { return
-     * mConnection.getIsRpgConnectionActive(); } return false; }
-     */
-
-    /***
-     * Note: only called from tests.
-     */
-    public void free() {
-        EngineManager.getInstance().getLoginEngine().removeListener(this);
-
-        disconnect();
-        mConnection = null;
-        mInstance = null;
-    }
-
-    /**
      * Enable test connection (for Unit testing purposes)
      * 
      * @param testConn handle to test connection
@@ -230,13 +214,17 @@ public class ConnectionManager implements ILoginEventsListener, IQueueListener {
     }
 
     /**
-     * This method is called by protocol to signal the connection state change.
+     * This method is called by the protocol to signal the connection state change.
      * 
-     * @param state int - the new connection state, @see ITcpConnectionListener.
+     * @param state The new connection state, @see ITcpConnectionListener.
      */
     public void onConnectionStateChanged(int state) {
+    	HttpConnectionThread.logI("ConnectionManager.onConnectionStateChanged()", 
+    			"State is " + state);
+    	
         if (state == ITcpConnectionListener.STATE_DISCONNECTED) {
-            // showToast(R.string.ContactProfile_no_connection);	// TODO show toast only if activity in foreground
+        	// TODO show toast only if activity in foreground
+            // showToast(R.string.ContactProfile_no_connection);
         }
 
         mConnectionState = state;

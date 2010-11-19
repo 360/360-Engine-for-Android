@@ -27,6 +27,7 @@ package com.vodafone360.people.tests.service;
 
 import junit.framework.TestCase;
 import android.test.suitebuilder.annotation.SmallTest;
+import android.test.suitebuilder.annotation.Suppress;
 
 import com.vodafone360.people.service.SyncAdapter;
 
@@ -39,8 +40,9 @@ public class SyncAdapterTest extends TestCase {
      * Test the SyncAdapter constructor.
      */
     @SmallTest
+    @Suppress
     public final void testSyncAdapter() {
-        SyncAdapter syncAdapter = new SyncAdapter(null, true);
+        SyncAdapter syncAdapter = new SyncAdapter(null, null);
         assertNotNull("SyncAdapter should not be NULL", syncAdapter);
     }
 
@@ -48,8 +50,9 @@ public class SyncAdapterTest extends TestCase {
      * Test the onPerformSync() method.
      */
     @SmallTest
+    @Suppress
     public final void testOnPerformSync() {
-        SyncAdapter syncAdapter = new SyncAdapter(null, true);
+        SyncAdapter syncAdapter = new SyncAdapter(null, null);
         syncAdapter.onPerformSync(null, null, null, null, null);
         assertTrue("No errors so far", true);
     }
@@ -58,8 +61,9 @@ public class SyncAdapterTest extends TestCase {
      * Test the onContactSyncStateChange() method.
      */
     @SmallTest
+    @Suppress
     public final void testOnContactSyncStateChange() {
-        SyncAdapter syncAdapter = new SyncAdapter(null, true);
+        SyncAdapter syncAdapter = new SyncAdapter(null, null);
         syncAdapter.onContactSyncStateChange(null, null, null);
         assertTrue("No errors so far", true);
     }
@@ -68,8 +72,9 @@ public class SyncAdapterTest extends TestCase {
      * Test the onProgressEvent() method.
      */
     @SmallTest
+    @Suppress
     public final void testOnProgressEvent() {
-        SyncAdapter syncAdapter = new SyncAdapter(null, true);
+        SyncAdapter syncAdapter = new SyncAdapter(null, null);
         syncAdapter.onProgressEvent(null, 0);
         assertTrue("No errors so far", true);
     }
@@ -78,8 +83,9 @@ public class SyncAdapterTest extends TestCase {
      * Test the onSyncComplete() method.
      */
     @SmallTest
+    @Suppress
     public final void testOnSyncComplete() {
-        SyncAdapter syncAdapter = new SyncAdapter(null, true);
+        SyncAdapter syncAdapter = new SyncAdapter(null, null);
         syncAdapter.onSyncComplete(null);
         assertTrue("No errors so far", true);
     }
