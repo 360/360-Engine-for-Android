@@ -2278,18 +2278,28 @@ public abstract class ActivitiesTable {
 
     	if (cursor != null && cursor.getCount() > 0) {
 			cursor.moveToFirst();
+			int firstItemType = getTimelineData(cursor).mNativeItemType;
+
 			TimelineSummaryItem timelineItem = null;
 			// Skip the first latest timeline Entry and update the remaining.
 			while (cursor.moveToNext()) {
 			    timelineItem = getTimelineData(cursor);
 			    if (timelineItem != null) {
-			        // Mark all the other latestcontactstatus value as 0
-			        // which were marked as 3 i.e. the latest entry.
-			        // 3 indicates the latest timeline in the thread.
-				    if (getLatestContactStatusForContact(
-						localContactId, timelineItem.mTimestamp, writeableDb) == 3) {
-					    updateTimeLineStatusEntryForContact(localContactId,
-                        0, timelineItem.mTimestamp, null, writeableDb);
+			    	int latestContactStatus = getLatestContactStatusForContact(localContactId,
+			    			timelineItem.mTimestamp, writeableDb);
+			    	// Adjust the value for the former latest entry.
+			    	// If it has been the same item type we remove both bits to hide it from
+			    	// the time line. If the type differs we only remove the first bit so it
+			    	// still visible on the type-specific timeline filter.
+				    if ((latestContactStatus & 1) == 1) {
+				    	if (firstItemType == timelineItem.mNativeItemType) {
+				    		latestContactStatus &= ~3;
+				    	} else {
+				    		latestContactStatus &= ~1;
+				    	}
+
+				    	updateTimeLineStatusEntryForContact(localContactId,
+                        latestContactStatus, timelineItem.mTimestamp, null, writeableDb);
 				    }
 				}
 			}
