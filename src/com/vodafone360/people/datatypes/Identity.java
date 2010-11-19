@@ -36,7 +36,6 @@ import java.util.Vector;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.text.TextUtils;
 
 import com.vodafone360.people.utils.LogUtils;
 
@@ -221,15 +220,6 @@ public class Identity extends BaseDataType implements Parcelable {
         }
 
         return isSame;
-    }
-
-    /**
-     * Test whether identity name or network is empty or null.
-     *
-     * @return true if identity name or network is empty or null, false otherwise.
-     */
-    public boolean isBlankorNull() {
-        return (TextUtils.isEmpty(mName) || TextUtils.isEmpty(mNetwork));
     }
 
     /**

@@ -625,28 +625,25 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * 
      * @param data List of BaseDataTypes generated from Server response.
      */
-    private void handleGetAvailableIdentitiesResponse(List<BaseDataType> data) {
+    private void handleGetAvailableIdentitiesResponse(List<BaseDataType> data) {    	
         LogUtils.logD("IdentityEngine: handleServerGetAvailableIdentitiesResponse");
         ServiceStatus errorStatus = getResponseStatus(BaseDataType.AVAILABLE_IDENTITY_DATA_TYPE, data);
-
+        
         if (errorStatus == ServiceStatus.SUCCESS) {
         	synchronized (mAvailableIdentityList) {
 	            mAvailableIdentityList.clear();
-
+	            
 	            for (BaseDataType item : data) {
-                    Identity identity = (Identity) item;
-                    if (!identity.isBlankorNull()) {
-                        mAvailableIdentityList.add(identity);
-                    }
+	            	mAvailableIdentityList.add((Identity)item);
 	            }
         	}
         }
-
+        
         pushIdentitiesToUi(ServiceUiRequest.GET_AVAILABLE_IDENTITIES);
-
+        
         LogUtils.logD("IdentityEngine: handleGetAvailableIdentitiesResponse complete request.");
     }
-
+    
     /**
      * Handle Server response to request for available Identities. The response
      * should be a list of Identity items. The request is completed with
@@ -655,21 +652,19 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * 
      * @param data List of BaseDataTypes generated from Server response.
      */
-    private void handleGetMyIdentitiesResponse(List<BaseDataType> data) {
+    private void handleGetMyIdentitiesResponse(List<BaseDataType> data) {    	
         LogUtils.logD("IdentityEngine: handleGetMyIdentitiesResponse");
         ServiceStatus errorStatus = getResponseStatus(BaseDataType.MY_IDENTITY_DATA_TYPE, data);
-
-
-        if (errorStatus == ServiceStatus.SUCCESS) {
+        
+        
+        if (errorStatus == ServiceStatus.SUCCESS) {  
         	synchronized (mMyIdentityList) {
 
 	            mMyIdentityList.clear();
-
+	            
 	            for (BaseDataType item : data) {
-	                Identity identity = (Identity) item;
-	                if (!identity.isBlankorNull()) {
-                        mMyIdentityList.add(identity);
-	                }
+	                Identity identity = (Identity)item;
+	            	mMyIdentityList.add(identity);
 	            }
 	            // cache the identities
 	            MyIdentitiesCacheTable.setCachedIdentities(mDatabaseHelper.getWritableDatabase(),
@@ -677,7 +672,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         	}
         }
         pushIdentitiesToUi(ServiceUiRequest.GET_MY_IDENTITIES);
-
+         
         LogUtils.logD("IdentityEngine: handleGetMyIdentitiesResponse complete request.");
     }
 
