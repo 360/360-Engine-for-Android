@@ -350,7 +350,7 @@ public class ApplicationCache {
     /**
      * Clear all cached data currently stored in People application.
      */
-    protected void clearCachedData(Context context) {
+    public void clearCachedData(Context context) {
         LoginPreferences.clearPreferencesFile(context);
         LoginPreferences.clearCachedLoginDetails();
 
