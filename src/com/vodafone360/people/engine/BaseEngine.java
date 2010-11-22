@@ -93,12 +93,54 @@ public abstract class BaseEngine {
     private boolean mDeactivated;
 
     /**
-     * Class to encapsulate client request information.
+     * Class to encapsulate client (UI) request information.
      */
     private static class UiQueueItem {
+        /**
+         * Request type.
+         */
         private ServiceUiRequest mRequestId;
 
+        /**
+         * Data associated with the request.
+         */
         private Object mData;
+
+        @Override
+        public String toString() {
+            return "UiQueueItem [mData=" + mData + ", mRequestId=" + mRequestId + "]";
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((mData == null) ? 0 : mData.hashCode());
+            result = prime * result + ((mRequestId == null) ? 0 : mRequestId.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            UiQueueItem other = (UiQueueItem)obj;
+            if (mData == null) {
+                if (other.mData != null)
+                    return false;
+            } else if (!mData.equals(other.mData))
+                return false;
+            if (mRequestId == null) {
+                if (other.mRequestId != null)
+                    return false;
+            } else if (!mRequestId.equals(other.mRequestId))
+                return false;
+            return true;
+        }
     }
 
     /**
@@ -148,8 +190,22 @@ public abstract class BaseEngine {
     /**
      * Helper function for use by the derived engine class to add a UI request
      * to the queue. This will be run from the UI thread
+     * @param request - {@link ServiceUiRequest}.
+     * @param data - Object containing data related to the request.
      */
     public void addUiRequestToQueue(ServiceUiRequest request, Object data) {
+        addUiRequestToQueue(request, data, false);
+    }
+
+    /**
+     * Helper function for use by the derived engine class to add a UI request
+     * to the queue. This will be run from the UI thread
+     * @param request - {@link ServiceUiRequest}.
+     * @param data - Object containing data related to the request.
+     * @param throttle - boolean, pass TRUE if the engine should ignore the incoming ServiceUiRequests
+     * when the request queue already contains requests of the same type waiting to be processed.
+     */
+    public void addUiRequestToQueue(ServiceUiRequest request, Object data, boolean throttle) {
         if (mDeactivated) {
             onUiRequestComplete(request, ServiceStatus.ERROR_NOT_IMPLEMENTED, null);
             return;
@@ -158,12 +214,14 @@ public abstract class BaseEngine {
         item.mRequestId = request;
         item.mData = data;
         synchronized (mUiQueue) {
-            mUiQueue.add(item);
+            if (!throttle || !mUiQueue.contains(item)) {
+                mUiQueue.add(item);  
+                LogUtils.logD("Added to the queue, ServiceUiRequest."+request);
+            } 
             mUiRequestOutstanding = true;
         }
         mEventCallback.kickWorkerThread();
     }
-
     /**
      * Return id for this engine.
      * 
