@@ -626,13 +626,6 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
         LogUtils.logD("ActivityEngine removeDuplicates. Count dups = " + dupCount);
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public void onContactSyncStateChange(ContactSyncEngine.Mode mode,
-            ContactSyncEngine.State oldState, ContactSyncEngine.State newState) {
-        LogUtils.logD("ActivityEngine onContactSyncStateChange called.");
-    }
-
     /**
      * Receive notification from ContactSyncEngine that a Contact sync has
      * completed. Start Activity sync if we have not previously synced.
@@ -646,6 +639,13 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
             addStatusesSyncRequest();
             LogUtils.logD("ActivityEngine onSyncComplete FULL_SYNC_FIRST_TIME.");
         }
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void onContactSyncStateChange(ContactSyncEngine.Mode mode,
+            ContactSyncEngine.State oldState, ContactSyncEngine.State newState) {
+        LogUtils.logD("ActivityEngine onContactSyncStateChange called.");
     }
 
     /** {@inheritDoc} */
@@ -713,22 +713,25 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
         }
     }
 
+    
     /**
      * This method adds a request to get latest timelines.
      */
     protected void addGetNewPhonesCallsRequest() {
-        LogUtils.logD("ActivitiesEngine addGetNewTimelinesRequest()");
-        // TODO: I noticed there 2 NAB change events coming when the phone call
-        // is made: try to filter one out
-        addUiRequestToQueue(ServiceUiRequest.UPDATE_PHONE_CALLS, null);
+        LogUtils.logD("ActivitiesEngine addGetNewPhonesCallsRequest()");
+        // I noticed that 1+ change events come when the native phone call log
+        // is updated, the events also seem to be issued when changes on the NAB occur.
+        // By passing "true" we try to filter out excessive calls and improve
+        // the application performance (especially shortly after 1st time sync).    
+        addUiRequestToQueue(ServiceUiRequest.UPDATE_PHONE_CALLS, null, true);
     }
 
     /**
      * This method adds a request to get latest timelines.
      */
     protected void addGetNewSMSRequest() {
-        LogUtils.logD("ActivitiesEngine addGetNewTimelinesRequest()");
-        addUiRequestToQueue(ServiceUiRequest.UPDATE_SMS, null);
+        LogUtils.logD("ActivitiesEngine addGetNewSMSRequest()");
+        addUiRequestToQueue(ServiceUiRequest.UPDATE_SMS, null, true);
     }
 
     /**
