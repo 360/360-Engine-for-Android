@@ -127,7 +127,7 @@ class NowPlusServiceTestHelper {
      */
     private ServiceStatus startSynchronousRequest(ServiceUiRequest requestId) {
         if (mUiRequestId != null) {
-            return ServiceStatus.ERROR_IN_USE;
+            return ServiceStatus.ERROR_UNKNOWN;
         }
         mUiRequestId = requestId.ordinal();
         // mUiRequestStatusId = null;
