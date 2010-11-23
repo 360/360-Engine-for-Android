@@ -74,6 +74,20 @@ public abstract class ActivitiesTable {
     /** Database cleanup will delete older activities after the first X. **/
     private static final int CLEANUP_MAX_QUANTITY = 400;
 
+	/**
+	 * Flag that indicates the most recent activity for all activities of the contact.
+	 * See {@link ActivitiesTable.Field#LATEST_CONTACT_STATUS} for more details.
+	 **/
+    private static final int LATEST_STATUS_FOR_ALL = 0x01;
+
+    /**
+	 * Flag that indicates the most recent activity for a specific native item type
+	 * of the contact.
+	 * See {@link ActivitiesTable.Field#LATEST_CONTACT_STATUS} for more details.
+	 **/
+    private static final int LATEST_STATUS_FOR_TYPE = 0x02;
+
+
     /***
      * An enumeration of all the field names in the database.
      */
@@ -124,7 +138,29 @@ public abstract class ActivitiesTable {
         NATIVE_ITEM_TYPE("nativeitemtype"),
         /** Native item ID. **/
         NATIVE_ITEM_ID("nativeitemid"),
-        /** Latest contact status. **/
+        /**
+         * Latest contact status.
+         * This field is used as a bitfield to indicate the most recent activities.
+         * Currently we use the following two flags:
+         * <ul>
+         * <li>
+         * {@link ActivitiesTable#LATEST_STATUS_FOR_ALL} indicates the most recent activity
+         * for the contact associated with this database entry. Therefore only one activity
+         * per contact should have <code>LATEST_STATUS_FOR_ALL</code> set.
+         * </li><li>
+         * {@link ActivitiesTable#LATEST_STATUS_FOR_TYPE} indicates the most recent activity
+         * for a native item type for the contact associated with this database entry. A contact
+         * with several different activity types (e.g. call and text message) will have
+         * <code>LATEST_STATUS_FOR_TYPE</code> set for all of its most recent activities if the
+         * type differs to already set activities. Former activities of the same native item
+         * type should not set <code>LATEST_STATUS_FOR_TYPE</code> (or
+         * <code>LATEST_STATUS_FOR_ALL</code>).
+         * </li>
+         * </ul>
+         * The above applies only to timeline related activities. For status related
+         * activities only <code>LATEST_STATUS_FOR_ALL</code> is set to indicate the most recent
+         * status entry. <code>LATEST_STATUS_FOR_TYPEL</code> is omitted.
+         **/
         LATEST_CONTACT_STATUS("latestcontactstatus"),
         /** Native thread ID. **/
         NATIVE_THREAD_ID("nativethreadid"),
@@ -948,18 +984,18 @@ public abstract class ActivitiesTable {
         DatabaseHelper.trace(false, "DatabaseHelper.fetchTimelineEventList() "
                 + "minTimeStamp[" + minTimeStamp + "]");
         try {
-            int andVal = 1;
+            int andVal = LATEST_STATUS_FOR_ALL;
             String typesQuery = " AND ";
             if (nativeTypes != null) {
                 typesQuery += DatabaseHelper.createWhereClauseFromList(
                         Field.NATIVE_ITEM_TYPE.toString(), nativeTypes, "OR");
                 typesQuery += " AND ";
                 if (nativeTypes[0] != TimelineNativeTypes.CallLog){
-                    andVal = 2;
+                    andVal = LATEST_STATUS_FOR_TYPE;
                 } else {
                     // Francisco: FIXME: This is actually the fix for PAND-2462
                     // But this code and this latest contact status are a mystery
-                    andVal = 3;
+                    andVal |= LATEST_STATUS_FOR_TYPE;
                 }
             }
 
@@ -1028,7 +1064,7 @@ public abstract class ActivitiesTable {
                             ActivityItem.TIMELINE_ITEM, activityTypes,
                             writableDb);
                 } else {	// unknown contact
-                	latestStatusVal = 1;
+                	latestStatusVal = LATEST_STATUS_FOR_ALL;
                 }
 
 
@@ -1215,12 +1251,12 @@ public abstract class ActivitiesTable {
             final TimelineNativeTypes[] activityTypes,
             final SQLiteDatabase writableDb) {
         String whereClause = "";
-        int andVal = 1;
+        int andVal = LATEST_STATUS_FOR_ALL;
         if (activityTypes != null) {
             whereClause = DatabaseHelper.createWhereClauseFromList(
                     Field.NATIVE_ITEM_TYPE.toString(), activityTypes, "OR");
             whereClause += " AND ";
-            andVal = 2;
+            andVal = LATEST_STATUS_FOR_TYPE;
         }
 
         String nameWhereClause = fetchNameWhereClause(localContactId, name);
@@ -1444,15 +1480,12 @@ public abstract class ActivitiesTable {
             }
 
             String whereAppend;
-            if (localContactId == null) {
-                whereAppend = Field.LOCAL_CONTACT_ID + " IS NULL AND "
-                        + fetchNameWhereClause(localContactId, name);
-                if (whereAppend == null) {
-                    return null;
-                }
-            } else {
-                whereAppend = Field.LOCAL_CONTACT_ID + "=" + localContactId;
-            }
+			if (localContactId == null) {
+				whereAppend = Field.LOCAL_CONTACT_ID + " IS NULL AND "
+						+ fetchNameWhereClause(localContactId, name);
+			} else {
+				whereAppend = Field.LOCAL_CONTACT_ID + "=" + localContactId;
+			}
             String query = "SELECT " + Field.LOCAL_ACTIVITY_ID + ","
                 + Field.TIMESTAMP + "," + Field.CONTACT_NAME + ","
                 + Field.CONTACT_AVATAR_URL + "," + Field.LOCAL_CONTACT_ID + ","
@@ -1998,10 +2031,9 @@ public abstract class ActivitiesTable {
             .append(TimelineNativeTypes.SmsLog.ordinal()).append(",").append(TimelineNativeTypes.MmsLog.ordinal())
             .append(",").append(TimelineNativeTypes.ChatLog.ordinal()).append(") ORDER BY ").append(Field.TIMESTAMP).append(" DESC LIMIT 1)");
             ContentValues values = new ContentValues();
-            //this value marks the timeline as the latest event for this contact. this value is normally set in addTimeline
+            //this marks the timeline as the latest event for this contact. this is normally set in addTimeline
             //methods for the added event after resetting previous latest activities.
-            final int LATEST_TIMELINE = 3;
-            values.put(Field.LATEST_CONTACT_STATUS.toString(), LATEST_TIMELINE);
+            values.put(Field.LATEST_CONTACT_STATUS.toString(), LATEST_STATUS_FOR_ALL | LATEST_STATUS_FOR_TYPE);
             writeableDb.update(TABLE_NAME, values, StringBufferPool.toStringThenRelease(where2), null);
         }
     }
@@ -2215,7 +2247,7 @@ public abstract class ActivitiesTable {
 				            + "] mTimestamp[" + item.mTimestamp
 				            + "] should be NULL");
 
-					int latestContactStatus = 3;
+					int latestContactStatus = LATEST_STATUS_FOR_ALL | LATEST_STATUS_FOR_TYPE;
 					// Update the LatestContactStatus for Latest Timeline
 					// Actually for chat timelines this item.mContactAddress will be null,
                     // and it makes no sense to  update it as well.
@@ -2291,11 +2323,11 @@ public abstract class ActivitiesTable {
 			    	// If it has been the same item type we remove both bits to hide it from
 			    	// the time line. If the type differs we only remove the first bit so it
 			    	// still visible on the type-specific timeline filter.
-				    if ((latestContactStatus & 1) == 1) {
+				    if ((latestContactStatus & LATEST_STATUS_FOR_ALL) != 0) {
 				    	if (firstItemType == timelineItem.mNativeItemType) {
-				    		latestContactStatus &= ~3;
+				    		latestContactStatus &= ~(LATEST_STATUS_FOR_ALL | LATEST_STATUS_FOR_TYPE);
 				    	} else {
-				    		latestContactStatus &= ~1;
+				    		latestContactStatus &= ~LATEST_STATUS_FOR_ALL;
 				    	}
 
 				    	updateTimeLineStatusEntryForContact(localContactId,
