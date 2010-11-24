@@ -26,7 +26,9 @@
 package com.vodafone360.people.engine.identities;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -186,6 +188,11 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     private final DatabaseHelper mDatabaseHelper;
 
     /**
+     * A list containing all the currently pending SNS.
+     */
+    private List<String> mCurrentlyPendingSns;
+    
+    /**
      * Constructor
      * 
      * @param eventCallback IEngineEventCallback allowing engine to report back.
@@ -275,6 +282,33 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         
     	return myIdentityList;
 	}
+    
+    /**
+     * 
+     * Gets the identity with the specified network name.
+     * 
+     * @param networkName The network name to get the identity for. E.g. "facebook.com".
+     * 
+     * @return The identity that matches the passed network name or null if the network name was
+     * null or could not be found.
+     * 
+     */
+    public Identity getIdentityForNetworkName(final String networkName) {
+    	if (networkName == null) {
+    		return null;
+    	}
+    	
+    	for (int i = 0; i < mAvailableIdentityList.size(); i++) {
+    		Identity identity = mAvailableIdentityList.get(i);
+    		
+    		if (identity != null && networkName.equals(identity.mNetwork)) {
+    			return identity;
+    		}
+    	}
+    	
+    	return null;
+    }
+    
     
     /**
      * 
@@ -486,6 +520,8 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
                         reqData.mUserName, reqData.mPassword, null, null, reqData.mStatus))) {
             completeUiRequest(ServiceStatus.ERROR_BAD_SERVER_PARAMETER);
         }
+        
+        addPendingIdentity(reqData.mNetwork);
     }
     
     /**
@@ -628,22 +664,25 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     private void handleGetAvailableIdentitiesResponse(List<BaseDataType> data) {    	
         LogUtils.logD("IdentityEngine: handleServerGetAvailableIdentitiesResponse");
         ServiceStatus errorStatus = getResponseStatus(BaseDataType.AVAILABLE_IDENTITY_DATA_TYPE, data);
-        
+
         if (errorStatus == ServiceStatus.SUCCESS) {
         	synchronized (mAvailableIdentityList) {
 	            mAvailableIdentityList.clear();
-	            
+
 	            for (BaseDataType item : data) {
-	            	mAvailableIdentityList.add((Identity)item);
+	                Identity identity = (Identity) item;
+	                if (!identity.isIdentityFieldBlankorNull()) {
+                        mAvailableIdentityList.add(identity);
+	                }
 	            }
         	}
         }
-        
+
         pushIdentitiesToUi(ServiceUiRequest.GET_AVAILABLE_IDENTITIES);
-        
+
         LogUtils.logD("IdentityEngine: handleGetAvailableIdentitiesResponse complete request.");
     }
-    
+
     /**
      * Handle Server response to request for available Identities. The response
      * should be a list of Identity items. The request is completed with
@@ -655,24 +694,33 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     private void handleGetMyIdentitiesResponse(List<BaseDataType> data) {    	
         LogUtils.logD("IdentityEngine: handleGetMyIdentitiesResponse");
         ServiceStatus errorStatus = getResponseStatus(BaseDataType.MY_IDENTITY_DATA_TYPE, data);
-        
-        
+
+
         if (errorStatus == ServiceStatus.SUCCESS) {  
         	synchronized (mMyIdentityList) {
 
 	            mMyIdentityList.clear();
-	            
+
 	            for (BaseDataType item : data) {
-	                Identity identity = (Identity)item;
-	            	mMyIdentityList.add(identity);
+	                Identity identity = (Identity) item;
+	                if (!identity.isIdentityFieldBlankorNull()) {
+                        mMyIdentityList.add(identity);
+	                }
 	            }
 	            // cache the identities
 	            MyIdentitiesCacheTable.setCachedIdentities(mDatabaseHelper.getWritableDatabase(),
 	                                                       mMyIdentityList);
+	            clearPendingIdentities();
         	}
+        } else if (errorStatus == ServiceStatus.ERROR_COMMS_TIMEOUT) {
+        	// reset the pending list in case of a timeout
+        	clearPendingIdentities();
         }
         pushIdentitiesToUi(ServiceUiRequest.GET_MY_IDENTITIES);
          
+        // remove any identites returned from the pending list as they are validated by now! 
+        removePendingIdentities(mMyIdentityList);
+        
         LogUtils.logD("IdentityEngine: handleGetMyIdentitiesResponse complete request.");
     }
 
@@ -712,6 +760,8 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         
         if (errorStatus == ServiceStatus.SUCCESS) {
             addUiRequestToQueue(ServiceUiRequest.GET_MY_IDENTITIES, null);
+        } else if (errorStatus == ServiceStatus.ERROR_COMMS_TIMEOUT){
+        	clearPendingIdentities();	// if we timeout we need to clear our pending identities
         }
 
     }
@@ -952,5 +1002,120 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         LogUtils.logV("ApplicationCache."
                 + "isFacebookInThirdPartyAccountList() Hyves not found in list");
         return false;
+    }
+    
+    /**
+     * 
+     * Adds a social network to the "to be validated" hash map. The map is used for checking
+     * which social network is currently being validated with the backend.
+     * 
+     * @param socialNetwork The social network (Identity.mNetwork) to add to the pending list.
+     * 
+     */
+    private synchronized void addPendingIdentity(final String socialNetwork) {
+    	if (socialNetwork == null) {
+    		return;
+    	}
+    	
+    	if (mCurrentlyPendingSns == null) {
+    		mCurrentlyPendingSns = new ArrayList<String>();
+    	}
+    	
+    	synchronized (mCurrentlyPendingSns) {
+    		mCurrentlyPendingSns.add(socialNetwork);
+    	}
+    }
+    
+    /**
+     * 
+     * Returns the currently pending identities as part of a list.
+     * 
+     * @return The currently pending identities in a list.
+     * 
+     */
+    public List<Identity> getPendingIdentities() {
+    	List<Identity> pendingIdentities = new ArrayList<Identity>();
+    	if (mCurrentlyPendingSns == null) {
+    		return pendingIdentities;
+    	}
+    	
+    	for (int i = 0; i < mCurrentlyPendingSns.size(); i++) {
+    		String pendingSns = mCurrentlyPendingSns.get(i);
+    		if (pendingSns == null) {
+    			continue;
+    		}
+    		
+    		for (int j = 0; j < mAvailableIdentityList.size(); j++) {
+    			Identity availableIdentity = mAvailableIdentityList.get(j);
+    			if (pendingSns.equals(availableIdentity.mNetwork)) {
+    				pendingIdentities.add(availableIdentity);
+    			}
+    		}
+    	}
+    	
+    	return pendingIdentities;
+    }
+    
+    /**
+     * 
+     * Deletes a social network that has been validated on the backend from the map.
+     * 
+     * @param socialNetwork A list of social networks to remove from the pending list.
+     * 
+     */
+    private void removePendingIdentities(final List<Identity> socialNetworks) {
+    	if (socialNetworks == null || mCurrentlyPendingSns == null) {
+    		return;
+    	}
+    	
+    	synchronized (mCurrentlyPendingSns) {
+    		Iterator<String> iter = mCurrentlyPendingSns.iterator();
+    		while (iter.hasNext()) { // remove social networks that match the passed network
+    			Iterator<Identity> iterMyIdentities = socialNetworks.iterator();
+    			while (iterMyIdentities.hasNext()) {
+    				if (iter.next().equals(iterMyIdentities.next().mNetwork)) {
+    					iter.remove();
+    				}
+    			}
+    		}
+    	}
+    }
+    
+    /**
+     * Clears the currently pending identities e.g. can be used in case of a validate identity 
+     * request to the backend times out.
+     */
+    private void clearPendingIdentities() {
+    	if (mCurrentlyPendingSns == null) {
+    		return;
+    	}
+    	
+    	synchronized (mCurrentlyPendingSns) {
+    		mCurrentlyPendingSns.clear();
+    	}
+    }
+    
+    /**
+     * 
+     * Checks whether the third party account/identity is being added already by the user. If so it 
+     * should not be possible to add the account again. If the account is currently being validated 
+     * this method returns true.
+     * 
+     * @param networkName The network to check for. E.g. facebook.com.
+     * 
+     * @return True if the Identity is being validated on the backend currently.
+     */
+    public boolean isIdentityPending(final String networkName) {
+    	if (networkName == null || mCurrentlyPendingSns == null) {
+    		return false;
+    	}
+    	
+    	for (int i = 0; i < mCurrentlyPendingSns.size(); i++) {
+    		if (networkName.equals(mCurrentlyPendingSns.get(i))) {
+    			return true;
+    		}
+    	}
+    	
+    	return false;
     }
 }

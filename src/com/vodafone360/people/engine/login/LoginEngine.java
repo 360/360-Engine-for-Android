@@ -1395,8 +1395,7 @@ public class LoginEngine extends BaseEngine {
         // reset the engine as if it was just created
         super.onReset();
         setRegistrationComplete(false);
-        setActivatedSession(null);
-        mState = State.NOT_INITIALISED;
+        mState = State.NOT_REGISTERED;
         mRegistrationDetails = new RegistrationDetails();
         mActivationCode = null;
         onLoginStateChanged(false);

@@ -102,7 +102,8 @@ public abstract class ContactSummaryTable {
         FRIENDOFMINE("FriendOfMine"),
         PICTURELOADED("PictureLoaded"),
         SNS("Sns"),
-        SYNCTOPHONE("Synctophone");
+        SYNCTOPHONE("Synctophone"),
+        SEARCHNAME("Searchname");
 
         /**
          * The name of the field as it appears in the database
@@ -136,13 +137,17 @@ public abstract class ContactSummaryTable {
     public static void create(SQLiteDatabase writeableDb) throws SQLException {
         DatabaseHelper.trace(true, "ContactSummaryTable.create()");
         //TODO: As of now kept the onlinestatus field in table. Would remove it later on
+        /**
+         * Field.SEARCHNAME is added into the ContactSummary for searching the contacts case 
+         * insensitively when Field.DISPLAYNAME is having special characters like à, è, ù, â, ê, î, ô.
+         */
         writeableDb.execSQL("CREATE TABLE " + TABLE_NAME + " (" + Field.SUMMARYID
                 + " INTEGER PRIMARY KEY AUTOINCREMENT, " + Field.LOCALCONTACTID + " LONG, "
                 + Field.DISPLAYNAME + " TEXT, " + Field.STATUSTEXT + " TEXT, " + Field.ALTFIELDTYPE
                 + " INTEGER, " + Field.ALTDETAILTYPE + " INTEGER, " + Field.ONLINESTATUS
                 + " INTEGER, " + Field.NATIVEID + " INTEGER, " + Field.FRIENDOFMINE + " BOOLEAN, "
                 + Field.PICTURELOADED + " BOOLEAN, " + Field.SNS + " STRING, " + Field.SYNCTOPHONE
-                + " BOOLEAN);");
+                + " BOOLEAN, "+ Field.SEARCHNAME + " TEXT);");
         
         writeableDb.execSQL("CREATE INDEX " + TABLE_INDEX_NAME + " ON " + TABLE_NAME + " ( " + Field.LOCALCONTACTID + ", " + Field.DISPLAYNAME + " )");
         clearPresenceMap();
@@ -492,7 +497,10 @@ public abstract class ContactSummaryTable {
                         // this is what we do to display names of contacts
                         // coming from server
                         if (nameStr.length() > 0) {
+                        	String nameToLower = name.toString().toLowerCase();
                             contactValues.put(Field.DISPLAYNAME.toString(), name.toString());
+                            //The value for FIELD.SEARCHNAME is same as Field.DISPLAYNAME but in lowercase.
+                            contactValues.put(Field.SEARCHNAME.toString(), nameToLower);
                         }
                     }
                 }
@@ -764,9 +772,13 @@ public abstract class ContactSummaryTable {
             }
             
             // Check if this is a search request
+            /**
+             * Rather than checking the searchConstraint with the Field.DISPLAYNAME, we are comparing it with Field.SEARCHNAME
+             * so that it can handle the comparison of special characters like à, è, ù, â, ê, î, ô CASE insensitively.
+             */
             if (constraint != null) {
-            	final String dbSafeConstraint = DatabaseUtils.sqlEscapeString("%" + constraint + "%");
-            	queryString.append(Field.DISPLAYNAME).append(" LIKE ").append(dbSafeConstraint).append(" AND ");
+            	final String dbSafeConstraint = DatabaseUtils.sqlEscapeString("%" + constraint.toString().toLowerCase() + "%");
+            	queryString.append(Field.SEARCHNAME).append(" LIKE ").append(dbSafeConstraint).append(" AND ");
             }
                         
             queryString.append(TABLE_NAME).append(".")
@@ -991,12 +1003,14 @@ public abstract class ContactSummaryTable {
         try {
             final StringBuffer updateQuery = StringBufferPool.getStringBuffer(SQLKeys.UPDATE);
             updateQuery.append(TABLE_NAME).append(SQLKeys.SET).append(Field.DISPLAYNAME).
-            append("=? WHERE ").append(Field.LOCALCONTACTID).append("=?");
+            append("=?, ").append(Field.SEARCHNAME).append("=?").append(" WHERE ").append(Field.LOCALCONTACTID).append("=?");
             statement = writableDb.compileStatement(StringBufferPool.toStringThenRelease(updateQuery));
             
             writableDb.beginTransaction();
             statement.bindString(1, nameString);
-            statement.bindLong(2, contact.localContactID);
+            //need to update the Field.SEARCHNAME too.
+            statement.bindString(2, nameString.toLowerCase());
+            statement.bindLong(3, contact.localContactID);
             statement.execute();
             writableDb.setTransactionSuccessful();
             

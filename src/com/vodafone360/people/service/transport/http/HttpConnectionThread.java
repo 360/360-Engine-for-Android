@@ -287,7 +287,7 @@ public class HttpConnectionThread implements Runnable, IConnection {
                     + " " + contentType);
             HttpPost httpPost = new HttpPost(uri);
             httpPost.addHeader("Content-Type", contentType);
-            httpPost.addHeader("User-Agent", "PeopleRPGClient/1.0");
+            httpPost.addHeader("User-Agent", "PeopleAndroidClient/1.0");
             httpPost.addHeader("Cache-Control", "no-cache");
             httpPost.setEntity(new ByteArrayEntity(postData));
             try {

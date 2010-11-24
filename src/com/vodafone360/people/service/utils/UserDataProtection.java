@@ -135,6 +135,7 @@ public class UserDataProtection implements SimStateReceiver.Listener {
             
             LogUtils.logD("UserDataProtection.checkUserChanges() - unregister the SimStateReceiver");
             mContext.unregisterReceiver(mSimStateReceiver);
+            mSimStateReceiver = null;
         }
     }
     

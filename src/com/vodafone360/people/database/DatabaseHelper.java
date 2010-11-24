@@ -48,6 +48,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.vodafone360.people.MainApplication;
@@ -120,7 +121,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * Contains the database version. Must be increased each time the schema is
      * changed.
      **/
-    private static final int DATABASE_VERSION = 63;
+    private static final int DATABASE_VERSION = 64;
 
     private final List<Handler> mUiEventCallbackList = new ArrayList<Handler>();
 
@@ -128,7 +129,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private boolean mMeProfileAvatarChangedFlag;
 
-    private boolean mDbUpgradeRequired;
+    private boolean mDbUpgradeRequired = false;
     
     /**
      * Time period in which the sending of database change events to the UI is delayed.
@@ -303,21 +304,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     /***
-     * Delete and then recreate a newer database structure. Note: Only called
-     * from tests.
-     * 
+     * Delete and then recreate a newer database structure.
+     *
      * @param db An open SQLite database object
      * @param oldVersion The current database version on the device
      * @param newVersion The required database version
      */
-    // TODO: This is only called from the tests!!!!
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         try {
-            trace(true, "DatabaseHelper.onUpgrade() Upgrading database version from [" + oldVersion
+        	trace(true, "DatabaseHelper.onUpgrade() Upgrading database version from [" + oldVersion
                     + "] to [" + newVersion + "]");
-            mContext.deleteDatabase(DATABASE_NAME);
-            mDbUpgradeRequired = true;
+
+        	mDbUpgradeRequired = true;
+        	removeUserData();
+        	//Clearing the ApplicationCache.
+        	((MainApplication) mContext).getCache().clearCachedData(mContext);
 
         } catch (SQLException e) {
             LogUtils.logE("DatabaseHelper.onUpgrade() SQLException: Unable to upgrade database", e);
@@ -329,10 +331,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
     private void deleteDatabase() {
         trace(true, "DatabaseHelper.deleteDatabase()");
-        synchronized (this) {
-            getReadableDatabase().close();
-            mContext.deleteDatabase(DATABASE_NAME);
-        }
+		synchronized (this) {
+			//The condition is put so that getReadableDatabse() will only be called at time
+			//of ChangeUser and not at the time of DbUpgrade. Because if we call it when
+			//creating or upgrading the Db, that will lead to "IllegalStateException,
+			//getReadableDatabase() called recursively".
+			if (!mDbUpgradeRequired) {
+				getReadableDatabase().close();
+			}
+			mContext.deleteDatabase(DATABASE_NAME);
+		}
         fireDatabaseChangedEvent(DatabaseChangeType.CONTACTS, false);
     }
 
@@ -340,14 +348,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * Called when the Application is first started.
      */
     public void start() {
-        SQLiteDatabase mDb = getReadableDatabase();
+        SQLiteDatabase db = getReadableDatabase();
         if (mDbUpgradeRequired) {
             mDbUpgradeRequired = false;
-            mDb.close();
-            mDb = getReadableDatabase();
+            db.close();
+            db = getReadableDatabase();
         }
 
-        mMeProfileAvatarChangedFlag = StateTable.fetchMeProfileAvatarChangedFlag(mDb);
+        mMeProfileAvatarChangedFlag = StateTable.fetchMeProfileAvatarChangedFlag(db);
     }
 
     /***
@@ -369,13 +377,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             trace(false, "DatabaseHelper.addContact() contactID[" + contact.contactID
                     + "] nativeContactId[" + contact.nativeContactId + "]");
         }
-        List<Contact> mContactList = new ArrayList<Contact>();
-        mContactList.add(contact);
-        ServiceStatus mStatus = syncAddContactList(mContactList, true, true);
-        if (ServiceStatus.SUCCESS == mStatus) {
+        List<Contact> contactList = new ArrayList<Contact>();
+        contactList.add(contact);
+        ServiceStatus status = syncAddContactList(contactList, true, true);
+        if (ServiceStatus.SUCCESS == status) {
             fireDatabaseChangedEvent(DatabaseChangeType.CONTACTS, false);
         }
-        return mStatus;
+        return status;
     }
 
     /***
@@ -402,15 +410,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             return ServiceStatus.ERROR_NOT_FOUND;
         }
 
-        ContactsTable.ContactIdInfo mContactIdInfo = ContactsTable.validateContactId(
+        ContactsTable.ContactIdInfo contactIdInfo = ContactsTable.validateContactId(
                 localContactID, getWritableDatabase());
         List<ContactsTable.ContactIdInfo> idList = new ArrayList<ContactsTable.ContactIdInfo>();
-        idList.add(mContactIdInfo);
-        ServiceStatus mStatus = syncDeleteContactList(idList, true, true);
-        if (ServiceStatus.SUCCESS == mStatus) {
+        idList.add(contactIdInfo);
+        ServiceStatus status = syncDeleteContactList(idList, true, true);
+        if (ServiceStatus.SUCCESS == status) {
             fireDatabaseChangedEvent(DatabaseChangeType.CONTACTS, false);
         }
-        return mStatus;
+        return status;
     }
 
     /***
@@ -440,16 +448,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 && detail.localContactID != null && detail.localContactID.equals(SyncMeDbUtils
                 .getMeProfileLocalContactId(this)));
 
-        List<ContactDetail> mDetailList = new ArrayList<ContactDetail>();
-        mDetailList.add(detail);
-        ServiceStatus mStatus = syncAddContactDetailList(mDetailList, !isMeProfile, !isMeProfile);
-        if (mStatus == ServiceStatus.SUCCESS) {
+        List<ContactDetail> detailList = new ArrayList<ContactDetail>();
+        detailList.add(detail);
+        ServiceStatus status = syncAddContactDetailList(detailList, !isMeProfile, !isMeProfile);
+        if (status == ServiceStatus.SUCCESS) {
             fireDatabaseChangedEvent(DatabaseChangeType.CONTACTS, false);
             if (isMeProfile) {
                 WidgetUtils.kickWidgetUpdateNow(mContext);
             }
         }
-        return mStatus;
+        return status;
     }
 
     /***
@@ -471,16 +479,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             trace(false, "DatabaseHelper.modifyContactDetail() name[" + detail.getName() + "]");
         }
         boolean isMeProfile = SyncMeDbUtils.isMeProfile(this, detail.localContactID);
-        List<ContactDetail> mDetailList = new ArrayList<ContactDetail>();
-        mDetailList.add(detail);
-        ServiceStatus mStatus = syncModifyContactDetailList(mDetailList, !isMeProfile, !isMeProfile);
-        if (ServiceStatus.SUCCESS == mStatus) {
+        List<ContactDetail> detailList = new ArrayList<ContactDetail>();
+        detailList.add(detail);
+        ServiceStatus status = syncModifyContactDetailList(detailList, !isMeProfile, !isMeProfile);
+        if (ServiceStatus.SUCCESS == status) {
             fireDatabaseChangedEvent(DatabaseChangeType.CONTACTS, false);
             if (isMeProfile) {
                 WidgetUtils.kickWidgetUpdateNow(mContext);
             }
         }
-        return mStatus;
+        return status;
     }
 
     /***
@@ -501,26 +509,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             trace(false, "DatabaseHelper.deleteContactDetail() localContactDetailID["
                     + localContactDetailID + "]");
         }
-        SQLiteDatabase mDb = getReadableDatabase();
-        ContactDetail mDetail = ContactDetailsTable.fetchDetail(localContactDetailID, mDb);
-        if (mDetail == null) {
+        SQLiteDatabase db = getReadableDatabase();
+        ContactDetail detail = ContactDetailsTable.fetchDetail(localContactDetailID, db);
+        if (detail == null) {
             LogUtils.logE("Database.deleteContactDetail() Unable to find detail for deletion");
             return ServiceStatus.ERROR_NOT_FOUND;
         }
         boolean isMeProfile = false;
-        if (mDetail.localContactID.equals(SyncMeDbUtils.getMeProfileLocalContactId(this))) {
+        if (detail.localContactID.equals(SyncMeDbUtils.getMeProfileLocalContactId(this))) {
             isMeProfile = true;
         }
-        List<ContactDetail> mDetailList = new ArrayList<ContactDetail>();
-        mDetailList.add(mDetail);
-        ServiceStatus mStatus = syncDeleteContactDetailList(mDetailList, true, !isMeProfile);
-        if (ServiceStatus.SUCCESS == mStatus) {
+        List<ContactDetail> detailList = new ArrayList<ContactDetail>();
+        detailList.add(detail);
+        ServiceStatus status = syncDeleteContactDetailList(detailList, true, !isMeProfile);
+        if (ServiceStatus.SUCCESS == status) {
             fireDatabaseChangedEvent(DatabaseChangeType.CONTACTS, false);
             if (isMeProfile) {
                 WidgetUtils.kickWidgetUpdateNow(mContext);
             }
         }
-        return mStatus;
+        return status;
     }
 
     /***
@@ -537,20 +545,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public boolean modifyContactServerId(long localId, Long serverId, Long userId) {
         trace(false, "DatabaseHelper.modifyContactServerId() localId[" + localId + "] "
                 + "serverId[" + serverId + "] userId[" + userId + "]");
-        final SQLiteDatabase mDb = getWritableDatabase();
+        final SQLiteDatabase db = getWritableDatabase();
 
         try {
 
-            mDb.beginTransaction();
+            db.beginTransaction();
 
-            if (!ContactsTable.modifyContactServerId(localId, serverId, userId, mDb)) {
+            if (!ContactsTable.modifyContactServerId(localId, serverId, userId, db)) {
                 return false;
             }
 
-            mDb.setTransactionSuccessful();
+            db.setTransactionSuccessful();
         } finally {
 
-            mDb.endTransaction();
+            db.endTransaction();
         }
         return true;
     }
@@ -566,17 +574,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public boolean syncContactDetail(Long localDetailId, Long serverDetailId) {
         trace(false, "DatabaseHelper.modifyContactDetailServerId() localDetailId[" + localDetailId
                 + "]" + " serverDetailId[" + serverDetailId + "]");
-        SQLiteDatabase mDb = getWritableDatabase();
+        SQLiteDatabase db = getWritableDatabase();
 
         try {
-            mDb.beginTransaction();
-            if (!ContactDetailsTable.syncSetServerId(localDetailId, serverDetailId, mDb)) {
+            db.beginTransaction();
+            if (!ContactDetailsTable.syncSetServerId(localDetailId, serverDetailId, db)) {
                 return false;
             }
-            mDb.setTransactionSuccessful();
+            db.setTransactionSuccessful();
         } finally {
 
-            mDb.endTransaction();
+            db.endTransaction();
         }
         return true;
     }
@@ -664,12 +672,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @see #setOption(PersistSettings)
      */
     public PersistSettings fetchOption(PersistSettings.Option option) {
-        PersistSettings mSetting = StateTable.fetchOption(option, getWritableDatabase());
-        if (mSetting == null) {
-            mSetting = new PersistSettings();
-            mSetting.putDefaultOptionData();
+        PersistSettings setting = StateTable.fetchOption(option, getWritableDatabase());
+        if (setting == null) {
+            setting = new PersistSettings();
+            setting.putDefaultOptionData();
         }
-        return mSetting;
+        return setting;
     }
 
     /***
@@ -681,11 +689,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @see #fetchOption(com.vodafone360.people.service.PersistSettings.Option)
      */
     public ServiceStatus setOption(PersistSettings setting) {
-        ServiceStatus mStatus = StateTable.setOption(setting, getWritableDatabase());
-        if (ServiceStatus.SUCCESS == mStatus) {
+        ServiceStatus status = StateTable.setOption(setting, getWritableDatabase());
+        if (ServiceStatus.SUCCESS == status) {
             fireSettingChangedEvent(setting);
         }
-        return mStatus;
+        return status;
     }
 
     /***
@@ -694,12 +702,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @return SUCCESS or a suitable error code
      */
     public ServiceStatus deleteAllGroups() {
-        SQLiteDatabase mDb = getWritableDatabase();
-        ServiceStatus mStatus = GroupsTable.deleteAllGroups(mDb);
-        if (ServiceStatus.SUCCESS == mStatus) {
-            mStatus = GroupsTable.populateSystemGroups(mContext, mDb);
+        SQLiteDatabase db = getWritableDatabase();
+        ServiceStatus status = GroupsTable.deleteAllGroups(db);
+        if (ServiceStatus.SUCCESS == status) {
+            status = GroupsTable.populateSystemGroups(mContext, db);
         }
-        return mStatus;
+        return status;
     }
 
     /***
@@ -721,10 +729,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             trace(false, "DatabaseHelper.fetchThumbnailUrls() firstIndex[" + firstIndex + "] "
                     + "count[" + count + "]");
         }
-        Cursor mCursor = null;
+        Cursor cursor = null;
         try {
             thumbInfoList.clear();
-            mCursor = getReadableDatabase().rawQuery(
+            cursor = getReadableDatabase().rawQuery(
                     "SELECT " + ContactDetailsTable.TABLE_NAME + "."
                             + ContactDetailsTable.Field.LOCALCONTACTID + "," + Field.STRINGVAL
                             + " FROM " + ContactDetailsTable.TABLE_NAME + " INNER JOIN "
@@ -739,16 +747,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                             + "," + count, null);
 
             ArrayList<String> urls = new ArrayList<String>();
-            ThumbnailInfo mThumbnailInfo = null;
-            while (mCursor.moveToNext()) {
-                mThumbnailInfo = new ThumbnailInfo();
-                if (!mCursor.isNull(0)) {
-                    mThumbnailInfo.localContactId = mCursor.getLong(0);
+            ThumbnailInfo thumbnailInfo = null;
+            while (cursor.moveToNext()) {
+                thumbnailInfo = new ThumbnailInfo();
+                if (!cursor.isNull(0)) {
+                    thumbnailInfo.localContactId = cursor.getLong(0);
                 }
-                mThumbnailInfo.photoServerUrl = mCursor.getString(1);
-                if (!urls.contains(mThumbnailInfo.photoServerUrl)) {
-                    urls.add(mThumbnailInfo.photoServerUrl);
-                    thumbInfoList.add(mThumbnailInfo);
+                thumbnailInfo.photoServerUrl = cursor.getString(1);
+                if (!urls.contains(thumbnailInfo.photoServerUrl)) {
+                    urls.add(thumbnailInfo.photoServerUrl);
+                    thumbInfoList.add(thumbnailInfo);
                 }
             }
             // LogUtils.logWithName("THUMBNAILS:","urls:\n" + urls);
@@ -757,7 +765,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         } catch (SQLException e) {
             return ServiceStatus.ERROR_DATABASE_CORRUPT;
         } finally {
-            CloseUtils.close(mCursor);
+            CloseUtils.close(cursor);
         }
     }
 
@@ -807,20 +815,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                             + ContactDetail.DetailKeys.PHOTO.ordinal(), null);
 
             HashSet<String> urlSet = new HashSet<String>();
-            ThumbnailInfo mThumbnailInfo = null;
+            ThumbnailInfo thumbnailInfo = null;
             while (cursor.moveToNext()) {
-                mThumbnailInfo = new ThumbnailInfo();
+                thumbnailInfo = new ThumbnailInfo();
                 if (!cursor.isNull(cursor.getColumnIndexOrThrow(
                 		ContactDetailsTable.Field.LOCALCONTACTID.toString()))) {
-                    mThumbnailInfo.localContactId = cursor.getLong(cursor.getColumnIndexOrThrow(
+                    thumbnailInfo.localContactId = cursor.getLong(cursor.getColumnIndexOrThrow(
                     		ContactDetailsTable.Field.LOCALCONTACTID.toString()));
                 }
-                mThumbnailInfo.photoServerUrl = cursor.getString(cursor.getColumnIndexOrThrow(
+                thumbnailInfo.photoServerUrl = cursor.getString(cursor.getColumnIndexOrThrow(
                 		ContactDetailsTable.Field.STRINGVAL.toString()));
                 
                 // TODO: Investigate if this is really needed
-                if (urlSet.add(mThumbnailInfo.photoServerUrl)) {
-                    thumbInfoList.add(mThumbnailInfo);
+                if (urlSet.add(thumbnailInfo.photoServerUrl)) {
+                    thumbInfoList.add(thumbnailInfo);
                 }
             }
 
@@ -886,22 +894,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
     public int fetchThumbnailUrlCount() {
         trace(false, "DatabaseHelper.fetchThumbnailUrlCount()");
-        Cursor mCursor = null;
+        Cursor cursor = null;
         try {
-            mCursor = getReadableDatabase().rawQuery(
+            cursor = getReadableDatabase().rawQuery(
                     "SELECT COUNT(" + ContactSummaryTable.Field.SUMMARYID + ") FROM "
                             + ContactSummaryTable.TABLE_NAME + " WHERE "
                             + ContactSummaryTable.Field.PICTURELOADED + " =0 ", null);
-            if (mCursor.moveToFirst()) {
-                if (!mCursor.isNull(0)) {
-                    return mCursor.getInt(0);
+            if (cursor.moveToFirst()) {
+                if (!cursor.isNull(0)) {
+                    return cursor.getInt(0);
                 }
             }
             return 0;
         } catch (SQLException e) {
             return 0;
         } finally {
-            CloseUtils.close(mCursor);
+            CloseUtils.close(cursor);
         }
     }
 
@@ -921,12 +929,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (avatarChanged == mMeProfileAvatarChangedFlag) {
             return ServiceStatus.SUCCESS;
         }
-        ServiceStatus mResult = StateTable.modifyMeProfileChangedFlag(avatarChanged,
+        ServiceStatus result = StateTable.modifyMeProfileChangedFlag(avatarChanged,
                 getWritableDatabase());
-        if (ServiceStatus.SUCCESS == mResult) {
+        if (ServiceStatus.SUCCESS == result) {
             mMeProfileAvatarChangedFlag = avatarChanged;
         }
-        return mResult;
+        return result;
     }
 
     /***
@@ -986,13 +994,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (Settings.ENABLED_DATABASE_TRACE) {
             trace(false, "DatabaseHelper.fetchContactDetail() localDetailId[" + localDetailId + "]");
         }
-        Cursor mCursor = null;
+        Cursor cursor = null;
         try {
             try {
                 String[] args = {
                     String.format("%d", localDetailId)
                 };
-                mCursor = getReadableDatabase()
+                cursor = getReadableDatabase()
                         .rawQuery(
                                 ContactDetailsTable
                                         .getQueryStringSql(ContactDetailsTable.Field.DETAILLOCALID
@@ -1002,13 +1010,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         e);
                 return ServiceStatus.ERROR_DATABASE_CORRUPT;
             }
-            if (!mCursor.moveToFirst()) {
+            if (!cursor.moveToFirst()) {
                 return ServiceStatus.ERROR_NOT_FOUND;
             }
-            detail.copy(ContactDetailsTable.getQueryData(mCursor));
+            detail.copy(ContactDetailsTable.getQueryData(cursor));
             return ServiceStatus.SUCCESS;
         } finally {
-            CloseUtils.close(mCursor);
+            CloseUtils.close(cursor);
         }
     }
 
@@ -1024,10 +1032,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
     public synchronized ServiceStatus fetchContactInfo(String phoneNumber, Contact contact,
             ContactDetail phoneDetail) {
-        ServiceStatus mStatus = ContactDetailsTable.fetchContactInfo(phoneNumber, phoneDetail,
+        ServiceStatus status = ContactDetailsTable.fetchContactInfo(phoneNumber, phoneDetail,
                 null, getReadableDatabase());
-        if (ServiceStatus.SUCCESS != mStatus) {
-            return mStatus;
+        if (ServiceStatus.SUCCESS != status) {
+            return status;
         }
         return fetchContact(phoneDetail.localContactID, contact);
     }
@@ -1045,44 +1053,44 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             trace(false, "DatabaseHelper.addContactToGroup() localContactId[" + localContactId
                     + "] " + "groupId[" + groupId + "]");
         }
-        SQLiteDatabase mDb = getWritableDatabase();
+        SQLiteDatabase db = getWritableDatabase();
         List<Long> groupIds = new ArrayList<Long>();
-        ContactGroupsTable.fetchContactGroups(localContactId, groupIds, mDb);
+        ContactGroupsTable.fetchContactGroups(localContactId, groupIds, db);
         if (groupIds.contains(groupId)) {
             // group is already in db than it's ok
             return ServiceStatus.SUCCESS;
         }
         boolean syncToServer = true;
-        boolean mIsMeProfile = false;
+        boolean isMeProfile = false;
         if (SyncMeDbUtils.getMeProfileLocalContactId(this) != null
                 && SyncMeDbUtils.getMeProfileLocalContactId(this).longValue() == localContactId) {
-            mIsMeProfile = true;
+            isMeProfile = true;
             syncToServer = false;
         }
-        Contact mContact = new Contact();
-        ServiceStatus mStatus = fetchContact(localContactId, mContact);
-        if (ServiceStatus.SUCCESS != mStatus) {
-            return mStatus;
+        Contact contact = new Contact();
+        ServiceStatus status = fetchContact(localContactId, contact);
+        if (ServiceStatus.SUCCESS != status) {
+            return status;
         }
 
         try {
-            mDb.beginTransaction();
+            db.beginTransaction();
 
-            if (!ContactGroupsTable.addContactToGroup(localContactId, groupId, mDb)) {
+            if (!ContactGroupsTable.addContactToGroup(localContactId, groupId, db)) {
                 return ServiceStatus.ERROR_DATABASE_CORRUPT;
             }
             if (syncToServer) {
-                if (!ContactChangeLogTable.addGroupRel(localContactId, mContact.contactID, groupId,
-                        mDb)) {
+                if (!ContactChangeLogTable.addGroupRel(localContactId, contact.contactID, groupId,
+                        db)) {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
             }
-            mDb.setTransactionSuccessful();
+            db.setTransactionSuccessful();
         } finally {
 
-            mDb.endTransaction();
+            db.endTransaction();
         }
-        if (syncToServer && !mIsMeProfile) {
+        if (syncToServer && !isMeProfile) {
             fireDatabaseChangedEvent(DatabaseChangeType.CONTACTS, false);
         }
         return ServiceStatus.SUCCESS;
@@ -1107,31 +1115,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             meProfile = true;
             syncToServer = false;
         }
-        Contact mContact = new Contact();
-        ServiceStatus mStatus = fetchContact(localContactId, mContact);
-        if (ServiceStatus.SUCCESS != mStatus) {
-            return mStatus;
+        Contact contact = new Contact();
+        ServiceStatus status = fetchContact(localContactId, contact);
+        if (ServiceStatus.SUCCESS != status) {
+            return status;
         }
-        if (mContact.contactID == null) {
+        if (contact.contactID == null) {
             return ServiceStatus.ERROR_NOT_READY;
         }
 
-        SQLiteDatabase mDb = getWritableDatabase();
+        SQLiteDatabase db = getWritableDatabase();
         try {
 
-            mDb.beginTransaction();
-            boolean mResult = ContactGroupsTable.deleteContactFromGroup(localContactId, groupId,
-                    mDb);
-            if (mResult && syncToServer) {
-                if (!ContactChangeLogTable.deleteGroupRel(localContactId, mContact.contactID,
-                        groupId, mDb)) {
+            db.beginTransaction();
+            boolean result = ContactGroupsTable.deleteContactFromGroup(localContactId, groupId,
+                    db);
+            if (result && syncToServer) {
+                if (!ContactChangeLogTable.deleteGroupRel(localContactId, contact.contactID,
+                        groupId, db)) {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
             }
-            mDb.setTransactionSuccessful();
+            db.setTransactionSuccessful();
         } finally {
 
-            mDb.endTransaction();
+            db.endTransaction();
         }
         if (syncToServer && !meProfile) {
             fireDatabaseChangedEvent(DatabaseChangeType.CONTACTS, false);
@@ -1151,42 +1159,42 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public ServiceStatus deleteActivities(Integer flag) {
         if (Settings.ENABLED_DATABASE_TRACE)
             trace(false, "DatabaseHelper.deleteActivities() flag[" + flag + "]");
-        ServiceStatus mStatus = ActivitiesTable.deleteActivities(flag, getWritableDatabase());
-        if (ServiceStatus.SUCCESS == mStatus) {
+        ServiceStatus status = ActivitiesTable.deleteActivities(flag, getWritableDatabase());
+        if (ServiceStatus.SUCCESS == status) {
             if (flag == null || flag.intValue() == ActivityItem.TIMELINE_ITEM) {
                 StateTable.modifyLatestPhoneCallTime(System.currentTimeMillis(),
                         getWritableDatabase());
             }
         }
         fireDatabaseChangedEvent(DatabaseChangeType.ACTIVITIES, true);
-        return mStatus;
+        return status;
     }
 
     /***
      * Removes the selected timeline activity from the database.
      * 
-     * @param mApplication The MainApplication
+     * @param application The MainApplication
      * @param timelineItem TimelineSummaryItem to be deleted
      * @return SUCCESS or a suitable error code
      */
-    public ServiceStatus deleteTimelineActivity(MainApplication mApplication,
+    public ServiceStatus deleteTimelineActivity(MainApplication application,
             TimelineSummaryItem timelineItem, boolean isTimelineAll) {
         if (Settings.ENABLED_DATABASE_TRACE)
             trace(false, "DatabaseHelper.deleteTimelineActivity()");
 
-        ServiceStatus mStatus = ServiceStatus.SUCCESS;
+        ServiceStatus status = ServiceStatus.SUCCESS;
 
         if (isTimelineAll) {
-            mStatus = ActivitiesTable.deleteTimelineActivities(mContext, timelineItem,
+            status = ActivitiesTable.deleteTimelineActivities(mContext, timelineItem,
                     getWritableDatabase(), getReadableDatabase());
         } else {
-            mStatus = ActivitiesTable.deleteTimelineActivity(mContext, timelineItem,
+            status = ActivitiesTable.deleteTimelineActivity(mContext, timelineItem,
                     getWritableDatabase(), getReadableDatabase());
         }
 
-        if (mStatus == ServiceStatus.SUCCESS) {
+        if (status == ServiceStatus.SUCCESS) {
             // Update Notifications in the Notification Bar
-            IPeopleService peopleService = mApplication.getServiceInterface();
+            IPeopleService peopleService = application.getServiceInterface();
             long localContactId = 0L;
             if (timelineItem.mLocalContactId != null) {
                 localContactId = timelineItem.mLocalContactId;
@@ -1195,7 +1203,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         }
         fireDatabaseChangedEvent(DatabaseChangeType.ACTIVITIES, true);
-        return mStatus;
+        return status;
     }
 
     /**
@@ -1207,10 +1215,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
     public ServiceStatus addActivities(List<ActivityItem> activityList) {
         SQLiteDatabase writableDb = getWritableDatabase();
-        ServiceStatus mStatus = ActivitiesTable.addActivities(activityList, writableDb, mContext);
+        ServiceStatus status = ActivitiesTable.addActivities(activityList, writableDb, mContext);
         ActivitiesTable.cleanupActivityTable(writableDb);
         fireDatabaseChangedEvent(DatabaseChangeType.ACTIVITIES, true);
-        return mStatus;
+        return status;
     }
 
     /***
@@ -1307,11 +1315,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @see #fireSettingChangedEvent(PersistSettings)
      */
     private void fireEventToUi(ServiceUiRequest event, int arg1, int arg2, Object data) {
-        for (Handler mHandler : mUiEventCallbackList) {
-            Message mMessage = mHandler.obtainMessage(event.ordinal(), data);
-            mMessage.arg1 = arg1;
-            mMessage.arg2 = arg2;
-            mHandler.sendMessage(mMessage);
+        for (Handler handler : mUiEventCallbackList) {
+            Message message = handler.obtainMessage(event.ordinal(), data);
+            message.arg1 = arg1;
+            message.arg2 = arg2;
+            handler.sendMessage(message);
         }
     }
 
@@ -1420,9 +1428,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
                 if (syncToServer) {
                     if (contact.groupList != null) {
-                        for (Long mGroupId : contact.groupList) {
+                        for (Long groupId : contact.groupList) {
                             if (!ContactChangeLogTable.addGroupRel(contact.localContactID,
-                                    contact.contactID, mGroupId, writableDb)) {
+                                    contact.contactID, groupId, writableDb)) {
                                 return ServiceStatus.ERROR_DATABASE_CORRUPT;
                             }
                         }
@@ -1743,42 +1751,42 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         boolean needFireDbUpdate = false; 
-        SQLiteDatabase mDb = getWritableDatabase();
+        SQLiteDatabase db = getWritableDatabase();
 
-        for (ContactDetail mContactDetail : detailList) {
+        for (ContactDetail contactDetail : detailList) {
             
-            mContactDetail.localDetailID = null;
+            contactDetail.localDetailID = null;
             if (syncToServer) {
-                mContactDetail.unique_id = null;
+                contactDetail.unique_id = null;
             }
             if (syncToNative) {
-                mContactDetail.nativeDetailId = null;
+                contactDetail.nativeDetailId = null;
             }
-            if (mContactDetail.localContactID == null) {
+            if (contactDetail.localContactID == null) {
                 return ServiceStatus.ERROR_NOT_FOUND;
             }
             try {
-                mDb.beginTransaction();
-                ContactsTable.ContactIdInfo mContactIdInfo = ContactsTable.validateContactId(
-                        mContactDetail.localContactID, mDb);
-                if (mContactIdInfo == null) {
+                db.beginTransaction();
+                ContactsTable.ContactIdInfo contactIdInfo = ContactsTable.validateContactId(
+                        contactDetail.localContactID, db);
+                if (contactIdInfo == null) {
                     return ServiceStatus.ERROR_NOT_FOUND;
                 }
-                mContactDetail.serverContactId = mContactIdInfo.serverId;
-                if (mContactIdInfo.syncToPhone) {
-                    mContactDetail.syncNativeContactId = mContactIdInfo.nativeId;
+                contactDetail.serverContactId = contactIdInfo.serverId;
+                if (contactIdInfo.syncToPhone) {
+                    contactDetail.syncNativeContactId = contactIdInfo.nativeId;
                 } else {
-                    mContactDetail.syncNativeContactId = -1;
+                    contactDetail.syncNativeContactId = -1;
                 }
-                if (mContactDetail.order != null
-                        && mContactDetail.order.equals(ContactDetail.ORDER_PREFERRED)) {
-                    ContactDetailsTable.removePreferred(mContactDetail.localContactID,
-                            mContactDetail.key, mDb);
+                if (contactDetail.order != null
+                        && contactDetail.order.equals(ContactDetail.ORDER_PREFERRED)) {
+                    ContactDetailsTable.removePreferred(contactDetail.localContactID,
+                            contactDetail.key, db);
                 }
-                ServiceStatus mStatus = ContactDetailsTable.addContactDetail(mContactDetail,
-                        syncToServer, syncToNative, mDb);
-                if (ServiceStatus.SUCCESS != mStatus) {
-                    return mStatus;
+                ServiceStatus status = ContactDetailsTable.addContactDetail(contactDetail,
+                        syncToServer, syncToNative, db);
+                if (ServiceStatus.SUCCESS != status) {
+                    return status;
                 }
 
                 // Whenever the photo URL is updated, the photoloaded flag in
@@ -1787,24 +1795,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 // also be downloaded.
                 // When the picture is being from the client we don't need to set the flag to "TRUE",
                 // in order not to override the new picture before it is uploaded.
-                if (mContactDetail.key == ContactDetail.DetailKeys.PHOTO && isNullOrBlank(mContactDetail.photo_url)) {
-                        ContactSummaryTable.modifyPictureLoadedFlag(mContactDetail.localContactID,
-                                false, mDb);
+                if (contactDetail.key == ContactDetail.DetailKeys.PHOTO && TextUtils.isEmpty(contactDetail.photo_url)) {
+                        ContactSummaryTable.modifyPictureLoadedFlag(contactDetail.localContactID,
+                                false, db);
                 }
-                String displayName = updateContactNameInSummary(mDb,
-                        mContactDetail.localContactID, 
-                        SyncMeDbUtils.isMeProfile(this, mContactDetail.localContactID));
+                String displayName = updateContactNameInSummary(db,
+                        contactDetail.localContactID, 
+                        SyncMeDbUtils.isMeProfile(this, contactDetail.localContactID));
                 if (null == displayName) {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
 
-                if (updateTimelineNames(mContactDetail, displayName, null, mDb)) {
+                if (updateTimelineNames(contactDetail, displayName, null, db)) {
                     needFireDbUpdate = true;
                 }
 
-                mDb.setTransactionSuccessful();
+                db.setTransactionSuccessful();
             } finally {
-                mDb.endTransaction();
+                db.endTransaction();
             }
         }
         
@@ -1882,32 +1890,32 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         boolean needFireDbUpdate = false;
-        SQLiteDatabase mDb = getWritableDatabase();
+        SQLiteDatabase db = getWritableDatabase();
 
-        for (ContactDetail mContactDetail : contactDetailList) {
-            ContactsTable.ContactIdInfo mContactIdInfo = ContactsTable.validateContactId(
-                    mContactDetail.localContactID, mDb);
-            if (mContactIdInfo == null) {
+        for (ContactDetail contactDetail : contactDetailList) {
+            ContactsTable.ContactIdInfo contactIdInfo = ContactsTable.validateContactId(
+                    contactDetail.localContactID, db);
+            if (contactIdInfo == null) {
                 return ServiceStatus.ERROR_NOT_FOUND;
             }
-            mContactDetail.serverContactId = mContactIdInfo.serverId;
-            if (mContactIdInfo.syncToPhone) {
-                mContactDetail.syncNativeContactId = mContactIdInfo.nativeId;
+            contactDetail.serverContactId = contactIdInfo.serverId;
+            if (contactIdInfo.syncToPhone) {
+                contactDetail.syncNativeContactId = contactIdInfo.nativeId;
             } else {
-                mContactDetail.syncNativeContactId = -1;
+                contactDetail.syncNativeContactId = -1;
             }
             try {
 
-                mDb.beginTransaction();
-                if (mContactDetail.order != null
-                        && mContactDetail.order.equals(ContactDetail.ORDER_PREFERRED)) {
-                    ContactDetailsTable.removePreferred(mContactDetail.localContactID,
-                            mContactDetail.key, mDb);
+                db.beginTransaction();
+                if (contactDetail.order != null
+                        && contactDetail.order.equals(ContactDetail.ORDER_PREFERRED)) {
+                    ContactDetailsTable.removePreferred(contactDetail.localContactID,
+                            contactDetail.key, db);
                 }
-                ServiceStatus mStatus = ContactDetailsTable.modifyDetail(mContactDetail,
-                        syncToServer, syncToNative, mDb);
-                if (ServiceStatus.SUCCESS != mStatus) {
-                    return mStatus;
+                ServiceStatus status = ContactDetailsTable.modifyDetail(contactDetail,
+                        syncToServer, syncToNative, db);
+                if (ServiceStatus.SUCCESS != status) {
+                    return status;
                 }
 
                 // Whenever the photo URL is updated, the photoloaded flag in
@@ -1916,23 +1924,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 // also be downloaded.
                 // When the picture is being from the client we don't need to set the flag to "TRUE",
                 // in order not to override the new picture before it is uploaded.
-                if (ContactDetail.DetailKeys.PHOTO == mContactDetail.key && isNullOrBlank(mContactDetail.photo_url)) {
-                    ContactSummaryTable.modifyPictureLoadedFlag(mContactDetail.localContactID,
-                            false, mDb);
+                if (ContactDetail.DetailKeys.PHOTO == contactDetail.key && TextUtils.isEmpty(contactDetail.photo_url)) {
+                    ContactSummaryTable.modifyPictureLoadedFlag(contactDetail.localContactID,
+                            false, db);
                 }
 
-                String displayName = updateContactNameInSummary(mDb,
-                        mContactDetail.localContactID, 
-                        SyncMeDbUtils.isMeProfile(this, mContactDetail.localContactID));
+                String displayName = updateContactNameInSummary(db,
+                        contactDetail.localContactID, 
+                        SyncMeDbUtils.isMeProfile(this, contactDetail.localContactID));
                 if (null == displayName) {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
-                if (updateTimelineNames(mContactDetail, displayName, null, mDb)) {
+                if (updateTimelineNames(contactDetail, displayName, null, db)) {
                     needFireDbUpdate = true;
                 }
-                mDb.setTransactionSuccessful();
+                db.setTransactionSuccessful();
             } finally {
-                mDb.endTransaction();
+                db.endTransaction();
             }
         }
         
@@ -1969,34 +1977,34 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             syncToNative = false;
         }
 
-        SQLiteDatabase mDb = getWritableDatabase();
+        SQLiteDatabase db = getWritableDatabase();
         boolean needFireDbUpdate = false;
         
-        for (ContactDetail mContactDetail : contactDetailList) {
-            if ((mContactDetail.serverContactId == null) || (mContactDetail.serverContactId == -1)) {
-                ContactsTable.ContactIdInfo mContactIdInfo = ContactsTable.validateContactId(
-                        mContactDetail.localContactID, mDb);
-                if (mContactIdInfo == null) {
+        for (ContactDetail contactDetail : contactDetailList) {
+            if ((contactDetail.serverContactId == null) || (contactDetail.serverContactId == -1)) {
+                ContactsTable.ContactIdInfo contactIdInfo = ContactsTable.validateContactId(
+                        contactDetail.localContactID, db);
+                if (contactIdInfo == null) {
                     return ServiceStatus.ERROR_NOT_FOUND;
                 }
-                mContactDetail.nativeContactId = mContactIdInfo.nativeId;
-                mContactDetail.serverContactId = mContactIdInfo.serverId;
+                contactDetail.nativeContactId = contactIdInfo.nativeId;
+                contactDetail.serverContactId = contactIdInfo.serverId;
             }
 
             try {
-                mDb.beginTransaction();
+                db.beginTransaction();
                 if (syncToNative) {
-                    if (!NativeChangeLogTable.addDeletedContactDetailChange(mContactDetail, mDb)) {
+                    if (!NativeChangeLogTable.addDeletedContactDetailChange(contactDetail, db)) {
                         return ServiceStatus.ERROR_DATABASE_CORRUPT;
                     }
                 }
                 if (syncToServer) {
-                    if (!ContactChangeLogTable.addDeletedContactDetailChange(mContactDetail,
-                            syncToServer, mDb)) {
+                    if (!ContactChangeLogTable.addDeletedContactDetailChange(contactDetail,
+                            syncToServer, db)) {
                         return ServiceStatus.ERROR_DATABASE_CORRUPT;
                     }
                 }
-                if (!ContactDetailsTable.deleteDetailByDetailId(mContactDetail.localDetailID, mDb)) {
+                if (!ContactDetailsTable.deleteDetailByDetailId(contactDetail.localDetailID, db)) {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
 
@@ -2006,25 +2014,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 // also be downloaded.
                 // When the picture is being from the client we don't need to set the flag to "TRUE",
                 // in order not to override the new picture before it is uploaded.
-                if (mContactDetail.key == ContactDetail.DetailKeys.PHOTO && isNullOrBlank(mContactDetail.photo_url)) {
-                    ContactSummaryTable.modifyPictureLoadedFlag(mContactDetail.localContactID,
-                            false, mDb);
-                    deleteThumbnail(mContactDetail.localContactID);
+                if (contactDetail.key == ContactDetail.DetailKeys.PHOTO && TextUtils.isEmpty(contactDetail.photo_url)) {
+                    ContactSummaryTable.modifyPictureLoadedFlag(contactDetail.localContactID,
+                            false, db);
+                    deleteThumbnail(contactDetail.localContactID);
                 }
 
-                String displayName = updateContactNameInSummary(mDb,
-                        mContactDetail.localContactID,
-                        SyncMeDbUtils.isMeProfile(this, mContactDetail.localContactID));
+                String displayName = updateContactNameInSummary(db,
+                        contactDetail.localContactID,
+                        SyncMeDbUtils.isMeProfile(this, contactDetail.localContactID));
                 if (displayName == null) {
                     return ServiceStatus.ERROR_DATABASE_CORRUPT;
                 }
                 
-                if (updateTimelineNames(mContactDetail, displayName, mContactDetail.localContactID, mDb)) {
+                if (updateTimelineNames(contactDetail, displayName, contactDetail.localContactID, db)) {
                     needFireDbUpdate = true;
                 }
-                mDb.setTransactionSuccessful();
+                db.setTransactionSuccessful();
             } finally {
-                mDb.endTransaction();
+                db.endTransaction();
             }
         }
 
@@ -2045,21 +2053,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @see #fetchContact(long, Contact)
      */
     private ServiceStatus fetchBaseContact(long localContactId, Contact baseContact,
-            SQLiteDatabase mDb) {
-        ServiceStatus mStatus = ContactsTable.fetchContact(localContactId, baseContact, mDb);
-        if (ServiceStatus.SUCCESS != mStatus) {
-            return mStatus;
+            SQLiteDatabase db) {
+        ServiceStatus status = ContactsTable.fetchContact(localContactId, baseContact, db);
+        if (ServiceStatus.SUCCESS != status) {
+            return status;
         }
         if (baseContact.groupList == null) {
             baseContact.groupList = new ArrayList<Long>();
         }
-        if (!ContactGroupsTable.fetchContactGroups(localContactId, baseContact.groupList, mDb)) {
+        if (!ContactGroupsTable.fetchContactGroups(localContactId, baseContact.groupList, db)) {
             return ServiceStatus.ERROR_DATABASE_CORRUPT;
         }
         if (baseContact.sources == null) {
             baseContact.sources = new ArrayList<String>();
         }
-        if (!ContactSourceTable.fetchContactSources(localContactId, baseContact.sources, mDb)) {
+        if (!ContactSourceTable.fetchContactSources(localContactId, baseContact.sources, db)) {
             return ServiceStatus.ERROR_DATABASE_CORRUPT;
         }
         return ServiceStatus.SUCCESS;
@@ -2076,12 +2084,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
     public Long fetchServerId(long localContactId) {
         trace(false, "DatabaseHelper.fetchServerId() localContactId[" + localContactId + "]");
-        ContactsTable.ContactIdInfo mInfo = ContactsTable.validateContactId(localContactId,
+        ContactsTable.ContactIdInfo info = ContactsTable.validateContactId(localContactId,
                 getReadableDatabase());
-        if (mInfo == null) {
+        if (info == null) {
             return null;
         }
-        return mInfo.serverId;
+        return info.serverId;
     }
 
     /***
@@ -2091,17 +2099,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void removeUserData() {
         trace(false, "DatabaseHelper.removeUserData()");
 
-        String mThumbnailPath = ThumbnailUtils.thumbnailPath(null);
-        deleteDirectory(new File(mThumbnailPath));
+        String thumbnailPath = ThumbnailUtils.thumbnailPath(null);
+        deleteDirectory(new File(thumbnailPath));
         deleteDatabase();
 
         SyncMeDbUtils.setMeProfileId(null);
 
-        mDbUpgradeRequired = false;
-
         PresenceDbUtils.resetMeProfileIds();
 
-        fireDatabaseChangedEvent(DatabaseChangeType.CONTACTS, false);
     }
 
     /***
@@ -2111,11 +2116,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
     private boolean deleteThumbnail(Long localContactID) {
         trace(false, "DatabaseHelper.deleteThumbnail() localContactID[" + localContactID + "]");
-        String mThumbnailPath = ThumbnailUtils.thumbnailPath(localContactID);
-        if (mThumbnailPath != null) {
-            File mFile = new File(mThumbnailPath);
-            if (mFile.exists()) {
-                return mFile.delete();
+        String thumbnailPath = ThumbnailUtils.thumbnailPath(localContactID);
+        if (thumbnailPath != null) {
+            File file = new File(thumbnailPath);
+            if (file.exists()) {
+                return file.delete();
             }
         }
         // if the file was not there the deletion was also correct
@@ -2134,15 +2139,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public ServiceStatus fetchContactByServerId(Long contactServerId, Contact contact) {
         final SQLiteStatement statement = ContactsTable
                 .fetchLocalFromServerIdStatement(getReadableDatabase());
-        Long mLocalId = ContactsTable.fetchLocalFromServerId(contactServerId, statement);
-        if (mLocalId == null) {
+        Long localId = ContactsTable.fetchLocalFromServerId(contactServerId, statement);
+        if (localId == null) {
             return ServiceStatus.ERROR_NOT_FOUND;
         }
         
         if(statement != null) {
             statement.close();
         }
-        return fetchContact(mLocalId, contact);
+        return fetchContact(localId, contact);
     }
 
     /***
@@ -2294,17 +2299,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @return A string which contains a description of the result
      */
     public String copyDatabaseToSd(String info) {
-        String mFileName = "/sdcard/people_" + info + "_" + System.currentTimeMillis() + ".db";
+        String fileName = "/sdcard/people_" + info + "_" + System.currentTimeMillis() + ".db";
         close();
 
         InputStream in = null;
         OutputStream out = null;
 
         try {
-            File mSourceFile = mContext.getDatabasePath(DATABASE_NAME);
-            File mTargetFile = new File(mFileName);
-            in = new FileInputStream(mSourceFile);
-            out = new FileOutputStream(mTargetFile);
+            File sourceFile = mContext.getDatabasePath(DATABASE_NAME);
+            File targetFile = new File(fileName);
+            in = new FileInputStream(sourceFile);
+            out = new FileOutputStream(targetFile);
             final int size = 1024;
             byte[] buf = new byte[size];
             int len;
@@ -2313,7 +2318,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
             in.close();
             out.close();
-            return "DatabaseHelper.copyDatabaseToSd() Database copied to SD Card as [" + mFileName
+            return "DatabaseHelper.copyDatabaseToSd() Database copied to SD Card as [" + fileName
                     + "]";
         } catch (FileNotFoundException ex) {
             return "DatabaseHelper.copyDatabaseToSd() File not found [" + ex.getMessage()
@@ -2683,15 +2688,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return isPictureLoaded;
     }
     
-    /**
-     * This utility method returns true if the passed string is null or blank.
-     * @param input String
-     * @return TRUE if the passed string is null or blank.
-     */
-    public static boolean isNullOrBlank(String input) {
-        return input == null || input.length() == 0;
-    }
-
     /**
      * This method updates the timeline entries.
      * for the contact when new Phone number is added.

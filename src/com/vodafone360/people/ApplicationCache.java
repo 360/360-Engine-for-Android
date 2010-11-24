@@ -28,6 +28,7 @@ package com.vodafone360.people;
 import java.lang.ref.SoftReference;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -145,11 +146,10 @@ public class ApplicationCache {
     public final static String PREFS_UPGRADE_TEXT = "upgradeText";
     
     /**
-     * Text key to indicate if the intent from StartTabsActivity needs to be
-     * retained.
+     * To keep track of whether contact sync screen is visible to the user.
      */
-    public final static String RETAIN_INTENT = "RetainIntent";
-
+    private static boolean sContactSyncScreenVisible = false;
+    
     /**
      * Current state of the Activities engine fetching older time line logic.
      */
@@ -351,7 +351,7 @@ public class ApplicationCache {
     /**
      * Clear all cached data currently stored in People application.
      */
-    protected void clearCachedData(Context context) {
+    public void clearCachedData(Context context) {
         LoginPreferences.clearPreferencesFile(context);
         LoginPreferences.clearCachedLoginDetails();
 
@@ -378,6 +378,7 @@ public class ApplicationCache {
         sFetchingOlderTimeline = false;
         sUpdatingStatuses = false;
         sFetchingOlderStatuses = false;
+        sContactSyncScreenVisible = false;
         
     }
 
@@ -778,5 +779,24 @@ public class ApplicationCache {
      */
     synchronized public static void setSyncBusy(boolean isSyncBusy) {
         ApplicationCache.sIsContactSyncBusy = isSyncBusy;
+    }
+    
+    /***
+     * TRUE if the contact sync screen is visible to the user.
+     *
+     * @return TRUE if contact sync screen is visible to the user.
+     */
+    public static boolean isContactSyncScreenVisible() {
+        return sContactSyncScreenVisible;
+    }
+
+    /***
+     * Set contact sync screen visible.
+     *
+     * @param contactSyncScreenVisible contact sync screen state.
+     */
+    public static void setContactSyncScreenVisible(
+            final boolean contactSyncScreenVisible) {
+        sContactSyncScreenVisible = contactSyncScreenVisible;
     }
 }

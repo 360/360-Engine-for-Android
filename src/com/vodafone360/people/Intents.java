@@ -44,9 +44,10 @@ public class Intents {
     public static final String CLEARALL_NOTIFICATION =  "com.vodafone360.people.Intents.CLEAR_ALL";
     
     public static final String OPEN_STATUS = "com.vodafone360.people.Intents.OPEN_STATUS";
+ 
+    public static final String DELETE_CONTACT_NOTIFICATION = "com.vodafone360.people.Intents.Delete_Contact_NOTIFICATION";
     
-    /**
-     * This is a boolean extra for the Intent, which indicates the Intent has been dismissed.
-     */
-    public static final String EXTRA_DISMISSED = "dismissed"; 
+    public static final String USER_CHANGE = "com.vodafone360.people.Intents.USER_CHANGE";
+    
+    public static final String ONE_360_ACCOUNT_ONLY = "com.vodafone360.people.Intents.ONE_360_ACCOUNT_ONLY";
 }
